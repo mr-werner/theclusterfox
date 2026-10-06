@@ -35,9 +35,8 @@ export default function F4TPage() {
       servingDescription:
         food.householdServingFullText ||
         (food.servingSize
-          ? `${food.servingSize} ${
-              food.servingSizeUnit || ""
-            }`
+          ? `${food.servingSize} ${food.servingSizeUnit || ""
+          }`
           : "1 serving"),
       servings: 1,
     };
@@ -117,7 +116,10 @@ export default function F4TPage() {
             </p>
           </div>
 
-          <FoodSearch onAddFood={addFood} />
+          <FoodSearch
+            onAddFood={addFood}
+            addedFoodIds={meal.map((item) => item.fdcId)}
+          />
 
           {meal.length > 0 && (
             <div className="meal">

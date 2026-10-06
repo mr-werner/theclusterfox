@@ -968,3 +968,13 @@ select {
     grid-template-columns: 1fr;
   }
 }
+
+.add-food-button.is-added {
+  color: var(--f4t);
+  background: rgba(146, 212, 111, 0.08);
+  opacity: 1;
+}
+
+.add-food-button.is-added:disabled {
+  opacity: 1;
+}

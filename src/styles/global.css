@@ -497,3 +497,474 @@ select {
     padding-top: 65px;
   }
 }
+
+/* ------------------------------
+   F4T - Is It Worth It?
+------------------------------ */
+
+.f4t-app {
+  width: min(calc(100% - 48px), 900px);
+  margin: 0 auto;
+  padding: 45px 0 100px;
+}
+
+.f4t-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 55px;
+}
+
+.f4t-header .f4t-logo {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.f4t-header h1 {
+  margin: 2px 0 6px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.f4t-header > div > p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
+.f4t-section-label {
+  margin: 0 0 7px;
+  color: var(--f4t);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.meal-builder {
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--surface);
+}
+
+.meal-builder-heading {
+  margin-bottom: 24px;
+}
+
+.meal-builder-heading h2,
+.exercise-heading h2 {
+  margin: 0 0 7px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: -0.04em;
+}
+
+.meal-builder-heading > p:last-child,
+.exercise-heading > p:last-child {
+  margin: 0;
+  color: var(--muted);
+}
+
+.food-search-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #101311;
+}
+
+.food-search-input svg {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.food-search-input input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+}
+
+.food-search-input input::placeholder {
+  color: #6f7771;
+}
+
+.food-search-input button,
+.add-food-button,
+.calculate-button {
+  border: 0;
+  cursor: pointer;
+}
+
+.food-search-input button {
+  padding: 11px 17px;
+  border-radius: 11px;
+  color: #14200f;
+  background: var(--f4t);
+  font-weight: 700;
+}
+
+.food-search-input button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.food-search-error {
+  color: #ef8d7d;
+}
+
+.food-results {
+  display: grid;
+  gap: 8px;
+  max-height: 400px;
+  margin-top: 14px;
+  overflow-y: auto;
+}
+
+.food-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #131614;
+}
+
+.food-result-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.food-result-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.food-result-info span,
+.food-result-info small {
+  color: var(--muted);
+}
+
+.add-food-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  background: rgba(146, 212, 111, 0.12);
+}
+
+.add-food-button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.meal {
+  margin-top: 38px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border);
+}
+
+.meal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.meal-heading h2 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.25rem;
+}
+
+.meal-heading span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.meal-items {
+  display: grid;
+  gap: 10px;
+}
+
+.meal-item {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #131614;
+}
+
+.meal-item-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.meal-item-main h3 {
+  margin: 0 0 3px;
+  font-size: 0.95rem;
+}
+
+.meal-item-main p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.meal-item-main > strong {
+  white-space: nowrap;
+}
+
+.meal-item-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.serving-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.serving-control button,
+.remove-food {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.serving-control input {
+  width: 58px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: 0;
+  color: var(--text);
+  background: #0f1210;
+  text-align: center;
+}
+
+.serving-control span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.remove-food:hover {
+  color: #ef8d7d;
+}
+
+.meal-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding: 20px 4px;
+  border-top: 1px solid var(--border);
+}
+
+.meal-total > span {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.meal-total strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2rem;
+}
+
+.meal-total small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.weight-section {
+  margin-top: 10px;
+}
+
+.weight-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.weight-input {
+  display: flex;
+  align-items: center;
+  max-width: 190px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #101311;
+}
+
+.weight-input input {
+  width: 100%;
+  padding: 12px 5px 12px 14px;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+}
+
+.weight-input span {
+  padding-right: 14px;
+  color: var(--muted);
+}
+
+.calculate-button {
+  width: 100%;
+  margin-top: 25px;
+  padding: 15px;
+  border-radius: 13px;
+  color: #14200f;
+  background: var(--f4t);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.calculate-button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.exercise-section {
+  margin-top: 40px;
+}
+
+.exercise-heading {
+  margin-bottom: 22px;
+}
+
+.exercise-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.exercise-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.exercise-card svg {
+  margin-bottom: 20px;
+  color: var(--f4t);
+}
+
+.exercise-card h3 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
+
+.exercise-card strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.35rem;
+}
+
+.exercise-card span {
+  margin-top: 3px;
+  color: var(--f4t);
+  font-size: 0.8rem;
+}
+
+.exercise-card small {
+  margin-top: auto;
+  padding-top: 12px;
+  color: var(--muted);
+}
+
+.science-note {
+  margin-top: 20px;
+  padding: 25px;
+  border: 1px solid rgba(146, 212, 111, 0.18);
+  border-radius: 18px;
+  background: rgba(146, 212, 111, 0.05);
+}
+
+.science-note strong {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.science-note p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.spin {
+  animation: f4t-spin 0.8s linear infinite;
+}
+
+@keyframes f4t-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 750px) {
+  .f4t-app {
+    width: calc(100% - 32px);
+  }
+
+  .f4t-header {
+    align-items: flex-start;
+  }
+
+  .meal-builder {
+    padding: 20px;
+  }
+
+  .exercise-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .f4t-header {
+    flex-direction: column;
+  }
+
+  .food-search-input {
+    flex-wrap: wrap;
+  }
+
+  .food-search-input input {
+    min-width: 150px;
+  }
+
+  .food-search-input button {
+    width: 100%;
+  }
+
+  .food-result {
+    align-items: flex-start;
+  }
+
+  .exercise-grid {
+    grid-template-columns: 1fr;
+  }
+}

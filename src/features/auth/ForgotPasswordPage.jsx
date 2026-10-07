@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { authClient } from "../../lib/auth";
 
-export default function SignUpPage() {
+export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
+    const [verificationCode, setVerificationCode] = useState("");
+
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [displayName, setDisplayName] = useState("");
 
-    const [verificationCode, setVerificationCode] = useState("");
-    const [step, setStep] = useState("signup");
+    const [step, setStep] = useState("email");
 
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
@@ -17,122 +16,74 @@ export default function SignUpPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isResending, setIsResending] = useState(false);
 
-    async function handleSignUp(event) {
-        event.preventDefault();
-
-        setError("");
-        setMessage("");
-
+    async function requestResetCode() {
         const cleanEmail = email.trim();
 
         if (!cleanEmail) {
             setError("Please enter your email address.");
-            return;
+            return false;
         }
 
-        if (cleanName.length > 50) {
-            setError("Display name must be 50 characters or fewer.");
-            return;
-        }
+        const authUrl = import.meta.env.VITE_NEON_AUTH_URL;
 
-        if (!password) {
-            setError("Please enter a password.");
-            return;
-        }
+        const response = await fetch(
+            `${authUrl}/email-otp/request-password-reset`,
+            {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: cleanEmail,
+                }),
+            }
+        );
 
-        if (password !== confirmPassword) {
-            setError("Your passwords don't match.");
-            return;
-        }
-
-        setIsSubmitting(true);
+        let result = {};
 
         try {
-            const { error } = await authClient.signUp.email({
-                email: cleanEmail,
-                password,
-                name: cleanName,
-            });
-
-            if (error) {
-                setError(
-                    error.message ||
-                    "We couldn't create your account. Please try again."
-                );
-                return;
-            }
-
-            setStep("verify");
-            setPassword("");
-            setConfirmPassword("");
-            setVerificationCode("");
-
-            setMessage(
-                "We sent a verification code to your email."
-            );
-        } catch (err) {
-            console.error("Sign-up error:", err);
-
-            setError(
-                err?.message ||
-                "Something went wrong while creating your account."
-            );
-        } finally {
-            setIsSubmitting(false);
+            result = await response.json();
+        } catch {
+            // Response may not contain JSON.
         }
+
+        if (!response.ok) {
+            throw new Error(
+                result?.message ||
+                result?.error?.message ||
+                "We couldn't send a password reset code."
+            );
+        }
+
+        return true;
     }
 
-    async function handleVerification(event) {
+    async function handleRequestCode(event) {
         event.preventDefault();
 
         setError("");
         setMessage("");
-
-        const code = verificationCode.trim();
-
-        if (!/^\d{6}$/.test(code)) {
-            setError("Please enter the 6-digit verification code.");
-            return;
-        }
-
         setIsSubmitting(true);
 
         try {
-            const authUrl = import.meta.env.VITE_NEON_AUTH_URL;
+            const success = await requestResetCode();
 
-            const response = await fetch(
-                `${authUrl}/email-otp/verify-email`,
-                {
-                    method: "POST",
-                    credentials: "include",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        email: email.trim(),
-                        otp: code,
-                    }),
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result?.message ||
-                    result?.error?.message ||
-                    "The verification code is invalid or has expired."
-                );
+            if (!success) {
+                return;
             }
 
-            setStep("success");
-            setVerificationCode("");
+            setStep("reset");
+
+            setMessage(
+                "We sent a password reset code to your email."
+            );
         } catch (err) {
-            console.error("Verification error:", err);
+            console.error("Password reset request error:", err);
 
             setError(
                 err?.message ||
-                "We couldn't verify your email. Please try again."
+                "We couldn't send a password reset code."
             );
         } finally {
             setIsSubmitting(false);
@@ -145,10 +96,61 @@ export default function SignUpPage() {
         setIsResending(true);
 
         try {
+            const success = await requestResetCode();
+
+            if (!success) {
+                return;
+            }
+
+            setVerificationCode("");
+
+            setMessage(
+                "A new password reset code has been sent."
+            );
+        } catch (err) {
+            console.error("Resend reset code error:", err);
+
+            setError(
+                err?.message ||
+                "We couldn't send another reset code."
+            );
+        } finally {
+            setIsResending(false);
+        }
+    }
+
+    async function handleResetPassword(event) {
+        event.preventDefault();
+
+        setError("");
+        setMessage("");
+
+        const code = verificationCode.trim();
+
+        if (!/^\d{6}$/.test(code)) {
+            setError(
+                "Please enter the 6-digit verification code."
+            );
+            return;
+        }
+
+        if (!password) {
+            setError("Please enter a new password.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError("Your passwords don't match.");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
             const authUrl = import.meta.env.VITE_NEON_AUTH_URL;
 
             const response = await fetch(
-                `${authUrl}/email-otp/send-verification-otp`,
+                `${authUrl}/email-otp/reset-password`,
                 {
                     method: "POST",
                     credentials: "include",
@@ -157,7 +159,8 @@ export default function SignUpPage() {
                     },
                     body: JSON.stringify({
                         email: email.trim(),
-                        type: "email-verification",
+                        otp: code,
+                        password,
                     }),
                 }
             );
@@ -167,39 +170,32 @@ export default function SignUpPage() {
             try {
                 result = await response.json();
             } catch {
-                // Some successful responses may not contain JSON.
+                // Response may not contain JSON.
             }
 
             if (!response.ok) {
                 throw new Error(
                     result?.message ||
                     result?.error?.message ||
-                    "We couldn't send another verification code."
+                    "The reset code is invalid or has expired."
                 );
             }
 
+            setPassword("");
+            setConfirmPassword("");
             setVerificationCode("");
 
-            setMessage(
-                "A new verification code has been sent. Check your email."
-            );
+            setStep("success");
         } catch (err) {
-            console.error("Resend verification error:", err);
+            console.error("Password reset error:", err);
 
             setError(
                 err?.message ||
-                "We couldn't send another verification code. Please try again."
+                "We couldn't reset your password."
             );
         } finally {
-            setIsResending(false);
+            setIsSubmitting(false);
         }
-    }
-
-    function handleGoBack() {
-        setStep("signup");
-        setVerificationCode("");
-        setError("");
-        setMessage("");
     }
 
     return (
@@ -217,43 +213,26 @@ export default function SignUpPage() {
                 </Link>
 
                 <section className="auth-card">
-                    {step === "signup" && (
+
+                    {step === "email" && (
                         <>
                             <div className="auth-heading">
                                 <p className="eyebrow">
-                                    JOIN THE CLUSTER
+                                    ACCOUNT RECOVERY
                                 </p>
 
-                                <h1>Create an account</h1>
+                                <h1>Reset your password</h1>
 
                                 <p>
-                                    Save your settings, personalize your apps,
-                                    and get more out of The Cluster Fox.
+                                    Enter the email address associated
+                                    with your Cluster Fox account.
                                 </p>
                             </div>
 
                             <form
                                 className="auth-form"
-                                onSubmit={handleSignUp}
+                                onSubmit={handleRequestCode}
                             >
-                                <label>
-                                    Display name
-
-                                    <input
-                                        type="text"
-                                        placeholder="What should we call you?"
-                                        autoComplete="name"
-                                        value={displayName}
-                                        onChange={(event) =>
-                                            setDisplayName(event.target.value)
-                                        }
-                                        maxLength={50}
-                                        disabled={isSubmitting}
-                                        required
-                                    />
-                                </label>
-
-
                                 <label>
                                     Email
 
@@ -264,40 +243,6 @@ export default function SignUpPage() {
                                         value={email}
                                         onChange={(event) =>
                                             setEmail(event.target.value)
-                                        }
-                                        disabled={isSubmitting}
-                                        required
-                                    />
-                                </label>
-
-                                <label>
-                                    Password
-
-                                    <input
-                                        type="password"
-                                        placeholder="Create a password"
-                                        autoComplete="new-password"
-                                        value={password}
-                                        onChange={(event) =>
-                                            setPassword(event.target.value)
-                                        }
-                                        disabled={isSubmitting}
-                                        required
-                                    />
-                                </label>
-
-                                <label>
-                                    Confirm password
-
-                                    <input
-                                        type="password"
-                                        placeholder="Confirm your password"
-                                        autoComplete="new-password"
-                                        value={confirmPassword}
-                                        onChange={(event) =>
-                                            setConfirmPassword(
-                                                event.target.value
-                                            )
                                         }
                                         disabled={isSubmitting}
                                         required
@@ -316,13 +261,13 @@ export default function SignUpPage() {
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting
-                                        ? "Creating Account..."
-                                        : "Create Account"}
+                                        ? "Sending Code..."
+                                        : "Send Reset Code"}
                                 </button>
                             </form>
 
                             <p className="auth-switch">
-                                Already have an account?{" "}
+                                Remember your password?{" "}
                                 <Link to="/login">
                                     Log in
                                 </Link>
@@ -330,28 +275,28 @@ export default function SignUpPage() {
                         </>
                     )}
 
-                    {step === "verify" && (
+                    {step === "reset" && (
                         <>
                             <div className="auth-heading">
                                 <p className="eyebrow">
-                                    ALMOST THERE
+                                    CHECK YOUR EMAIL
                                 </p>
 
-                                <h1>Verify your email</h1>
+                                <h1>Create a new password</h1>
 
                                 <p>
-                                    Enter the 6-digit verification code
-                                    sent to <strong>{email}</strong>.
-                                    The code expires in 10 minutes.
+                                    Enter the 6-digit code sent to{" "}
+                                    <strong>{email}</strong> and choose
+                                    your new password.
                                 </p>
                             </div>
 
                             <form
                                 className="auth-form"
-                                onSubmit={handleVerification}
+                                onSubmit={handleResetPassword}
                             >
                                 <label>
-                                    Verification code
+                                    Reset code
 
                                     <input
                                         type="text"
@@ -368,6 +313,40 @@ export default function SignUpPage() {
 
                                             setVerificationCode(value);
                                         }}
+                                        disabled={isSubmitting}
+                                        required
+                                    />
+                                </label>
+
+                                <label>
+                                    New password
+
+                                    <input
+                                        type="password"
+                                        placeholder="Create a new password"
+                                        autoComplete="new-password"
+                                        value={password}
+                                        onChange={(event) =>
+                                            setPassword(event.target.value)
+                                        }
+                                        disabled={isSubmitting}
+                                        required
+                                    />
+                                </label>
+
+                                <label>
+                                    Confirm new password
+
+                                    <input
+                                        type="password"
+                                        placeholder="Confirm your new password"
+                                        autoComplete="new-password"
+                                        value={confirmPassword}
+                                        onChange={(event) =>
+                                            setConfirmPassword(
+                                                event.target.value
+                                            )
+                                        }
                                         disabled={isSubmitting}
                                         required
                                     />
@@ -394,8 +373,8 @@ export default function SignUpPage() {
                                     }
                                 >
                                     {isSubmitting
-                                        ? "Verifying..."
-                                        : "Verify Email"}
+                                        ? "Resetting Password..."
+                                        : "Reset Password"}
                                 </button>
                             </form>
 
@@ -425,7 +404,14 @@ export default function SignUpPage() {
                                 <button
                                     type="button"
                                     className="auth-text-button"
-                                    onClick={handleGoBack}
+                                    onClick={() => {
+                                        setStep("email");
+                                        setVerificationCode("");
+                                        setPassword("");
+                                        setConfirmPassword("");
+                                        setError("");
+                                        setMessage("");
+                                    }}
                                 >
                                     Go back
                                 </button>
@@ -437,14 +423,15 @@ export default function SignUpPage() {
                         <>
                             <div className="auth-heading">
                                 <p className="eyebrow">
-                                    WELCOME TO THE CLUSTER
+                                    PASSWORD UPDATED
                                 </p>
 
-                                <h1>Email verified!</h1>
+                                <h1>Password reset!</h1>
 
                                 <p>
-                                    Your Cluster Fox account is verified
-                                    and ready to go.
+                                    Your password has been changed.
+                                    You can now log in using your new
+                                    password.
                                 </p>
                             </div>
 
@@ -456,6 +443,7 @@ export default function SignUpPage() {
                             </Link>
                         </>
                     )}
+
                 </section>
 
                 {step !== "success" && (

@@ -1,33 +1,11 @@
-import { Link } from "react-router-dom";
 import { apps } from "../../app/apps";
 import AppTile from "../../components/AppTile";
+import SiteHeader from "../../components/SiteHeader";
 
 export default function HomePage() {
     return (
         <main className="home-page">
-            <header className="site-header">
-                <Link to="/" className="header-brand">
-                    <img
-                        src="/clusterfox-logo.png"
-                        alt=""
-                        className="header-logo"
-                    />
-
-                    <span className="header-brand-name">
-                        THE CLUSTER <strong>FOX</strong>
-                    </span>
-                </Link>
-
-                <nav className="header-nav" aria-label="Account navigation">
-                    <Link to="/login" className="login-link">
-                        Log In
-                    </Link>
-
-                    <Link to="/signup" className="signup-button">
-                        Sign Up
-                    </Link>
-                </nav>
-            </header>
+            <SiteHeader />
 
             <section className="hero">
                 <div className="fox-mark">
@@ -37,7 +15,9 @@ export default function HomePage() {
                     />
                 </div>
 
-                <p className="eyebrow">WELCOME TO</p>
+                <p className="eyebrow">
+                    WELCOME TO
+                </p>
 
                 <h1>
                     THE CLUSTER <span>FOX</span>
@@ -56,12 +36,16 @@ export default function HomePage() {
             <section className="apps-section">
                 <div className="section-heading">
                     <div>
-                        <p className="section-label">EXPLORE</p>
+                        <p className="section-label">
+                            EXPLORE
+                        </p>
+
                         <h2>Apps</h2>
                     </div>
 
                     <span className="app-count">
-                        {apps.length} {apps.length === 1 ? "app" : "apps"}
+                        {apps.length}{" "}
+                        {apps.length === 1 ? "app" : "apps"}
                     </span>
                 </div>
 

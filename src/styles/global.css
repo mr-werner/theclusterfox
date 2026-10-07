@@ -978,3 +978,132 @@ select {
 .add-food-button.is-added:disabled {
   opacity: 1;
 }
+
+
+/* ========================================
+   SITE HEADER
+   ======================================== */
+
+.site-header {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 22px 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    box-sizing: border-box;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: inherit;
+    text-decoration: none;
+}
+
+.header-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+}
+
+.header-brand-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.header-brand-name strong {
+    color: #ff6b1a;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-link {
+    padding: 10px 15px;
+
+    color: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    opacity: 0.75;
+    transition:
+        opacity 0.2s ease,
+        color 0.2s ease;
+}
+
+.login-link:hover {
+    opacity: 1;
+}
+
+.signup-button {
+    padding: 10px 18px;
+
+    border-radius: 9px;
+
+    background: #ff6b1a;
+    color: #fff;
+
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.signup-button:hover {
+    transform: translateY(-1px);
+    background: #ff7a2b;
+    box-shadow: 0 6px 20px rgba(255, 107, 26, 0.25);
+}
+
+.signup-button:active {
+    transform: translateY(0);
+}
+
+
+/* ========================================
+   MOBILE
+   ======================================== */
+
+@media (max-width: 600px) {
+    .site-header {
+        padding: 18px 18px;
+    }
+
+    .header-brand-name {
+        display: none;
+    }
+
+    .header-logo {
+        width: 32px;
+        height: 32px;
+    }
+
+    .header-nav {
+        gap: 4px;
+    }
+
+    .login-link {
+        padding: 9px 10px;
+        font-size: 0.85rem;
+    }
+
+    .signup-button {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+    }
+}

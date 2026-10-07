@@ -1,9 +1,34 @@
+import { Link } from "react-router-dom";
 import { apps } from "../../app/apps";
 import AppTile from "../../components/AppTile";
 
 export default function HomePage() {
     return (
         <main className="home-page">
+            <header className="site-header">
+                <Link to="/" className="header-brand">
+                    <img
+                        src="/clusterfox-logo.png"
+                        alt=""
+                        className="header-logo"
+                    />
+
+                    <span className="header-brand-name">
+                        THE CLUSTER <strong>FOX</strong>
+                    </span>
+                </Link>
+
+                <nav className="header-nav" aria-label="Account navigation">
+                    <Link to="/login" className="login-link">
+                        Log In
+                    </Link>
+
+                    <Link to="/signup" className="signup-button">
+                        Sign Up
+                    </Link>
+                </nav>
+            </header>
+
             <section className="hero">
                 <div className="fox-mark">
                     <img
@@ -19,7 +44,7 @@ export default function HomePage() {
                 </h1>
 
                 <p className="tagline">
-                    A cluster of useful things.
+                    A cluster of useful & not so useful things.
                 </p>
 
                 <p className="hero-description">

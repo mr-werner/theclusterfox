@@ -32,7 +32,7 @@ function GroupCard({ group, calories, weightLbs, mode, selections, setSelections
     <small>{group.category}</small>
     <h3>{group.title}</h3>
     {group.options.length > 1 && <label style={{display:'block', margin:'12px 0'}}>
-      <span style={{display:'block', marginBottom:6}}>Choose activity variation ({group.options.length})</span>
+      <span style={{display:'block', marginBottom:6}}>Adjust {group.adjustmentLabel || "variation"} ({group.options.length} documented levels)</span>
       <select style={{width:'100%',maxWidth:'100%'}} value={selected.id} onChange={e=>select(e.target.value)}>
         {group.options.map(a=><option key={a.id} value={a.id}>{a.description} · {a.met} MET</option>)}
       </select>

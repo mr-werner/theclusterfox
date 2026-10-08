@@ -35,10 +35,10 @@ function measurement(item) {
   return d;
 }
 
-function Card({ group, calories, weightLbs }) {
+function Card({ group, calories, weightLbs, mode }) {
   const [index, setIndex] = useState(0);
   const selected = group.options[Math.min(index, group.options.length - 1)];
-  const minutes = minutesToBurnCalories(calories, selected.met, weightLbs);
+  const minutes = minutesToBurnCalories(calories, selected.met, weightLbs, mode);
   const speed = speedFromDescription(selected.description);
   const distance = speed !== null && Number.isFinite(minutes) ? (speed * minutes / 60) : null;
   const pace = speed && (group.category === "Running" || group.category === "Walking") ? 60 / speed : null;
@@ -55,10 +55,10 @@ function Card({ group, calories, weightLbs }) {
         </div>
       )}
       <p className="exercise-description">{measurement(selected)}</p>
-      <strong>{Number.isFinite(minutes) ? formatDuration(minutes) : "Unavailable"}</strong>
+      <strong>{Number.isFinite(minutes) ? formatDuration(minutes) : "0 additional calories/min"}</strong>
       {pace !== null && <span>~{Math.floor(pace)}:{String(Math.round((pace % 1) * 60)).padStart(2, "0")} min/mile (estimated)</span>}
       {distance !== null && <span>~{distance.toFixed(1)} miles (estimated)</span>}
-      <small>{selected.met} MET · Code {selected.id}</small>
+      <small>{selected.met} MET · Code {selected.id} · {mode === "net" ? "Net" : "Total"} calories</small>
       <small>{selected.description}</small>
     </article>
   );
@@ -68,6 +68,7 @@ export default function ExerciseResults({ calories, weightLbs }) {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [visible, setVisible] = useState(PER_PAGE);
+  const [mode, setMode] = useState("net");
   const groups = useMemo(() => {
     const claimed = new Set();
     const result = [];
@@ -94,6 +95,12 @@ export default function ExerciseResults({ calories, weightLbs }) {
         <h2>What does {Math.round(calories).toLocaleString()} calories look like?</h2>
         <p>Search the 2024 Adult Compendium. Adjust documented levels where comparable options exist.</p>
       </div>
+      <fieldset className="exercise-calorie-mode" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", border: 0, padding: 0, margin: "16px 0" }}>
+        <legend style={{ fontWeight: 600, marginBottom: 8 }}>Calories burned calculation</legend>
+        <label><input type="radio" name="calorie-mode" value="net" checked={mode === "net"} onChange={() => setMode("net")} /> Net (additional above rest)</label>
+        <label><input type="radio" name="calorie-mode" value="total" checked={mode === "total"} onChange={() => setMode("total")} /> Total (including rest)</label>
+      </fieldset>
+      <p>{mode === "net" ? "Showing calories burned in addition to resting energy use." : "Showing total calories burned, including resting energy use."}</p>
       <div className="exercise-filters" style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "20px 0" }}>
         <label className="exercise-search"><Search size={18} /><input type="search" placeholder="Search activities or codes" value={search} onChange={(e) => { setSearch(e.target.value); setVisible(PER_PAGE); }} /></label>
         <select aria-label="Category" value={category} onChange={(e) => { setCategory(e.target.value); setVisible(PER_PAGE); }}>
@@ -103,10 +110,10 @@ export default function ExerciseResults({ calories, weightLbs }) {
       </div>
       <p>Showing {Math.min(visible, filtered.length)} of {filtered.length} activity groups and individual entries</p>
       <div className="exercise-grid">
-        {filtered.slice(0, visible).map((g) => <Card key={g.key} group={g} calories={calories} weightLbs={weightLbs} />)}
+        {filtered.slice(0, visible).map((g) => <Card key={g.key} group={g} calories={calories} weightLbs={weightLbs} mode={mode} />)}
       </div>
       {visible < filtered.length && <button type="button" className="exercise-show-more" onClick={() => setVisible((n) => n + PER_PAGE)}>Show more activities</button>}
-      <div className="science-note"><strong>But that's not the whole story.</strong><p>Your body uses energy even at rest. These estimates provide context, not a prescription to burn off food. MET values are from the Compendium; distances derived from speed ranges are approximate.</p></div>
+      <div className="science-note"><strong>But that's not the whole story.</strong><p>Your body uses energy even at rest. Net estimates subtract 1 MET of resting energy expenditure. Total estimates include resting expenditure. These estimates provide context, not a prescription to burn off food. MET values are from the Compendium; distances derived from speed ranges are approximate.</p></div>
     </section>
   );
 }

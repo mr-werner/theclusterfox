@@ -1,0 +1,1101 @@
+[
+  {
+    "key": "curated-01015",
+    "title": "Bicycling \u2014 self-selected effort",
+    "category": "Bicycling",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "01015",
+      "01016",
+      "01017"
+    ],
+    "optionLabels": [
+      "Easy",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-01018",
+    "title": "Bicycling \u2014 leisure speed",
+    "category": "Bicycling",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "01018",
+      "01019",
+      "01020",
+      "01030"
+    ],
+    "optionLabels": [
+      "5.5 mph",
+      "9.4 mph",
+      "10-11.9 mph",
+      "12-13.9 mph"
+    ]
+  },
+  {
+    "key": "curated-01210",
+    "title": "Bicycling \u2014 stationary power",
+    "category": "Bicycling",
+    "adjustmentType": "power",
+    "adjustmentLabel": "Watts",
+    "ids": [
+      "01210",
+      "01214",
+      "01216",
+      "01218",
+      "01220",
+      "01224",
+      "01228",
+      "01232",
+      "01236",
+      "01240",
+      "01244",
+      "01248"
+    ],
+    "optionLabels": [
+      " 25-30 watts",
+      " 50 watts",
+      " 60 watts",
+      " 70-80 watts",
+      " 90-100 watts",
+      " 101-125 watts",
+      " 126-150 watts",
+      " 151-199 watts",
+      " 200-229 watts",
+      " 230-250 watts",
+      " 270-305 watts",
+      ">325 watts"
+    ]
+  },
+  {
+    "key": "curated-01252",
+    "title": "Bicycling \u2014 concentric power",
+    "category": "Bicycling",
+    "adjustmentType": "power",
+    "adjustmentLabel": "Watts",
+    "ids": [
+      "01252",
+      "01254"
+    ],
+    "optionLabels": [
+      " 100 W",
+      " 200 W"
+    ]
+  },
+  {
+    "key": "curated-01262",
+    "title": "Bicycling \u2014 eccentric power",
+    "category": "Bicycling",
+    "adjustmentType": "power",
+    "adjustmentLabel": "Watts",
+    "ids": [
+      "01262",
+      "01264"
+    ],
+    "optionLabels": [
+      " 100 to 149 W",
+      " 200 W"
+    ]
+  },
+  {
+    "key": "curated-01080",
+    "title": "Electric bicycling \u2014 assistance",
+    "category": "Bicycling",
+    "adjustmentType": "assistance",
+    "adjustmentLabel": "Assistance",
+    "ids": [
+      "01080",
+      "01084",
+      "01088"
+    ],
+    "optionLabels": [
+      "No electronic assistance",
+      "Light electronic assistance",
+      "High electronic assistance"
+    ]
+  },
+  {
+    "key": "curated-12028",
+    "title": "Running \u2014 speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12028",
+      "12029",
+      "12030",
+      "12045",
+      "12050",
+      "12060",
+      "12070",
+      "12080",
+      "12090",
+      "12100",
+      "12110",
+      "12115",
+      "12120",
+      "12130",
+      "12132",
+      "12134",
+      "12135"
+    ],
+    "optionLabels": [
+      "4 to 4.2 mph",
+      "4.3 to 4.8 mph",
+      "5.0 to 5.2 mph",
+      "5.5 -5.8 mph",
+      "6-6.3 mph",
+      "6.7 mph",
+      "7 mph",
+      "7.5 mph",
+      "8 mph",
+      "8.6 mph",
+      "9 mph",
+      "9.3 to 9.6 mph",
+      "10 mph",
+      "11 mph",
+      "12 mph",
+      "13 mph",
+      "14 mph"
+    ]
+  },
+  {
+    "key": "curated-12255",
+    "title": "Running uphill \u2014 5% incline, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12255",
+      "12260",
+      "12265"
+    ],
+    "optionLabels": [
+      "4.5mph",
+      "6.0 mph",
+      "7.0 mph"
+    ]
+  },
+  {
+    "key": "curated-12335",
+    "title": "Running uphill \u2014 30% incline, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12335",
+      "12337",
+      "12339",
+      "12343"
+    ],
+    "optionLabels": [
+      "0.6 to 0.79 mph",
+      "0.8 to 0.99 mph",
+      "1.0 to 1.19 mph",
+      "1.4 to 1.59 mph"
+    ]
+  },
+  {
+    "key": "curated-12352",
+    "title": "Running downhill \u2014 10\u201315% decline, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12352",
+      "12353",
+      "12355"
+    ],
+    "optionLabels": [
+      "5.0 to 5.9 mph",
+      "6.0 to 6.9 mph",
+      "7.0 to 8.9 mph"
+    ]
+  },
+  {
+    "key": "curated-12358",
+    "title": "Running downhill \u2014 3\u20139% decline, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12358",
+      "12361"
+    ],
+    "optionLabels": [
+      "6.0 to 7.9 mph",
+      "8.0 to 10.5 mph"
+    ]
+  },
+  {
+    "key": "curated-12405",
+    "title": "Running \u2014 curved treadmill speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12405",
+      "12408",
+      "12410",
+      "12412",
+      "12414",
+      "12416"
+    ],
+    "optionLabels": [
+      "3.0 to 3.9 mph",
+      "4.0 to 4.9 mph",
+      "5.0 to 5.9 mph",
+      "7.0 to 7.9 mph",
+      "8.0 to 8.9 mph",
+      "9.0 to 9.9 mph"
+    ]
+  },
+  {
+    "key": "curated-12508",
+    "title": "Running \u2014 weighted backpack, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12508",
+      "12510",
+      "12512",
+      "12514"
+    ],
+    "optionLabels": [
+      "5.0 - 5.9 mph",
+      "6.0 - 6.9 mph",
+      "7.0 - 7.9 mph",
+      "8.0 - 8.9 mph"
+    ]
+  },
+  {
+    "key": "curated-12555",
+    "title": "Running \u2014 barefoot, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12555",
+      "12560",
+      "12565"
+    ],
+    "optionLabels": [
+      "3.5-5.9 mph",
+      "6.0-7.9 mph",
+      "8.0-8.9 mph"
+    ]
+  },
+  {
+    "key": "curated-12585",
+    "title": "Running \u2014 jogging stroller indoors, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12585",
+      "12588"
+    ],
+    "optionLabels": [
+      "5 mph",
+      "6 mph"
+    ]
+  },
+  {
+    "key": "curated-12593",
+    "title": "Running \u2014 jogging stroller outdoors, speed",
+    "category": "Running",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "12593",
+      "12595"
+    ],
+    "optionLabels": [
+      "5 mph",
+      "6 mph"
+    ]
+  },
+  {
+    "key": "curated-17151",
+    "title": "Walking \u2014 level-ground speed",
+    "category": "Walking",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "17151",
+      "17152",
+      "17170",
+      "17190",
+      "17200",
+      "17220",
+      "17230",
+      "17231"
+    ],
+    "optionLabels": [
+      "less than 2.0 mph",
+      "2.0 to 2.4 mph",
+      "2.5 mph",
+      "2.8 to 3.4 mph",
+      "3.5 to 3.9 mph",
+      "4.0 to 4.4 mph",
+      "4.5 to 4.9 mph",
+      "5.0 to 5.5 mph"
+    ]
+  },
+  {
+    "key": "curated-17340",
+    "title": "Walking \u2014 treadmill, level grade, speed",
+    "category": "Walking",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "17340",
+      "17343",
+      "17346",
+      "17349",
+      "17352",
+      "17355",
+      "17358",
+      "17361",
+      "17364",
+      "17367"
+    ],
+    "optionLabels": [
+      "less than 1.0 mph",
+      "1.0 mph",
+      "1.2 to 1.9 mph",
+      "2.0 to 2.4 mph",
+      "2.5 to 2.9 mph",
+      "3.0 to 3.4 mph",
+      "3.5 to 3.9 mph",
+      "4.0 to 4.4 mph",
+      "4.5 to 4.9 mph",
+      "5.0 to 5.5 mph"
+    ]
+  },
+  {
+    "key": "curated-17302",
+    "title": "Walking \u2014 Nordic poles, level ground, speed",
+    "category": "Walking",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "17302",
+      "17304",
+      "17305"
+    ],
+    "optionLabels": [
+      "2.5 to 3.5 mph",
+      "3.6 to 4.4 mph",
+      "4.5 to 5.0 mph"
+    ]
+  },
+  {
+    "key": "curated-17434",
+    "title": "Walking \u2014 treadmill with load, temperature",
+    "category": "Walking",
+    "adjustmentType": "temperature",
+    "adjustmentLabel": "Temperature",
+    "ids": [
+      "17434",
+      "17438"
+    ],
+    "optionLabels": [
+      "5 to 20 degrees C",
+      "-10 to 0 degrees C"
+    ]
+  },
+  {
+    "key": "curated-17026",
+    "title": "Carrying load upstairs \u2014 load",
+    "category": "Walking",
+    "adjustmentType": "load",
+    "adjustmentLabel": "Load",
+    "ids": [
+      "17026",
+      "17027",
+      "17028",
+      "17029",
+      "17030"
+    ],
+    "optionLabels": [
+      " 1 to 15 lb",
+      " 16 to 24 lb",
+      " 25 to 49 lb",
+      " 50 to 74 lb",
+      ">74 lb"
+    ]
+  },
+  {
+    "key": "curated-17034",
+    "title": "Walking \u2014 climbing hills, no load, incline",
+    "category": "Walking",
+    "adjustmentType": "incline",
+    "adjustmentLabel": "Incline",
+    "ids": [
+      "17034",
+      "17035"
+    ],
+    "optionLabels": [
+      "1 to 5% grade",
+      "6 to 10% grade"
+    ]
+  },
+  {
+    "key": "curated-11250",
+    "title": "Forestry \u2014 axe chopping, blows per minute",
+    "category": "Occupation",
+    "adjustmentType": "cadence",
+    "adjustmentLabel": "Cadence",
+    "ids": [
+      "11250",
+      "11260",
+      "11262"
+    ],
+    "optionLabels": [
+      " 51 blows/min",
+      " 19 blows/min",
+      " 35 blows/min"
+    ]
+  },
+  {
+    "key": "curated-11550",
+    "title": "Shoveling \u2014 material moved per minute",
+    "category": "Occupation",
+    "adjustmentType": "throughput",
+    "adjustmentLabel": "Mass moved per minute",
+    "ids": [
+      "11550",
+      "11560",
+      "11570"
+    ],
+    "optionLabels": [
+      "more than 16 lbs/minute",
+      "less than 10 lbs/minute",
+      "10 to 15 lbs/minute"
+    ]
+  },
+  {
+    "key": "curated-11791",
+    "title": "Walking on job \u2014 office, no load, speed",
+    "category": "Occupation",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "11791",
+      "11792",
+      "11793"
+    ],
+    "optionLabels": [
+      "less than 2.0 mph",
+      "2.8 to 3.4 mph",
+      "3.5 to 3.9 mph"
+    ]
+  },
+  {
+    "key": "curated-11820",
+    "title": "Walking \u2014 carrying objects, load",
+    "category": "Occupation",
+    "adjustmentType": "load",
+    "adjustmentLabel": "Load",
+    "ids": [
+      "11820",
+      "11830",
+      "11840",
+      "11850"
+    ],
+    "optionLabels": [
+      " 25 to 49 lbs",
+      " 50 to 74 lbs",
+      " 75 to 99 lbs",
+      " 100 lbs"
+    ]
+  },
+  {
+    "key": "curated-11887",
+    "title": "Soldiers \u2014 loaded walking, incline",
+    "category": "Occupation",
+    "adjustmentType": "incline",
+    "adjustmentLabel": "Incline",
+    "ids": [
+      "11887",
+      "11888",
+      "11889"
+    ],
+    "optionLabels": [
+      "5% grade",
+      "10% grade",
+      "15% grade"
+    ]
+  },
+  {
+    "key": "curated-11003",
+    "title": "Active workstation \u2014 treadmill speed",
+    "category": "Occupation",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "11003",
+      "11004"
+    ],
+    "optionLabels": [
+      "1.0 mph",
+      "1.0 - 2.0 mph"
+    ]
+  },
+  {
+    "key": "curated-18040",
+    "title": "Canoeing \u2014 rowing speed",
+    "category": "Water Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "18040",
+      "18050"
+    ],
+    "optionLabels": [
+      "2.0-3.9 mph",
+      "4.0-5.9 mph"
+    ]
+  },
+  {
+    "key": "curated-18225",
+    "title": "Stand-up paddleboard \u2014 strokes per minute",
+    "category": "Water Activities",
+    "adjustmentType": "cadence",
+    "adjustmentLabel": "Cadence",
+    "ids": [
+      "18225",
+      "18226",
+      "18227",
+      "18228",
+      "18229"
+    ],
+    "optionLabels": [
+      " 10-19 strokes/min",
+      " 20-29 strokes/min",
+      " 30-39 strokes/min",
+      " 40-49 strokes/min",
+      " 50-69 strokes/min"
+    ]
+  },
+  {
+    "key": "curated-18374",
+    "title": "Water running \u2014 steps per minute",
+    "category": "Water Activities",
+    "adjustmentType": "cadence",
+    "adjustmentLabel": "Cadence",
+    "ids": [
+      "18374",
+      "18375",
+      "18376",
+      "18377"
+    ],
+    "optionLabels": [
+      " 30 steps/min",
+      " 40 steps/min",
+      " 50 steps/min",
+      " 60 steps/min"
+    ]
+  },
+  {
+    "key": "curated-18367",
+    "title": "Water walking \u2014 intensity",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18367",
+      "18368",
+      "18369"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-18404",
+    "title": "Aquatic cycling \u2014 40\u201350 RPM, Watts",
+    "category": "Water Activities",
+    "adjustmentType": "power",
+    "adjustmentLabel": "Watts",
+    "ids": [
+      "18404",
+      "18412",
+      "18420",
+      "18428"
+    ],
+    "optionLabels": [
+      " 25 W",
+      " 50 W",
+      " 75 W",
+      " 100 W"
+    ]
+  },
+  {
+    "key": "curated-18408",
+    "title": "Aquatic cycling \u2014 60\u201370 RPM, Watts",
+    "category": "Water Activities",
+    "adjustmentType": "power",
+    "adjustmentLabel": "Watts",
+    "ids": [
+      "18408",
+      "18416",
+      "18424",
+      "18432"
+    ],
+    "optionLabels": [
+      " 25 W",
+      " 50 W",
+      " 75 W",
+      " 100 W"
+    ]
+  },
+  {
+    "key": "curated-18436",
+    "title": "Aquatic cycling \u2014 cadence only",
+    "category": "Water Activities",
+    "adjustmentType": "cadence",
+    "adjustmentLabel": "Cadence",
+    "ids": [
+      "18436",
+      "18440"
+    ],
+    "optionLabels": [
+      "80\u201389 RPM",
+      "90+ RPM"
+    ]
+  },
+  {
+    "key": "curated-18340",
+    "title": "Swimming \u2014 treading water, intensity",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18340",
+      "18350"
+    ],
+    "optionLabels": [
+      "Vigorous",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "curated-18202",
+    "title": "Scuba diving \u2014 effort",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18202",
+      "18204"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "curated-19045",
+    "title": "Skating treadmill \u2014 2% grade, speed",
+    "category": "Winter Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "19045",
+      "19046",
+      "19047",
+      "19048"
+    ],
+    "optionLabels": [
+      "6 - 6.9 mph",
+      "7 - 7.9 mph",
+      "8 - 8.9 mph",
+      "9 - 9.9 mph"
+    ]
+  },
+  {
+    "key": "curated-19080",
+    "title": "Cross-country skiing \u2014 speed",
+    "category": "Winter Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "19080",
+      "19090",
+      "19100",
+      "19110",
+      "19112"
+    ],
+    "optionLabels": [
+      "2.5 mph",
+      "4.0-4.9 mph",
+      "5.0-7.9 mph",
+      ">8.0-11.9 mph",
+      "12-16 mph"
+    ]
+  },
+  {
+    "key": "curated-19305",
+    "title": "Rollerskiing \u2014 level, speed",
+    "category": "Winter Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "19305",
+      "19310",
+      "19315",
+      "19320",
+      "19325"
+    ],
+    "optionLabels": [
+      "10 - 12.9 km/h",
+      "13 - 16.9 km/h",
+      "17 - 19.9 km/h",
+      "20 - 23.9 km/h",
+      "24 - 27.9 km/h"
+    ]
+  },
+  {
+    "key": "curated-19330",
+    "title": "Rollerskiing \u2014 2\u20135\u00b0 incline, speed",
+    "category": "Winter Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "19330",
+      "19335"
+    ],
+    "optionLabels": [
+      "10-15 km/h",
+      "16-22 km/h"
+    ]
+  },
+  {
+    "key": "curated-19340",
+    "title": "Rollerskiing \u2014 6\u201310\u00b0 incline, speed",
+    "category": "Winter Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "19340",
+      "19345"
+    ],
+    "optionLabels": [
+      "6-9 km/h",
+      ">10 km/h"
+    ]
+  },
+  {
+    "key": "curated-19150",
+    "title": "Downhill skiing \u2014 intensity",
+    "category": "Winter Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "19150",
+      "19160",
+      "19170"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-19252",
+    "title": "Snow shoveling \u2014 effort",
+    "category": "Winter Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "19252",
+      "19254"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-19190",
+    "title": "Snowshoeing \u2014 effort",
+    "category": "Winter Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "19190",
+      "19192"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-15113",
+    "title": "Boxing \u2014 punching bag, punches per minute",
+    "category": "Sports",
+    "adjustmentType": "cadence",
+    "adjustmentLabel": "Cadence",
+    "ids": [
+      "15113",
+      "15115",
+      "15118"
+    ],
+    "optionLabels": [
+      " 60 b/min",
+      " 120 b/min",
+      " 180 b/min"
+    ]
+  },
+  {
+    "key": "curated-15525",
+    "title": "Race walking \u2014 speed",
+    "category": "Sports",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "15525",
+      "15527",
+      "15528"
+    ],
+    "optionLabels": [
+      "3.1 m/s",
+      "3.7 m/s",
+      "4.0 m/s"
+    ]
+  },
+  {
+    "key": "curated-15538",
+    "title": "Rock climbing \u2014 treadwall speed",
+    "category": "Sports",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "15538",
+      "15539"
+    ],
+    "optionLabels": [
+      "4-6 m/min",
+      "7-10 m/min"
+    ]
+  },
+  {
+    "key": "curated-15550",
+    "title": "Rope jumping \u2014 skips per minute",
+    "category": "Sports",
+    "adjustmentType": "cadence",
+    "adjustmentLabel": "Cadence",
+    "ids": [
+      "15550",
+      "15551",
+      "15552"
+    ],
+    "optionLabels": [
+      " 120-160 skips/min",
+      " 100 to 120 skips/min",
+      "< 100 skips/min"
+    ]
+  },
+  {
+    "key": "curated-15591",
+    "title": "Rollerblading \u2014 speed",
+    "category": "Sports",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "15591",
+      "15592",
+      "15593",
+      "15594"
+    ],
+    "optionLabels": [
+      "14.4 km/h",
+      "17.7 km/h",
+      "21.0 to 21.7 km/h",
+      "24.0 km/h"
+    ]
+  },
+  {
+    "key": "curated-15580",
+    "title": "Skateboarding \u2014 intensity",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15580",
+      "15582"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-02048",
+    "title": "Elliptical trainer \u2014 effort",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02048",
+      "02049"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-02071",
+    "title": "Rowing \u2014 stationary, power",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "power",
+    "adjustmentLabel": "Watts",
+    "ids": [
+      "02071",
+      "02072",
+      "02073",
+      "02074"
+    ],
+    "optionLabels": [
+      "<100 watts",
+      " 100 to 149 watts",
+      " 150 to 199 watts",
+      "\u2265 200 watts"
+    ]
+  },
+  {
+    "key": "curated-02056",
+    "title": "Bodyweight resistance exercise \u2014 effort",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02056",
+      "02057"
+    ],
+    "optionLabels": [
+      "General",
+      "High intensity"
+    ]
+  },
+  {
+    "key": "curated-08195",
+    "title": "Shoveling snow \u2014 effort",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08195",
+      "08202"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-08019",
+    "title": "Chopping wood \u2014 effort",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08019",
+      "08020"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-08045",
+    "title": "Digging and composting \u2014 effort",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08045",
+      "08052"
+    ],
+    "optionLabels": [
+      "Light",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-05175",
+    "title": "Walking/running with children \u2014 effort",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05175",
+      "05180"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "curated-16002",
+    "title": "Transportation bicycling \u2014 effort",
+    "category": "Transportation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "16002",
+      "16004"
+    ],
+    "optionLabels": [
+      "Light effort",
+      "High effort"
+    ]
+  },
+  {
+    "key": "curated-20036",
+    "title": "Religious walking \u2014 speed",
+    "category": "Religious Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "20036",
+      "20037",
+      "20038"
+    ],
+    "optionLabels": [
+      "less than 2.0 mph",
+      "2.8 to 3.4 mph",
+      "3.5 to 3.9 mph"
+    ]
+  },
+  {
+    "key": "curated-21040",
+    "title": "Volunteer walking \u2014 no load, speed",
+    "category": "Volunteer Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "21040",
+      "21045",
+      "21050"
+    ],
+    "optionLabels": [
+      "less than 2.0 mph",
+      "2.8 to 3.4 mph",
+      "3.5 to 3.9 mph"
+    ]
+  }
+]

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Activity, Search, Star } from 'lucide-react';
+import { Activity, Search, Minus, Plus } from 'lucide-react';
 import { activityCategories } from '../data/activities';
 import { buildActivityGroups } from '../data/activityGroups';
 import { formatDuration, minutesToBurnCalories } from '../../../domain/exercise/energy';
 
 const PAGE_SIZE = 12;
-const preferenceKey = 'f4t-activity-selections-v1';
+const preferenceKey = 'f4t-activity-selections-v2';
 function loadSelections() {
   try { return JSON.parse(localStorage.getItem(preferenceKey) || '{}'); }
   catch { return {}; }
@@ -23,20 +23,30 @@ function speedLabel(description) {
 }
 function GroupCard({ group, calories, weightLbs, mode, selections, setSelections }) {
   const storedId = selections[group.key];
-  const selected = group.options.find(a => a.id === storedId) || group.options[0];
+  const selectedIndex = Math.max(0, group.options.findIndex(a => a.id === storedId));
+  const selected = group.options[selectedIndex];
   const minutes = minutesToBurnCalories(calories, selected.met, weightLbs, mode);
   const speed = speedLabel(selected.description);
-  function select(id) { setSelections(s => ({ ...s, [group.key]: id })); }
+  function select(index) {
+    if (index >= 0 && index < group.options.length)
+      setSelections(s => ({ ...s, [group.key]: group.options[index].id }));
+  }
   return <article className="exercise-card">
     <Activity size={24} aria-hidden="true" />
     <small>{group.category}</small>
     <h3>{group.title}</h3>
-    {group.options.length > 1 && <label style={{display:'block', margin:'12px 0'}}>
-      <span style={{display:'block', marginBottom:6}}>Adjust {group.adjustmentLabel || "variation"} ({group.options.length} documented levels)</span>
-      <select style={{width:'100%',maxWidth:'100%'}} value={selected.id} onChange={e=>select(e.target.value)}>
-        {group.options.map(a=><option key={a.id} value={a.id}>{a.description} · {a.met} MET</option>)}
-      </select>
-    </label>}
+    {group.options.length > 1 && <div style={{margin:'12px 0'}}>
+      <label htmlFor={`f4t-${group.key}`} style={{display:'block',marginBottom:6}}>
+        Adjust {group.adjustmentLabel} ({group.options.length} documented levels)
+      </label>
+      <div style={{display:'flex',gap:8,alignItems:'center'}}>
+        <button type="button" aria-label={`Decrease ${group.adjustmentLabel}`} disabled={selectedIndex===0} onClick={()=>select(selectedIndex-1)}><Minus size={16}/></button>
+        <select id={`f4t-${group.key}`} style={{flex:1,minWidth:0}} value={selected.id} onChange={e=>select(group.options.findIndex(a=>a.id===e.target.value))}>
+          {group.options.map(a=><option key={a.id} value={a.id}>{a.adjustmentValue} · {a.met} MET</option>)}
+        </select>
+        <button type="button" aria-label={`Increase ${group.adjustmentLabel}`} disabled={selectedIndex===group.options.length-1} onClick={()=>select(selectedIndex+1)}><Plus size={16}/></button>
+      </div>
+    </div>}
     <strong style={{display:'block',fontSize:'1.35rem'}}>{Number.isFinite(minutes) ? formatDuration(minutes) : 'No additional calories burned'}</strong>
     {speed && <p>{speed.mph}{(group.category === 'Running' || group.category === 'Walking') && speed.pace ? ` · ${speed.pace}` : ''}</p>}
     <small>{selected.met} MET · Compendium code {selected.id} · {mode === 'net' ? 'Net' : 'Total'} calories</small>
@@ -65,7 +75,7 @@ export default function ExerciseResults({ calories, weightLbs }) {
   if (!(calories > 0 && weightLbs > 0)) return null;
   return <section className="exercise-results">
     <h2>What does {Math.round(calories).toLocaleString()} calories look like?</h2>
-    <p>Browse consolidated activities. Every variation retains its published Compendium MET value.</p>
+    <p>Browse audited activity groups. Every adjustment uses a documented Compendium record; unmatched activities remain separate.</p>
     <fieldset style={{border:0,padding:0,margin:'16px 0'}}>
       <legend>Calorie calculation</legend>
       <label style={{marginRight:16}}><input type="radio" checked={mode==='net'} onChange={()=>setMode('net')} /> Net (above rest)</label>

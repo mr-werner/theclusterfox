@@ -1,371 +1,362 @@
-export const activityCategories = [
-  "Bicycling",
-  "Conditioning Exercise",
-  "Dancing",
-  "Fishing & Hunting",
-  "Home Activities",
-  "Home Repair",
-  "Inactivity",
-  "Lawn & Garden",
-  "Miscellaneous",
-  "Music Playing",
-  "Occupation",
-  "Running",
-  "Self Care",
-  "Sexual Activity",
-  "Sports",
-  "Transportation",
-  "Walking",
-  "Water Activities",
-  "Winter Activities",
-  "Religious Activities",
-  "Volunteer Activities",
-  "Video Games",
-];
 
-/*
- * Each activity comes from the 2024 Adult Compendium
- * of Physical Activities.
- *
- * Keep the Compendium activity code as the canonical ID.
- */
-export const activities = [
-  // -------------------------
-  // BICYCLING
-  // -------------------------
+import { useMemo, useState } from "react";
+import {
+  Activity,
+  Bike,
+  Dumbbell,
+  Footprints,
+  PersonStanding,
+  Waves,
+  Snowflake,
+  Music,
+  House,
+  Trophy,
+  Gamepad2,
+  ChevronDown,
+  Minus,
+  Plus,
+  Search,
+} from "lucide-react";
 
-  {
-    id: "01010",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: "<10 mph, leisure, commuting or pleasure",
-    met: 4.0,
-    speedMinMph: null,
-    speedMaxMph: 10,
-    adjustmentType: "speed",
-  },
-  {
-    id: "01018",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: "Leisure, 5.5 mph",
-    met: 3.5,
-    speedMph: 5.5,
-    adjustmentType: "speed",
-  },
-  {
-    id: "01019",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: "Leisure, 9.4 mph",
-    met: 5.8,
-    speedMph: 9.4,
-    adjustmentType: "speed",
-  },
-  {
-    id: "01020",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: "10–11.9 mph, light effort",
-    met: 6.8,
-    speedMinMph: 10,
-    speedMaxMph: 11.9,
-    adjustmentType: "speed",
-  },
-  {
-    id: "01030",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: "12–13.9 mph, moderate effort",
-    met: 8.0,
-    speedMinMph: 12,
-    speedMaxMph: 13.9,
-    adjustmentType: "speed",
-  },
-  {
-    id: "01040",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: "14–15.9 mph, vigorous effort",
-    met: 10.0,
-    speedMinMph: 14,
-    speedMaxMph: 15.9,
-    adjustmentType: "speed",
-  },
-  {
-    id: "01050",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: "16–19 mph, very fast",
-    met: 12.0,
-    speedMinMph: 16,
-    speedMaxMph: 19,
-    adjustmentType: "speed",
-  },
-  {
-    id: "01060",
-    category: "Bicycling",
-    name: "Bicycling",
-    description: ">20 mph, racing",
-    met: 16.8,
-    speedMinMph: 20,
-    speedMaxMph: null,
-    adjustmentType: "speed",
-  },
+import {
+  activities,
+  activityCategories,
+} from "../data/activities";
 
-  {
-    id: "01009",
-    category: "Bicycling",
-    name: "Mountain Biking",
-    description: "General",
-    met: 8.5,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "01003",
-    category: "Bicycling",
-    name: "Mountain Biking",
-    description: "Uphill, vigorous",
-    met: 14.0,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "01004",
-    category: "Bicycling",
-    name: "Mountain Biking",
-    description: "Competitive racing",
-    met: 16.0,
-    adjustmentType: "intensity",
-  },
+import {
+  calculateDistance,
+  formatDuration,
+  minutesToBurnCalories,
+} from "../../../domain/exercise/energy";
 
-  {
-    id: "01080",
-    category: "Bicycling",
-    name: "E-Bike",
-    description: "No electronic support",
-    met: 6.8,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "01084",
-    category: "Bicycling",
-    name: "E-Bike",
-    description: "Light electronic support",
-    met: 6.0,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "01088",
-    category: "Bicycling",
-    name: "E-Bike",
-    description: "High electronic support",
-    met: 4.0,
-    adjustmentType: "intensity",
-  },
+const INITIAL_VISIBLE = 8;
+const LOAD_MORE = 8;
 
-  {
-    id: "01210",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "25–30 watts",
-    met: 3.5,
-    wattsMin: 25,
-    wattsMax: 30,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01214",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "50 watts",
-    met: 4.0,
-    wattsMin: 50,
-    wattsMax: 50,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01218",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "70–80 watts",
-    met: 5.8,
-    wattsMin: 70,
-    wattsMax: 80,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01220",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "90–100 watts",
-    met: 6.0,
-    wattsMin: 90,
-    wattsMax: 100,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01224",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "101–125 watts",
-    met: 6.8,
-    wattsMin: 101,
-    wattsMax: 125,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01228",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "126–150 watts",
-    met: 8.0,
-    wattsMin: 126,
-    wattsMax: 150,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01232",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "151–199 watts",
-    met: 10.3,
-    wattsMin: 151,
-    wattsMax: 199,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01236",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "200–229 watts",
-    met: 10.8,
-    wattsMin: 200,
-    wattsMax: 229,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01240",
-    category: "Bicycling",
-    name: "Stationary Bike",
-    description: "230–250 watts",
-    met: 12.5,
-    wattsMin: 230,
-    wattsMax: 250,
-    adjustmentType: "watts",
-  },
-  {
-    id: "01270",
-    category: "Bicycling",
-    name: "Spin Class",
-    description: "Stationary RPM/spin bike class",
-    met: 9.0,
-    adjustmentType: "none",
-  },
+const categoryIcons = {
+  Bicycling: Bike,
+  "Conditioning Exercise": Dumbbell,
+  Dancing: Music,
+  "Home Activities": House,
+  "Lawn & Garden": House,
+  Running: PersonStanding,
+  Walking: Footprints,
+  Sports: Trophy,
+  "Water Activities": Waves,
+  "Winter Activities": Snowflake,
+  "Video Games": Gamepad2,
+};
 
-  // -------------------------
-  // CONDITIONING
-  // -------------------------
+function getSpeed(activity) {
+  if (Number.isFinite(activity.speedMph)) {
+    return activity.speedMph;
+  }
 
-  {
-    id: "02048",
-    category: "Conditioning Exercise",
-    name: "Elliptical",
-    description: "Moderate effort",
-    met: 5.0,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "02049",
-    category: "Conditioning Exercise",
-    name: "Elliptical",
-    description: "Vigorous effort",
-    met: 9.0,
-    adjustmentType: "intensity",
-  },
+  const min = activity.speedMinMph;
+  const max = activity.speedMaxMph;
 
-  {
-    id: "02024",
-    category: "Conditioning Exercise",
-    name: "Calisthenics",
-    description: "Light effort",
-    met: 2.8,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "02022",
-    category: "Conditioning Exercise",
-    name: "Calisthenics",
-    description: "Moderate effort",
-    met: 3.8,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "02020",
-    category: "Conditioning Exercise",
-    name: "Calisthenics",
-    description: "Vigorous effort",
-    met: 7.5,
-    adjustmentType: "intensity",
-  },
+  if (Number.isFinite(min) && Number.isFinite(max)) {
+    return (min + max) / 2;
+  }
 
-  {
-    id: "02034",
-    category: "Conditioning Exercise",
-    name: "Circuit Training",
-    description: "Light effort",
-    met: 3.5,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "02035",
-    category: "Conditioning Exercise",
-    name: "Circuit Training",
-    description: "Moderate effort",
-    met: 5.0,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "02040",
-    category: "Conditioning Exercise",
-    name: "Circuit Training",
-    description: "Vigorous, kettlebells/aerobic movement",
-    met: 7.5,
-    adjustmentType: "intensity",
-  },
+  // No reliable speed for an open-ended range.
+  return null;
+}
 
-  {
-    id: "02054",
-    category: "Conditioning Exercise",
-    name: "Weight Training",
-    description: "Multiple exercises, 8–15 reps",
-    met: 3.5,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "02052",
-    category: "Conditioning Exercise",
-    name: "Weight Training",
-    description: "Squats/deadlifts, slow or explosive",
-    met: 5.0,
-    adjustmentType: "intensity",
-  },
-  {
-    id: "02050",
-    category: "Conditioning Exercise",
-    name: "Weight Training",
-    description: "Vigorous effort",
-    met: 6.0,
-    adjustmentType: "intensity",
-  },
+function getAdjustmentLabel(activity) {
+  switch (activity.adjustmentType) {
+    case "speed":
+      return "Speed";
+    case "watts":
+      return "Resistance";
+    case "intensity":
+      return "Intensity";
+    default:
+      return "Activity";
+  }
+}
 
-  {
-    id: "02058",
-    category: "Conditioning Exercise",
-    name: "Kettlebell Swings",
-    description: "General",
-    met: 9.8,
-    adjustmentType: "none",
-  },
+function ExerciseCard({ group, calories, weightLbs }) {
+  const [level, setLevel] = useState(0);
 
-  // More Compendium rows go here.
-];
+  const options = group.options;
+  const safeLevel = Math.min(level, options.length - 1);
+  const activity = options[safeLevel];
+
+  const Icon =
+    categoryIcons[group.category] || Activity;
+
+  const minutes = minutesToBurnCalories(
+    calories,
+    activity.met,
+    weightLbs
+  );
+
+  const speed = getSpeed(activity);
+
+  const distance =
+    speed !== null && Number.isFinite(minutes)
+      ? calculateDistance(minutes, speed)
+      : null;
+
+  const adjustable = options.length > 1;
+
+  return (
+    <article className="exercise-card">
+      <div className="exercise-card-top">
+        <Icon size={27} />
+
+        <span className="exercise-category">
+          {group.category}
+        </span>
+      </div>
+
+      <h3>{group.name}</h3>
+
+      <div className="exercise-adjustment">
+        <span className="adjustment-label">
+          {getAdjustmentLabel(activity)}
+        </span>
+
+        {adjustable && (
+          <div className="adjustment-controls">
+            <button
+              type="button"
+              aria-label={`Decrease ${group.name} intensity`}
+              disabled={safeLevel === 0}
+              onClick={() =>
+                setLevel((current) =>
+                  Math.max(0, current - 1)
+                )
+              }
+            >
+              <Minus size={17} />
+            </button>
+
+            <span>
+              {safeLevel + 1} / {options.length}
+            </span>
+
+            <button
+              type="button"
+              aria-label={`Increase ${group.name} intensity`}
+              disabled={safeLevel === options.length - 1}
+              onClick={() =>
+                setLevel((current) =>
+                  Math.min(options.length - 1, current + 1)
+                )
+              }
+            >
+              <Plus size={17} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <p className="exercise-description">
+        {activity.description}
+      </p>
+
+      <strong>
+        {Number.isFinite(minutes)
+          ? formatDuration(minutes)
+          : "Unavailable"}
+      </strong>
+
+      {distance !== null &&
+        Number.isFinite(distance) && (
+          <span>
+            ~{distance.toFixed(1)} miles
+          </span>
+        )}
+
+      <small>{activity.met} MET</small>
+    </article>
+  );
+}
+
+export default function ExerciseResults({
+  calories,
+  weightLbs,
+}) {
+  const [category, setCategory] = useState("All");
+  const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] =
+    useState(INITIAL_VISIBLE);
+
+  const groupedActivities = useMemo(() => {
+    const groups = new Map();
+
+    for (const activity of activities) {
+      const key = `${activity.category}::${activity.name}`;
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          key,
+          name: activity.name,
+          category: activity.category,
+          options: [],
+        });
+      }
+
+      groups.get(key).options.push(activity);
+    }
+
+    return Array.from(groups.values()).map((group) => {
+      const options = [...group.options];
+
+      // Higher MET generally means greater effort.
+      // E-bike assistance is the exception:
+      // more support means less effort.
+      options.sort((a, b) => a.met - b.met);
+
+      return { ...group, options };
+    });
+  }, []);
+
+  const filteredActivities = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return groupedActivities.filter((group) => {
+      const matchesCategory =
+        category === "All" ||
+        group.category === category;
+
+      const matchesSearch =
+        !query ||
+        group.name.toLowerCase().includes(query) ||
+        group.category.toLowerCase().includes(query) ||
+        group.options.some((option) =>
+          option.description
+            .toLowerCase()
+            .includes(query)
+        );
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [groupedActivities, category, search]);
+
+  const visibleActivities = filteredActivities.slice(
+    0,
+    visibleCount
+  );
+
+  function changeCategory(value) {
+    setCategory(value);
+    setVisibleCount(INITIAL_VISIBLE);
+  }
+
+  function changeSearch(value) {
+    setSearch(value);
+    setVisibleCount(INITIAL_VISIBLE);
+  }
+
+  if (!calories || !weightLbs) {
+    return null;
+  }
+
+  return (
+    <section className="exercise-section">
+      <div className="exercise-heading">
+        <p className="f4t-section-label">
+          MOVEMENT COMPARISON
+        </p>
+
+        <h2>
+          What does{" "}
+          {Math.round(calories).toLocaleString()}{" "}
+          calories look like?
+        </h2>
+
+        <p>
+          Explore exercise equivalents based on your
+          body weight. Adjust the intensity or speed
+          to see how the results change.
+        </p>
+      </div>
+
+      <div className="exercise-filters">
+        <label className="exercise-search">
+          <Search size={18} />
+
+          <input
+            type="search"
+            placeholder="Search activities..."
+            value={search}
+            onChange={(event) =>
+              changeSearch(event.target.value)
+            }
+          />
+        </label>
+
+        <select
+          aria-label="Filter activity category"
+          value={category}
+          onChange={(event) =>
+            changeCategory(event.target.value)
+          }
+        >
+          <option value="All">
+            All Categories
+          </option>
+
+          {activityCategories.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <p className="exercise-results-count">
+        Showing {visibleActivities.length} of{" "}
+        {filteredActivities.length} activities
+      </p>
+
+      <div className="exercise-grid">
+        {visibleActivities.map((group) => (
+          <ExerciseCard
+            key={group.key}
+            group={group}
+            calories={calories}
+            weightLbs={weightLbs}
+          />
+        ))}
+      </div>
+
+      {filteredActivities.length === 0 && (
+        <p className="exercise-empty">
+          No matching activities found.
+        </p>
+      )}
+
+      {visibleCount < filteredActivities.length && (
+        <button
+          type="button"
+          className="exercise-show-more"
+          onClick={() =>
+            setVisibleCount((current) =>
+              current + LOAD_MORE
+            )
+          }
+        >
+          Show More Activities
+          <ChevronDown size={18} />
+        </button>
+      )}
+
+      <div className="science-note">
+        <strong>
+          But that's not the whole story.
+        </strong>
+
+        <p>
+          Your body uses energy continuously — even
+          when you're resting. These exercise
+          equivalents are provided for context, not
+          as a prescription to "burn off" what you
+          eat.
+        </p>
+      </div>
+    </section>
+  );
+}

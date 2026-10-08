@@ -2088,3 +2088,134 @@ select {
     opacity: 0.5;
     cursor: default;
 }
+
+
+.exercise-filters {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0 12px;
+  flex-wrap: wrap;
+}
+
+.exercise-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 14px;
+  border: 1px solid #444;
+  border-radius: 10px;
+}
+
+.exercise-search input {
+  background: transparent;
+  color: inherit;
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.exercise-filters select {
+  padding: 12px;
+  border: 1px solid #444;
+  border-radius: 10px;
+  background: #181818;
+  color: white;
+}
+
+.exercise-results-count {
+  opacity: 0.7;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.exercise-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.exercise-category {
+  font-size: 0.7rem;
+  opacity: 0.65;
+}
+
+.exercise-adjustment {
+  margin: 14px 0;
+}
+
+.adjustment-label {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.adjustment-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.adjustment-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.adjustment-controls button:hover:not(:disabled) {
+  border-color: #ff8a32;
+  color: #ff8a32;
+}
+
+.adjustment-controls button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.exercise-description {
+  font-size: 0.85rem;
+  min-height: 42px;
+}
+
+.exercise-show-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px auto;
+  padding: 12px 22px;
+  border: 1px solid #555;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.exercise-show-more:hover {
+  border-color: #ff8a32;
+}
+
+@media (max-width: 600px) {
+  .exercise-filters {
+    flex-direction: column;
+  }
+
+  .exercise-search {
+    flex: auto;
+    min-width: 0;
+  }
+
+  .exercise-filters select {
+    width: 100%;
+  }
+}

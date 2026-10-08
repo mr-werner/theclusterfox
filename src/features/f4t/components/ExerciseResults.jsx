@@ -1,119 +1,86 @@
-import { useMemo, useState } from "react";
-import { Activity, Minus, Plus, Search } from "lucide-react";
-import { activities, activityCategories } from "../data/activities";
-import { formatDuration, minutesToBurnCalories } from "../../../domain/exercise/energy";
+import { useMemo, useState } from 'react';
+import { Activity, Search, Star } from 'lucide-react';
+import { activityCategories } from '../data/activities';
+import { buildActivityGroups } from '../data/activityGroups';
+import { formatDuration, minutesToBurnCalories } from '../../../domain/exercise/energy';
 
-const PER_PAGE = 12;
-
-// Only group known equivalent activity families; keep all other Compendium rows searchable.
-const FAMILIES = [
-  { title: "Running — speed", category: "Running", test: (a) => /^Running[, ]+\d/.test(a.description) && /mph/i.test(a.description) },
-  { title: "Walking — speed", category: "Walking", test: (a) => /^Walking[, ]+\d/.test(a.description) && /mph/i.test(a.description) },
-  { title: "Bicycling — speed", category: "Bicycling", test: (a) => /^Bicycling,\s*(?:[<>]\s*)?\d/.test(a.description) && /mph/i.test(a.description) },
-  { title: "Stationary bike — watts", category: "Bicycling", test: (a) => /^Bicycling, stationary,\s*[<>≥]?\s*\d/.test(a.description) && /watts/i.test(a.description) },
-  { title: "Elliptical", category: "Conditioning Exercise", test: (a) => /^Elliptical trainer,/i.test(a.description) },
-  { title: "Calisthenics", category: "Conditioning Exercise", test: (a) => /^Calisthenics \(/i.test(a.description) },
-  { title: "Circuit training — effort", category: "Conditioning Exercise", test: (a) => /^Circuit training, (?:light|moderate|including kettlebells)/i.test(a.description) },
-  { title: "Weight training", category: "Conditioning Exercise", test: (a) => /^Resistance \(weight\)/i.test(a.description) },
-  { title: "Mountain biking", category: "Bicycling", test: (a) => /^Bicycling, mountain,/i.test(a.description) },
-  { title: "E-bike — assistance", category: "Bicycling", test: (a) => /^E-bike \(/i.test(a.description) },
-];
-
-function speedFromDescription(description) {
-  // Only show a speed when the source states mph explicitly.
-  const match = description.match(/(?:[<>]\s*)?(\d+(?:\.\d+)?)\s*(?:-|–|to)\s*(\d+(?:\.\d+)?)\s*mph|(?:[<>]\s*)?(\d+(?:\.\d+)?)\s*mph/i);
-  if (!match) return null;
-  return match[1] && match[2] ? (Number(match[1]) + Number(match[2])) / 2 : Number(match[3]);
+const PAGE_SIZE = 12;
+const preferenceKey = 'f4t-activity-selections-v1';
+function loadSelections() {
+  try { return JSON.parse(localStorage.getItem(preferenceKey) || '{}'); }
+  catch { return {}; }
 }
-
-function measurement(item) {
-  const d = item.description;
-  const watts = d.match(/([<>≥]?\s*\d+(?:\s*(?:-|–|to)\s*\d+)?)\s*(?:watts|W)\b/i);
-  if (watts) return `${watts[1].trim()} watts`;
-  const mph = d.match(/([<>]?\s*\d+(?:\.\d+)?(?:\s*(?:-|–|to)\s*\d+(?:\.\d+)?)?)\s*mph/i);
-  if (mph) return `${mph[1].trim()} mph`;
-  return d;
+function speedLabel(description) {
+  const m = description.match(/([<>]?\s*\d+(?:\.\d+)?(?:\s*(?:-|–|to)\s*\d+(?:\.\d+)?)?)\s*mph/i);
+  if (!m) return null;
+  const raw = m[1].trim();
+  const nums = raw.match(/\d+(?:\.\d+)?/g)?.map(Number) || [];
+  const mph = nums.length === 1 ? nums[0] : (nums[0] + nums[1]) / 2;
+  const pace = mph > 0 ? 60 / mph : null;
+  const minutes = pace == null ? null : Math.floor(pace);
+  const seconds = pace == null ? null : Math.round((pace - minutes) * 60);
+  return { mph: `${raw} mph`, pace: pace == null ? null : `${minutes + (seconds === 60 ? 1 : 0)}:${String(seconds === 60 ? 0 : seconds).padStart(2,'0')} min/mile (approx.)` };
 }
-
-function Card({ group, calories, weightLbs, mode }) {
-  const [index, setIndex] = useState(0);
-  const selected = group.options[Math.min(index, group.options.length - 1)];
+function GroupCard({ group, calories, weightLbs, mode, selections, setSelections }) {
+  const storedId = selections[group.key];
+  const selected = group.options.find(a => a.id === storedId) || group.options[0];
   const minutes = minutesToBurnCalories(calories, selected.met, weightLbs, mode);
-  const speed = speedFromDescription(selected.description);
-  const distance = speed !== null && Number.isFinite(minutes) ? (speed * minutes / 60) : null;
-  const pace = speed && (group.category === "Running" || group.category === "Walking") ? 60 / speed : null;
-  return (
-    <article className="exercise-card">
-      <Activity size={26} />
-      <small>{group.category}</small>
-      <h3>{group.title}</h3>
-      {group.options.length > 1 && (
-        <div className="adjustment-controls" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, margin: "12px 0" }}>
-          <button type="button" aria-label="Lower intensity" disabled={index === 0} onClick={() => setIndex((i) => Math.max(0, i - 1))}><Minus size={18} /></button>
-          <span>{index + 1} / {group.options.length}</span>
-          <button type="button" aria-label="Higher intensity" disabled={index === group.options.length - 1} onClick={() => setIndex((i) => Math.min(group.options.length - 1, i + 1))}><Plus size={18} /></button>
-        </div>
-      )}
-      <p className="exercise-description">{measurement(selected)}</p>
-      <strong>{Number.isFinite(minutes) ? formatDuration(minutes) : "0 additional calories/min"}</strong>
-      {pace !== null && <span>~{Math.floor(pace)}:{String(Math.round((pace % 1) * 60)).padStart(2, "0")} min/mile (estimated)</span>}
-      {distance !== null && <span>~{distance.toFixed(1)} miles (estimated)</span>}
-      <small>{selected.met} MET · Code {selected.id} · {mode === "net" ? "Net" : "Total"} calories</small>
-      <small>{selected.description}</small>
-    </article>
-  );
+  const speed = speedLabel(selected.description);
+  function select(id) { setSelections(s => ({ ...s, [group.key]: id })); }
+  return <article className="exercise-card">
+    <Activity size={24} aria-hidden="true" />
+    <small>{group.category}</small>
+    <h3>{group.title}</h3>
+    {group.options.length > 1 && <label style={{display:'block', margin:'12px 0'}}>
+      <span style={{display:'block', marginBottom:6}}>Choose activity variation ({group.options.length})</span>
+      <select style={{width:'100%',maxWidth:'100%'}} value={selected.id} onChange={e=>select(e.target.value)}>
+        {group.options.map(a=><option key={a.id} value={a.id}>{a.description} · {a.met} MET</option>)}
+      </select>
+    </label>}
+    <strong style={{display:'block',fontSize:'1.35rem'}}>{Number.isFinite(minutes) ? formatDuration(minutes) : 'No additional calories burned'}</strong>
+    {speed && <p>{speed.mph}{(group.category === 'Running' || group.category === 'Walking') && speed.pace ? ` · ${speed.pace}` : ''}</p>}
+    <small>{selected.met} MET · Compendium code {selected.id} · {mode === 'net' ? 'Net' : 'Total'} calories</small>
+    <p className="exercise-description">{selected.description}</p>
+  </article>;
 }
-
 export default function ExerciseResults({ calories, weightLbs }) {
-  const [category, setCategory] = useState("All");
-  const [search, setSearch] = useState("");
-  const [visible, setVisible] = useState(PER_PAGE);
-  const [mode, setMode] = useState("net");
-  const groups = useMemo(() => {
-    const claimed = new Set();
-    const result = [];
-    for (const family of FAMILIES) {
-      const options = activities.filter((a) => a.category === family.category && family.test(a));
-      if (options.length < 2) continue;
-      options.forEach((a) => claimed.add(a.id));
-      result.push({ key: family.title, title: family.title, category: family.category, options: [...options].sort((a, b) => a.met - b.met) });
-    }
-    for (const a of activities) {
-      if (!claimed.has(a.id)) result.push({ key: a.id, title: a.name, category: a.category, options: [a] });
-    }
-    return result;
-  }, []);
+  const [category, setCategory] = useState('All');
+  const [search, setSearch] = useState('');
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [mode, setMode] = useState('net');
+  const [selections, setSelectionsState] = useState(loadSelections);
+  function setSelections(update) {
+    setSelectionsState(prev => {
+      const next = typeof update === 'function' ? update(prev) : update;
+      try { localStorage.setItem(preferenceKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
+  const groups = useMemo(() => buildActivityGroups(), []);
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return groups.filter((g) => (category === "All" || g.category === category) && (!q || g.title.toLowerCase().includes(q) || g.options.some((a) => a.description.toLowerCase().includes(q) || a.id.includes(q))));
+    return groups.filter(g => (category === 'All' || g.category === category) &&
+      (!q || g.title.toLowerCase().includes(q) || g.options.some(a => a.description.toLowerCase().includes(q) || a.id.includes(q))));
   }, [groups, category, search]);
   if (!(calories > 0 && weightLbs > 0)) return null;
-  return (
-    <section className="exercise-section">
-      <div className="exercise-heading">
-        <p className="f4t-section-label">MOVEMENT COMPARISON</p>
-        <h2>What does {Math.round(calories).toLocaleString()} calories look like?</h2>
-        <p>Search the 2024 Adult Compendium. Adjust documented levels where comparable options exist.</p>
-      </div>
-      <fieldset className="exercise-calorie-mode" style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", border: 0, padding: 0, margin: "16px 0" }}>
-        <legend style={{ fontWeight: 600, marginBottom: 8 }}>Calories burned calculation</legend>
-        <label><input type="radio" name="calorie-mode" value="net" checked={mode === "net"} onChange={() => setMode("net")} /> Net (additional above rest)</label>
-        <label><input type="radio" name="calorie-mode" value="total" checked={mode === "total"} onChange={() => setMode("total")} /> Total (including rest)</label>
-      </fieldset>
-      <p>{mode === "net" ? "Showing calories burned in addition to resting energy use." : "Showing total calories burned, including resting energy use."}</p>
-      <div className="exercise-filters" style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "20px 0" }}>
-        <label className="exercise-search"><Search size={18} /><input type="search" placeholder="Search activities or codes" value={search} onChange={(e) => { setSearch(e.target.value); setVisible(PER_PAGE); }} /></label>
-        <select aria-label="Category" value={category} onChange={(e) => { setCategory(e.target.value); setVisible(PER_PAGE); }}>
-          <option value="All">All categories</option>
-          {activityCategories.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
-      <p>Showing {Math.min(visible, filtered.length)} of {filtered.length} activity groups and individual entries</p>
-      <div className="exercise-grid">
-        {filtered.slice(0, visible).map((g) => <Card key={g.key} group={g} calories={calories} weightLbs={weightLbs} mode={mode} />)}
-      </div>
-      {visible < filtered.length && <button type="button" className="exercise-show-more" onClick={() => setVisible((n) => n + PER_PAGE)}>Show more activities</button>}
-      <div className="science-note"><strong>But that's not the whole story.</strong><p>Your body uses energy even at rest. Net estimates subtract 1 MET of resting energy expenditure. Total estimates include resting expenditure. These estimates provide context, not a prescription to burn off food. MET values are from the Compendium; distances derived from speed ranges are approximate.</p></div>
-    </section>
-  );
+  return <section className="exercise-results">
+    <h2>What does {Math.round(calories).toLocaleString()} calories look like?</h2>
+    <p>Browse consolidated activities. Every variation retains its published Compendium MET value.</p>
+    <fieldset style={{border:0,padding:0,margin:'16px 0'}}>
+      <legend>Calorie calculation</legend>
+      <label style={{marginRight:16}}><input type="radio" checked={mode==='net'} onChange={()=>setMode('net')} /> Net (above rest)</label>
+      <label><input type="radio" checked={mode==='total'} onChange={()=>setMode('total')} /> Total</label>
+    </fieldset>
+    <div className="exercise-filters" style={{display:'flex',gap:12,flexWrap:'wrap',margin:'20px 0'}}>
+      <label className="exercise-search"><Search size={18}/><input type="search" placeholder="Search descriptions or codes" value={search} onChange={e=>{setSearch(e.target.value);setVisible(PAGE_SIZE);}} /></label>
+      <select aria-label="Category" value={category} onChange={e=>{setCategory(e.target.value);setVisible(PAGE_SIZE);}}>
+        <option value="All">All categories</option>
+        {activityCategories.map(c=><option key={c} value={c}>{c}</option>)}
+      </select>
+    </div>
+    <p>Showing {Math.min(visible,filtered.length)} of {filtered.length} activity cards</p>
+    <div className="exercise-grid">{filtered.slice(0,visible).map(g=><GroupCard key={g.key} group={g} calories={calories} weightLbs={weightLbs} mode={mode} selections={selections} setSelections={setSelections}/>)}</div>
+    {visible<filtered.length && <button type="button" className="exercise-show-more" onClick={()=>setVisible(n=>n+PAGE_SIZE)}>Show more activities</button>}
+    <div className="science-note"><strong>About these estimates</strong><p>Net calories subtract resting energy use (1 MET). Speed-range pace estimates use the midpoint of the documented range. Activity MET values are not interpolated.</p></div>
+  </section>;
 }

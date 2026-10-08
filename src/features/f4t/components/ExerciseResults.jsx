@@ -1,4 +1,5 @@
 import {
+  Activity,
   Bike,
   Dumbbell,
   Footprints,
@@ -49,7 +50,7 @@ export default function ExerciseResults({
 
       <div className="exercise-grid">
         {activities.map((activity) => {
-          const Icon = icons[activity.id];
+          const Icon = icons[activity.id] || Activity;
 
           const minutes =
             minutesToBurnCalories(

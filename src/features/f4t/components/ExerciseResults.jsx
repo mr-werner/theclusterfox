@@ -6,7 +6,6 @@ import { formatDuration, minutesToBurnCalories } from "../../../domain/exercise/
 
 const FAVORITES_KEY = "f4t-favorites-v1";
 const SELECTIONS_KEY = "f4t-activity-selections-v2"; // preserve existing choices
-const MODE_KEY = "f4t-calorie-mode-v1";
 const PAGE_SIZE = 12;
 const DEFAULT_FAVORITES = [
   { category: "Walking", match: /walking.*(speed|level|pace)/i },
@@ -33,16 +32,16 @@ function defaultFavoriteKeys(groups) {
     g.category === rule.category && g.options.length > 1 && rule.match.test(g.title)
   )?.key).filter(Boolean);
 }
-function GroupCard({ group, calories, weightLbs, mode, selections, setSelections, favorite, toggleFavorite }) {
+function GroupCard({ group, calories, weightLbs, selections, setSelections, favorite, toggleFavorite }) {
   const selectedIndex = Math.max(0, group.options.findIndex(a => a.id === selections[group.key]));
   const selected = group.options[selectedIndex];
-  const minutes = minutesToBurnCalories(calories, selected.met, weightLbs, mode);
+  const minutes = minutesToBurnCalories(calories, selected.met, weightLbs, "net");
   function select(index) {
     if (index < 0 || index >= group.options.length) return;
     setSelections(prev => ({ ...prev, [group.key]: group.options[index].id }));
   }
   return (
-    <article className="exercise-card">
+    <article className="exercise-card f4t-activity-card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
         <Activity size={24} aria-hidden="true" />
         <button type="button" aria-label={favorite ? `Remove ${group.title} from favorites` : `Add ${group.title} to favorites`}
@@ -83,8 +82,6 @@ export default function ExerciseResults({ calories, weightLbs }) {
   const groups = useMemo(() => buildActivityGroups(), []);
   const [favorites, setFavorites] = useStoredState(FAVORITES_KEY, null);
   const [selections, setSelections] = useStoredState(SELECTIONS_KEY, {});
-  const [mode, setMode] = useStoredState(MODE_KEY, "net");
-  const [view, setView] = useState("favorites");
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -96,46 +93,80 @@ export default function ExerciseResults({ calories, weightLbs }) {
       return keys.includes(key) ? keys.filter(k => k !== key) : [...keys, key];
     });
   }
-  const filtered = useMemo(() => {
+  const favoriteGroups = useMemo(() => favoriteKeys.map(key => groups.find(g => g.key === key)).filter(Boolean), [groups, favoriteKeys]);
+  const browseGroups = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const matches = g => (category === "All" || g.category === category) &&
-      (!query || g.title.toLowerCase().includes(query) || g.options.some(a => a.description.toLowerCase().includes(query) || a.id.includes(query)));
-    return view === "favorites"
-      ? favoriteKeys.map(key => groups.find(g => g.key === key)).filter(Boolean).filter(matches)
-      : groups.filter(matches);
-  }, [groups, view, favoriteKeys, category, search]);
+    return groups.filter(g => !favoriteSet.has(g.key) &&
+      (category === "All" || g.category === category) &&
+      (!query || g.title.toLowerCase().includes(query) || g.options.some(a =>
+        a.description.toLowerCase().includes(query) || a.id.includes(query))));
+  }, [groups, favoriteSet, category, search]);
   if (!(Number(calories) > 0 && Number(weightLbs) > 0)) return null;
   return (
-    <section className="exercise-results" aria-label="Live activity comparisons">
+    <section className="exercise-results f4t-live-results" aria-label="Live activity comparisons">
+      <style>{`
+        .f4t-live-results, .f4t-live-results * { box-sizing: border-box; }
+        .f4t-live-results { width: 100%; max-width: 100%; min-width: 0; }
+        .f4t-live-results .f4t-activity-grid {
+          display: grid !important;
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)) !important;
+          gap: 16px; width: 100%; max-width: 100%; min-width: 0;
+        }
+        .f4t-live-results .f4t-activity-card {
+          width: 100% !important; max-width: 100% !important; min-width: 0 !important;
+          overflow-wrap: anywhere; overflow: hidden;
+        }
+        .f4t-live-results .f4t-activity-card select,
+        .f4t-live-results .f4t-activity-card input { min-width: 0; max-width: 100%; }
+        .f4t-live-results .f4t-browse-controls {
+          display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+          gap: 12px; margin: 16px 0; max-width: 100%;
+        }
+        .f4t-live-results .f4t-browse-controls > * { min-width: 0; width: 100%; }
+        .f4t-live-results .f4t-browse-controls input,
+        .f4t-live-results .f4t-browse-controls select { min-width: 0; width: 100%; max-width: 100%; }
+        .f4t-live-results .f4t-activity-section { margin: 26px 0; min-width: 0; }
+        @media (max-width: 620px) {
+          .f4t-live-results .f4t-activity-grid { grid-template-columns: minmax(0, 1fr) !important; }
+          .f4t-live-results .f4t-browse-controls { grid-template-columns: minmax(0, 1fr); }
+        }
+      `}</style>
       <h2>What does {Math.round(calories).toLocaleString()} calories look like?</h2>
-      <p>Updates automatically as you edit your meal or activity settings.</p>
-      <fieldset style={{ border: 0, padding: 0, margin: "16px 0" }}>
-        <legend>Calorie calculation</legend>
-        <label style={{ marginRight: 16 }}><input type="radio" name="f4t-mode" checked={mode === "net"} onChange={() => setMode("net")} /> Net (above rest)</label>
-        <label><input type="radio" name="f4t-mode" checked={mode === "total"} onChange={() => setMode("total")} /> Total</label>
-      </fieldset>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-        <button type="button" aria-pressed={view === "favorites"} onClick={() => { setView("favorites"); setVisible(PAGE_SIZE); }}>
-          Favorites ({favoriteKeys.length})
-        </button>
-        <button type="button" aria-pressed={view === "browse"} onClick={() => { setView("browse"); setVisible(PAGE_SIZE); }}>
-          Browse all ({groups.length})
-        </button>
+      <p>Net calories above rest. Results update automatically when your meal, weight, or activity settings change.</p>
+      <div className="f4t-activity-section">
+        <h3>Favorite activities ({favoriteGroups.length})</h3>
+        {favoriteGroups.length === 0 ? (
+          <p>No favorites yet. Search below and select a star to add activities here.</p>
+        ) : (
+          <div className="f4t-activity-grid">
+            {favoriteGroups.map(g => <GroupCard key={g.key} group={g} calories={calories} weightLbs={weightLbs}
+              selections={selections} setSelections={setSelections} favorite toggleFavorite={toggleFavorite} />)}
+          </div>
+        )}
       </div>
-      <div className="exercise-filters" style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "16px 0" }}>
-        <label className="exercise-search"><Search size={18} /><input type="search" value={search} placeholder="Search activities or codes" onChange={e => { setSearch(e.target.value); setVisible(PAGE_SIZE); }} /></label>
-        <select aria-label="Activity category" value={category} onChange={e => { setCategory(e.target.value); setVisible(PAGE_SIZE); }}>
-          <option value="All">All categories</option>
-          {activityCategories.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+      <div className="f4t-activity-section">
+        <h3>Browse all activities</h3>
+        <p>Find more activities and star them to add to your favorites above.</p>
+        <div className="f4t-browse-controls">
+          <label className="exercise-search" style={{ display: "flex", gap: 8, alignItems: "center", minWidth: 0 }}>
+            <Search size={18} style={{ flexShrink: 0 }} />
+            <input type="search" value={search} placeholder="Search activities or codes"
+              onChange={e => { setSearch(e.target.value); setVisible(PAGE_SIZE); }} />
+          </label>
+          <select aria-label="Activity category" value={category} onChange={e => { setCategory(e.target.value); setVisible(PAGE_SIZE); }}>
+            <option value="All">All categories</option>
+            {activityCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        {browseGroups.length === 0 && <p>No matching activities outside your favorites.</p>}
+        <div className="f4t-activity-grid">
+          {browseGroups.slice(0, visible).map(g => <GroupCard key={g.key} group={g} calories={calories} weightLbs={weightLbs}
+            selections={selections} setSelections={setSelections} favorite={false} toggleFavorite={toggleFavorite} />)}
+        </div>
+        {visible < browseGroups.length && <button type="button" className="exercise-show-more"
+          onClick={() => setVisible(v => v + PAGE_SIZE)}>Show more activities</button>}
       </div>
-      {filtered.length === 0 && <p>{view === "favorites" ? "No matching favorites. Browse all activities and select a star to add one." : "No matching activities."}</p>}
-      <div className="exercise-grid">
-        {filtered.slice(0, visible).map(g => <GroupCard key={g.key} group={g} calories={calories} weightLbs={weightLbs} mode={mode}
-          selections={selections} setSelections={setSelections} favorite={favoriteSet.has(g.key)} toggleFavorite={toggleFavorite} />)}
-      </div>
-      {visible < filtered.length && <button type="button" className="exercise-show-more" onClick={() => setVisible(v => v + PAGE_SIZE)}>Show more activities</button>}
-      <p className="science-note">MET estimates are approximate. Net calories subtract resting energy use. Favorite activities and their selected settings are stored in this browser.</p>
+      <p className="science-note">MET estimates are approximate. Calculations consistently use energy expenditure above rest. Favorites and selections are stored in this browser.</p>
     </section>
   );
 }

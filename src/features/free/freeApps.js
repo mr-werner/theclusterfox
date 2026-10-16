@@ -113,6 +113,7 @@ import {
   logo:  a Simple Icons brand mark (https://simpleicons.org)
   mark:  fallback initials when no brand mark exists, drawn on `color`
   alt:   the paid product it competes with
+  status: shown as a tag on apps that are not finished yet
 */
 
 export const freeCategories = [
@@ -151,6 +152,10 @@ export const freeCategories = [
       { name: "Zotero", alt: "EndNote", url: "https://www.zotero.org/", logo: siZotero, description: "Collect, organize, and cite research sources." },
       { name: "Calibre", alt: "paid e-book managers", url: "https://calibre-ebook.com/", mark: "Ca", color: "#7a4b2a", description: "Manage, convert, and read your e-book library." },
       { name: "Actual Budget", alt: "YNAB", url: "https://actualbudget.org/", logo: siActualbudget, description: "Envelope budgeting that runs locally or self-hosted." },
+      { name: "WordCraft", alt: "Microsoft Word", url: "https://getartcraft.com/apps/wordcraft", mark: "Wd", color: "#d9480f", status: "In development", description: "ArtCraft's word processor." },
+      { name: "GridCraft", alt: "Excel", url: "https://getartcraft.com/apps/gridcraft", mark: "Gr", color: "#d9480f", status: "In development", description: "ArtCraft's spreadsheet and data analysis app." },
+      { name: "DeckCraft", alt: "PowerPoint", url: "https://getartcraft.com/apps/deckcraft", mark: "Dk", color: "#d9480f", status: "In development", description: "ArtCraft's presentation and slide show app." },
+      { name: "PdfCraft", alt: "Adobe Acrobat", url: "https://getartcraft.com/apps/pdfcraft", mark: "Pd", color: "#d9480f", status: "Early alpha", description: "ArtCraft's PDF workbench." },
     ],
   },
   {
@@ -168,6 +173,11 @@ export const freeCategories = [
       { name: "Scribus", alt: "InDesign", url: "https://www.scribus.net/", mark: "Sc", color: "#2b5f8a", description: "Desktop publishing for print and PDF layouts." },
       { name: "draw.io", alt: "Visio / Lucidchart", url: "https://www.drawio.com/", logo: siDiagramsdotnet, description: "Flowcharts, network diagrams, and org charts." },
       { name: "Excalidraw", alt: "Miro", url: "https://excalidraw.com/", logo: siExcalidraw, description: "Hand-drawn style whiteboard in the browser." },
+      { name: "PhotoCraft", alt: "Photoshop", url: "https://getartcraft.com/apps/photocraft", mark: "Ph", color: "#d9480f", status: "Early alpha", description: "ArtCraft's image editor." },
+      { name: "VectorCraft", alt: "Illustrator", url: "https://getartcraft.com/apps/vectorcraft", mark: "Vc", color: "#d9480f", status: "In development", description: "ArtCraft's vector illustration app." },
+      { name: "LightCraft", alt: "Lightroom", url: "https://getartcraft.com/apps/lightcraft", mark: "Lc", color: "#d9480f", status: "In development", description: "ArtCraft's photo library and RAW developer." },
+      { name: "DesignCraft", alt: "InDesign", url: "https://getartcraft.com/apps/designcraft", mark: "Ds", color: "#d9480f", status: "In development", description: "ArtCraft's page layout and publishing app." },
+      { name: "FigCraft", alt: "Figma", url: "https://getartcraft.com/apps/figcraft", mark: "Fg", color: "#d9480f", status: "Early alpha", description: "ArtCraft's interface design and prototyping app." },
     ],
   },
   {
@@ -185,6 +195,9 @@ export const freeCategories = [
       { name: "LMMS", alt: "FL Studio", url: "https://lmms.io/", logo: siLmms, description: "Make music with beats, synths, and samples." },
       { name: "MuseScore", alt: "Sibelius / Finale", url: "https://musescore.org/", mark: "Ms", color: "#1a5fb4", description: "Write and play back sheet music." },
       { name: "VLC", alt: "paid media players", url: "https://www.videolan.org/vlc/", logo: siVlcmediaplayer, description: "Plays almost every audio and video file." },
+      { name: "FilmCraft", alt: "Premiere Pro", url: "https://getartcraft.com/apps/filmcraft", mark: "Fm", color: "#d9480f", status: "In development", description: "ArtCraft's video editor." },
+      { name: "EffectCraft", alt: "After Effects", url: "https://getartcraft.com/apps/effectcraft", mark: "Fx", color: "#d9480f", status: "In development", description: "ArtCraft's motion graphics and VFX app." },
+      { name: "SoundCraft", alt: "Pro Tools / Ableton Live", url: "https://getartcraft.com/apps/soundcraft", mark: "Sd", color: "#d9480f", status: "In development", description: "ArtCraft's digital audio workstation." },
     ],
   },
   {
@@ -198,6 +211,7 @@ export const freeCategories = [
       { name: "OpenSCAD", alt: "paid CAD", url: "https://openscad.org/", logo: siOpenscad, description: "Code-driven solid modeling. Great for 3D printing." },
       { name: "KiCad", alt: "Altium / Eagle", url: "https://www.kicad.org/", logo: siKicad, description: "Schematic capture and PCB design." },
       { name: "OrcaSlicer", alt: "paid slicers", url: "https://github.com/SoftFever/OrcaSlicer", mark: "Or", color: "#009688", description: "Feature-packed slicer for most 3D printers." },
+      { name: "CADCraft", alt: "AutoCAD", url: "https://getartcraft.com/apps/cadcraft", mark: "CAD", color: "#d9480f", status: "In development", description: "ArtCraft's computer-aided design and drafting app." },
     ],
   },
   {

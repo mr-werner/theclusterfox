@@ -176,6 +176,15 @@ export const freeAppDetails = {
   TrueNAS: OS,
 
   // AI & Machine Learning
+  Claude: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
+  ChatGPT: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
+  Gemini: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
+  "Microsoft Copilot": { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
+  Perplexity: { limits: ["freeTier"], note: "Unlimited basic searches; Pro searches are limited." },
+  "Le Chat": { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
+  DeepSeek: { note: "Free to use; models are open-weight. Servers are in China." },
+  "Meta AI": { limits: ["region"], note: "Available in select countries." },
+  Grok: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
   Ollama: OS,
   "LM Studio": {},
   "Hugging Face": { limits: ["freeTier"], note: "Paid plans add compute and private storage." },

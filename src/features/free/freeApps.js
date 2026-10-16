@@ -302,6 +302,7 @@ export const freeCategories = [
       { name: "Ollama", alt: "paid AI subscriptions", url: "https://ollama.com/", logo: siOllama, description: "Run open language models on your own machine." },
       { name: "LM Studio", alt: "paid AI subscriptions", url: "https://lmstudio.ai/", logo: siLmstudio, description: "Download and chat with local models in a desktop app." },
       { name: "Hugging Face", alt: "paid model hubs", url: "https://huggingface.co/", logo: siHuggingface, description: "The hub for open models, datasets, and demos." },
+      { name: "ArtCraft", alt: "Adobe Creative Cloud", url: "https://getartcraft.com/", mark: "AC", color: "#d9480f", description: "AI image and video studio plus a growing suite of free, open-source creative apps. Early stage." },
       { name: "Upscayl", alt: "Topaz Gigapixel", url: "https://upscayl.org/", mark: "Up", color: "#6d28d9", description: "AI image upscaling on your desktop." },
     ],
   },

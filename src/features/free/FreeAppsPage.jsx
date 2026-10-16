@@ -157,6 +157,11 @@ export default function FreeAppsPage() {
                                     <div className="free-card-body">
                                         <h3>
                                             {app.name}
+                                            {app.status && (
+                                                <span className="free-card-status">
+                                                    {app.status}
+                                                </span>
+                                            )}
                                             <ExternalLink
                                                 size={14}
                                                 aria-hidden="true"

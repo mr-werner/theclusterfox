@@ -2454,6 +2454,7 @@ select {
 
 .free-card-body h3 {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
 
@@ -2531,4 +2532,20 @@ select {
         grid-template-columns: 1fr;
         gap: 12px;
     }
+}
+
+.free-card-status {
+    padding: 2px 7px;
+
+    border: 1px solid rgba(242, 161, 94, 0.4);
+    border-radius: 999px;
+
+    color: var(--fox-light);
+
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }

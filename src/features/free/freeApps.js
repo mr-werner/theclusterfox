@@ -129,6 +129,8 @@ import {
   siZotero,
 } from "simple-icons";
 
+import { freeAppDetails } from "./freeAppDetails";
+
 /*
   Each entry links to the project's official home.
 
@@ -138,7 +140,7 @@ import {
   status: shown as a tag on apps that are not finished yet
 */
 
-export const freeCategories = [
+const categories = [
   {
     id: "operating-systems",
     name: "Operating Systems",
@@ -413,6 +415,15 @@ export const freeCategories = [
     ],
   },
 ];
+
+export const freeCategories = categories.map((category) => ({
+  ...category,
+  apps: category.apps.map((app) => ({
+    limits: [],
+    ...app,
+    ...freeAppDetails[app.name],
+  })),
+}));
 
 export const freeAppCount = freeCategories.reduce(
   (total, category) => total + category.apps.length,

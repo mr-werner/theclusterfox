@@ -4,6 +4,7 @@ import { ExternalLink, Search } from "lucide-react";
 import SiteHeader from "../../components/SiteHeader";
 import FreeAppIcon from "./FreeAppIcon";
 import { freeAppCount, freeCategories } from "./freeApps";
+import { freeLimits } from "./freeAppDetails";
 
 function matchesQuery(app, query) {
     return [app.name, app.alt, app.description]
@@ -12,12 +13,44 @@ function matchesQuery(app, query) {
         .includes(query);
 }
 
+// Each filter keeps only the apps that pass its test.
+const filterOptions = [
+    {
+        id: "openSource",
+        label: "Open source",
+        test: (app) => app.openSource,
+    },
+    ...Object.entries(freeLimits).map(([id, limit]) => ({
+        id,
+        label: limit.filterLabel,
+        test: (app) => !app.limits.includes(id),
+    })),
+    {
+        id: "finished",
+        label: "Finished apps",
+        test: (app) => !app.status,
+    },
+];
+
 export default function FreeAppsPage() {
     const [query, setQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
+    const [activeFilters, setActiveFilters] = useState([]);
+
+    function toggleFilter(id) {
+        setActiveFilters((current) =>
+            current.includes(id)
+                ? current.filter((filterId) => filterId !== id)
+                : [...current, id]
+        );
+    }
 
     const visibleCategories = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
+
+        const filters = filterOptions.filter((option) =>
+            activeFilters.includes(option.id)
+        );
 
         return freeCategories
             .filter(
@@ -27,14 +60,15 @@ export default function FreeAppsPage() {
             )
             .map((category) => ({
                 ...category,
-                apps: normalizedQuery
-                    ? category.apps.filter((app) =>
-                          matchesQuery(app, normalizedQuery)
-                      )
-                    : category.apps,
+                apps: category.apps.filter(
+                    (app) =>
+                        (!normalizedQuery ||
+                            matchesQuery(app, normalizedQuery)) &&
+                        filters.every((filter) => filter.test(app))
+                ),
             }))
             .filter((category) => category.apps.length > 0);
-    }, [query, activeCategory]);
+    }, [query, activeCategory, activeFilters]);
 
     return (
         <main className="home-page free-page">
@@ -101,12 +135,48 @@ export default function FreeAppsPage() {
                         </button>
                     ))}
                 </div>
+
+                <div
+                    className="free-chips free-filter-chips"
+                    role="group"
+                    aria-label="Filter by limits"
+                >
+                    <span className="free-filter-label">Only show</span>
+
+                    {filterOptions.map((option) => (
+                        <button
+                            key={option.id}
+                            type="button"
+                            className={`free-chip ${
+                                activeFilters.includes(option.id)
+                                    ? "active"
+                                    : ""
+                            }`}
+                            aria-pressed={activeFilters.includes(
+                                option.id
+                            )}
+                            onClick={() => toggleFilter(option.id)}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+
+                    {activeFilters.length > 0 && (
+                        <button
+                            type="button"
+                            className="free-clear-filters"
+                            onClick={() => setActiveFilters([])}
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
             </div>
 
             {visibleCategories.length === 0 && (
                 <p className="free-empty">
-                    Nothing matches “{query}”. Try another app or the
-                    paid product you want to replace.
+                    Nothing matches. Try another search or turn off a
+                    filter.
                 </p>
             )}
 
@@ -173,6 +243,35 @@ export default function FreeAppsPage() {
                                         </p>
 
                                         <p>{app.description}</p>
+
+                                        {(app.openSource ||
+                                            app.limits.length > 0) && (
+                                            <div className="free-card-tags">
+                                                {app.openSource && (
+                                                    <span className="free-tag free-tag--open">
+                                                        Open source
+                                                    </span>
+                                                )}
+
+                                                {app.limits.map((limit) => (
+                                                    <span
+                                                        key={limit}
+                                                        className="free-tag"
+                                                    >
+                                                        {
+                                                            freeLimits[limit]
+                                                                .label
+                                                        }
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {app.note && (
+                                            <p className="free-card-note">
+                                                {app.note}
+                                            </p>
+                                        )}
                                     </div>
                                 </a>
                             ))}

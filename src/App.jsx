@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import HomePage from "./features/home/HomePage";
@@ -7,11 +8,22 @@ import SignUpPage from "./features/auth/SignUpPage";
 import ForgotPasswordPage from "./features/auth/ForgotPasswordPage";
 import AccountPage from "./features/account/AccountPage";
 
+// Brand icons make this page heavy, so it loads on demand.
+const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
+
 export default function App() {
     return (
         <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/f4t" element={<F4TPage />} />
+            <Route
+                path="/free"
+                element={
+                    <Suspense fallback={null}>
+                        <FreeAppsPage />
+                    </Suspense>
+                }
+            />
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />

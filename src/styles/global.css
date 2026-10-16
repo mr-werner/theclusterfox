@@ -2549,3 +2549,66 @@ select {
     text-transform: uppercase;
     white-space: nowrap;
 }
+
+.free-filter-chips {
+    align-items: center;
+}
+
+.free-filter-label {
+    flex-shrink: 0;
+
+    color: var(--muted);
+
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.free-clear-filters {
+    flex-shrink: 0;
+
+    padding: 7px 4px;
+
+    border: none;
+    background: transparent;
+    color: var(--fox-light);
+
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: underline;
+
+    cursor: pointer;
+}
+
+.free-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+
+    margin-top: 10px;
+}
+
+.free-tag {
+    padding: 2px 8px;
+
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--muted);
+
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+.free-tag--open {
+    background: rgba(146, 212, 111, 0.12);
+    color: var(--f4t);
+}
+
+.free-card-body .free-card-note {
+    margin-top: 6px;
+
+    font-size: 0.74rem;
+    font-style: italic;
+}

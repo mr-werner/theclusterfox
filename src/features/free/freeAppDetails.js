@@ -2,7 +2,9 @@
   What each app's "free" actually means, keyed by app name.
 
   openSource:  source code is publicly licensed
-  limits:      catches worth knowing (see freeLimits below)
+  limits:      catches worth knowing (see freeLimits below); "tracking"
+               means the service collects personal or usage data for ads,
+               profiling, or model training
   note:        one short line explaining the catch
 */
 
@@ -11,6 +13,7 @@ export const freeLimits = {
   freeTier: { label: "Free tier", filterLabel: "No paid tiers" },
   libraryCard: { label: "Library card", filterLabel: "No library card" },
   region: { label: "Region limits", filterLabel: "Available everywhere" },
+  tracking: { label: "Data tracking", filterLabel: "No data tracking" },
 };
 
 const OS = { openSource: true };
@@ -40,6 +43,7 @@ export const freeAppDetails = {
   Zotero: { ...OS, limits: ["freeTier"], note: "300 MB of free sync storage; more is paid." },
   Calibre: OS,
   "Actual Budget": OS,
+  "Google Drive": { limits: ["freeTier", "tracking"], note: "15 GB free with a Google account, shared with Gmail and Photos." },
 
   // ArtCraft suite
   WordCraft: OS,
@@ -58,7 +62,7 @@ export const freeAppDetails = {
 
   // Graphics & Design
   GIMP: OS,
-  Photopea: { limits: ["ads", "freeTier"], note: "Ad-supported; Premium removes ads." },
+  Photopea: { limits: ["ads", "freeTier", "tracking"], note: "Ad-supported; Premium removes ads." },
   Krita: OS,
   Inkscape: OS,
   darktable: OS,
@@ -98,23 +102,23 @@ export const freeAppDetails = {
   Lichess: OS,
 
   // Movies, TV & Video
-  YouTube: { limits: ["ads", "freeTier"], note: "Premium removes ads." },
-  Tubi: { limits: ["ads", "region"], note: "Available in the US and select countries." },
-  "Pluto TV": { limits: ["ads", "region"], note: "Channel lineup varies by country." },
-  "The Roku Channel": { limits: ["ads", "region"], note: "Available in the US and select countries." },
-  Plex: { limits: ["ads", "freeTier"], note: "Free movies and TV have ads; Plex Pass is paid." },
+  YouTube: { limits: ["ads", "freeTier", "tracking"], note: "Premium removes ads." },
+  Tubi: { limits: ["ads", "region", "tracking"], note: "Available in the US and select countries." },
+  "Pluto TV": { limits: ["ads", "region", "tracking"], note: "Channel lineup varies by country." },
+  "The Roku Channel": { limits: ["ads", "region", "tracking"], note: "Available in the US and select countries." },
+  Plex: { limits: ["ads", "freeTier", "tracking"], note: "Free movies and TV have ads; Plex Pass is paid." },
   Kanopy: { limits: ["libraryCard"], note: "Needs a card from a participating library." },
   PBS: { limits: ["freeTier", "region"], note: "US only; some shows need PBS Passport." },
-  Twitch: { limits: ["ads", "freeTier"], note: "Subscriptions remove ads on a channel." },
+  Twitch: { limits: ["ads", "freeTier", "tracking"], note: "Subscriptions remove ads on a channel." },
 
   // Music, Radio & Podcasts
-  Spotify: { limits: ["ads", "freeTier"], note: "Free tier has ads and limited skips on mobile." },
-  "YouTube Music": { limits: ["ads", "freeTier"], note: "No background play on mobile without Premium." },
-  SoundCloud: { limits: ["ads", "freeTier"], note: "Paid plans remove ads and add offline listening." },
-  Pandora: { limits: ["ads", "freeTier", "region"], note: "US only; paid plans remove ads." },
-  Audiomack: { limits: ["ads", "freeTier"], note: "Paid plan removes ads." },
+  Spotify: { limits: ["ads", "freeTier", "tracking"], note: "Free tier has ads and limited skips on mobile." },
+  "YouTube Music": { limits: ["ads", "freeTier", "tracking"], note: "No background play on mobile without Premium." },
+  SoundCloud: { limits: ["ads", "freeTier", "tracking"], note: "Paid plans remove ads and add offline listening." },
+  Pandora: { limits: ["ads", "freeTier", "region", "tracking"], note: "US only; paid plans remove ads." },
+  Audiomack: { limits: ["ads", "freeTier", "tracking"], note: "Paid plan removes ads." },
   Bandcamp: { limits: ["freeTier"], note: "Stream for free; buying music supports artists." },
-  iHeartRadio: { limits: ["ads", "freeTier"], note: "Paid plans add on-demand playback." },
+  iHeartRadio: { limits: ["ads", "freeTier", "tracking"], note: "Paid plans add on-demand playback." },
   "Radio Garden": {},
   AntennaPod: OS,
   "Pocket Casts": { ...OS, limits: ["freeTier"], note: "Plus adds desktop apps and extras." },
@@ -124,10 +128,10 @@ export const freeAppDetails = {
   Hoopla: { limits: ["libraryCard"], note: "Your library sets a monthly borrowing limit." },
   LibriVox: {},
   "Open Library": OS,
-  WEBTOON: { limits: ["ads", "freeTier"], note: "Some episodes cost coins to read early." },
+  WEBTOON: { limits: ["ads", "freeTier", "tracking"], note: "Some episodes cost coins to read early." },
 
   // Development
-  "VS Code": { note: "Built on open source, but the official build is proprietary." },
+  "VS Code": { limits: ["tracking"], note: "Sends usage telemetry by default; VSCodium does not." },
   VSCodium: OS,
   Neovim: OS,
   "Notepad++": OS,
@@ -176,15 +180,15 @@ export const freeAppDetails = {
   TrueNAS: OS,
 
   // AI & Machine Learning
-  Claude: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
-  ChatGPT: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
-  Gemini: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
-  "Microsoft Copilot": { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
-  Perplexity: { limits: ["freeTier"], note: "Unlimited basic searches; Pro searches are limited." },
-  "Le Chat": { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
-  DeepSeek: { note: "Free to use; models are open-weight. Servers are in China." },
-  "Meta AI": { limits: ["region"], note: "Available in select countries." },
-  Grok: { limits: ["freeTier"], note: "Free plan has usage limits; paid plans raise them." },
+  Claude: { limits: ["freeTier", "tracking"], note: "Free plan has usage limits. Chats may train models unless you opt out." },
+  ChatGPT: { limits: ["freeTier", "tracking"], note: "Free plan has usage limits. Chats may train models unless you opt out." },
+  Gemini: { limits: ["freeTier", "tracking"], note: "Free plan has usage limits. Chats may train models unless you opt out." },
+  "Microsoft Copilot": { limits: ["freeTier", "tracking"], note: "Free plan has usage limits. Chats may train models unless you opt out." },
+  Perplexity: { limits: ["freeTier", "tracking"], note: "Unlimited basic searches; Pro searches are limited." },
+  "Le Chat": { limits: ["freeTier", "tracking"], note: "Free plan has usage limits. Chats may train models unless you opt out." },
+  DeepSeek: { limits: ["tracking"], note: "Free to use; models are open-weight. Servers are in China." },
+  "Meta AI": { limits: ["region", "tracking"], note: "Available in select countries." },
+  Grok: { limits: ["freeTier", "tracking"], note: "Free plan has usage limits. Chats may train models unless you opt out." },
   Ollama: OS,
   "LM Studio": {},
   "Hugging Face": { limits: ["freeTier"], note: "Paid plans add compute and private storage." },

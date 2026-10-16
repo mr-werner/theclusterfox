@@ -95,6 +95,7 @@ import {
   siTorbrowser,
   siTruenas,
   siUbuntu,
+  siUnity,
   siUnrealengine,
   siVirtualbox,
   siVivaldi,
@@ -205,8 +206,9 @@ export const freeCategories = [
     description: "Build games, or play your library anywhere.",
     icon: Gamepad2,
     apps: [
-      { name: "Godot", alt: "Unity", url: "https://godotengine.org/", logo: siGodotengine, description: "Open-source 2D and 3D game engine. No royalties." },
+      { name: "Godot", alt: "paid engines", url: "https://godotengine.org/", logo: siGodotengine, description: "Open-source 2D and 3D game engine. No royalties." },
       { name: "Unreal Engine", alt: "paid engines", url: "https://www.unrealengine.com/", logo: siUnrealengine, description: "AAA engine, free until your game earns big." },
+      { name: "Unity", alt: "paid engines", url: "https://unity.com/", logo: siUnity, description: "Popular 2D, 3D, and mobile engine. Free Personal plan for small studios." },
       { name: "Blockbench", alt: "paid low-poly tools", url: "https://www.blockbench.net/", logo: siBlockbench, description: "Low-poly and voxel-style 3D models." },
       { name: "RetroArch", alt: "paid emulators", url: "https://www.retroarch.com/", logo: siRetroarch, description: "One front end for classic console emulation." },
       { name: "Lutris", alt: "paid launchers", url: "https://lutris.net/", logo: siLutris, description: "Play Windows and retro games on Linux." },

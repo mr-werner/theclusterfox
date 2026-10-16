@@ -96,8 +96,15 @@ export default function SiteHeader() {
 
             <nav
                 className="header-nav"
-                aria-label="Account navigation"
+                aria-label="Site navigation"
             >
+                <Link
+                    to="/free"
+                    className="header-link"
+                >
+                    Free Apps
+                </Link>
+
                 {!loading && (
                     <>
                         {isAuthenticated ? (

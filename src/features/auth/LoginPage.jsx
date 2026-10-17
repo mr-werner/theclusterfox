@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "../../lib/auth";
 import { useAuth } from "../../context/AuthContext";
+import { nextPath, withNext } from "../../lib/redirect";
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const next = nextPath(searchParams);
     const { refreshSession } = useAuth();
 
     const [email, setEmail] = useState("");
@@ -47,7 +50,7 @@ export default function LoginPage() {
             }
 
             await refreshSession();
-            navigate("/");
+            navigate(next);
         } catch (err) {
             console.error("Login error:", err);
 
@@ -149,13 +152,13 @@ export default function LoginPage() {
 
                     <p className="auth-switch">
                         Don't have an account?{" "}
-                        <Link to="/signup">
+                        <Link to={withNext("/signup", next)}>
                             Sign up
                         </Link>
                     </p>
                 </section>
 
-                <Link to="/" className="auth-back">
+                <Link to={next} className="auth-back">
                     ← Continue without an account
                 </Link>
             </div>

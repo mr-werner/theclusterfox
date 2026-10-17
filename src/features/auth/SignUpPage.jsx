@@ -1,8 +1,15 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "../../lib/auth";
+import { useAuth } from "../../context/AuthContext";
+import { nextPath, withNext } from "../../lib/redirect";
 
 export default function SignUpPage() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const next = nextPath(searchParams);
+    const { refreshSession, isAuthenticated } = useAuth();
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,6 +31,12 @@ export default function SignUpPage() {
         setMessage("");
 
         const cleanEmail = email.trim();
+        const cleanName = displayName.trim();
+
+        if (!cleanName) {
+            setError("Please enter a display name.");
+            return;
+        }
 
         if (!cleanEmail) {
             setError("Please enter your email address.");
@@ -125,8 +138,17 @@ export default function SignUpPage() {
                 );
             }
 
-            setStep("success");
             setVerificationCode("");
+
+            // Verifying usually signs you in too; if so, go straight back.
+            await refreshSession();
+            const session = await authClient.getSession();
+            if (session?.data?.user) {
+                navigate(next);
+                return;
+            }
+
+            setStep("success");
         } catch (err) {
             console.error("Verification error:", err);
 
@@ -227,8 +249,9 @@ export default function SignUpPage() {
                                 <h1>Create an account</h1>
 
                                 <p>
-                                    Save your settings, personalize your apps,
-                                    and get more out of The Cluster Fox.
+                                    Keep your saved meals, favorite activities,
+                                    and settings on every device. Everything
+                                    still works without an account.
                                 </p>
                             </div>
 
@@ -323,7 +346,7 @@ export default function SignUpPage() {
 
                             <p className="auth-switch">
                                 Already have an account?{" "}
-                                <Link to="/login">
+                                <Link to={withNext("/login", next)}>
                                     Log in
                                 </Link>
                             </p>
@@ -449,17 +472,17 @@ export default function SignUpPage() {
                             </div>
 
                             <Link
-                                to="/login"
+                                to={isAuthenticated ? next : withNext("/login", next)}
                                 className="auth-submit auth-submit-link"
                             >
-                                Continue to Log In
+                                {isAuthenticated ? "Continue" : "Continue to Log In"}
                             </Link>
                         </>
                     )}
                 </section>
 
                 {step !== "success" && (
-                    <Link to="/" className="auth-back">
+                    <Link to={next} className="auth-back">
                         ← Continue without an account
                     </Link>
                 )}

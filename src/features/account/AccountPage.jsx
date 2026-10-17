@@ -4,6 +4,7 @@ import { Link, Navigate } from "react-router-dom";
 import { authClient } from "../../lib/auth";
 import { useAuth } from "../../context/AuthContext";
 import SiteHeader from "../../components/SiteHeader";
+import { loadData } from "../f4t/state/f4tStore";
 
 export default function AccountPage() {
 
@@ -276,20 +277,11 @@ export default function AccountPage() {
                         </div>
 
                         <p className="account-card-description">
-                            Your account lets Cluster Fox apps save
-                            preferences and data across devices.
+                            Your account keeps what you save in Cluster Fox
+                            apps in sync across your devices.
                         </p>
 
-                        <div className="account-app-placeholder">
-                            <span>F4T</span>
-
-                            <p>
-                                Saved meals, favorite foods,
-                                activity preferences, and history
-                                will appear here as we add account
-                                features to F4T.
-                            </p>
-                        </div>
+                        <F4TSummary userId={user?.id} />
                     </section>
                 </div>
             </div>
@@ -300,5 +292,25 @@ export default function AccountPage() {
                 <span>Build. Learn. Tinker.</span>
             </footer>
         </main>
+    );
+}
+
+function F4TSummary({ userId }) {
+    const data = loadData();
+    const synced = data.syncedUserId === userId;
+    const meals = synced ? data.meals.length : 0;
+    const favorites = synced && Array.isArray(data.favorites) ? data.favorites.length : 0;
+
+    return (
+        <div className="account-app-placeholder">
+            <span>F4T</span>
+
+            <p>
+                {synced
+                    ? `Fuel 4 Thought: ${meals} saved ${meals === 1 ? "meal" : "meals"} and ${favorites} favorite ${favorites === 1 ? "activity" : "activities"}, synced to this account.`
+                    : "Fuel 4 Thought saves your meals, favorite activities, and weight here once you open it while logged in."}{" "}
+                <Link to="/f4t">Open Fuel 4 Thought</Link>
+            </p>
+        </div>
     );
 }

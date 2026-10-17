@@ -1,7 +1,7 @@
 [
   {
     "key": "curated-01015",
-    "title": "Bicycling \u2014 self-selected effort",
+    "title": "Bicycling — self-selected effort",
     "category": "Bicycling",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -18,7 +18,7 @@
   },
   {
     "key": "curated-01018",
-    "title": "Bicycling \u2014 leisure speed",
+    "title": "Bicycling — road speed",
     "category": "Bicycling",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -26,18 +26,24 @@
       "01018",
       "01019",
       "01020",
-      "01030"
+      "01030",
+      "01040",
+      "01050",
+      "01060"
     ],
     "optionLabels": [
       "5.5 mph",
       "9.4 mph",
       "10-11.9 mph",
-      "12-13.9 mph"
+      "12-13.9 mph",
+      "14-15.9 mph",
+      "16-19 mph",
+      "20+ mph, racing"
     ]
   },
   {
     "key": "curated-01210",
-    "title": "Bicycling \u2014 stationary power",
+    "title": "Bicycling — stationary power",
     "category": "Bicycling",
     "adjustmentType": "power",
     "adjustmentLabel": "Watts",
@@ -72,7 +78,7 @@
   },
   {
     "key": "curated-01252",
-    "title": "Bicycling \u2014 concentric power",
+    "title": "Bicycling — concentric power",
     "category": "Bicycling",
     "adjustmentType": "power",
     "adjustmentLabel": "Watts",
@@ -87,7 +93,7 @@
   },
   {
     "key": "curated-01262",
-    "title": "Bicycling \u2014 eccentric power",
+    "title": "Bicycling — eccentric power",
     "category": "Bicycling",
     "adjustmentType": "power",
     "adjustmentLabel": "Watts",
@@ -102,7 +108,7 @@
   },
   {
     "key": "curated-01080",
-    "title": "Electric bicycling \u2014 assistance",
+    "title": "Electric bicycling — assistance",
     "category": "Bicycling",
     "adjustmentType": "assistance",
     "adjustmentLabel": "Assistance",
@@ -119,7 +125,7 @@
   },
   {
     "key": "curated-12028",
-    "title": "Running \u2014 speed",
+    "title": "Running — speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -164,7 +170,7 @@
   },
   {
     "key": "curated-12255",
-    "title": "Running uphill \u2014 5% incline, speed",
+    "title": "Running uphill — 5% incline, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -181,7 +187,7 @@
   },
   {
     "key": "curated-12335",
-    "title": "Running uphill \u2014 30% incline, speed",
+    "title": "Running uphill — 30% incline, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -189,18 +195,20 @@
       "12335",
       "12337",
       "12339",
+      "12341",
       "12343"
     ],
     "optionLabels": [
       "0.6 to 0.79 mph",
       "0.8 to 0.99 mph",
       "1.0 to 1.19 mph",
+      "1.2 to 1.39 mph",
       "1.4 to 1.59 mph"
     ]
   },
   {
     "key": "curated-12352",
-    "title": "Running downhill \u2014 10\u201315% decline, speed",
+    "title": "Running downhill — 10–15% decline, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -217,7 +225,7 @@
   },
   {
     "key": "curated-12358",
-    "title": "Running downhill \u2014 3\u20139% decline, speed",
+    "title": "Running downhill — 3–9% decline, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -232,7 +240,7 @@
   },
   {
     "key": "curated-12405",
-    "title": "Running \u2014 curved treadmill speed",
+    "title": "Running — curved treadmill speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -255,7 +263,7 @@
   },
   {
     "key": "curated-12508",
-    "title": "Running \u2014 weighted backpack, speed",
+    "title": "Running — weighted backpack, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -274,7 +282,7 @@
   },
   {
     "key": "curated-12555",
-    "title": "Running \u2014 barefoot, speed",
+    "title": "Running — barefoot, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -291,7 +299,7 @@
   },
   {
     "key": "curated-12585",
-    "title": "Running \u2014 jogging stroller indoors, speed",
+    "title": "Running — jogging stroller indoors, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -306,7 +314,7 @@
   },
   {
     "key": "curated-12593",
-    "title": "Running \u2014 jogging stroller outdoors, speed",
+    "title": "Running — jogging stroller outdoors, speed",
     "category": "Running",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -321,7 +329,7 @@
   },
   {
     "key": "curated-17151",
-    "title": "Walking \u2014 level-ground speed",
+    "title": "Walking — level-ground speed",
     "category": "Walking",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -348,7 +356,7 @@
   },
   {
     "key": "curated-17340",
-    "title": "Walking \u2014 treadmill, level grade, speed",
+    "title": "Walking — treadmill, level grade, speed",
     "category": "Walking",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -379,7 +387,7 @@
   },
   {
     "key": "curated-17302",
-    "title": "Walking \u2014 Nordic poles, level ground, speed",
+    "title": "Walking — Nordic poles, level ground, speed",
     "category": "Walking",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -396,7 +404,7 @@
   },
   {
     "key": "curated-17434",
-    "title": "Walking \u2014 treadmill with load, temperature",
+    "title": "Walking — treadmill with load, temperature",
     "category": "Walking",
     "adjustmentType": "temperature",
     "adjustmentLabel": "Temperature",
@@ -411,7 +419,7 @@
   },
   {
     "key": "curated-17026",
-    "title": "Carrying load upstairs \u2014 load",
+    "title": "Carrying load upstairs — load",
     "category": "Walking",
     "adjustmentType": "load",
     "adjustmentLabel": "Load",
@@ -432,22 +440,28 @@
   },
   {
     "key": "curated-17034",
-    "title": "Walking \u2014 climbing hills, no load, incline",
+    "title": "Walking — climbing hills, no load, incline",
     "category": "Walking",
     "adjustmentType": "incline",
-    "adjustmentLabel": "Incline",
+    "adjustmentLabel": "Grade",
     "ids": [
       "17034",
-      "17035"
+      "17035",
+      "17036",
+      "17038",
+      "17039"
     ],
     "optionLabels": [
       "1 to 5% grade",
-      "6 to 10% grade"
+      "6 to 10% grade",
+      "11 to 20% grade",
+      "30% grade, slow",
+      "30-40% grade, 1.2-1.8 mph"
     ]
   },
   {
     "key": "curated-11250",
-    "title": "Forestry \u2014 axe chopping, blows per minute",
+    "title": "Forestry — axe chopping, blows per minute",
     "category": "Occupation",
     "adjustmentType": "cadence",
     "adjustmentLabel": "Cadence",
@@ -464,7 +478,7 @@
   },
   {
     "key": "curated-11550",
-    "title": "Shoveling \u2014 material moved per minute",
+    "title": "Shoveling — material moved per minute",
     "category": "Occupation",
     "adjustmentType": "throughput",
     "adjustmentLabel": "Mass moved per minute",
@@ -481,7 +495,7 @@
   },
   {
     "key": "curated-11791",
-    "title": "Walking on job \u2014 office, no load, speed",
+    "title": "Walking on job — office, no load, speed",
     "category": "Occupation",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -498,7 +512,7 @@
   },
   {
     "key": "curated-11820",
-    "title": "Walking \u2014 carrying objects, load",
+    "title": "Walking — carrying objects, load",
     "category": "Occupation",
     "adjustmentType": "load",
     "adjustmentLabel": "Load",
@@ -517,7 +531,7 @@
   },
   {
     "key": "curated-11887",
-    "title": "Soldiers \u2014 loaded walking, incline",
+    "title": "Soldiers — loaded walking, incline",
     "category": "Occupation",
     "adjustmentType": "incline",
     "adjustmentLabel": "Incline",
@@ -534,7 +548,7 @@
   },
   {
     "key": "curated-11003",
-    "title": "Active workstation \u2014 treadmill speed",
+    "title": "Active workstation — treadmill speed",
     "category": "Occupation",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -549,22 +563,24 @@
   },
   {
     "key": "curated-18040",
-    "title": "Canoeing \u2014 rowing speed",
+    "title": "Canoeing — rowing speed",
     "category": "Water Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
     "ids": [
       "18040",
-      "18050"
+      "18050",
+      "18060"
     ],
     "optionLabels": [
       "2.0-3.9 mph",
-      "4.0-5.9 mph"
+      "4.0-5.9 mph",
+      "6+ mph, competition"
     ]
   },
   {
     "key": "curated-18225",
-    "title": "Stand-up paddleboard \u2014 strokes per minute",
+    "title": "Stand-up paddleboard — strokes per minute",
     "category": "Water Activities",
     "adjustmentType": "cadence",
     "adjustmentLabel": "Cadence",
@@ -585,7 +601,7 @@
   },
   {
     "key": "curated-18374",
-    "title": "Water running \u2014 steps per minute",
+    "title": "Water running — steps per minute",
     "category": "Water Activities",
     "adjustmentType": "cadence",
     "adjustmentLabel": "Cadence",
@@ -604,7 +620,7 @@
   },
   {
     "key": "curated-18367",
-    "title": "Water walking \u2014 intensity",
+    "title": "Water walking — intensity",
     "category": "Water Activities",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -621,7 +637,7 @@
   },
   {
     "key": "curated-18404",
-    "title": "Aquatic cycling \u2014 40\u201350 RPM, Watts",
+    "title": "Aquatic cycling — 40–50 RPM, Watts",
     "category": "Water Activities",
     "adjustmentType": "power",
     "adjustmentLabel": "Watts",
@@ -640,7 +656,7 @@
   },
   {
     "key": "curated-18408",
-    "title": "Aquatic cycling \u2014 60\u201370 RPM, Watts",
+    "title": "Aquatic cycling — 60–70 RPM, Watts",
     "category": "Water Activities",
     "adjustmentType": "power",
     "adjustmentLabel": "Watts",
@@ -659,7 +675,7 @@
   },
   {
     "key": "curated-18436",
-    "title": "Aquatic cycling \u2014 cadence only",
+    "title": "Aquatic cycling — cadence only",
     "category": "Water Activities",
     "adjustmentType": "cadence",
     "adjustmentLabel": "Cadence",
@@ -668,13 +684,13 @@
       "18440"
     ],
     "optionLabels": [
-      "80\u201389 RPM",
+      "80–89 RPM",
       "90+ RPM"
     ]
   },
   {
     "key": "curated-18340",
-    "title": "Swimming \u2014 treading water, intensity",
+    "title": "Swimming — treading water, intensity",
     "category": "Water Activities",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -689,22 +705,28 @@
   },
   {
     "key": "curated-18202",
-    "title": "Scuba diving \u2014 effort",
+    "title": "Scuba diving",
     "category": "Water Activities",
     "adjustmentType": "intensity",
-    "adjustmentLabel": "Intensity",
+    "adjustmentLabel": "Effort",
     "ids": [
       "18202",
-      "18204"
+      "18206",
+      "18204",
+      "18208",
+      "18200"
     ],
     "optionLabels": [
       "Light",
-      "Moderate"
+      "Professional diver",
+      "Moderate",
+      "Recreational diver",
+      "General"
     ]
   },
   {
     "key": "curated-19045",
-    "title": "Skating treadmill \u2014 2% grade, speed",
+    "title": "Skating treadmill — 2% grade, speed",
     "category": "Winter Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -723,7 +745,7 @@
   },
   {
     "key": "curated-19080",
-    "title": "Cross-country skiing \u2014 speed",
+    "title": "Cross-country skiing — speed",
     "category": "Winter Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -744,7 +766,7 @@
   },
   {
     "key": "curated-19305",
-    "title": "Rollerskiing \u2014 level, speed",
+    "title": "Rollerskiing — level, speed",
     "category": "Winter Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -765,7 +787,7 @@
   },
   {
     "key": "curated-19330",
-    "title": "Rollerskiing \u2014 2\u20135\u00b0 incline, speed",
+    "title": "Rollerskiing — 2–5° incline, speed",
     "category": "Winter Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -780,7 +802,7 @@
   },
   {
     "key": "curated-19340",
-    "title": "Rollerskiing \u2014 6\u201310\u00b0 incline, speed",
+    "title": "Rollerskiing — 6–10° incline, speed",
     "category": "Winter Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -795,24 +817,30 @@
   },
   {
     "key": "curated-19150",
-    "title": "Downhill skiing \u2014 intensity",
+    "title": "Downhill skiing or snowboarding",
     "category": "Winter Activities",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
     "ids": [
       "19150",
       "19160",
-      "19170"
+      "19174",
+      "19201",
+      "19170",
+      "19146"
     ],
     "optionLabels": [
       "Light",
       "Moderate",
-      "Vigorous"
+      "High-intensity training",
+      "Snowboarding, recreational",
+      "Vigorous",
+      "Slalom"
     ]
   },
   {
     "key": "curated-19252",
-    "title": "Snow shoveling \u2014 effort",
+    "title": "Snow shoveling — effort",
     "category": "Winter Activities",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -827,7 +855,7 @@
   },
   {
     "key": "curated-19190",
-    "title": "Snowshoeing \u2014 effort",
+    "title": "Snowshoeing — effort",
     "category": "Winter Activities",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -842,7 +870,7 @@
   },
   {
     "key": "curated-15113",
-    "title": "Boxing \u2014 punching bag, punches per minute",
+    "title": "Boxing — punching bag, punches per minute",
     "category": "Sports",
     "adjustmentType": "cadence",
     "adjustmentLabel": "Cadence",
@@ -859,7 +887,7 @@
   },
   {
     "key": "curated-15525",
-    "title": "Race walking \u2014 speed",
+    "title": "Race walking — speed",
     "category": "Sports",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -876,7 +904,7 @@
   },
   {
     "key": "curated-15538",
-    "title": "Rock climbing \u2014 treadwall speed",
+    "title": "Rock climbing — treadwall speed",
     "category": "Sports",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -891,7 +919,7 @@
   },
   {
     "key": "curated-15550",
-    "title": "Rope jumping \u2014 skips per minute",
+    "title": "Rope jumping — skips per minute",
     "category": "Sports",
     "adjustmentType": "cadence",
     "adjustmentLabel": "Cadence",
@@ -908,7 +936,7 @@
   },
   {
     "key": "curated-15591",
-    "title": "Rollerblading \u2014 speed",
+    "title": "Rollerblading — speed",
     "category": "Sports",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -927,7 +955,7 @@
   },
   {
     "key": "curated-15580",
-    "title": "Skateboarding \u2014 intensity",
+    "title": "Skateboarding — intensity",
     "category": "Sports",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -942,7 +970,7 @@
   },
   {
     "key": "curated-02048",
-    "title": "Elliptical trainer \u2014 effort",
+    "title": "Elliptical trainer — effort",
     "category": "Conditioning Exercise",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -957,7 +985,7 @@
   },
   {
     "key": "curated-02071",
-    "title": "Rowing \u2014 stationary, power",
+    "title": "Rowing — stationary, power",
     "category": "Conditioning Exercise",
     "adjustmentType": "power",
     "adjustmentLabel": "Watts",
@@ -971,12 +999,12 @@
       "<100 watts",
       " 100 to 149 watts",
       " 150 to 199 watts",
-      "\u2265 200 watts"
+      "≥ 200 watts"
     ]
   },
   {
     "key": "curated-02056",
-    "title": "Bodyweight resistance exercise \u2014 effort",
+    "title": "Bodyweight resistance exercise — effort",
     "category": "Conditioning Exercise",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -991,22 +1019,24 @@
   },
   {
     "key": "curated-08195",
-    "title": "Shoveling snow \u2014 effort",
+    "title": "Shoveling snow",
     "category": "Lawn & Garden",
     "adjustmentType": "intensity",
-    "adjustmentLabel": "Intensity",
+    "adjustmentLabel": "Effort",
     "ids": [
       "08195",
+      "08200",
       "08202"
     ],
     "optionLabels": [
       "Moderate",
+      "General",
       "Vigorous"
     ]
   },
   {
     "key": "curated-08019",
-    "title": "Chopping wood \u2014 effort",
+    "title": "Chopping wood — effort",
     "category": "Lawn & Garden",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -1021,37 +1051,43 @@
   },
   {
     "key": "curated-08045",
-    "title": "Digging and composting \u2014 effort",
+    "title": "Digging and composting",
     "category": "Lawn & Garden",
     "adjustmentType": "intensity",
-    "adjustmentLabel": "Intensity",
+    "adjustmentLabel": "Effort",
     "ids": [
       "08045",
+      "08050",
       "08052"
     ],
     "optionLabels": [
       "Light",
+      "General",
       "Vigorous"
     ]
   },
   {
     "key": "curated-05175",
-    "title": "Walking/running with children \u2014 effort",
+    "title": "Playing with children",
     "category": "Home Activities",
     "adjustmentType": "intensity",
-    "adjustmentLabel": "Intensity",
+    "adjustmentLabel": "Effort",
     "ids": [
+      "05170",
+      "05171",
       "05175",
       "05180"
     ],
     "optionLabels": [
-      "Moderate",
-      "Vigorous"
+      "Sitting, light",
+      "Standing, light",
+      "Walking or running, moderate",
+      "Walking or running, vigorous"
     ]
   },
   {
     "key": "curated-16002",
-    "title": "Transportation bicycling \u2014 effort",
+    "title": "Transportation bicycling — effort",
     "category": "Transportation",
     "adjustmentType": "intensity",
     "adjustmentLabel": "Intensity",
@@ -1066,7 +1102,7 @@
   },
   {
     "key": "curated-20036",
-    "title": "Religious walking \u2014 speed",
+    "title": "Religious walking — speed",
     "category": "Religious Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -1083,7 +1119,7 @@
   },
   {
     "key": "curated-21040",
-    "title": "Volunteer walking \u2014 no load, speed",
+    "title": "Volunteer walking — no load, speed",
     "category": "Volunteer Activities",
     "adjustmentType": "speed",
     "adjustmentLabel": "Speed",
@@ -1096,6 +1132,3338 @@
       "less than 2.0 mph",
       "2.8 to 3.4 mph",
       "3.5 to 3.9 mph"
+    ]
+  },
+  {
+    "key": "group-bike-mountain",
+    "title": "Bicycling — mountain",
+    "category": "Bicycling",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Terrain",
+    "ids": [
+      "01009",
+      "01003",
+      "01004"
+    ],
+    "optionLabels": [
+      "General",
+      "Uphill, vigorous",
+      "Competitive racing"
+    ]
+  },
+  {
+    "key": "group-bike-indoor",
+    "title": "Bicycling — indoor class or session",
+    "category": "Bicycling",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Session",
+    "ids": [
+      "01200",
+      "01290",
+      "01305",
+      "01270"
+    ],
+    "optionLabels": [
+      "Stationary, general",
+      "Interactive virtual cycling",
+      "High intensity intervals",
+      "Spin class"
+    ]
+  },
+  {
+    "key": "group-bike-12mph",
+    "title": "Bicycling — 12 mph riding position",
+    "category": "Bicycling",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Position",
+    "ids": [
+      "01065",
+      "01066"
+    ],
+    "optionLabels": [
+      "Seated, 80 rpm",
+      "Standing, 60 rpm"
+    ]
+  },
+  {
+    "key": "group-bike-general",
+    "title": "Bicycling — everyday riding",
+    "category": "Bicycling",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Ride",
+    "ids": [
+      "01010",
+      "01013",
+      "01011",
+      "01014"
+    ],
+    "optionLabels": [
+      "Leisure, under 10 mph",
+      "Dirt or farm road, moderate",
+      "To or from work",
+      "General"
+    ]
+  },
+  {
+    "key": "group-step-aerobics",
+    "title": "Step aerobics — step height",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "height",
+    "adjustmentLabel": "Step height",
+    "ids": [
+      "02001",
+      "02002",
+      "02003",
+      "02004"
+    ],
+    "optionLabels": [
+      "4 inch",
+      "6-8 inch",
+      "10-12 inch",
+      "General class"
+    ]
+  },
+  {
+    "key": "group-aerobics",
+    "title": "Aerobics",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02005",
+      "02000",
+      "02006",
+      "02007"
+    ],
+    "optionLabels": [
+      "Low impact",
+      "General",
+      "High impact",
+      "Wearing 10-15 lb weights"
+    ]
+  },
+  {
+    "key": "group-calisthenics",
+    "title": "Calisthenics",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02024",
+      "02030",
+      "02022",
+      "02020"
+    ],
+    "optionLabels": [
+      "Light (crunches, plank)",
+      "Light to moderate",
+      "Moderate (pushups, lunges)",
+      "Vigorous (burpees, jumping jacks)"
+    ]
+  },
+  {
+    "key": "group-circuit",
+    "title": "Circuit training",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02034",
+      "02035",
+      "02032",
+      "02040"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Body weight",
+      "Vigorous, with kettlebells"
+    ]
+  },
+  {
+    "key": "group-weights",
+    "title": "Weight training",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "02054",
+      "02052",
+      "02055",
+      "02050"
+    ],
+    "optionLabels": [
+      "Multiple exercises, 8-15 reps",
+      "Squats and deadlifts",
+      "Circuit supersets",
+      "Powerlifting or bodybuilding"
+    ]
+  },
+  {
+    "key": "group-gym",
+    "title": "Gym or home workout",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Setting",
+    "ids": [
+      "02064",
+      "02061",
+      "02060",
+      "02062"
+    ],
+    "optionLabels": [
+      "Home exercise",
+      "Gym class plus weights",
+      "Health club, general",
+      "Conditioning class"
+    ]
+  },
+  {
+    "key": "group-ski-machine",
+    "title": "Ski machine",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "02080",
+      "02082",
+      "02084"
+    ],
+    "optionLabels": [
+      "General",
+      "Double poling, slow to moderate",
+      "Double poling, fast"
+    ]
+  },
+  {
+    "key": "group-pilates",
+    "title": "Pilates",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "02103",
+      "02105",
+      "02107"
+    ],
+    "optionLabels": [
+      "Traditional mat",
+      "General",
+      "Pound (with drumming)"
+    ]
+  },
+  {
+    "key": "group-arm-ergometer",
+    "title": "Arm ergometer (hand bike)",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "power",
+    "adjustmentLabel": "Watts",
+    "ids": [
+      "02116",
+      "02117",
+      "02118"
+    ],
+    "optionLabels": [
+      "15 watts",
+      "25-30 watts",
+      "45 watts"
+    ]
+  },
+  {
+    "key": "group-fitball",
+    "title": "Exercise ball (Fitball)",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02112",
+      "02114"
+    ],
+    "optionLabels": [
+      "General",
+      "High intensity"
+    ]
+  },
+  {
+    "key": "group-workout-video",
+    "title": "Workout video or TV program",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02140",
+      "02143",
+      "02145"
+    ],
+    "optionLabels": [
+      "Light (yoga, stretching)",
+      "Moderate (cardio-resistance)",
+      "Vigorous (cardio-resistance)"
+    ]
+  },
+  {
+    "key": "group-yoga",
+    "title": "Yoga",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "02170",
+      "02150",
+      "02175",
+      "02185",
+      "02155",
+      "02180",
+      "02160",
+      "02153"
+    ],
+    "optionLabels": [
+      "Nadisodhana (breathing)",
+      "Hatha",
+      "General",
+      "Vinyasa",
+      "Hot yoga",
+      "Sun salutations",
+      "Power yoga",
+      "Hatha, high intensity"
+    ]
+  },
+  {
+    "key": "group-nz-pa",
+    "title": "Native New Zealander physical activity",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02200",
+      "02205"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-hiit",
+    "title": "High intensity interval training",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "02210",
+      "02214"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous (burpees, Tabata)"
+    ]
+  },
+  {
+    "key": "group-zumba",
+    "title": "Zumba",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Setting",
+    "ids": [
+      "02315",
+      "02310"
+    ],
+    "optionLabels": [
+      "Home video",
+      "Group class"
+    ]
+  },
+  {
+    "key": "group-sit-to-stand",
+    "title": "Sit to stand exercise",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "cadence",
+    "adjustmentLabel": "Reps per minute",
+    "ids": [
+      "02340",
+      "02344"
+    ],
+    "optionLabels": [
+      "6-12 per min",
+      "18-24 per min"
+    ]
+  },
+  {
+    "key": "group-vr-fitness",
+    "title": "Virtual reality fitness",
+    "category": "Conditioning Exercise",
+    "adjustmentType": "style",
+    "adjustmentLabel": "System",
+    "ids": [
+      "02280",
+      "02284",
+      "02288"
+    ],
+    "optionLabels": [
+      "Supernatural Flow or Boxing",
+      "ExerCube",
+      "Blackbox VR"
+    ]
+  },
+  {
+    "key": "group-ballet",
+    "title": "Ballet, modern, or jazz dance",
+    "category": "Dancing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Session",
+    "ids": [
+      "03078",
+      "03010",
+      "03011",
+      "03012"
+    ],
+    "optionLabels": [
+      "Jazz, general",
+      "Rehearsal or class",
+      "Ballet exercises",
+      "Performance"
+    ]
+  },
+  {
+    "key": "group-ballroom",
+    "title": "Ballroom dancing",
+    "category": "Dancing",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "03040",
+      "03030",
+      "03042",
+      "03038",
+      "03039"
+    ],
+    "optionLabels": [
+      "Slow (waltz, foxtrot)",
+      "Fast",
+      "Recreational",
+      "Competitive",
+      "DanceSport competition"
+    ]
+  },
+  {
+    "key": "group-folk",
+    "title": "Folk, line, or nightclub dancing",
+    "category": "Dancing",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "03033",
+      "03031"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-chinese-square",
+    "title": "Chinese square dance",
+    "category": "Dancing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "03028",
+      "03029"
+    ],
+    "optionLabels": [
+      "Ballet and Tibetan",
+      "Aerobic"
+    ]
+  },
+  {
+    "key": "group-contemporary",
+    "title": "Contemporary dancing",
+    "category": "Dancing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Setting",
+    "ids": [
+      "03070",
+      "03072"
+    ],
+    "optionLabels": [
+      "General",
+      "Nightclub"
+    ]
+  },
+  {
+    "key": "group-polynesian",
+    "title": "Polynesian dance",
+    "category": "Dancing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "03085",
+      "03086",
+      "03087"
+    ],
+    "optionLabels": [
+      "Slow (hula, haka)",
+      "Fast (sasa, Tinikling)",
+      "Samoan slap, Tahitian"
+    ]
+  },
+  {
+    "key": "group-salsa",
+    "title": "Salsa dancing",
+    "category": "Dancing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "03090",
+      "03005",
+      "03091"
+    ],
+    "optionLabels": [
+      "With a partner",
+      "Afro-Cuban salsa",
+      "To a video"
+    ]
+  },
+  {
+    "key": "group-fishing",
+    "title": "Fishing",
+    "category": "Fishing & Hunting",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Setting",
+    "ids": [
+      "04061",
+      "04030",
+      "04060",
+      "04001",
+      "04040",
+      "04020",
+      "04050"
+    ],
+    "optionLabels": [
+      "Jig or line, standing",
+      "From a boat, sitting",
+      "Ice fishing, sitting",
+      "General",
+      "River bank, standing",
+      "River bank, walking",
+      "In a stream, in waders"
+    ]
+  },
+  {
+    "key": "group-net-fishing",
+    "title": "Net fishing",
+    "category": "Fishing & Hunting",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Method",
+    "ids": [
+      "04064",
+      "04062",
+      "04063"
+    ],
+    "optionLabels": [
+      "Fishing wheel",
+      "Dip net",
+      "Set net"
+    ]
+  },
+  {
+    "key": "group-hunting-large",
+    "title": "Hunting — large game",
+    "category": "Fishing & Hunting",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Situation",
+    "ids": [
+      "04086",
+      "04085",
+      "04080",
+      "04125",
+      "04081"
+    ],
+    "optionLabels": [
+      "From a car, plane, or boat",
+      "From a hunting stand",
+      "Deer or elk, general",
+      "Hiking with gear",
+      "Dragging a carcass"
+    ]
+  },
+  {
+    "key": "group-hunting-small",
+    "title": "Hunting — small game and birds",
+    "category": "Fishing & Hunting",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Game",
+    "ids": [
+      "04095",
+      "04115",
+      "04100",
+      "04120",
+      "04110"
+    ],
+    "optionLabels": [
+      "Flying fox or squirrel",
+      "Birds",
+      "General",
+      "Rabbit or small game",
+      "Pheasant or grouse"
+    ]
+  },
+  {
+    "key": "group-rifle",
+    "title": "Rifle shooting",
+    "category": "Fishing & Hunting",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Position",
+    "ids": [
+      "04140",
+      "04145"
+    ],
+    "optionLabels": [
+      "Lying down",
+      "Kneeling or standing"
+    ]
+  },
+  {
+    "key": "group-foraging",
+    "title": "Foraging with a backpack",
+    "category": "Fishing & Hunting",
+    "adjustmentType": "load",
+    "adjustmentLabel": "Load",
+    "ids": [
+      "04150",
+      "04152"
+    ],
+    "optionLabels": [
+      "0-9.9 kg",
+      "10-15 kg"
+    ]
+  },
+  {
+    "key": "group-in-boat",
+    "title": "In a boat",
+    "category": "Fishing & Hunting",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "04160",
+      "04164",
+      "04168"
+    ],
+    "optionLabels": [
+      "Sitting, passenger",
+      "Standing",
+      "Lifting and lowering"
+    ]
+  },
+  {
+    "key": "group-sweeping",
+    "title": "Sweeping floors",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05011",
+      "05010",
+      "05012"
+    ],
+    "optionLabels": [
+      "Slow, light",
+      "General",
+      "Fast, moderate"
+    ]
+  },
+  {
+    "key": "group-mopping",
+    "title": "Mopping",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05023",
+      "05021"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-household-multi",
+    "title": "Multiple household tasks",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05025",
+      "05026",
+      "05027"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-house-cleaning",
+    "title": "House cleaning",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05040",
+      "05030",
+      "05020"
+    ],
+    "optionLabels": [
+      "Light (tidying, linens)",
+      "Moderate, general",
+      "Heavy (garage, washing car)"
+    ]
+  },
+  {
+    "key": "group-scrubbing",
+    "title": "Scrubbing floors or bathroom",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05131",
+      "05130",
+      "05132"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-dishes",
+    "title": "Washing dishes",
+    "category": "Home Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "05041",
+      "05042"
+    ],
+    "optionLabels": [
+      "Standing at the sink",
+      "Clearing the table"
+    ]
+  },
+  {
+    "key": "group-butchering",
+    "title": "Butchering animals",
+    "category": "Home Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Size",
+    "ids": [
+      "05044",
+      "05045"
+    ],
+    "optionLabels": [
+      "Small animals",
+      "Large animals"
+    ]
+  },
+  {
+    "key": "group-cooking",
+    "title": "Cooking and kitchen work",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05050",
+      "05051",
+      "05035",
+      "05049"
+    ],
+    "optionLabels": [
+      "Light, standing or sitting",
+      "Walking around",
+      "Kitchen activity, general",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-groceries",
+    "title": "Groceries and shopping",
+    "category": "Home Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "05065",
+      "05055",
+      "05060",
+      "05054",
+      "05056"
+    ],
+    "optionLabels": [
+      "Non-food shopping",
+      "Putting away groceries",
+      "Food shopping",
+      "Carrying groceries, level ground",
+      "Carrying groceries upstairs"
+    ]
+  },
+  {
+    "key": "group-laundry",
+    "title": "Laundry",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05091",
+      "05095",
+      "05090",
+      "05092"
+    ],
+    "optionLabels": [
+      "Folding, sitting",
+      "Putting away clothes",
+      "Folding, standing",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-moving",
+    "title": "Moving household items",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "05121",
+      "05120",
+      "05150"
+    ],
+    "optionLabels": [
+      "Lifting light loads",
+      "Moving furniture, carrying boxes",
+      "Carrying items upstairs"
+    ]
+  },
+  {
+    "key": "group-carry-child",
+    "title": "Walking while carrying a child",
+    "category": "Home Activities",
+    "adjustmentType": "load",
+    "adjustmentLabel": "Child weight",
+    "ids": [
+      "05182",
+      "05181"
+    ],
+    "optionLabels": [
+      "Under 15 lbs",
+      "15+ lbs"
+    ]
+  },
+  {
+    "key": "group-child-care",
+    "title": "Child care",
+    "category": "Home Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "05188",
+      "05183",
+      "05189",
+      "05185",
+      "05184",
+      "05186"
+    ],
+    "optionLabels": [
+      "Reclining with baby",
+      "Holding a child, standing",
+      "Breastfeeding",
+      "Sitting or kneeling",
+      "Infant care, general",
+      "Standing (bathing, dressing)"
+    ]
+  },
+  {
+    "key": "group-pets",
+    "title": "Playing with pets",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "05190",
+      "05191",
+      "05192",
+      "05193",
+      "05194"
+    ],
+    "optionLabels": [
+      "Sitting, light",
+      "Standing, light",
+      "Walking, light",
+      "Walking or running, moderate",
+      "Walking or running, vigorous"
+    ]
+  },
+  {
+    "key": "group-elder-care",
+    "title": "Caring for an adult",
+    "category": "Home Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "05205",
+      "05200"
+    ],
+    "optionLabels": [
+      "Light (feeding, grooming)",
+      "Bathing, dressing, moving"
+    ]
+  },
+  {
+    "key": "group-carpentry-home",
+    "title": "Carpentry at home",
+    "category": "Home Repair",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "06074",
+      "06040",
+      "06060",
+      "06052",
+      "06072",
+      "06070",
+      "06050"
+    ],
+    "optionLabels": [
+      "Remodeling, light",
+      "Workshop, general",
+      "Finishing or refinishing",
+      "Building a fence",
+      "Remodeling, moderate",
+      "Sawing, planing, drilling",
+      "Outside the house"
+    ]
+  },
+  {
+    "key": "group-home-repair",
+    "title": "Home repair",
+    "category": "Home Repair",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "06126",
+      "06127",
+      "06128"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-painting",
+    "title": "Painting",
+    "category": "Home Repair",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Where",
+    "ids": [
+      "06160",
+      "06165",
+      "06150"
+    ],
+    "optionLabels": [
+      "Inside, wallpapering",
+      "General",
+      "Outside the home"
+    ]
+  },
+  {
+    "key": "group-caulking",
+    "title": "Caulking",
+    "category": "Home Repair",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "06090",
+      "06080"
+    ],
+    "optionLabels": [
+      "General",
+      "Log cabin chinking"
+    ]
+  },
+  {
+    "key": "group-wash-wax",
+    "title": "Washing and waxing",
+    "category": "Home Repair",
+    "adjustmentType": "style",
+    "adjustmentLabel": "What",
+    "ids": [
+      "06225",
+      "06220"
+    ],
+    "optionLabels": [
+      "Car",
+      "Boat hull or airplane"
+    ]
+  },
+  {
+    "key": "group-lying",
+    "title": "Lying down quietly",
+    "category": "Inactivity",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "07011",
+      "07009"
+    ],
+    "optionLabels": [
+      "Doing nothing or listening to music",
+      "Watching TV"
+    ]
+  },
+  {
+    "key": "group-sitting",
+    "title": "Sitting quietly",
+    "category": "Inactivity",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "07020",
+      "07021",
+      "07024",
+      "07026",
+      "07022",
+      "07025",
+      "07023"
+    ],
+    "optionLabels": [
+      "Watching TV",
+      "General",
+      "Smoking",
+      "At a desk, head in hands",
+      "Fidgeting hands",
+      "Music or a movie",
+      "Fidgeting feet"
+    ]
+  },
+  {
+    "key": "group-standing",
+    "title": "Standing quietly",
+    "category": "Inactivity",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "07040",
+      "07045",
+      "07041"
+    ],
+    "optionLabels": [
+      "Waiting in line",
+      "Watching TV",
+      "Fidgeting"
+    ]
+  },
+  {
+    "key": "group-reclining",
+    "title": "Reclining",
+    "category": "Inactivity",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "07060",
+      "07070",
+      "07050"
+    ],
+    "optionLabels": [
+      "Talking on the phone",
+      "Reading",
+      "Writing"
+    ]
+  },
+  {
+    "key": "group-carry-wood",
+    "title": "Carrying or stacking wood",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08009",
+      "08010"
+    ],
+    "optionLabels": [
+      "Light to moderate",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-clearing",
+    "title": "Clearing brush or land",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08025",
+      "08030"
+    ],
+    "optionLabels": [
+      "Light brush, moderate",
+      "Hauling brush, vigorous"
+    ]
+  },
+  {
+    "key": "group-felling",
+    "title": "Felling trees",
+    "category": "Lawn & Garden",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Tree size",
+    "ids": [
+      "08058",
+      "08057"
+    ],
+    "optionLabels": [
+      "Small to medium",
+      "Large"
+    ]
+  },
+  {
+    "key": "group-mowing",
+    "title": "Mowing the lawn",
+    "category": "Lawn & Garden",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Mower",
+    "ids": [
+      "08100",
+      "08125",
+      "08120",
+      "08095",
+      "08110"
+    ],
+    "optionLabels": [
+      "Riding mower",
+      "Power mower, light",
+      "Walking power mower",
+      "Walking, general",
+      "Hand mower"
+    ]
+  },
+  {
+    "key": "group-planting",
+    "title": "Planting",
+    "category": "Lawn & Garden",
+    "adjustmentType": "style",
+    "adjustmentLabel": "What",
+    "ids": [
+      "08135",
+      "08140",
+      "08145",
+      "08150"
+    ],
+    "optionLabels": [
+      "Seedlings, light",
+      "Seedlings or shrubs, stooping",
+      "Crops or garden",
+      "Trees"
+    ]
+  },
+  {
+    "key": "group-raking",
+    "title": "Raking",
+    "category": "Lawn & Garden",
+    "adjustmentType": "style",
+    "adjustmentLabel": "What",
+    "ids": [
+      "08160",
+      "08165",
+      "08170"
+    ],
+    "optionLabels": [
+      "Leaves",
+      "Lawn",
+      "Snow off a roof"
+    ]
+  },
+  {
+    "key": "group-snow-blower",
+    "title": "Snow blower",
+    "category": "Lawn & Garden",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "08130",
+      "08180"
+    ],
+    "optionLabels": [
+      "Walking",
+      "Riding"
+    ]
+  },
+  {
+    "key": "group-trimming",
+    "title": "Trimming shrubs or trees",
+    "category": "Lawn & Garden",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Tool",
+    "ids": [
+      "08215",
+      "08210"
+    ],
+    "optionLabels": [
+      "Power cutter or leaf blower",
+      "Manual cutter"
+    ]
+  },
+  {
+    "key": "group-weeding",
+    "title": "Weeding",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08239",
+      "08240",
+      "08241"
+    ],
+    "optionLabels": [
+      "Light to moderate",
+      "Moderate",
+      "With a hoe, vigorous"
+    ]
+  },
+  {
+    "key": "group-gardening",
+    "title": "Gardening",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08066",
+      "08245"
+    ],
+    "optionLabels": [
+      "General",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-picking-fruit",
+    "title": "Picking fruit",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08246",
+      "08248"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous, climbing ladder"
+    ]
+  },
+  {
+    "key": "group-wheelbarrow",
+    "title": "Pushing a wheelbarrow",
+    "category": "Lawn & Garden",
+    "adjustmentType": "load",
+    "adjustmentLabel": "Load",
+    "ids": [
+      "08255",
+      "08256"
+    ],
+    "optionLabels": [
+      "General",
+      "Heavy, up to 150 kg"
+    ]
+  },
+  {
+    "key": "group-yardwork",
+    "title": "Yardwork",
+    "category": "Lawn & Garden",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "08260",
+      "08261",
+      "08262"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-table-games",
+    "title": "Board, card, or chess games",
+    "category": "Miscellaneous",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Game",
+    "ids": [
+      "09000",
+      "09010",
+      "09013"
+    ],
+    "optionLabels": [
+      "Board games",
+      "Cards",
+      "Chess"
+    ]
+  },
+  {
+    "key": "group-crafts",
+    "title": "Arts and crafts",
+    "category": "Miscellaneous",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "09075",
+      "09085",
+      "09080",
+      "09090",
+      "09095"
+    ],
+    "optionLabels": [
+      "Sitting, light",
+      "Standing, light",
+      "Sitting, moderate",
+      "Standing, moderate",
+      "Standing, vigorous"
+    ]
+  },
+  {
+    "key": "group-desk",
+    "title": "Sitting — reading, writing, studying",
+    "category": "Miscellaneous",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "09030",
+      "09040",
+      "09055",
+      "09060",
+      "09065",
+      "09034"
+    ],
+    "optionLabels": [
+      "Reading",
+      "Writing or typing",
+      "Talking or texting",
+      "Studying",
+      "In class",
+      "On a balance ball"
+    ]
+  },
+  {
+    "key": "group-standing-misc",
+    "title": "Standing — reading, talking, crafts",
+    "category": "Miscellaneous",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "09070",
+      "09050",
+      "09015",
+      "09020",
+      "09071"
+    ],
+    "optionLabels": [
+      "Reading",
+      "Talking or texting",
+      "Copying or filing",
+      "Drawing or painting",
+      "Miscellaneous"
+    ]
+  },
+  {
+    "key": "group-retreat",
+    "title": "Family reunion or retreat",
+    "category": "Miscellaneous",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "09100",
+      "09101"
+    ],
+    "optionLabels": [
+      "Sitting and talking",
+      "Playing games with kids"
+    ]
+  },
+  {
+    "key": "group-touring",
+    "title": "Touring or vacation",
+    "category": "Miscellaneous",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "09105",
+      "09106"
+    ],
+    "optionLabels": [
+      "Riding in a vehicle",
+      "Walking"
+    ]
+  },
+  {
+    "key": "group-instrument",
+    "title": "Playing a musical instrument",
+    "category": "Music Playing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Instrument",
+    "ids": [
+      "10010",
+      "10060",
+      "10110",
+      "10115",
+      "10050",
+      "10074",
+      "10077",
+      "10120",
+      "10020",
+      "10030",
+      "10070",
+      "10035",
+      "10090",
+      "10100",
+      "10125",
+      "10080"
+    ],
+    "optionLabels": [
+      "Accordion",
+      "Horn",
+      "Woodwinds",
+      "Brass, sitting",
+      "Flute",
+      "General",
+      "Organ",
+      "Guitar, sitting",
+      "Cello",
+      "Conducting",
+      "Piano",
+      "Double bass",
+      "Trumpet",
+      "Violin",
+      "Guitar, rock band",
+      "Trombone"
+    ]
+  },
+  {
+    "key": "group-drums",
+    "title": "Drumming",
+    "category": "Music Playing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "10045",
+      "10040",
+      "10048"
+    ],
+    "optionLabels": [
+      "Bongo or conga",
+      "Drum kit, sitting",
+      "Concert or live show"
+    ]
+  },
+  {
+    "key": "group-marching",
+    "title": "Marching band",
+    "category": "Music Playing",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Role",
+    "ids": [
+      "10135",
+      "10130",
+      "10131"
+    ],
+    "optionLabels": [
+      "Drum major",
+      "Baton twirling",
+      "Playing, brisk pace"
+    ]
+  },
+  {
+    "key": "group-pedal-desk",
+    "title": "Active workstation — pedal desk",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "11000",
+      "11001",
+      "11002"
+    ],
+    "optionLabels": [
+      "General, light",
+      "40 watts",
+      "80 watts"
+    ]
+  },
+  {
+    "key": "group-bakery",
+    "title": "Bakery work",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11015",
+      "11010"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-carpentry-job",
+    "title": "Carpentry work",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11038",
+      "11040",
+      "11042"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Heavy"
+    ]
+  },
+  {
+    "key": "group-coal",
+    "title": "Coal mining",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11090",
+      "11080",
+      "11100",
+      "11110"
+    ],
+    "optionLabels": [
+      "Erecting supports",
+      "Drilling",
+      "General",
+      "Shoveling coal"
+    ]
+  },
+  {
+    "key": "group-custodial",
+    "title": "Custodial work",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11125",
+      "11126",
+      "11072"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vacuuming commercial space"
+    ]
+  },
+  {
+    "key": "group-farming",
+    "title": "Farming",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11147",
+      "11146",
+      "11145"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-milking",
+    "title": "Milking",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Method",
+    "ids": [
+      "11220",
+      "11222",
+      "11210"
+    ],
+    "optionLabels": [
+      "By machine",
+      "Milking parlor, full process",
+      "By hand"
+    ]
+  },
+  {
+    "key": "group-farm-animals",
+    "title": "Farm animal care",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11180",
+      "11190",
+      "11191",
+      "11192"
+    ],
+    "optionLabels": [
+      "Feeding small animals",
+      "Feeding cattle or horses",
+      "Hauling water",
+      "Grooming and care"
+    ]
+  },
+  {
+    "key": "group-firefighter",
+    "title": "Fire fighting",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11244",
+      "11240",
+      "11245",
+      "11246"
+    ],
+    "optionLabels": [
+      "Rescue with pike pole",
+      "General",
+      "Ladder climbing in gear",
+      "Hauling hoses in gear"
+    ]
+  },
+  {
+    "key": "group-commercial-fishing",
+    "title": "Commercial fishing",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11247",
+      "11248"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-forestry",
+    "title": "Forestry work",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11264",
+      "11266"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-horse-racing",
+    "title": "Horse racing (jockey)",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Gait",
+    "ids": [
+      "11410",
+      "11400",
+      "11390"
+    ],
+    "optionLabels": [
+      "Walking",
+      "Trotting",
+      "Galloping"
+    ]
+  },
+  {
+    "key": "group-stable",
+    "title": "Horse stable work",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11381",
+      "11380"
+    ],
+    "optionLabels": [
+      "Feeding and cleaning stalls",
+      "Full grooming and exercising"
+    ]
+  },
+  {
+    "key": "group-lawn-keeper",
+    "title": "Lawn keeper",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11416",
+      "11415"
+    ],
+    "optionLabels": [
+      "Weeding, gas powered",
+      "General yardwork"
+    ]
+  },
+  {
+    "key": "group-machine-tooling",
+    "title": "Machine tooling",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11430",
+      "11450"
+    ],
+    "optionLabels": [
+      "Light to moderate",
+      "Punch press, moderate"
+    ]
+  },
+  {
+    "key": "group-manual-labor",
+    "title": "Manual labor",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11475",
+      "11476",
+      "11477"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-masonry",
+    "title": "Masonry or concrete",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11482",
+      "11480"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate"
+    ]
+  },
+  {
+    "key": "group-mail",
+    "title": "Mail delivery",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Method",
+    "ids": [
+      "11487",
+      "11486",
+      "11488"
+    ],
+    "optionLabels": [
+      "Motorbike",
+      "Walking",
+      "E-bike"
+    ]
+  },
+  {
+    "key": "group-police",
+    "title": "Police work",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11527",
+      "11526",
+      "11525",
+      "11524",
+      "11528"
+    ],
+    "optionLabels": [
+      "Riding in a squad car",
+      "Driving a squad car",
+      "Directing traffic",
+      "Walking",
+      "Making an arrest"
+    ]
+  },
+  {
+    "key": "group-sitting-work",
+    "title": "Sitting at work",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11582",
+      "11585",
+      "11580",
+      "11590"
+    ],
+    "optionLabels": [
+      "Computer work",
+      "Meetings",
+      "Light tasks",
+      "Moderate (levers, forklift)"
+    ]
+  },
+  {
+    "key": "group-standing-work",
+    "title": "Standing at work",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "11583",
+      "11600",
+      "11610",
+      "11620",
+      "11615",
+      "11630"
+    ],
+    "optionLabels": [
+      "Standing desk, typing",
+      "Light (clerk, bartending)",
+      "Light to moderate",
+      "Intermittent lifting",
+      "Continuous lifting 10-20 lbs",
+      "Heavy (lifting 50+ lbs)"
+    ]
+  },
+  {
+    "key": "group-patient-care",
+    "title": "Patient care",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11650",
+      "11660"
+    ],
+    "optionLabels": [
+      "Healthcare activities",
+      "Room cleaning and preparation"
+    ]
+  },
+  {
+    "key": "group-steel-mill",
+    "title": "Steel mill work",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "11708",
+      "11710"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-tailoring",
+    "title": "Tailoring and weaving",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11740",
+      "11763",
+      "11720",
+      "11730",
+      "11750",
+      "11760",
+      "11765"
+    ],
+    "optionLabels": [
+      "Hand sewing",
+      "Weaving, light",
+      "Cutting fabric",
+      "General",
+      "Machine sewing",
+      "Pressing",
+      "Weaving, moderate"
+    ]
+  },
+  {
+    "key": "group-truck",
+    "title": "Truck driving",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11767",
+      "11766"
+    ],
+    "optionLabels": [
+      "Driving",
+      "Loading and unloading"
+    ]
+  },
+  {
+    "key": "group-heavy-tools",
+    "title": "Using heavy tools",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Tool",
+    "ids": [
+      "11780",
+      "11790"
+    ],
+    "optionLabels": [
+      "Power tools (jackhammer)",
+      "Hand tools (shovel, pick)"
+    ]
+  },
+  {
+    "key": "group-walk-job-light",
+    "title": "Walking on job — carrying under 25 lbs, speed",
+    "category": "Occupation",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "11795",
+      "11800",
+      "11810"
+    ],
+    "optionLabels": [
+      "2.5 mph",
+      "3.0 mph",
+      "3.5 mph"
+    ]
+  },
+  {
+    "key": "group-warehouse",
+    "title": "Warehouse work",
+    "category": "Occupation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "11860",
+      "11862"
+    ],
+    "optionLabels": [
+      "Loading and unloading",
+      "Moving boxes"
+    ]
+  },
+  {
+    "key": "group-soldier-march",
+    "title": "Military marching",
+    "category": "Occupation",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Load",
+    "ids": [
+      "11880",
+      "11882",
+      "11884",
+      "11886"
+    ],
+    "optionLabels": [
+      "No load",
+      "10-30 kg load",
+      "Airborne shuffle, 20-30 kg",
+      "25-40 kg, varied terrain"
+    ]
+  },
+  {
+    "key": "group-jogging",
+    "title": "Jogging",
+    "category": "Running",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "12026",
+      "12027",
+      "12025",
+      "12010",
+      "12020"
+    ],
+    "optionLabels": [
+      "2.6-3.7 mph",
+      "On a mini trampoline",
+      "In place",
+      "Jog and walk mix",
+      "General"
+    ]
+  },
+  {
+    "key": "group-running-type",
+    "title": "Running — event or setting",
+    "category": "Running",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "12190",
+      "12150",
+      "12140",
+      "12180",
+      "12145",
+      "12620",
+      "12200",
+      "12184",
+      "12186"
+    ],
+    "optionLabels": [
+      "Pushing a wheelchair or stroller",
+      "General",
+      "Cross country",
+      "Track practice",
+      "Self-selected pace",
+      "Triathlon run",
+      "Marathon",
+      "Track race, 500-1500 m",
+      "Track race, 2000-3000 m"
+    ]
+  },
+  {
+    "key": "group-grooming",
+    "title": "Grooming and getting ready",
+    "category": "Self Care",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "13046",
+      "13010",
+      "13040",
+      "13050",
+      "13000",
+      "13045",
+      "13020"
+    ],
+    "optionLabels": [
+      "Hair or nails done",
+      "Bathing",
+      "Washing up, brushing teeth",
+      "Showering",
+      "Getting ready for bed",
+      "Styling hair",
+      "Dressing"
+    ]
+  },
+  {
+    "key": "group-eating",
+    "title": "Eating",
+    "category": "Self Care",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Position",
+    "ids": [
+      "13030",
+      "13035"
+    ],
+    "optionLabels": [
+      "Sitting",
+      "Standing"
+    ]
+  },
+  {
+    "key": "group-sexual",
+    "title": "Sexual activity",
+    "category": "Sexual Activity",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "14030",
+      "14020",
+      "14010"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-badminton",
+    "title": "Badminton",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15030",
+      "15020",
+      "15025"
+    ],
+    "optionLabels": [
+      "Social",
+      "Competitive",
+      "Match play"
+    ]
+  },
+  {
+    "key": "group-basketball",
+    "title": "Basketball",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15070",
+      "15050",
+      "15055",
+      "15040",
+      "15072"
+    ],
+    "optionLabels": [
+      "Shooting baskets",
+      "Non-game",
+      "General",
+      "Game",
+      "Drills and practice"
+    ]
+  },
+  {
+    "key": "group-basketball-ref",
+    "title": "Basketball officiating",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15062",
+      "15060"
+    ],
+    "optionLabels": [
+      "General",
+      "Full game"
+    ]
+  },
+  {
+    "key": "group-bowling",
+    "title": "Bowling",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Setting",
+    "ids": [
+      "15090",
+      "15092"
+    ],
+    "optionLabels": [
+      "General",
+      "Indoor alley"
+    ]
+  },
+  {
+    "key": "group-boxing",
+    "title": "Boxing",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15110",
+      "15120",
+      "15125",
+      "15100"
+    ],
+    "optionLabels": [
+      "Punching bag, general",
+      "Sparring",
+      "Simulated round",
+      "In the ring"
+    ]
+  },
+  {
+    "key": "group-coaching",
+    "title": "Coaching",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "15140",
+      "15142"
+    ],
+    "optionLabels": [
+      "From the sideline",
+      "Playing with players"
+    ]
+  },
+  {
+    "key": "group-fencing",
+    "title": "Fencing",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15200",
+      "15203"
+    ],
+    "optionLabels": [
+      "General",
+      "Competitive epee"
+    ]
+  },
+  {
+    "key": "group-football",
+    "title": "Football",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15235",
+      "15232",
+      "15230",
+      "15210"
+    ],
+    "optionLabels": [
+      "Playing catch",
+      "Flag, light",
+      "Touch or flag",
+      "Competitive"
+    ]
+  },
+  {
+    "key": "group-frisbee",
+    "title": "Frisbee",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15240",
+      "15252",
+      "15250"
+    ],
+    "optionLabels": [
+      "General",
+      "Disc golf",
+      "Ultimate"
+    ]
+  },
+  {
+    "key": "group-golf",
+    "title": "Golf",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "15270",
+      "15290",
+      "15265",
+      "15255",
+      "15285"
+    ],
+    "optionLabels": [
+      "Mini golf or driving range",
+      "Using a power cart",
+      "Walking, carrying clubs",
+      "General",
+      "Walking, pulling clubs"
+    ]
+  },
+  {
+    "key": "group-handball",
+    "title": "Handball",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15330",
+      "15320"
+    ],
+    "optionLabels": [
+      "Team",
+      "General"
+    ]
+  },
+  {
+    "key": "group-hockey-ice",
+    "title": "Ice hockey",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15360",
+      "15362"
+    ],
+    "optionLabels": [
+      "General",
+      "Competitive"
+    ]
+  },
+  {
+    "key": "group-horseback",
+    "title": "Horseback riding",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Gait",
+    "ids": [
+      "15406",
+      "15400",
+      "15370",
+      "15390",
+      "15403",
+      "15395",
+      "15402"
+    ],
+    "optionLabels": [
+      "Simulator",
+      "Walking",
+      "General",
+      "Trotting",
+      "Reining",
+      "Canter or gallop",
+      "Jumping"
+    ]
+  },
+  {
+    "key": "group-martial-arts",
+    "title": "Martial arts",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15425",
+      "15430",
+      "15433",
+      "15432"
+    ],
+    "optionLabels": [
+      "Slower pace, practice",
+      "Moderate pace",
+      "Judo",
+      "Taekwondo combat simulation"
+    ]
+  },
+  {
+    "key": "group-kendo",
+    "title": "Kendo",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15444",
+      "15445",
+      "15446"
+    ],
+    "optionLabels": [
+      "Kihon-keiko, moderate",
+      "Kirikaeshi, high",
+      "Kakari keiko, very high"
+    ]
+  },
+  {
+    "key": "group-paddleball",
+    "title": "Paddleball",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15500",
+      "15490"
+    ],
+    "optionLabels": [
+      "Casual",
+      "Competitive"
+    ]
+  },
+  {
+    "key": "group-racquetball",
+    "title": "Racquetball",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15530",
+      "15520"
+    ],
+    "optionLabels": [
+      "General",
+      "Competitive"
+    ]
+  },
+  {
+    "key": "group-climbing",
+    "title": "Rock climbing",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15540",
+      "15537",
+      "15535",
+      "15533",
+      "15534",
+      "15536"
+    ],
+    "optionLabels": [
+      "Rappelling",
+      "Low to moderate difficulty",
+      "High difficulty",
+      "General",
+      "Bouldering",
+      "Speed climbing"
+    ]
+  },
+  {
+    "key": "group-rodeo",
+    "title": "Rodeo sports",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15542",
+      "15544",
+      "15546"
+    ],
+    "optionLabels": [
+      "Light",
+      "Moderate",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-rugby",
+    "title": "Rugby",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15562",
+      "15560"
+    ],
+    "optionLabels": [
+      "Touch, non-competitive",
+      "Union, competitive"
+    ]
+  },
+  {
+    "key": "group-longboard",
+    "title": "Skateboarding — longboard speed",
+    "category": "Sports",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "15595",
+      "15596"
+    ],
+    "optionLabels": [
+      "13.3 km/h",
+      "16.2 km/h"
+    ]
+  },
+  {
+    "key": "group-soccer",
+    "title": "Soccer",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15615",
+      "15610",
+      "15195",
+      "15605"
+    ],
+    "optionLabels": [
+      "Walking soccer",
+      "Casual",
+      "Futsal",
+      "Competitive"
+    ]
+  },
+  {
+    "key": "group-softball",
+    "title": "Softball or baseball",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Role",
+    "ids": [
+      "15625",
+      "15630",
+      "15620",
+      "15640"
+    ],
+    "optionLabels": [
+      "Practice",
+      "Officiating",
+      "General",
+      "Pitching"
+    ]
+  },
+  {
+    "key": "group-squash",
+    "title": "Squash",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15652",
+      "15650"
+    ],
+    "optionLabels": [
+      "General",
+      "Vigorous"
+    ]
+  },
+  {
+    "key": "group-tai-chi",
+    "title": "Tai chi or qi gong",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "15672",
+      "15670",
+      "15674"
+    ],
+    "optionLabels": [
+      "Sitting, light",
+      "General",
+      "Yang style"
+    ]
+  },
+  {
+    "key": "group-tennis",
+    "title": "Tennis",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15685",
+      "15695",
+      "15680",
+      "15675",
+      "15690",
+      "15676"
+    ],
+    "optionLabels": [
+      "Doubles, relaxed",
+      "Hitting balls",
+      "Doubles",
+      "General",
+      "Singles",
+      "Competitive"
+    ]
+  },
+  {
+    "key": "group-trampoline",
+    "title": "Trampoline",
+    "category": "Sports",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "15700",
+      "15702"
+    ],
+    "optionLabels": [
+      "Recreational",
+      "Competitive"
+    ]
+  },
+  {
+    "key": "group-volleyball",
+    "title": "Volleyball",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15720",
+      "15710",
+      "15711",
+      "15725"
+    ],
+    "optionLabels": [
+      "Non-competitive",
+      "General",
+      "Competitive, gym",
+      "Beach"
+    ]
+  },
+  {
+    "key": "group-track-field",
+    "title": "Track and field",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Event",
+    "ids": [
+      "15732",
+      "15733",
+      "15734"
+    ],
+    "optionLabels": [
+      "Throwing (shot, discus)",
+      "Jumping (high, long, pole vault)",
+      "Steeplechase or hurdles"
+    ]
+  },
+  {
+    "key": "group-motorsport",
+    "title": "Motor sports",
+    "category": "Sports",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "15470",
+      "15475",
+      "15190",
+      "15192"
+    ],
+    "optionLabels": [
+      "Motocross or ATV",
+      "Motorcycle racing",
+      "Drag racing",
+      "Open wheel auto racing"
+    ]
+  },
+  {
+    "key": "group-vehicle",
+    "title": "Riding or driving a vehicle",
+    "category": "Transportation",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Vehicle",
+    "ids": [
+      "16015",
+      "16016",
+      "16020",
+      "16010",
+      "16050",
+      "16030"
+    ],
+    "optionLabels": [
+      "Riding in a car",
+      "Riding a bus or train",
+      "Flying a plane",
+      "Driving a car",
+      "Driving a truck or bus",
+      "Motorcycle or scooter"
+    ]
+  },
+  {
+    "key": "group-hiking",
+    "title": "Hiking and backpacking",
+    "category": "Walking",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "17081",
+      "17082",
+      "17080",
+      "17010",
+      "17012"
+    ],
+    "optionLabels": [
+      "Slow, no load",
+      "Normal pace, no load",
+      "Cross country",
+      "Backpacking",
+      "With a daypack"
+    ]
+  },
+  {
+    "key": "group-carry-level",
+    "title": "Carrying a load on level ground",
+    "category": "Walking",
+    "adjustmentType": "load",
+    "adjustmentLabel": "Load",
+    "ids": [
+      "17016",
+      "17018",
+      "17019"
+    ],
+    "optionLabels": [
+      "5 to 14 lb",
+      "15 to 155 lb, slow",
+      "50 to 150 lb, moderate"
+    ]
+  },
+  {
+    "key": "group-hill-load",
+    "title": "Climbing hills with a load",
+    "category": "Walking",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Load and grade",
+    "ids": [
+      "17033",
+      "17045",
+      "17050",
+      "17060"
+    ],
+    "optionLabels": [
+      "15-50 lb, gentle grade",
+      "10-20 lb, 5-10% grade",
+      "21-40 lb, 3-10% grade",
+      "20+ lb, 5-20% grade"
+    ]
+  },
+  {
+    "key": "group-stairs",
+    "title": "Stair climbing",
+    "category": "Walking",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Pace",
+    "ids": [
+      "17070",
+      "17133",
+      "17131",
+      "17136",
+      "17138",
+      "17130",
+      "17134"
+    ],
+    "optionLabels": [
+      "Going down",
+      "Slow",
+      "General",
+      "Two steps at a time",
+      "Up and down",
+      "Ladder",
+      "Fast"
+    ]
+  },
+  {
+    "key": "group-crutches",
+    "title": "Using crutches",
+    "category": "Walking",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Pace",
+    "ids": [
+      "17140",
+      "17142"
+    ],
+    "optionLabels": [
+      "General",
+      "Fast"
+    ]
+  },
+  {
+    "key": "group-march",
+    "title": "Marching, no pack",
+    "category": "Walking",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Pace",
+    "ids": [
+      "17088",
+      "17090"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Rapid"
+    ]
+  },
+  {
+    "key": "group-everyday-walk",
+    "title": "Walking — everyday",
+    "category": "Walking",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Purpose",
+    "ids": [
+      "17150",
+      "17161",
+      "17162",
+      "17280",
+      "17085",
+      "17165",
+      "17160",
+      "17250",
+      "17011",
+      "17255",
+      "17270"
+    ],
+    "optionLabels": [
+      "Around the house",
+      "To and from the car or bus",
+      "To a neighbor’s house",
+      "To an outhouse",
+      "Bird watching",
+      "Walking the dog",
+      "For pleasure",
+      "Work break",
+      "With a day pack, city",
+      "Self-selected pace",
+      "To work or class"
+    ]
+  },
+  {
+    "key": "group-walk-surface",
+    "title": "Walking on soft ground",
+    "category": "Walking",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Surface",
+    "ids": [
+      "17262",
+      "17260"
+    ],
+    "optionLabels": [
+      "Plowed field or sand",
+      "Grass track"
+    ]
+  },
+  {
+    "key": "group-nordic-terrain",
+    "title": "Nordic walking — hills and loads",
+    "category": "Walking",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Terrain",
+    "ids": [
+      "17310",
+      "17313",
+      "17315"
+    ],
+    "optionLabels": [
+      "Uphill",
+      "Level, 20-30 lb load",
+      "Uphill, 20-30 lb load"
+    ]
+  },
+  {
+    "key": "group-walk-backward",
+    "title": "Walking backward, 3.5 mph",
+    "category": "Walking",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Grade",
+    "ids": [
+      "17320",
+      "17325"
+    ],
+    "optionLabels": [
+      "Level",
+      "Uphill, 5% grade"
+    ]
+  },
+  {
+    "key": "group-silly-walks",
+    "title": "Silly walks (Monty Python)",
+    "category": "Walking",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Walk",
+    "ids": [
+      "17332",
+      "17330"
+    ],
+    "optionLabels": [
+      "Putey walk",
+      "Teabag walk"
+    ]
+  },
+  {
+    "key": "group-powerboat",
+    "title": "Power boating",
+    "category": "Water Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Role",
+    "ids": [
+      "18012",
+      "18010"
+    ],
+    "optionLabels": [
+      "Passenger",
+      "Driving"
+    ]
+  },
+  {
+    "key": "group-canoe-general",
+    "title": "Canoeing",
+    "category": "Water Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Trip",
+    "ids": [
+      "18025",
+      "18070",
+      "18020",
+      "18030"
+    ],
+    "optionLabels": [
+      "Harvesting wild rice",
+      "For pleasure",
+      "Camping trip",
+      "Portaging"
+    ]
+  },
+  {
+    "key": "group-kayak",
+    "title": "Kayaking",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18100",
+      "18106",
+      "18104"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Slalom",
+      "Competition"
+    ]
+  },
+  {
+    "key": "group-sailing",
+    "title": "Sailing",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18142",
+      "18120",
+      "18140",
+      "18130",
+      "18132"
+    ],
+    "optionLabels": [
+      "Dinghy",
+      "General",
+      "Leisure, keel boat",
+      "Competition",
+      "Competition, high effort"
+    ]
+  },
+  {
+    "key": "group-skindiving",
+    "title": "Skindiving",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18190",
+      "18180"
+    ],
+    "optionLabels": [
+      "Moderate",
+      "Fast"
+    ]
+  },
+  {
+    "key": "group-surfing",
+    "title": "Surfing",
+    "category": "Water Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "18220",
+      "18222",
+      "18221"
+    ],
+    "optionLabels": [
+      "General",
+      "Competitive",
+      "Paddling"
+    ]
+  },
+  {
+    "key": "group-freestyle",
+    "title": "Swimming laps — freestyle",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Pace",
+    "ids": [
+      "18240",
+      "18292",
+      "18290",
+      "18230",
+      "18280",
+      "18294"
+    ],
+    "optionLabels": [
+      "Slow, recreational",
+      "Slow, 30-45 yd/min",
+      "Medium, ~50 yd/min",
+      "Fast",
+      "Fast, ~75 yd/min",
+      "Elite, 90+ yd/min"
+    ]
+  },
+  {
+    "key": "group-backstroke",
+    "title": "Swimming — backstroke",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Pace",
+    "ids": [
+      "18255",
+      "18250"
+    ],
+    "optionLabels": [
+      "Recreational",
+      "Training or competition"
+    ]
+  },
+  {
+    "key": "group-breaststroke",
+    "title": "Swimming — breaststroke",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Pace",
+    "ids": [
+      "18265",
+      "18260"
+    ],
+    "optionLabels": [
+      "Recreational",
+      "Training or competition"
+    ]
+  },
+  {
+    "key": "group-open-swim",
+    "title": "Swimming — open water or leisure",
+    "category": "Water Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "18310",
+      "18300",
+      "18320",
+      "18330",
+      "18285"
+    ],
+    "optionLabels": [
+      "Leisurely, not laps",
+      "Lake, ocean, or river",
+      "Sidestroke",
+      "Synchronized",
+      "Open water 5K"
+    ]
+  },
+  {
+    "key": "group-water-aerobics",
+    "title": "Water aerobics",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18356",
+      "18355",
+      "18358"
+    ],
+    "optionLabels": [
+      "Resistance exercises",
+      "General",
+      "High intensity"
+    ]
+  },
+  {
+    "key": "group-windsurfing",
+    "title": "Windsurfing",
+    "category": "Water Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Intensity",
+    "ids": [
+      "18380",
+      "18385",
+      "18390"
+    ],
+    "optionLabels": [
+      "Casual",
+      "Crossing trial",
+      "Competition"
+    ]
+  },
+  {
+    "key": "group-rowing-race",
+    "title": "Rowing — racing",
+    "category": "Water Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Type",
+    "ids": [
+      "18080",
+      "18112",
+      "18114"
+    ],
+    "optionLabels": [
+      "Crew or sculling competition",
+      "Simulated crew, water tank",
+      "Single scull ergometer, racing"
+    ]
+  },
+  {
+    "key": "group-dog-sled",
+    "title": "Dog sledding",
+    "category": "Winter Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Role",
+    "ids": [
+      "19006",
+      "19005"
+    ],
+    "optionLabels": [
+      "Passenger",
+      "Mushing"
+    ]
+  },
+  {
+    "key": "group-ice-skating",
+    "title": "Ice skating",
+    "category": "Winter Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Pace",
+    "ids": [
+      "19020",
+      "19030",
+      "19040",
+      "19050",
+      "19018"
+    ],
+    "optionLabels": [
+      "9 mph or less",
+      "General",
+      "Faster than 9 mph",
+      "Speed skating, competitive",
+      "Ice dancing"
+    ]
+  },
+  {
+    "key": "group-xc-technique",
+    "title": "Cross-country skiing — technique",
+    "category": "Winter Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Technique",
+    "ids": [
+      "19115",
+      "19135",
+      "19140",
+      "19130"
+    ],
+    "optionLabels": [
+      "High-intensity training",
+      "Skating",
+      "Biathlon skating",
+      "Hard snow, uphill"
+    ]
+  },
+  {
+    "key": "group-biathlon",
+    "title": "Biathlon training, 5° incline",
+    "category": "Winter Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "19142",
+      "19144"
+    ],
+    "optionLabels": [
+      "8 km/h",
+      "10.7 km/h"
+    ]
+  },
+  {
+    "key": "group-snowmobile",
+    "title": "Snowmobiling",
+    "category": "Winter Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Role",
+    "ids": [
+      "19202",
+      "19200"
+    ],
+    "optionLabels": [
+      "Passenger",
+      "Driving"
+    ]
+  },
+  {
+    "key": "group-mountaineering",
+    "title": "Mountaineering, downhill",
+    "category": "Winter Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Style",
+    "ids": [
+      "19400",
+      "19405"
+    ],
+    "optionLabels": [
+      "Walking down with rope",
+      "With cross-country skiing"
+    ]
+  },
+  {
+    "key": "group-ice-fishing",
+    "title": "Ice fishing",
+    "category": "Winter Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "19011",
+      "19010"
+    ],
+    "optionLabels": [
+      "Fishing",
+      "Moving icehouse, drilling holes"
+    ]
+  },
+  {
+    "key": "group-church-sitting",
+    "title": "Sitting at church",
+    "category": "Religious Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "20000",
+      "20010",
+      "20005",
+      "20001"
+    ],
+    "optionLabels": [
+      "Quietly",
+      "Reading at home",
+      "Singing or talking",
+      "Playing an instrument"
+    ]
+  },
+  {
+    "key": "group-church-standing",
+    "title": "Standing at church",
+    "category": "Religious Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Activity",
+    "ids": [
+      "20015",
+      "20030",
+      "20025",
+      "20020"
+    ],
+    "optionLabels": [
+      "Quietly",
+      "Talking",
+      "Kneeling in prayer",
+      "Singing"
+    ]
+  },
+  {
+    "key": "group-church-food",
+    "title": "Church meals",
+    "category": "Religious Activities",
+    "adjustmentType": "style",
+    "adjustmentLabel": "Task",
+    "ids": [
+      "20050",
+      "20055",
+      "20046",
+      "20045",
+      "20047"
+    ],
+    "optionLabels": [
+      "Eating",
+      "Eating and talking",
+      "Preparing food",
+      "Serving food",
+      "Washing dishes"
+    ]
+  },
+  {
+    "key": "group-church-work",
+    "title": "Church work",
+    "category": "Religious Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "20039",
+      "20060",
+      "20065",
+      "20061",
+      "20095"
+    ],
+    "optionLabels": [
+      "Ushering",
+      "Cleaning",
+      "Moderate lifting",
+      "Yard work",
+      "Heavy lifting"
+    ]
+  },
+  {
+    "key": "group-vol-sitting",
+    "title": "Volunteering — sitting",
+    "category": "Volunteer Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "21000",
+      "21005",
+      "21010"
+    ],
+    "optionLabels": [
+      "Meeting",
+      "Light office work",
+      "Moderate work"
+    ]
+  },
+  {
+    "key": "group-vol-standing",
+    "title": "Volunteering — standing",
+    "category": "Volunteer Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "21015",
+      "21020",
+      "21025",
+      "21030"
+    ],
+    "optionLabels": [
+      "Light work",
+      "Light to moderate",
+      "Moderate (lifting 50 lbs)",
+      "Moderate to heavy"
+    ]
+  },
+  {
+    "key": "group-vol-children",
+    "title": "Volunteering — child care",
+    "category": "Volunteer Activities",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Effort",
+    "ids": [
+      "21016",
+      "21017",
+      "21018",
+      "21019"
+    ],
+    "optionLabels": [
+      "Sitting",
+      "Standing",
+      "Playing, moderate",
+      "Playing, vigorous"
+    ]
+  },
+  {
+    "key": "group-vol-walk-carry",
+    "title": "Volunteer walking — carrying under 25 lbs, speed",
+    "category": "Volunteer Activities",
+    "adjustmentType": "speed",
+    "adjustmentLabel": "Speed",
+    "ids": [
+      "21055",
+      "21060",
+      "21065"
+    ],
+    "optionLabels": [
+      "2.5 mph",
+      "3.0 mph",
+      "3.5 mph"
+    ]
+  },
+  {
+    "key": "group-video-games",
+    "title": "Video games",
+    "category": "Video Games",
+    "adjustmentType": "intensity",
+    "adjustmentLabel": "Activity level",
+    "ids": [
+      "22040",
+      "22120",
+      "22160",
+      "22200",
+      "22240",
+      "22280",
+      "22320",
+      "22360"
+    ],
+    "optionLabels": [
+      "Seated, inactive",
+      "Handheld controller",
+      "Light (Wii Fit, bowling)",
+      "Motion, upper body",
+      "Motion, total body",
+      "Total body, moderate to vigorous",
+      "Exergames and dancing",
+      "VR fitness, vigorous"
     ]
   }
 ]

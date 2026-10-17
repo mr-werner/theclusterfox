@@ -45,6 +45,7 @@ import {
   siDbeaver,
   siDebian,
   siDeepseek,
+  siDeutschewelle,
   siDiagramsdotnet,
   siDiscord,
   siDocker,
@@ -187,6 +188,7 @@ import {
   siX,
   siYoutube,
   siYoutubemusic,
+  siZdf,
   siZoom,
   siZorin,
   siZotero,
@@ -351,6 +353,10 @@ const categories = [
       { name: "Twitch", alt: "paid live streaming", url: "https://www.twitch.tv/", logo: siTwitch, description: "Live streams of gaming, music, and creators." },
       { name: "Vimeo", alt: "paid streaming", url: "https://vimeo.com/", logo: siVimeo, description: "Ad-free creator videos and short films." },
       { name: "Letterboxd", alt: "paid movie trackers", url: "https://letterboxd.com/", logo: siLetterboxd, description: "Log, rate, and discover films with friends." },
+      { name: "ARD Mediathek", alt: "Netflix", url: "https://www.ardmediathek.de/", mark: "ARD", color: "#003480", description: "German public TV: films, series, documentaries, and live channels." },
+      { name: "ZDF Mediathek", alt: "Netflix", url: "https://www.zdf.de/", logo: siZdf, description: "Germany's second public broadcaster, with crime series, docs, and live TV." },
+      { name: "ARTE", alt: "Netflix", url: "https://www.arte.tv/", mark: "arte", color: "#fa481c", description: "Franco-German culture channel with films, docs, and concerts in several languages." },
+      { name: "KiKA", alt: "Disney+", url: "https://www.kika.de/", mark: "Ki", color: "#4f9a1f", description: "Ad-free kids' shows from ARD and ZDF." },
     ],
   },
   {
@@ -411,6 +417,7 @@ const categories = [
       { name: "Radio Garden", alt: "SiriusXM", url: "https://radio.garden/", mark: "RG", color: "#1a7f37", description: "Spin the globe and tune in to live radio anywhere." },
       { name: "AntennaPod", alt: "paid podcast apps", url: "https://antennapod.org/", logo: siAntennapod, description: "Open-source Android podcast app with no ads." },
       { name: "Pocket Casts", alt: "paid podcast apps", url: "https://pocketcasts.com/", logo: siPocketcasts, description: "Polished podcast app, free on every platform." },
+      { name: "ARD Audiothek", alt: "Audible / Spotify", url: "https://www.ardaudiothek.de/", mark: "AA", color: "#003480", description: "Podcasts, radio dramas, audiobooks, and live German public radio." },
     ],
   },
   {
@@ -604,6 +611,7 @@ const categories = [
       { name: "Mango Languages", alt: "Rosetta Stone", url: "https://mangolanguages.com/", mark: "Mg", color: "#ef6c00", description: "Conversation-based courses, free through many libraries." },
       { name: "DeepL Translator", alt: "paid translators", url: "https://www.deepl.com/translator", mark: "DL", color: "#0f2b46", description: "Accurate, natural-sounding translations." },
       { name: "Google Translate", alt: "paid translators", url: "https://translate.google.com/", mark: "GT", color: "#4285f4", description: "Translate text, speech, photos, and conversations." },
+      { name: "DW Learn German", alt: "Babbel", url: "https://learngerman.dw.com/", logo: siDeutschewelle, description: "Full German courses from beginner to advanced by Deutsche Welle." },
     ],
   },
 ];

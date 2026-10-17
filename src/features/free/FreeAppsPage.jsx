@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     Check,
     ChevronDown,
@@ -86,24 +86,6 @@ export default function FreeAppsPage() {
     );
     const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-    const [isStuck, setIsStuck] = useState(false);
-
-    const stickySentinelRef = useRef(null);
-
-    // The filter bar only gets a solid background once it is pinned,
-    // so it blends with the page gradient at rest.
-    useEffect(() => {
-        const sentinel = stickySentinelRef.current;
-        if (!sentinel) return undefined;
-
-        const observer = new IntersectionObserver(([entry]) =>
-            setIsStuck(!entry.isIntersecting)
-        );
-
-        observer.observe(sentinel);
-        return () => observer.disconnect();
-    }, []);
-
     // Storage can be unavailable (private mode); choices then last
     // for this visit only.
     useEffect(() => {
@@ -225,9 +207,7 @@ export default function FreeAppsPage() {
                 </p>
             </section>
 
-            <div ref={stickySentinelRef} aria-hidden="true" />
-
-            <div className={`free-controls ${isStuck ? "is-stuck" : ""}`}>
+            <div className="free-controls">
                 <label className="free-search">
                     <Search size={18} aria-hidden="true" />
 

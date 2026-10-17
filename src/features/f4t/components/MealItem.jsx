@@ -1,94 +1,48 @@
 import { Minus, Plus, X } from "lucide-react";
 
-export default function MealItem({
-  item,
-  onChangeServings,
-  onRemove,
-}) {
-  const calories =
-    item.caloriesPerServing * item.servings;
+const STEP = 0.25;
 
-  function decrease() {
-    const next = Math.max(
-      0.25,
-      item.servings - 0.25
-    );
-
-    onChangeServings(item.id, next);
-  }
-
-  function increase() {
-    onChangeServings(
-      item.id,
-      item.servings + 0.25
-    );
-  }
+export default function MealItem({ item, onChangeServings, onRemove }) {
+  const calories = item.caloriesPerServing * item.servings;
 
   return (
-    <div className="meal-item">
-      <div className="meal-item-main">
-        <div>
-          <h3>{item.name}</h3>
-
-          <p>
-            {item.brand || "USDA"}
-            {item.servingDescription &&
-              ` • ${item.servingDescription}`}
-          </p>
-        </div>
-
-        <strong>
-          {Math.round(calories)} cal
-        </strong>
+    <li className="ff-item">
+      <div className="ff-item-info">
+        <strong>{item.name}</strong>
+        <span>
+          {item.brand || "USDA"}
+          {item.servingDescription && ` · ${item.servingDescription}`}
+        </span>
       </div>
 
-      <div className="meal-item-controls">
-        <div className="serving-control">
-          <button
-            type="button"
-            onClick={decrease}
-            aria-label="Decrease servings"
-          >
-            <Minus size={16} />
-          </button>
-
-          <input
-            type="number"
-            min="0.25"
-            step="0.25"
-            value={item.servings}
-            onChange={(event) =>
-              onChangeServings(
-                item.id,
-                Math.max(
-                  0.25,
-                  Number(event.target.value) || 0.25
-                )
-              )
-            }
-            aria-label="Servings"
-          />
-
-          <button
-            type="button"
-            onClick={increase}
-            aria-label="Increase servings"
-          >
-            <Plus size={16} />
-          </button>
-
-          <span>servings</span>
-        </div>
-
+      <div className="ff-stepper" role="group" aria-label={`Servings of ${item.name}`}>
         <button
           type="button"
-          className="remove-food"
-          onClick={() => onRemove(item.id)}
-          aria-label={`Remove ${item.name}`}
+          onClick={() => onChangeServings(item.id, Math.max(STEP, item.servings - STEP))}
+          disabled={item.servings <= STEP}
+          aria-label="Fewer servings"
         >
-          <X size={18} />
+          <Minus size={15} />
+        </button>
+        <input
+          type="number"
+          min={STEP}
+          step={STEP}
+          inputMode="decimal"
+          value={item.servings}
+          onChange={event => onChangeServings(item.id, Math.max(STEP, Number(event.target.value) || STEP))}
+          aria-label="Servings"
+        />
+        <button type="button" onClick={() => onChangeServings(item.id, item.servings + STEP)} aria-label="More servings">
+          <Plus size={15} />
         </button>
       </div>
-    </div>
+
+      <strong className="ff-item-cal">{Math.round(calories).toLocaleString()} cal</strong>
+
+      <button type="button" className="ff-icon-btn" onClick={() => onRemove(item.id)} aria-label={`Remove ${item.name}`}>
+        <X size={17} />
+      </button>
+    </li>
   );
 }

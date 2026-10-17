@@ -1,13 +1,13 @@
-import { activities } from './activities';
-import manifest from './activityGroupManifest.json';
+// Pure helpers (no imports) so the Node validation script can use them too.
+const ORDERED_TYPES = new Set(['intensity','assistance','style']);
 
 // Explicit, reviewed groups. Unknown entries stay standalone: no heuristic
 // merging based solely on words such as "mph", "kg", or "vigorous".
-export function validateActivityManifest(source = activities, definitions = manifest) {
+export function validateActivityManifest(source, definitions) {
   const byId = new Map(source.map(a => [a.id, a]));
   const used = new Set();
   const errors = [];
-  const types = new Set(['speed','power','intensity','incline','load','cadence','throughput','assistance','temperature']);
+  const types = new Set(['speed','power','intensity','incline','load','cadence','throughput','assistance','temperature','height','style']);
   for (const g of definitions) {
     if (!types.has(g.adjustmentType)) errors.push(`${g.key}: invalid adjustment type`);
     if (g.ids.length < 2 || new Set(g.ids).size !== g.ids.length) errors.push(`${g.key}: invalid or repeated options`);
@@ -23,7 +23,7 @@ export function validateActivityManifest(source = activities, definitions = mani
   return errors;
 }
 
-export function buildActivityGroups(source = activities, definitions = manifest) {
+export function buildActivityGroups(source, definitions) {
   const errors = validateActivityManifest(source, definitions);
   if (errors.length) throw new Error(`Invalid F4T activity manifest:\n${errors.join('\n')}`);
   const byId = new Map(source.map(a => [a.id, a]));
@@ -31,12 +31,13 @@ export function buildActivityGroups(source = activities, definitions = manifest)
   const grouped = definitions.map(g => {
     const options = g.ids.map((id, i) => {
       assigned.add(id);
-      return { ...byId.get(id), adjustmentValue: g.optionLabels[i] };
+      return { ...byId.get(id), adjustmentValue: g.optionLabels[i].trim() };
     });
     // Sort numeric measurements by the documented first value, not MET.
-    // Preserve the authored order for ordinal intensity and assistance.
-    if (!['intensity','assistance'].includes(g.adjustmentType)) {
-      const num = v => Number(v.match(/-?\d+(?:\.\d+)?/)?.[0] ?? Infinity);
+    // Preserve the authored order for ordinal and descriptive adjustments,
+    // and whenever a label has no number to sort by.
+    const num = v => Number(v.match(/-?\d+(?:\.\d+)?/)?.[0] ?? NaN);
+    if (!ORDERED_TYPES.has(g.adjustmentType) && options.every(o => Number.isFinite(num(o.adjustmentValue)))) {
       options.sort((a,b) => num(a.adjustmentValue) - num(b.adjustmentValue));
     }
     return {key:g.key,title:g.title,category:g.category,adjustmentType:g.adjustmentType,
@@ -51,4 +52,10 @@ export function buildActivityGroups(source = activities, definitions = manifest)
   return [...grouped,...standalone].sort((a,b) =>
     categoryOrder.indexOf(a.category)-categoryOrder.indexOf(b.category) ||
     Number(b.options.length>1)-Number(a.options.length>1) || a.title.localeCompare(b.title));
+}
+
+// Maps a Compendium code to the card that now holds it, so favorites saved
+// before an entry was consolidated still point at the right card.
+export function groupKeyForActivityId(groups, id) {
+  return groups.find(group => group.options.some(option => option.id === id))?.key ?? null;
 }

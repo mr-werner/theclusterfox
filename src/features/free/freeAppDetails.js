@@ -11,12 +11,12 @@
 */
 
 export const freeLimits = {
-  ads: { label: "Ads", filterLabel: "No ads" },
-  freeTier: { label: "Free tier", filterLabel: "No paid tiers" },
-  libraryCard: { label: "Library card", filterLabel: "No library card" },
-  region: { label: "Region limits", filterLabel: "Available everywhere" },
-  tracking: { label: "Data tracking", filterLabel: "No data tracking" },
-  bundled: { label: "Bundled offers", filterLabel: "No bundled offers" },
+  ads: { label: "Ads" },
+  tracking: { label: "Data tracking" },
+  freeTier: { label: "Paid upgrades" },
+  bundled: { label: "Bundled offers" },
+  libraryCard: { label: "Library card" },
+  region: { label: "Region limits" },
 };
 
 const OS = { openSource: true };

@@ -288,6 +288,16 @@ export const freeAppDetails = {
   "Mango Languages": { limits: ["libraryCard"], note: "Free only through participating libraries." },
   "DeepL Translator": { limits: ["freeTier"], note: "Free version limits document size and length." },
   "Google Translate": { limits: ["tracking"] },
+  Slack: { limits: ["freeTier", "tracking"], note: "Free plan keeps 90 days of message history." },
+  "Zoom Workplace": { limits: ["freeTier", "tracking"], note: "Free meetings end after 40 minutes." },
+  "Google Meet": { limits: ["freeTier", "tracking"], note: "Group calls on the free plan end after 60 minutes." },
+  "Google Chat": { limits: ["tracking"] },
+  Webex: { limits: ["freeTier", "tracking"], note: "Free meetings end after 40 minutes." },
+  "Jitsi Meet": OS,
+  Mattermost: { openSource: true, limits: ["freeTier"], note: "Free when self-hosted; paid plans add enterprise features." },
+  "Rocket.Chat": { openSource: true, limits: ["freeTier"], note: "Free when self-hosted; cloud plans cost extra." },
+  Element: { openSource: true, limits: ["freeTier"] },
+  Zulip: { openSource: true, limits: ["freeTier"], note: "Free cloud plan limits search history; self-hosting is free." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -424,5 +434,13 @@ export const freeAppCountries = {
   Clozemaster: "United States",
   "Mango Languages": "United States",
   "DeepL Translator": "Germany",
-  "Google Translate": "United States",
+  "Google Translate": "United States",  Slack: "United States",
+  "Zoom Workplace": "United States",
+  "Google Meet": "United States",
+  "Google Chat": "United States",
+  Webex: "United States",
+  Mattermost: "United States",
+  "Rocket.Chat": "Brazil",
+  Element: "United Kingdom",
+  Zulip: "United States",
 };

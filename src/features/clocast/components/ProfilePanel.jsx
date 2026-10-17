@@ -18,7 +18,7 @@ function initialText(profile, units) {
   };
 }
 
-export default function ProfilePanel({ profile, units, tolerance, onProfile, onUnits, onTolerance }) {
+export default function ProfilePanel({ profile, units, tolerance, onProfile, onTolerance }) {
   const [text, setText] = useState(() => initialText(profile, units));
 
   // Refill the boxes when details arrive from the account or units change.
@@ -69,17 +69,6 @@ export default function ProfilePanel({ profile, units, tolerance, onProfile, onU
         </p>
 
         <div className="cc-field-grid">
-          <div className="cc-field">
-            <span className="cc-label">Units</span>
-            <div className="cc-segment" role="group" aria-label="Units">
-              {[["us", "°F · lb"], ["metric", "°C · kg"]].map(([value, label]) => (
-                <button key={value} type="button" aria-pressed={units === value} onClick={() => onUnits(value)}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="cc-field">
             <span className="cc-label">Sex</span>
             <div className="cc-segment" role="group" aria-label="Sex">

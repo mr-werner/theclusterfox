@@ -10,10 +10,11 @@ import {
   Wind,
 } from "lucide-react";
 
-import { garments, outfitLadders } from "../data/garments";
+import { garments } from "../data/garments";
 import { formatHour } from "../units";
 
-const REGION_LABELS = { top: "Top", outer: "Outer layer", legs: "Legs", feet: "Feet" };
+// Footwear still counts toward the insulation total but isn't suggested.
+const REGION_LABELS = { top: "Top", outer: "Outer layer", legs: "Legs" };
 const EXTRA_ICONS = {
   hat: Snowflake,
   gloves: Hand,
@@ -28,7 +29,7 @@ function groupItems(items) {
   const groups = [];
   for (const id of items) {
     const garment = garments[id];
-    if (garment.hidden) continue;
+    if (garment.hidden || !REGION_LABELS[garment.region]) continue;
     const group = groups.find(g => g.region === garment.region);
     if (group) group.items.push(garment);
     else groups.push({ region: garment.region, items: [garment] });
@@ -36,34 +37,24 @@ function groupItems(items) {
   return groups;
 }
 
-export default function OutfitCard({ plan }) {
-  const { outfit, lighter, extras, warnings, coldest, wardrobe } = plan;
-  const ladder = outfitLadders[wardrobe];
-  const need = coldest.need.clo;
-  const scaleMax = ladder[ladder.length - 1].clo + 0.2;
+export default function OutfitCard({ plan, summary }) {
+  const { outfit, lighter, extras, warnings } = plan;
   // Only layers worn over something else can come off during the day.
   const baseTop = outfit.items.find(id => garments[id].region === "top");
   const removable = id => garments[id].region === "outer" || (garments[id].region === "top" && id !== baseTop);
   const removed = lighter ? outfit.items.filter(id => removable(id) && !lighter.outfit.items.includes(id)) : [];
 
   return (
-    <section className="cc-panel cc-outfit" aria-labelledby="cc-outfit-title">
+    <div className="cc-outfit">
       <div className="cc-outfit-head">
         <div className="cc-outfit-icon" aria-hidden="true">
           <Shirt size={26} />
         </div>
         <div>
           <p className="cc-eyebrow">WEAR THIS</p>
-          <h2 id="cc-outfit-title">{outfit.name}</h2>
-          <p className="cc-muted">
-            Outfit {outfit.level + 1} of {ladder.length} · {outfit.clo.toFixed(2)} clo for a need of {need.toFixed(2)} clo
-          </p>
+          <h3 className="cc-outfit-name">{outfit.name}</h3>
+          {summary && <p className="cc-muted">{summary}</p>}
         </div>
-      </div>
-
-      <div className="cc-meter" aria-hidden="true">
-        <span className="cc-meter-fill" style={{ width: `${Math.min(100, (outfit.clo / scaleMax) * 100)}%` }} />
-        <span className="cc-meter-need" style={{ left: `${Math.min(100, (need / scaleMax) * 100)}%` }} />
       </div>
 
       <dl className="cc-garments">
@@ -114,6 +105,6 @@ export default function OutfitCard({ plan }) {
           ))}
         </ul>
       )}
-    </section>
+    </div>
   );
 }

@@ -44,7 +44,7 @@ export default function WhyPanel({ plan, units, profileUsed }) {
           <div>
             <dt>Insulation needed</dt>
             <dd>
-              {need.clo.toFixed(2)} clo ({need.model})
+              {need.clo.toFixed(2)} clo ({need.model}); this outfit gives {plan.outfit.clo.toFixed(2)}
             </dd>
           </div>
         </dl>

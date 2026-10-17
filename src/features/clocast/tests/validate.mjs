@@ -5,6 +5,7 @@ import { pmv, cloForPmv, ireq, clothingNeed, metabolicRate, solarMrtIncrease } f
 import { planOutfit, windChill, heatIndex } from '../model/plan.js';
 import { mergeData, normalizeData } from '../state/clocastStore.js';
 import { parseForecast } from '../../../services/weather/openMeteo.js';
+import { windowHours, partAvailable, describeWindow } from '../when.js';
 
 const near = (actual, expected, tolerance, label) =>
   assert(Math.abs(actual - expected) <= tolerance, `${label}: got ${actual.toFixed(3)}, expected ${expected} ± ${tolerance}`);
@@ -117,5 +118,27 @@ assert.deepEqual(merged.savedPlaces.map(p => p.id), ['2', '1']);
 assert.equal(merged.profile.weightKg, 70);
 assert.equal(merged.profile.heightCm, 180);
 assert.deepEqual(mergeData(a, b).savedPlaces.map(p => p.id), ['2'], 'newer copy wins outside first sign-in');
+
+// Picking a time: parts of the day and "now".
+{
+  const start = Date.UTC(2026, 0, 15, 6) / 1000; // 1 AM local at UTC-5
+  const len = 48;
+  const ser = f => Array.from({ length: len }, (_, i) => f(i));
+  const parsed = parseForecast({
+    utc_offset_seconds: -5 * 3600,
+    hourly: { time: ser(i => start + i * 3600), temperature_2m: ser(() => 5) },
+    daily: { time: [start - 3600, start + 23 * 3600], temperature_2m_max: [8, 9], temperature_2m_min: [1, 2] },
+  });
+  const days = parsed.days.map(d => d.day);
+  assert.deepEqual(days, ['2026-01-15', '2026-01-16'], 'daily dates are local');
+  const noonLocal = Date.UTC(2026, 0, 15, 17, 30); // 12:30 PM local
+  const now = windowHours(parsed.hours, days, { day: 0, part: 'now', duration: 2 }, noonLocal);
+  assert.deepEqual(now.map(h => h.localHour), [12, 13], 'now starts with the current hour');
+  assert.equal(describeWindow(now), '12 PM–2 PM');
+  assert(!partAvailable(parsed.hours, days, 0, 'morning', noonLocal), 'this morning has passed');
+  assert.deepEqual(windowHours(parsed.hours, days, { day: 0, part: 'midday' }, noonLocal).map(h => h.localHour), [12, 13], 'midday trims passed hours');
+  assert.deepEqual(windowHours(parsed.hours, days, { day: 1, part: 'morning' }, noonLocal).map(h => h.localHour), [6, 7, 8, 9]);
+  assert(!partAvailable(parsed.hours, days, 1, 'now', noonLocal), 'now only applies to today');
+}
 
 console.log(`PASS: CloCast model, ${activities.length} activities, ${Object.values(outfitLadders).flat().length} outfits.`);

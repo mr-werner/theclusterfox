@@ -3,7 +3,7 @@ import { LoaderCircle, LocateFixed, MapPin, Search, Star } from "lucide-react";
 
 import { searchPlaces } from "../../../services/weather/openMeteo";
 
-export default function LocationPicker({ place, savedPlaces, onPick, onToggleSaved }) {
+export default function LocationPicker({ place, savedPlaces, onPick, onToggleSaved, actions }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -74,22 +74,27 @@ export default function LocationPicker({ place, savedPlaces, onPick, onToggleSav
   return (
     <div className="cc-location">
       <div className="cc-search">
-        <Search size={18} aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          placeholder="Search a city or town"
-          aria-label="Search for a place"
-          onChange={event => {
-            setQuery(event.target.value);
-            if (event.target.value.trim().length < 2) setResults([]);
-          }}
-        />
-        {searching && <LoaderCircle size={16} className="spin" aria-label="Searching" />}
-        <button type="button" className="cc-btn cc-locate" onClick={useMyLocation} disabled={locating}>
-          {locating ? <LoaderCircle size={16} className="spin" /> : <LocateFixed size={16} />}
-          <span>Use my location</span>
-        </button>
+        <span className="cc-search-box">
+          <Search size={18} aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            placeholder="Search a city or town"
+            aria-label="Search for a place"
+            onChange={event => {
+              setQuery(event.target.value);
+              if (event.target.value.trim().length < 2) setResults([]);
+            }}
+          />
+          {searching && <LoaderCircle size={16} className="spin" aria-label="Searching" />}
+        </span>
+        <span className="cc-search-actions">
+          <button type="button" className="cc-btn cc-locate" onClick={useMyLocation} disabled={locating}>
+            {locating ? <LoaderCircle size={16} className="spin" /> : <LocateFixed size={16} />}
+            <span>Use my location</span>
+          </button>
+          {actions}
+        </span>
       </div>
 
       {showResults && (

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node src/features/f4t/tests/validate.mjs",
+    "test": "node src/features/f4t/tests/validate.mjs && node src/features/clocast/tests/validate.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { Flame } from "lucide-react";
+import { CloudSun, Flame } from "lucide-react";
 
 export const apps = [
   {
@@ -9,5 +9,14 @@ export const apps = [
     path: "/f4t",
     icon: Flame,
     accent: "f4t",
+  },
+  {
+    id: "clocast",
+    name: "Clo",
+    subtitle: "CloCast",
+    description: "Weather • Layers • Science",
+    path: "/clocast",
+    icon: CloudSun,
+    accent: "clocast",
   },
 ];

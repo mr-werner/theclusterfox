@@ -2270,7 +2270,11 @@ select {
     margin-bottom: 40px;
     padding: 14px 0;
 
-    background: rgba(16, 18, 17, 0.88);
+    transition: background 0.2s ease;
+}
+
+.free-controls.is-stuck {
+    background: rgba(16, 18, 17, 0.92);
     backdrop-filter: blur(12px);
 }
 
@@ -2307,14 +2311,8 @@ select {
 
 .free-chips {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-.free-chips::-webkit-scrollbar {
-    display: none;
 }
 
 .free-chip {
@@ -2611,4 +2609,81 @@ select {
 
     font-size: 0.74rem;
     font-style: italic;
+}
+
+.free-chip--favorites {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.free-select {
+    appearance: none;
+
+    padding-right: 30px;
+
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23929a94' stroke-width='1.5'/%3E%3C/svg%3E")
+        no-repeat right 12px center;
+}
+
+.free-select.active {
+    background-color: var(--fox);
+}
+
+.free-select option {
+    background: var(--surface);
+    color: var(--text);
+}
+
+.free-card-wrap {
+    position: relative;
+}
+
+.free-card-wrap .free-card {
+    height: 100%;
+    padding-right: 44px;
+}
+
+.free-favorite {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+
+    display: grid;
+    place-items: center;
+
+    width: 30px;
+    height: 30px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: transparent;
+    color: var(--muted);
+
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.free-favorite:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+}
+
+.free-favorite.active {
+    color: #f5c542;
+}
+
+.free-tag--country {
+    background: rgba(255, 107, 26, 0.1);
+    color: var(--fox-light);
+}
+
+@media (max-width: 900px) {
+    .free-controls {
+        position: static;
+    }
 }

@@ -1,17 +1,42 @@
-import { useMemo, useState } from "react";
-import { ExternalLink, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ExternalLink, Search, Star } from "lucide-react";
 
 import SiteHeader from "../../components/SiteHeader";
 import FreeAppIcon from "./FreeAppIcon";
 import { freeAppCount, freeCategories } from "./freeApps";
 import { freeLimits } from "./freeAppDetails";
 
+const FAVORITES_KEY = "clusterfox:free-favorites";
+
+const COMMUNITY = "Open-source community";
+
 function matchesQuery(app, query) {
-    return [app.name, app.alt, app.description]
+    return [app.name, app.alt, app.description, app.note, app.country]
         .join(" ")
         .toLowerCase()
         .includes(query);
 }
+
+function companyOrigin(app) {
+    if (app.country) return app.country;
+    return app.openSource ? COMMUNITY : "";
+}
+
+// Countries that appear in the list, most common first.
+const countryOptions = (() => {
+    const counts = {};
+
+    freeCategories.forEach((category) =>
+        category.apps.forEach((app) => {
+            const origin = companyOrigin(app);
+            if (origin) counts[origin] = (counts[origin] || 0) + 1;
+        })
+    );
+
+    return Object.keys(counts).sort(
+        (a, b) => counts[b] - counts[a] || a.localeCompare(b)
+    );
+})();
 
 // Each filter keeps only the apps that pass its test.
 const filterOptions = [
@@ -32,10 +57,48 @@ const filterOptions = [
     },
 ];
 
+function loadFavorites() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY));
+        return Array.isArray(saved) ? saved : [];
+    } catch {
+        return [];
+    }
+}
+
 export default function FreeAppsPage() {
     const [query, setQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
     const [activeFilters, setActiveFilters] = useState([]);
+    const [country, setCountry] = useState("");
+    const [favorites, setFavorites] = useState(loadFavorites);
+    const [favoritesOnly, setFavoritesOnly] = useState(false);
+    const [isStuck, setIsStuck] = useState(false);
+
+    const stickySentinelRef = useRef(null);
+
+    // The filter bar only gets a solid background once it is pinned,
+    // so it blends with the page gradient at rest.
+    useEffect(() => {
+        const sentinel = stickySentinelRef.current;
+        if (!sentinel) return undefined;
+
+        const observer = new IntersectionObserver(([entry]) =>
+            setIsStuck(!entry.isIntersecting)
+        );
+
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+        } catch {
+            // Storage can be unavailable (private mode); favorites
+            // then last for this visit only.
+        }
+    }, [favorites]);
 
     function toggleFilter(id) {
         setActiveFilters((current) =>
@@ -44,6 +107,23 @@ export default function FreeAppsPage() {
                 : [...current, id]
         );
     }
+
+    function toggleFavorite(name) {
+        setFavorites((current) =>
+            current.includes(name)
+                ? current.filter((favorite) => favorite !== name)
+                : [...current, name]
+        );
+    }
+
+    function clearFilters() {
+        setActiveFilters([]);
+        setCountry("");
+        setFavoritesOnly(false);
+    }
+
+    const hasFilters =
+        activeFilters.length > 0 || country !== "" || favoritesOnly;
 
     const visibleCategories = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -64,11 +144,20 @@ export default function FreeAppsPage() {
                     (app) =>
                         (!normalizedQuery ||
                             matchesQuery(app, normalizedQuery)) &&
-                        filters.every((filter) => filter.test(app))
+                        filters.every((filter) => filter.test(app)) &&
+                        (!country || companyOrigin(app) === country) &&
+                        (!favoritesOnly || favorites.includes(app.name))
                 ),
             }))
             .filter((category) => category.apps.length > 0);
-    }, [query, activeCategory, activeFilters]);
+    }, [
+        query,
+        activeCategory,
+        activeFilters,
+        country,
+        favoritesOnly,
+        favorites,
+    ]);
 
     return (
         <main className="home-page free-page">
@@ -82,13 +171,15 @@ export default function FreeAppsPage() {
                 </h1>
 
                 <p className="hero-description">
-                    A hand-picked cluster of free software, apps, and
-                    websites. Every icon links straight to the official
-                    source.
+                    A cluster of free software, apps, and websites, with
+                    the catches spelled out. Filter to what matters to
+                    you and star your favorites.
                 </p>
             </section>
 
-            <div className="free-controls">
+            <div ref={stickySentinelRef} aria-hidden="true" />
+
+            <div className={`free-controls ${isStuck ? "is-stuck" : ""}`}>
                 <label className="free-search">
                     <Search size={18} aria-hidden="true" />
 
@@ -143,6 +234,21 @@ export default function FreeAppsPage() {
                 >
                     <span className="free-filter-label">Only show</span>
 
+                    <button
+                        type="button"
+                        className={`free-chip free-chip--favorites ${
+                            favoritesOnly ? "active" : ""
+                        }`}
+                        aria-pressed={favoritesOnly}
+                        onClick={() =>
+                            setFavoritesOnly((current) => !current)
+                        }
+                    >
+                        <Star size={13} aria-hidden="true" />
+                        Favorites
+                        {favorites.length > 0 && ` (${favorites.length})`}
+                    </button>
+
                     {filterOptions.map((option) => (
                         <button
                             key={option.id}
@@ -161,11 +267,30 @@ export default function FreeAppsPage() {
                         </button>
                     ))}
 
-                    {activeFilters.length > 0 && (
+                    <select
+                        className={`free-chip free-select ${
+                            country ? "active" : ""
+                        }`}
+                        value={country}
+                        onChange={(event) =>
+                            setCountry(event.target.value)
+                        }
+                        aria-label="Filter by where the company is based"
+                    >
+                        <option value="">Based anywhere</option>
+
+                        {countryOptions.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+
+                    {hasFilters && (
                         <button
                             type="button"
                             className="free-clear-filters"
-                            onClick={() => setActiveFilters([])}
+                            onClick={clearFilters}
                         >
                             Clear
                         </button>
@@ -175,8 +300,9 @@ export default function FreeAppsPage() {
 
             {visibleCategories.length === 0 && (
                 <p className="free-empty">
-                    Nothing matches. Try another search or turn off a
-                    filter.
+                    {favoritesOnly && favorites.length === 0
+                        ? "No favorites yet. Tap the star on any app to save it here."
+                        : "Nothing matches. Try another search or turn off a filter."}
                 </p>
             )}
 
@@ -213,68 +339,109 @@ export default function FreeAppsPage() {
                         </div>
 
                         <div className="free-grid">
-                            {category.apps.map((app) => (
-                                <a
-                                    key={app.name}
-                                    href={app.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="free-card"
-                                    aria-label={`${app.name}, replaces ${app.alt}. Opens the official site.`}
-                                >
-                                    <FreeAppIcon app={app} />
+                            {category.apps.map((app) => {
+                                const isFavorite = favorites.includes(
+                                    app.name
+                                );
 
-                                    <div className="free-card-body">
-                                        <h3>
-                                            {app.name}
-                                            {app.status && (
-                                                <span className="free-card-status">
-                                                    {app.status}
-                                                </span>
-                                            )}
-                                            <ExternalLink
-                                                size={14}
-                                                aria-hidden="true"
-                                            />
-                                        </h3>
+                                return (
+                                    <div
+                                        key={app.name}
+                                        className="free-card-wrap"
+                                    >
+                                        <a
+                                            href={app.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="free-card"
+                                            aria-label={`${app.name}, replaces ${app.alt}. Opens the official site.`}
+                                        >
+                                            <FreeAppIcon app={app} />
 
-                                        <p className="free-card-alt">
-                                            Replaces {app.alt}
-                                        </p>
+                                            <div className="free-card-body">
+                                                <h3>
+                                                    {app.name}
+                                                    {app.status && (
+                                                        <span className="free-card-status">
+                                                            {app.status}
+                                                        </span>
+                                                    )}
+                                                    <ExternalLink
+                                                        size={14}
+                                                        aria-hidden="true"
+                                                    />
+                                                </h3>
 
-                                        <p>{app.description}</p>
+                                                <p className="free-card-alt">
+                                                    Replaces {app.alt}
+                                                </p>
 
-                                        {(app.openSource ||
-                                            app.limits.length > 0) && (
-                                            <div className="free-card-tags">
-                                                {app.openSource && (
-                                                    <span className="free-tag free-tag--open">
-                                                        Open source
-                                                    </span>
+                                                <p>{app.description}</p>
+
+                                                <div className="free-card-tags">
+                                                    {app.openSource && (
+                                                        <span className="free-tag free-tag--open">
+                                                            Open source
+                                                        </span>
+                                                    )}
+
+                                                    {app.limits.map(
+                                                        (limit) => (
+                                                            <span
+                                                                key={limit}
+                                                                className="free-tag"
+                                                            >
+                                                                {
+                                                                    freeLimits[
+                                                                        limit
+                                                                    ].label
+                                                                }
+                                                            </span>
+                                                        )
+                                                    )}
+
+                                                    {app.country && (
+                                                        <span className="free-tag free-tag--country">
+                                                            {app.country}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {app.note && (
+                                                    <p className="free-card-note">
+                                                        {app.note}
+                                                    </p>
                                                 )}
-
-                                                {app.limits.map((limit) => (
-                                                    <span
-                                                        key={limit}
-                                                        className="free-tag"
-                                                    >
-                                                        {
-                                                            freeLimits[limit]
-                                                                .label
-                                                        }
-                                                    </span>
-                                                ))}
                                             </div>
-                                        )}
+                                        </a>
 
-                                        {app.note && (
-                                            <p className="free-card-note">
-                                                {app.note}
-                                            </p>
-                                        )}
+                                        <button
+                                            type="button"
+                                            className={`free-favorite ${
+                                                isFavorite ? "active" : ""
+                                            }`}
+                                            aria-pressed={isFavorite}
+                                            aria-label={
+                                                isFavorite
+                                                    ? `Remove ${app.name} from favorites`
+                                                    : `Add ${app.name} to favorites`
+                                            }
+                                            onClick={() =>
+                                                toggleFavorite(app.name)
+                                            }
+                                        >
+                                            <Star
+                                                size={17}
+                                                fill={
+                                                    isFavorite
+                                                        ? "currentColor"
+                                                        : "none"
+                                                }
+                                            />
+                                        </button>
                                     </div>
-                                </a>
-                            ))}
+                                );
+                            })}
                         </div>
                     </section>
                 );
@@ -289,7 +456,8 @@ export default function FreeAppsPage() {
                 >
                     Simple Icons
                 </a>
-                . Trademarks belong to their owners.
+                . Trademarks belong to their owners. Favorites are saved
+                in this browser.
             </p>
 
             <footer className="site-footer">

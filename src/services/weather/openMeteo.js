@@ -20,6 +20,28 @@ const HOURLY = [
   "diffuse_radiation",
 ];
 
+const CURRENT = [
+  "temperature_2m",
+  "apparent_temperature",
+  "relative_humidity_2m",
+  "wind_speed_10m",
+  "wind_gusts_10m",
+  "weather_code",
+  "is_day",
+];
+
+const DAILY = [
+  "weather_code",
+  "temperature_2m_max",
+  "temperature_2m_min",
+  "precipitation_probability_max",
+  "precipitation_sum",
+  "uv_index_max",
+  "wind_speed_10m_max",
+  "sunrise",
+  "sunset",
+];
+
 export async function searchPlaces(query, { signal } = {}) {
   const params = new URLSearchParams({ name: query, count: "6", language: "en", format: "json" });
   const response = await fetch(`${GEOCODE_URL}?${params}`, { signal });
@@ -35,7 +57,7 @@ export async function searchPlaces(query, { signal } = {}) {
 }
 
 /**
- * Hourly forecast for the next three days. Each hour has:
+ * Current conditions, seven days, and an hourly forecast. Each hour has:
  * time (Date), localHour, localDay, temp °C, apparent °C, rh %, wind m/s,
  * gust m/s, precipProb %, precip mm, code (WMO), uv, isDay, global,
  * directNormal, diffuse (W/m²).
@@ -45,10 +67,12 @@ export async function fetchForecast({ latitude, longitude }, { signal } = {}) {
     latitude: latitude.toFixed(4),
     longitude: longitude.toFixed(4),
     hourly: HOURLY.join(","),
+    current: CURRENT.join(","),
+    daily: DAILY.join(","),
     wind_speed_unit: "ms",
     timezone: "auto",
     timeformat: "unixtime",
-    forecast_days: "3",
+    forecast_days: "7",
   });
   const response = await fetch(`${FORECAST_URL}?${params}`, { signal });
   if (!response.ok) throw new Error("The weather service isn't responding. Try again in a moment.");
@@ -79,7 +103,42 @@ export function parseForecast(body) {
       diffuse: h.diffuse_radiation?.[i] ?? 0,
     };
   }).filter(hour => Number.isFinite(hour.temp));
-  return { hours, timezone: body.timezone, utcOffset: offset };
+
+  const c = body.current;
+  const current = c && Number.isFinite(c.temperature_2m)
+    ? {
+        temp: c.temperature_2m,
+        apparent: c.apparent_temperature ?? c.temperature_2m,
+        rh: c.relative_humidity_2m ?? null,
+        wind: c.wind_speed_10m ?? 0,
+        gust: c.wind_gusts_10m ?? 0,
+        code: c.weather_code ?? 0,
+        isDay: Boolean(c.is_day),
+      }
+    : null;
+
+  const d = body.daily;
+  const localTime = seconds => {
+    if (!Number.isFinite(seconds)) return null;
+    const local = new Date((seconds + offset) * 1000);
+    return { hour: local.getUTCHours(), minute: local.getUTCMinutes() };
+  };
+  const days = d
+    ? d.time.map((seconds, i) => ({
+        day: new Date((seconds + offset) * 1000).toISOString().slice(0, 10),
+        code: d.weather_code?.[i] ?? 0,
+        high: d.temperature_2m_max?.[i],
+        low: d.temperature_2m_min?.[i],
+        precipProb: d.precipitation_probability_max?.[i] ?? 0,
+        precip: d.precipitation_sum?.[i] ?? 0,
+        uv: d.uv_index_max?.[i] ?? 0,
+        wind: d.wind_speed_10m_max?.[i] ?? 0,
+        sunrise: localTime(d.sunrise?.[i]),
+        sunset: localTime(d.sunset?.[i]),
+      })).filter(day => Number.isFinite(day.high) && Number.isFinite(day.low))
+    : [];
+
+  return { hours, current, days, timezone: body.timezone, utcOffset: offset };
 }
 
 // Short descriptions for WMO weather codes.

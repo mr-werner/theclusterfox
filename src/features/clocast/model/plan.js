@@ -100,7 +100,7 @@ export function planOutfit(hours, place, activity, options = {}) {
 
   const wet = summary.rainChance >= 40 || summary.rain >= 0.5 || anyCode(isRainCode);
   if (anyCode(isSnowCode) && summary.low <= 2) {
-    extras.push({ kind: "snow", text: "Waterproof boots or shoes with grip" });
+    extras.push({ kind: "snow", text: "Waterproof outer layer for the snow" });
   } else if (wet) {
     extras.push({
       kind: "rain",

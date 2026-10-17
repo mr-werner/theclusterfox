@@ -1,22 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw } from "lucide-react";
+import { Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, TreePine } from "lucide-react";
 
 import SiteHeader from "../../components/SiteHeader";
-import HourlyStrip from "./components/HourlyStrip";
 import LocationPicker from "./components/LocationPicker";
 import OutfitCard from "./components/OutfitCard";
 import ProfilePanel from "./components/ProfilePanel";
+import WeatherReport from "./components/WeatherReport";
+import WhenPicker from "./components/WhenPicker";
 import WhyPanel from "./components/WhyPanel";
 import { activities, activitiesById } from "./data/activities";
 import { planOutfit } from "./model/plan";
 import { useClocastData } from "./state/useClocastData";
 import { fetchForecast } from "../../services/weather/openMeteo";
-import { formatHour, formatTemp } from "./units";
+import { formatTemp } from "./units";
+import { dayName, describeWindow, DURATIONS, PARTS, partAvailable, windowHours } from "./when";
 import "./clocast.css";
-
-const DURATIONS = [1, 2, 4, 8, 12];
-const START_CHOICES = 36;
 
 function SyncBadge({ status, isSignedIn }) {
   if (!isSignedIn) {
@@ -44,27 +43,15 @@ function SyncBadge({ status, isSignedIn }) {
   );
 }
 
-// Index of the hour that is happening now (or the first one in the future).
-function currentHourIndex(hours) {
-  const now = Date.now();
-  const index = hours.findIndex(hour => hour.time.getTime() + 3600000 > now);
-  return index === -1 ? 0 : index;
-}
-
-function dayLabel(hour, firstDay) {
-  if (hour.localDay === firstDay) return "Today";
-  const next = new Date(`${firstDay}T12:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + 1);
-  return hour.localDay === next.toISOString().slice(0, 10) ? "Tomorrow" : hour.localDay;
-}
+const EMPTY_FORECAST = { hours: [], days: [], current: null };
 
 export default function ClocastPage() {
   const { data, syncStatus, isSignedIn, update, setPlace, toggleSavedPlace, setProfile } = useClocastData();
   const { place, units, profile, tolerance } = data;
   const activity = activitiesById.get(data.activityId) ?? activities[0];
 
-  const [forecast, setForecast] = useState({ key: null, status: "idle", hours: [], error: "" });
-  const [startOffset, setStartOffset] = useState(0);
+  const [forecast, setForecast] = useState({ key: null, status: "idle", data: EMPTY_FORECAST, error: "" });
+  const [choice, setChoice] = useState({ day: 0, part: "now" });
   const [reloads, setReloads] = useState(0);
   const placeKey = place ? `${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}` : null;
 
@@ -73,35 +60,61 @@ export default function ClocastPage() {
     const controller = new AbortController();
     const [latitude, longitude] = placeKey.split(",").map(Number);
     fetchForecast({ latitude, longitude }, { signal: controller.signal })
-      .then(result => setForecast({ key: placeKey, status: "ready", hours: result.hours, error: "" }))
+      .then(result => setForecast({ key: placeKey, status: "ready", data: result, error: "" }))
       .catch(error => {
         if (error.name !== "AbortError") {
-          setForecast({ key: placeKey, status: "error", hours: [], error: error.message || "Couldn't load the weather." });
+          setForecast({ key: placeKey, status: "error", data: EMPTY_FORECAST, error: error.message || "Couldn't load the weather." });
         }
       });
     return () => controller.abort();
   }, [placeKey, reloads]);
 
-  const loading = placeKey && forecast.key !== placeKey;
-  const hours = useMemo(() => (forecast.key === placeKey ? forecast.hours : []), [forecast, placeKey]);
-  const nowIndex = currentHourIndex(hours);
-  const startChoices = hours.slice(nowIndex, nowIndex + START_CHOICES);
-  const offset = Math.min(startOffset, Math.max(0, startChoices.length - 1));
-  const start = nowIndex + offset;
+  const loading = Boolean(placeKey) && forecast.key !== placeKey;
+  const weather = forecast.key === placeKey ? forecast.data : EMPTY_FORECAST;
+  const dayKeys = useMemo(() => weather.days.map(d => d.day), [weather.days]);
+  const duration = DURATIONS.includes(data.hours) ? data.hours : 2;
+
+  // Fall back to the first part of the day that hasn't passed yet.
+  let part = choice.part;
+  if (weather.hours.length && !partAvailable(weather.hours, dayKeys, choice.day, part)) {
+    part = PARTS.find(p => partAvailable(weather.hours, dayKeys, choice.day, p.id))?.id ?? "now";
+  }
+  const when = { day: choice.day, part, duration };
+
+  const picked = useMemo(
+    () => windowHours(weather.hours, dayKeys, { day: choice.day, part, duration }),
+    [weather.hours, dayKeys, choice.day, part, duration]
+  );
+
+  const next24 = useMemo(
+    () => windowHours(weather.hours, dayKeys, { day: 0, part: "now", duration: 24 }),
+    [weather.hours, dayKeys]
+  );
 
   const plan = useMemo(() => {
-    const windowHours = hours.slice(start, start + data.hours);
-    if (!place || !windowHours.length) return null;
-    return planOutfit(windowHours, place, activity, {
+    if (!place || !picked.length) return null;
+    return planOutfit(picked, place, activity, {
       profile,
       tolerance,
       shaded: data.shaded,
       formatTemp: celsius => formatTemp(celsius, units),
     });
-  }, [hours, start, data.hours, data.shaded, place, activity, profile, tolerance, units]);
+  }, [picked, data.shaded, place, activity, profile, tolerance, units]);
+
+  function changeWhen(next) {
+    setChoice({ day: next.day, part: next.part });
+    if (next.duration !== duration) update({ hours: next.duration });
+  }
 
   const profileUsed = Boolean(profile.heightCm || profile.weightKg || profile.sex || profile.ageYears);
-  const firstDay = startChoices[0]?.localDay;
+  const partName = PARTS.find(p => p.id === part)?.name.toLowerCase();
+  const windowLabel =
+    part === "now"
+      ? `Next ${duration === 1 ? "hour" : `${duration} hours`}`
+      : choice.day === 0
+        ? `This ${partName}`
+        : `${dayName(dayKeys[choice.day], choice.day)} ${partName}`;
+  const ready = place && !loading && forecast.status === "ready" && weather.days.length > 0;
 
   return (
     <main className="clocast-page cc">
@@ -110,35 +123,89 @@ export default function ClocastPage() {
       <div className="cc-shell">
         <header className="cc-hero">
           <div className="cc-logo" aria-hidden="true">
-            <CloudSun size={28} />
+            <CloudSun size={26} />
           </div>
           <div>
             <p className="cc-eyebrow">CLOCAST</p>
             <h1>Dress for the forecast.</h1>
-            <p className="cc-hero-sub">
-              Tell it where you'll be and what you're doing. CloCast runs the weather through the same heat-balance
-              science engineers use for thermal comfort and picks your layers.
-            </p>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
         </header>
 
-        <div className="cc-layout">
-          <div className="cc-inputs">
-            <section className="cc-panel" aria-labelledby="cc-where-title">
-              <p className="cc-eyebrow">STEP 1</p>
-              <h2 id="cc-where-title">Where will you be?</h2>
-              <LocationPicker
-                place={place}
-                savedPlaces={data.savedPlaces}
-                onPick={setPlace}
-                onToggleSaved={toggleSavedPlace}
-              />
-            </section>
+        <section className="cc-panel cc-controls" aria-label="Place and time">
+          <LocationPicker
+            place={place}
+            savedPlaces={data.savedPlaces}
+            onPick={setPlace}
+            onToggleSaved={toggleSavedPlace}
+            actions={
+              <span className="cc-segment cc-units" role="group" aria-label="Units">
+                {[["us", "°F"], ["metric", "°C"]].map(([value, label]) => (
+                  <button key={value} type="button" aria-pressed={units === value} onClick={() => update({ units: value })}>
+                    {label}
+                  </button>
+                ))}
+              </span>
+            }
+          />
+          {ready && <WhenPicker hours={weather.hours} days={dayKeys} when={when} onChange={changeWhen} />}
+        </section>
 
-            <section className="cc-panel" aria-labelledby="cc-what-title">
-              <p className="cc-eyebrow">STEP 2</p>
-              <h2 id="cc-what-title">What are you doing?</h2>
+        {!place && (
+          <section className="cc-panel cc-empty">
+            <CloudSun size={36} aria-hidden="true" />
+            <h2>Pick a place to get started</h2>
+            <p className="cc-muted">Search for a town or use your location to see the forecast and what to wear.</p>
+          </section>
+        )}
+
+        {place && loading && (
+          <section className="cc-panel cc-empty">
+            <LoaderCircle size={30} className="spin" aria-hidden="true" />
+            <p className="cc-muted">Getting the forecast for {place.name}…</p>
+          </section>
+        )}
+
+        {place && !loading && forecast.status === "error" && (
+          <section className="cc-panel cc-empty">
+            <CloudOff size={30} aria-hidden="true" />
+            <p>{forecast.error}</p>
+            <button type="button" className="cc-btn" onClick={() => setReloads(n => n + 1)}>
+              <RotateCcw size={15} /> Try again
+            </button>
+          </section>
+        )}
+
+        {ready && (
+          <>
+            <WeatherReport
+              forecast={weather}
+              units={units}
+              place={place}
+              dayIndex={choice.day}
+              highlight={picked}
+              next24={next24}
+              onPickDay={day => setChoice(current => ({ ...current, day }))}
+            />
+
+            <section className="cc-panel cc-wear" aria-labelledby="cc-wear-title">
+              <div className="cc-wear-head">
+                <div>
+                  <p className="cc-eyebrow">WHAT TO WEAR</p>
+                  <h2 id="cc-wear-title">What are you doing?</h2>
+                </div>
+                <label className="cc-switch">
+                  <input
+                    type="checkbox"
+                    checked={data.shaded}
+                    onChange={event => update({ shaded: event.target.checked })}
+                  />
+                  <span className="cc-switch-track" aria-hidden="true" />
+                  <TreePine size={15} aria-hidden="true" />
+                  <span>In the shade</span>
+                </label>
+              </div>
+
               <div className="cc-activities" role="radiogroup" aria-label="Activity">
                 {activities.map(item => {
                   const Icon = item.icon;
@@ -151,61 +218,23 @@ export default function ClocastPage() {
                       aria-checked={selected}
                       className={`cc-activity ${selected ? "is-active" : ""}`}
                       onClick={() => update({ activityId: item.id })}
+                      title={item.hint}
                     >
-                      <Icon size={20} aria-hidden="true" />
-                      <span>
-                        <strong>{item.name}</strong>
-                        <small>{item.hint}</small>
-                      </span>
+                      <Icon size={18} aria-hidden="true" />
+                      <span>{item.name}</span>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="cc-when">
-                <label className="cc-field">
-                  <span className="cc-label">Heading out</span>
-                  <select
-                    value={offset}
-                    onChange={event => setStartOffset(Number(event.target.value))}
-                    disabled={!startChoices.length}
-                  >
-                    {startChoices.length ? (
-                      startChoices.map((hour, index) => (
-                        <option key={hour.time.getTime()} value={index}>
-                          {index === 0 ? "Now" : `${dayLabel(hour, firstDay)} ${formatHour(hour.localHour)}`}
-                        </option>
-                      ))
-                    ) : (
-                      <option value={0}>Now</option>
-                    )}
-                  </select>
-                </label>
-                <div className="cc-field">
-                  <span className="cc-label">For</span>
-                  <div className="cc-segment" role="group" aria-label="How long">
-                    {DURATIONS.map(value => (
-                      <button
-                        key={value}
-                        type="button"
-                        aria-pressed={data.hours === value}
-                        onClick={() => update({ hours: value })}
-                      >
-                        {value} h
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <label className="cc-check">
-                <input
-                  type="checkbox"
-                  checked={data.shaded}
-                  onChange={event => update({ shaded: event.target.checked })}
+              {plan ? (
+                <OutfitCard
+                  plan={plan}
+                  summary={[activity.name, windowLabel, describeWindow(picked), data.shaded && "In the shade"].filter(Boolean).join(" · ")}
                 />
-                <span>Mostly in the shade (no warmth from direct sun)</span>
-              </label>
+              ) : (
+                <p className="cc-note">That part of the day has already passed. Pick another time above.</p>
+              )}
             </section>
 
             <ProfilePanel
@@ -213,46 +242,12 @@ export default function ClocastPage() {
               units={units}
               tolerance={tolerance}
               onProfile={setProfile}
-              onUnits={value => update({ units: value })}
               onTolerance={value => update({ tolerance: value })}
             />
-          </div>
 
-          <div className="cc-results" aria-live="polite">
-            {!place && (
-              <section className="cc-panel cc-empty">
-                <CloudSun size={36} aria-hidden="true" />
-                <h2>Pick a place to get started</h2>
-                <p className="cc-muted">Search for a town or use your location. The forecast comes from Open-Meteo.</p>
-              </section>
-            )}
-
-            {place && loading && (
-              <section className="cc-panel cc-empty">
-                <LoaderCircle size={30} className="spin" aria-hidden="true" />
-                <p className="cc-muted">Getting the forecast for {place.name}…</p>
-              </section>
-            )}
-
-            {place && !loading && forecast.status === "error" && (
-              <section className="cc-panel cc-empty">
-                <CloudOff size={30} aria-hidden="true" />
-                <p>{forecast.error}</p>
-                <button type="button" className="cc-btn" onClick={() => setReloads(n => n + 1)}>
-                  <RotateCcw size={15} /> Try again
-                </button>
-              </section>
-            )}
-
-            {plan && !loading && (
-              <>
-                <OutfitCard plan={plan} />
-                <HourlyStrip plan={plan} units={units} />
-                <WhyPanel plan={plan} units={units} profileUsed={profileUsed} />
-              </>
-            )}
-          </div>
-        </div>
+            {plan && <WhyPanel plan={plan} units={units} profileUsed={profileUsed} />}
+          </>
+        )}
 
         <p className="cc-credit">
           Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo.com</a> (CC BY 4.0).

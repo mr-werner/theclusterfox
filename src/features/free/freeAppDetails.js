@@ -298,6 +298,12 @@ export const freeAppDetails = {
   "Rocket.Chat": { openSource: true, limits: ["freeTier"], note: "Free when self-hosted; cloud plans cost extra." },
   Element: { openSource: true, limits: ["freeTier"] },
   Zulip: { openSource: true, limits: ["freeTier"], note: "Free cloud plan limits search history; self-hosting is free." },
+  "ARD Mediathek": { limits: ["region"], note: "Paid for by Germany's broadcasting fee, so there are no ads. Some shows are blocked outside Germany and expire after a while." },
+  "ZDF Mediathek": { limits: ["region"], note: "Paid for by Germany's broadcasting fee, so there are no ads. Some shows are blocked outside Germany and expire after a while." },
+  ARTE: { limits: ["region"], note: "Public, ad-free broadcaster. Some videos are only available in certain countries." },
+  KiKA: { limits: ["region"], note: "Paid for by Germany's broadcasting fee, so there are no ads. Some shows are blocked outside Germany and expire after a while." },
+  "ARD Audiothek": { note: "Paid for by Germany's broadcasting fee, so there are no ads." },
+  "DW Learn German": { note: "Free courses from Germany's international broadcaster, from A1 to C1." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -442,5 +448,11 @@ export const freeAppCountries = {
   Mattermost: "United States",
   "Rocket.Chat": "Brazil",
   Element: "United Kingdom",
-  Zulip: "United States",
+  Zulip: "United States",  "ARD Mediathek": "Germany",
+  "ZDF Mediathek": "Germany",
+  ARTE: "France",
+  KiKA: "Germany",
+  "ARD Audiothek": "Germany",
+  "DW Learn German": "Germany",
+  Nextcloud: "Germany",
 };

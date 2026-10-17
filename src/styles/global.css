@@ -2260,23 +2260,12 @@ select {
 }
 
 .free-controls {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-
     display: flex;
     flex-direction: column;
     gap: 14px;
 
     margin-bottom: 40px;
     padding: 14px 0;
-
-    transition: background 0.2s ease;
-}
-
-.free-controls.is-stuck {
-    background: rgba(16, 18, 17, 0.92);
-    backdrop-filter: blur(12px);
 }
 
 .free-search {
@@ -2681,12 +2670,6 @@ select {
 .free-tag--country {
     background: rgba(255, 107, 26, 0.1);
     color: var(--fox-light);
-}
-
-@media (max-width: 900px) {
-    .free-controls {
-        position: static;
-    }
 }
 
 .free-filter-group {

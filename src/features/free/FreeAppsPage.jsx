@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ExternalLink, Search, Star } from "lucide-react";
+import {
+    Check,
+    ChevronDown,
+    ExternalLink,
+    Search,
+    Star,
+} from "lucide-react";
 
 import SiteHeader from "../../components/SiteHeader";
 import FreeAppIcon from "./FreeAppIcon";
@@ -7,6 +13,7 @@ import { freeAppCount, freeCategories } from "./freeApps";
 import { freeLimits } from "./freeAppDetails";
 
 const FAVORITES_KEY = "clusterfox:free-favorites";
+const HIDDEN_KEY = "clusterfox:free-hidden";
 
 const COMMUNITY = "Open-source community";
 
@@ -38,28 +45,28 @@ const countryOptions = (() => {
     );
 })();
 
-// Each filter keeps only the apps that pass its test.
-const filterOptions = [
-    {
-        id: "openSource",
-        label: "Open source",
-        test: (app) => app.openSource,
-    },
+// Things a visitor can choose to hide. Checked means "hide apps with this".
+const hideOptions = [
     ...Object.entries(freeLimits).map(([id, limit]) => ({
         id,
-        label: limit.filterLabel,
-        test: (app) => !app.limits.includes(id),
+        label: limit.label,
+        test: (app) => app.limits.includes(id),
     })),
     {
-        id: "finished",
-        label: "Finished apps",
-        test: (app) => !app.status,
+        id: "unfinished",
+        label: "Unfinished apps",
+        test: (app) => Boolean(app.status),
     },
 ];
 
-function loadFavorites() {
+function listFormat(items) {
+    if (items.length <= 2) return items.join(" or ");
+    return `${items.slice(0, -1).join(", ")}, or ${items.at(-1)}`;
+}
+
+function loadSavedList(key) {
     try {
-        const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY));
+        const saved = JSON.parse(localStorage.getItem(key));
         return Array.isArray(saved) ? saved : [];
     } catch {
         return [];
@@ -69,10 +76,16 @@ function loadFavorites() {
 export default function FreeAppsPage() {
     const [query, setQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
-    const [activeFilters, setActiveFilters] = useState([]);
+    const [hidden, setHidden] = useState(() =>
+        loadSavedList(HIDDEN_KEY)
+    );
+    const [openSourceOnly, setOpenSourceOnly] = useState(false);
     const [country, setCountry] = useState("");
-    const [favorites, setFavorites] = useState(loadFavorites);
+    const [favorites, setFavorites] = useState(() =>
+        loadSavedList(FAVORITES_KEY)
+    );
     const [favoritesOnly, setFavoritesOnly] = useState(false);
+    const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
     const [isStuck, setIsStuck] = useState(false);
 
     const stickySentinelRef = useRef(null);
@@ -91,21 +104,29 @@ export default function FreeAppsPage() {
         return () => observer.disconnect();
     }, []);
 
+    // Storage can be unavailable (private mode); choices then last
+    // for this visit only.
     useEffect(() => {
         try {
             localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+            localStorage.setItem(HIDDEN_KEY, JSON.stringify(hidden));
         } catch {
-            // Storage can be unavailable (private mode); favorites
-            // then last for this visit only.
+            // Ignore.
         }
-    }, [favorites]);
+    }, [favorites, hidden]);
 
-    function toggleFilter(id) {
-        setActiveFilters((current) =>
+    function toggleHidden(id) {
+        setHidden((current) =>
             current.includes(id)
-                ? current.filter((filterId) => filterId !== id)
+                ? current.filter((hiddenId) => hiddenId !== id)
                 : [...current, id]
         );
+    }
+
+    const allHidden = hidden.length === hideOptions.length;
+
+    function toggleHideAll() {
+        setHidden(allHidden ? [] : hideOptions.map((option) => option.id));
     }
 
     function toggleFavorite(name) {
@@ -117,19 +138,23 @@ export default function FreeAppsPage() {
     }
 
     function clearFilters() {
-        setActiveFilters([]);
+        setHidden([]);
+        setOpenSourceOnly(false);
         setCountry("");
         setFavoritesOnly(false);
     }
 
-    const hasFilters =
-        activeFilters.length > 0 || country !== "" || favoritesOnly;
+    const activeFilterCount =
+        hidden.length +
+        (openSourceOnly ? 1 : 0) +
+        (country ? 1 : 0) +
+        (favoritesOnly ? 1 : 0);
 
     const visibleCategories = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
 
-        const filters = filterOptions.filter((option) =>
-            activeFilters.includes(option.id)
+        const hiddenTests = hideOptions.filter((option) =>
+            hidden.includes(option.id)
         );
 
         return freeCategories
@@ -144,7 +169,8 @@ export default function FreeAppsPage() {
                     (app) =>
                         (!normalizedQuery ||
                             matchesQuery(app, normalizedQuery)) &&
-                        filters.every((filter) => filter.test(app)) &&
+                        !hiddenTests.some((option) => option.test(app)) &&
+                        (!openSourceOnly || app.openSource) &&
                         (!country || companyOrigin(app) === country) &&
                         (!favoritesOnly || favorites.includes(app.name))
                 ),
@@ -153,11 +179,33 @@ export default function FreeAppsPage() {
     }, [
         query,
         activeCategory,
-        activeFilters,
+        hidden,
+        openSourceOnly,
         country,
         favoritesOnly,
         favorites,
     ]);
+
+    const visibleCount = visibleCategories.reduce(
+        (total, category) => total + category.apps.length,
+        0
+    );
+
+    const summary = [];
+
+    if (hidden.length > 0) {
+        summary.push(
+            `hiding apps with ${listFormat(
+                hideOptions
+                    .filter((option) => hidden.includes(option.id))
+                    .map((option) => option.label.toLowerCase())
+            )}`
+        );
+    }
+
+    if (openSourceOnly) summary.push("open source only");
+    if (country) summary.push(`based in ${country}`);
+    if (favoritesOnly) summary.push("favorites only");
 
     return (
         <main className="home-page free-page">
@@ -194,108 +242,214 @@ export default function FreeAppsPage() {
                     />
                 </label>
 
-                <div
-                    className="free-chips"
-                    role="group"
-                    aria-label="Filter by category"
-                >
-                    <button
-                        type="button"
-                        className={`free-chip ${
-                            activeCategory === "all" ? "active" : ""
-                        }`}
-                        onClick={() => setActiveCategory("all")}
-                    >
-                        All
-                    </button>
-
-                    {freeCategories.map((category) => (
-                        <button
-                            key={category.id}
-                            type="button"
-                            className={`free-chip ${
-                                activeCategory === category.id
-                                    ? "active"
-                                    : ""
-                            }`}
-                            onClick={() =>
-                                setActiveCategory(category.id)
-                            }
-                        >
-                            {category.name}
-                        </button>
-                    ))}
-                </div>
-
-                <div
-                    className="free-chips free-filter-chips"
-                    role="group"
-                    aria-label="Filter by limits"
-                >
-                    <span className="free-filter-label">Only show</span>
-
-                    <button
-                        type="button"
-                        className={`free-chip free-chip--favorites ${
-                            favoritesOnly ? "active" : ""
-                        }`}
-                        aria-pressed={favoritesOnly}
-                        onClick={() =>
-                            setFavoritesOnly((current) => !current)
-                        }
-                    >
-                        <Star size={13} aria-hidden="true" />
-                        Favorites
-                        {favorites.length > 0 && ` (${favorites.length})`}
-                    </button>
-
-                    {filterOptions.map((option) => (
-                        <button
-                            key={option.id}
-                            type="button"
-                            className={`free-chip ${
-                                activeFilters.includes(option.id)
-                                    ? "active"
-                                    : ""
-                            }`}
-                            aria-pressed={activeFilters.includes(
-                                option.id
-                            )}
-                            onClick={() => toggleFilter(option.id)}
-                        >
-                            {option.label}
-                        </button>
-                    ))}
+                <div className="free-filter-group">
+                    <span className="free-filter-label">Category</span>
 
                     <select
-                        className={`free-chip free-select ${
-                            country ? "active" : ""
-                        }`}
-                        value={country}
+                        className="free-select free-mobile-only"
+                        value={activeCategory}
                         onChange={(event) =>
-                            setCountry(event.target.value)
+                            setActiveCategory(event.target.value)
                         }
-                        aria-label="Filter by where the company is based"
+                        aria-label="Category"
                     >
-                        <option value="">Based anywhere</option>
+                        <option value="all">All categories</option>
 
-                        {countryOptions.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
+                        {freeCategories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
                             </option>
                         ))}
                     </select>
 
-                    {hasFilters && (
+                    <div
+                        className="free-chips free-desktop-only"
+                        role="group"
+                        aria-label="Category"
+                    >
                         <button
                             type="button"
-                            className="free-clear-filters"
+                            className={`free-chip ${
+                                activeCategory === "all" ? "active" : ""
+                            }`}
+                            onClick={() => setActiveCategory("all")}
+                        >
+                            All
+                        </button>
+
+                        {freeCategories.map((category) => (
+                            <button
+                                key={category.id}
+                                type="button"
+                                className={`free-chip ${
+                                    activeCategory === category.id
+                                        ? "active"
+                                        : ""
+                                }`}
+                                onClick={() =>
+                                    setActiveCategory(category.id)
+                                }
+                            >
+                                {category.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    className="free-select free-panel-toggle free-mobile-only"
+                    aria-expanded={isFilterPanelOpen}
+                    onClick={() =>
+                        setIsFilterPanelOpen((current) => !current)
+                    }
+                >
+                    Preferences
+                    {activeFilterCount > 0 && ` (${activeFilterCount} on)`}
+                    <ChevronDown
+                        size={16}
+                        className={isFilterPanelOpen ? "open" : ""}
+                        aria-hidden="true"
+                    />
+                </button>
+
+                <div
+                    className={`free-filter-panel ${
+                        isFilterPanelOpen ? "open" : ""
+                    }`}
+                >
+                    <div className="free-filter-group">
+                        <span className="free-filter-label">
+                            Hide apps with
+                        </span>
+
+                        <div
+                            className="free-chips"
+                            role="group"
+                            aria-label="Hide apps with"
+                        >
+                            {hideOptions.map((option) => {
+                                const isOn = hidden.includes(option.id);
+
+                                return (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        className={`free-chip free-check ${
+                                            isOn ? "active" : ""
+                                        }`}
+                                        aria-pressed={isOn}
+                                        onClick={() =>
+                                            toggleHidden(option.id)
+                                        }
+                                    >
+                                        <span
+                                            className="free-checkbox"
+                                            aria-hidden="true"
+                                        >
+                                            {isOn && <Check size={12} />}
+                                        </span>
+                                        {option.label}
+                                    </button>
+                                );
+                            })}
+
+                            <button
+                                type="button"
+                                className="free-text-button"
+                                onClick={toggleHideAll}
+                            >
+                                {allHidden ? "Show all" : "Hide all"}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="free-filter-group">
+                        <span className="free-filter-label">Only show</span>
+
+                        <div
+                            className="free-chips"
+                            role="group"
+                            aria-label="Only show"
+                        >
+                            <button
+                                type="button"
+                                className={`free-chip free-check ${
+                                    favoritesOnly ? "active" : ""
+                                }`}
+                                aria-pressed={favoritesOnly}
+                                onClick={() =>
+                                    setFavoritesOnly((current) => !current)
+                                }
+                            >
+                                <Star
+                                    size={13}
+                                    fill={
+                                        favoritesOnly
+                                            ? "currentColor"
+                                            : "none"
+                                    }
+                                    aria-hidden="true"
+                                />
+                                Favorites
+                                {favorites.length > 0 &&
+                                    ` (${favorites.length})`}
+                            </button>
+
+                            <button
+                                type="button"
+                                className={`free-chip free-check ${
+                                    openSourceOnly ? "active" : ""
+                                }`}
+                                aria-pressed={openSourceOnly}
+                                onClick={() =>
+                                    setOpenSourceOnly((current) => !current)
+                                }
+                            >
+                                <span
+                                    className="free-checkbox"
+                                    aria-hidden="true"
+                                >
+                                    {openSourceOnly && <Check size={12} />}
+                                </span>
+                                Open source
+                            </button>
+
+                            <select
+                                className={`free-chip free-select ${
+                                    country ? "active" : ""
+                                }`}
+                                value={country}
+                                onChange={(event) =>
+                                    setCountry(event.target.value)
+                                }
+                                aria-label="Where the company is based"
+                            >
+                                <option value="">Based anywhere</option>
+
+                                {countryOptions.map((option) => (
+                                    <option key={option} value={option}>
+                                        {option}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <p className="free-summary" aria-live="polite">
+                    Showing {visibleCount} of {freeAppCount} apps
+                    {summary.length > 0 && `, ${summary.join(", ")}`}.
+                    {activeFilterCount > 0 && (
+                        <button
+                            type="button"
+                            className="free-text-button"
                             onClick={clearFilters}
                         >
-                            Clear
+                            Reset
                         </button>
                     )}
-                </div>
+                </p>
             </div>
 
             {visibleCategories.length === 0 && (

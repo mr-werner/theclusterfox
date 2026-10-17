@@ -40,10 +40,11 @@ body {
   min-height: 100vh;
 
   background:
+    /* Fixed size, so the glow looks the same however long the page is. */
     radial-gradient(
-      circle at 50% -20%,
+      circle 640px at 50% -260px,
       rgba(233, 133, 63, 0.09),
-      transparent 38%
+      transparent
     ),
     var(--background);
 
@@ -2685,5 +2686,152 @@ select {
 @media (max-width: 900px) {
     .free-controls {
         position: static;
+    }
+}
+
+.free-filter-group {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: start;
+    gap: 12px;
+}
+
+.free-filter-group .free-filter-label {
+    padding-top: 9px;
+}
+
+.free-filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.free-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.free-checkbox {
+    display: grid;
+    place-items: center;
+
+    width: 14px;
+    height: 14px;
+
+    border: 1.5px solid currentColor;
+    border-radius: 4px;
+}
+
+.free-text-button {
+    padding: 7px 4px;
+
+    border: none;
+    background: transparent;
+    color: var(--fox-light);
+
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: underline;
+
+    cursor: pointer;
+}
+
+.free-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+
+    margin: 2px 0 0;
+
+    color: var(--muted);
+
+    font-size: 0.82rem;
+}
+
+.free-summary .free-text-button {
+    padding: 0;
+}
+
+.free-mobile-only {
+    display: none;
+}
+
+.free-panel-toggle {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.free-panel-toggle svg {
+    transition: transform 0.2s ease;
+}
+
+.free-panel-toggle svg.open {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 700px) {
+    .free-desktop-only {
+        display: none;
+    }
+
+    .free-mobile-only {
+        display: block;
+    }
+
+    .free-panel-toggle.free-mobile-only {
+        display: flex;
+    }
+
+    .free-filter-group {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .free-filter-group .free-filter-label {
+        padding-top: 0;
+    }
+
+    .free-controls > .free-filter-group .free-filter-label {
+        display: none;
+    }
+
+    .free-controls .free-mobile-only.free-select {
+        width: 100%;
+        padding: 12px 36px 12px 14px;
+
+        border: 1px solid var(--border);
+        border-radius: 12px;
+
+        background-color: var(--surface);
+        color: var(--text);
+
+        font-size: 0.92rem;
+        font-weight: 600;
+        text-align: left;
+
+        cursor: pointer;
+    }
+
+    .free-panel-toggle.free-select {
+        background-image: none;
+        padding-right: 14px;
+    }
+
+    .free-filter-panel {
+        display: none;
+
+        padding: 14px;
+
+        border: 1px solid var(--border);
+        border-radius: 12px;
+
+        background: var(--surface);
+    }
+
+    .free-filter-panel.open {
+        display: flex;
     }
 }

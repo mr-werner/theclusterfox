@@ -106,8 +106,43 @@ export function useClocastData() {
     update(current => ({ profile: { ...current.profile, ...change } }));
   }, [update]);
 
+  const savePlan = useCallback(plan => {
+    const id = plan.id ?? crypto.randomUUID();
+    const now = new Date().toISOString();
+    update(current => ({
+      plans: [{ ...plan, id, updatedAt: now }, ...current.plans.filter(p => p.id !== id)]
+        .sort((x, y) => x.day.localeCompare(y.day) || x.startHour - y.startHour),
+    }));
+    return id;
+  }, [update]);
+
+  const deletePlan = useCallback(id => {
+    update(current => ({
+      plans: current.plans.filter(p => p.id !== id),
+      deletedPlanIds: [...current.deletedPlanIds, { id, at: new Date().toISOString() }].slice(-200),
+    }));
+  }, [update]);
+
+  const saveGoal = useCallback(goal => {
+    const id = goal.id ?? crypto.randomUUID();
+    const now = new Date().toISOString();
+    update(current => ({ goals: [...current.goals.filter(g => g.id !== id), { ...goal, id, updatedAt: now }] }));
+    return id;
+  }, [update]);
+
+  const deleteGoal = useCallback(id => {
+    update(current => ({
+      goals: current.goals.filter(g => g.id !== id),
+      deletedGoalIds: [...current.deletedGoalIds, { id, at: new Date().toISOString() }].slice(-200),
+    }));
+  }, [update]);
+
   return {
     data,
+    savePlan,
+    deletePlan,
+    saveGoal,
+    deleteGoal,
     syncStatus,
     isSignedIn: Boolean(userId),
     update,

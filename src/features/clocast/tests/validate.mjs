@@ -4,7 +4,12 @@ import { activities, activitiesById } from '../data/activities.js';
 import { pmv, cloForPmv, ireq, clothingNeed, metabolicRate, solarMrtIncrease } from '../model/thermal.js';
 import { planOutfit, windChill, heatIndex } from '../model/plan.js';
 import { mergeData, normalizeData } from '../state/clocastStore.js';
-import { parseForecast } from '../../../services/weather/openMeteo.js';
+import { parseForecast, parseAirQuality, withAirQuality, aqiCategory } from '../../../services/weather/openMeteo.js';
+import { scoreHour, scoreWindow, rankStarts, compareWindows, sessionAdvice } from '../model/score.js';
+import { suggestSessions } from '../model/coach.js';
+import { dailyBriefing } from '../model/briefing.js';
+import { evaluatePlan } from '../model/planner.js';
+import { formatTemp } from '../units.js';
 import { windowHours, partAvailable, describeWindow } from '../when.js';
 
 const near = (actual, expected, tolerance, label) =>
@@ -139,6 +144,108 @@ assert.deepEqual(mergeData(a, b).savedPlaces.map(p => p.id), ['2'], 'newer copy 
   assert.deepEqual(windowHours(parsed.hours, days, { day: 0, part: 'midday' }, noonLocal).map(h => h.localHour), [12, 13], 'midday trims passed hours');
   assert.deepEqual(windowHours(parsed.hours, days, { day: 1, part: 'morning' }, noonLocal).map(h => h.localHour), [6, 7, 8, 9]);
   assert(!partAvailable(parsed.hours, days, 1, 'now', noonLocal), 'now only applies to today');
+}
+
+// Planner and coach: a hot, sunny week with smoky afternoons.
+{
+  const start = Date.UTC(2026, 6, 6, 5) / 1000; // midnight local (UTC-5)
+  const len = 24 * 8;
+  const ser = f => Array.from({ length: len }, (_, i) => f(i));
+  const localHour = i => i % 24;
+  const temp = i => 22 + 12 * Math.max(0, Math.sin(((localHour(i) - 8) / 12) * Math.PI));
+  const parsed = parseForecast({
+    utc_offset_seconds: -5 * 3600,
+    hourly: {
+      time: ser(i => start + i * 3600),
+      temperature_2m: ser(temp),
+      relative_humidity_2m: ser(() => 55),
+      wind_speed_10m: ser(() => 2),
+      precipitation_probability: ser(i => (i >= 24 && i < 48 ? 80 : 0)),
+      precipitation: ser(i => (i >= 24 && i < 48 ? 2 : 0)),
+      weather_code: ser(i => (i >= 24 && i < 48 ? 63 : 0)),
+      uv_index: ser(i => Math.max(0, 9 * Math.sin(((localHour(i) - 7) / 13) * Math.PI))),
+      is_day: ser(i => (localHour(i) >= 6 && localHour(i) < 20 ? 1 : 0)),
+      shortwave_radiation: ser(() => 0),
+    },
+    daily: { time: ser(i => start + i * 86400).slice(0, 8), temperature_2m_max: Array(8).fill(34), temperature_2m_min: Array(8).fill(22) },
+  });
+  const air = parseAirQuality({
+    hourly: { time: ser(i => start + i * 3600), us_aqi: ser(i => (localHour(i) >= 13 && localHour(i) <= 19 ? 140 : 35)) },
+    current: { us_aqi: 40 },
+  });
+  assert.equal(air.current.aqi, 40, 'current AQI');
+  assert.equal(aqiCategory(140).tone, 'usg');
+  assert.equal(aqiCategory(20).label, 'Good');
+  const hours = withAirQuality(parsed.hours, air);
+  assert.equal(hours[15].aqi, 140, 'AQI joins onto hours');
+  const days = parsed.days.map(d => d.day);
+  const place = { latitude: 40.7, longitude: -74 };
+  const runner = act('run-easy');
+
+  const morning = scoreHour(hours[7], place, runner);
+  const afternoon = scoreHour(hours[16], place, runner);
+  assert(morning.score > afternoon.score + 30, `cool clean morning beats hot smoky afternoon (${morning.score} vs ${afternoon.score})`);
+  assert(afternoon.factors.some(f => f.kind === 'heat') && afternoon.factors.some(f => f.kind === 'air'), 'afternoon names heat and air');
+  assert(scoreHour(hours[24 + 7], place, runner).factors.some(f => f.kind === 'rain'), 'rainy day is marked');
+  assert(scoreHour(hours[2], place, runner).factors.some(f => f.kind === 'dark'), 'night is marked');
+  assert(scoreHour(hours[16], place, act('sitting')).score > afternoon.score, 'sitting minds the heat less than running');
+
+  const window = scoreWindow(hours.slice(7, 10), place, runner);
+  assert(window.score <= Math.max(...window.hours.map(h => h.score)), 'window score is held back by its worst hour');
+
+  const ranked = rankStarts(hours, place, runner, { day: days[0], duration: 1, earliest: 5, latest: 21 });
+  assert(ranked[0].startHour <= 8, `best run start is early (${ranked[0].startHour})`);
+  assert(rankStarts(hours, place, runner, { day: days[0], duration: 2, notBefore: (start + 12 * 3600) * 1000 }).every(r => r.startHour >= 12), 'passed hours are skipped');
+
+  const fmt = (c, o) => formatTemp(c, 'us', o);
+  const worse = scoreWindow(hours.slice(16, 17), place, runner);
+  const reasons = compareWindows(ranked[0], worse, fmt);
+  assert(reasons.some(r => r.includes('cooler')), `reasons mention cooler: ${reasons}`);
+  assert(reasons.some(r => r.includes('cleaner air')), `reasons mention air: ${reasons}`);
+  assert.equal(formatTemp(5, 'us', { delta: true }), '9°F', 'temperature differences convert without the 32° offset');
+
+  const advice = sessionAdvice(hours.slice(12, 14), place, runner, { formatTemp: fmt });
+  assert(advice.tips.some(t => t.kind === 'sun' && t.text.includes('SPF 50')), 'strong UV asks for SPF 50');
+  assert(advice.tips.some(t => t.kind === 'water'), 'long runs get a water tip');
+  assert(sessionAdvice(hours.slice(15, 17), place, runner).tips.some(t => t.kind === 'air'), 'smoky session gets an air tip');
+  assert(!sessionAdvice(hours.slice(12, 14), place, runner, { shaded: true }).tips.some(t => t.kind === 'sun'), 'no sunscreen nag in the shade');
+
+  const brief = dailyBriefing(hours.slice(0, 24), { formatTemp: c => formatTemp(c, 'us') });
+  for (const kind of ['sun', 'air', 'rain', 'heat']) assert(brief.some(t => t.kind === kind), `briefing covers ${kind}`);
+  assert(brief.find(t => t.kind === 'rain').tone === 'good', 'dry day says so');
+  assert(dailyBriefing(hours.slice(24, 48)).find(t => t.kind === 'rain').title.startsWith('Rain likely'), 'wet day warns');
+
+  const goal = { activityId: 'run-easy', perWeek: 3, minutes: 45, timeOfDay: 'any' };
+  const coached = suggestSessions(hours, days, place, goal, runner, []);
+  assert.equal(coached.sessions.length, 3, 'three sessions suggested');
+  assert(!coached.sessions.some(s => s.day === days[1]), 'rainy day avoided');
+  const gaps = coached.sessions.map(s => days.indexOf(s.day));
+  assert(gaps.every((d, i) => i === 0 || d - gaps[i - 1] >= 2), `sessions are spread out (${gaps})`);
+  assert(coached.sessions.every(s => s.startHour <= 9), 'sessions dodge the heat and smoke');
+  const withPlan = suggestSessions(hours, days, place, goal, runner, [{ activityId: 'run-easy', day: days[0], startHour: 7, hours: 1 }]);
+  assert.equal(withPlan.needed, 2, 'planned runs count toward the goal');
+  assert(!withPlan.sessions.some(s => s.day === days[0]), 'no second run on a planned day');
+  const evening = suggestSessions(hours, days, place, { ...goal, timeOfDay: 'evening' }, runner, []);
+  assert(evening.sessions.every(s => s.startHour >= 16), 'evening goals stay in the evening');
+
+  const evaluated = evaluatePlan({ id: 'p', activityId: 'run-easy', day: days[0], startHour: 16, hours: 1 }, hours, place, {}, 'us', 0);
+  assert(evaluated.better && evaluated.better.startHour < 12, 'an afternoon run gets a better morning time');
+  assert.equal(evaluatePlan({ id: 'q', activityId: 'run-easy', day: '2027-01-01', startHour: 7, hours: 1 }, hours, place, {}, 'us', 0), null, 'no forecast, no score');
+}
+
+// Plans and goals merge item by item, and deletions stick.
+{
+  const t1 = '2026-07-01T00:00:00Z';
+  const t2 = '2026-07-02T00:00:00Z';
+  const plan = (id, startHour, updatedAt) => ({ id, activityId: 'run-easy', title: '', day: '2026-07-10', startHour, hours: 1, updatedAt });
+  const local = normalizeData({ updatedAt: t1, plans: [plan('a', 7, t2), plan('b', 8, t1)], goals: [{ id: 'g', activityId: 'hike', perWeek: 1, minutes: 120, timeOfDay: 'any', updatedAt: t1 }] });
+  const remote = normalizeData({ updatedAt: t2, plans: [plan('a', 9, t1), plan('c', 6, t1)], deletedPlanIds: [{ id: 'b', at: t2 }], goals: [] });
+  const both = mergeData(local, remote);
+  assert.deepEqual(both.plans.map(p => p.id), ['c', 'a'], 'merged plans, sorted by time, deleted one gone');
+  assert.equal(both.plans.find(p => p.id === 'a').startHour, 7, 'newer edit wins');
+  assert.equal(both.goals.length, 1, 'goal kept');
+  assert.equal(normalizeData({ plans: [{ id: 'x', activityId: 'run-easy', day: 'nope', startHour: 7, hours: 1 }] }).plans.length, 0, 'bad plans dropped');
+  assert.equal(normalizeData({ goals: [{ id: 'y', activityId: 'run-easy', perWeek: 12, minutes: 45, timeOfDay: 'any' }] }).goals[0].perWeek, 7, 'perWeek capped');
 }
 
 console.log(`PASS: CloCast model, ${activities.length} activities, ${Object.values(outfitLadders).flat().length} outfits.`);

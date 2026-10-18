@@ -1,9 +1,10 @@
 export const CM_PER_INCH = 2.54;
 export const KG_PER_LB = 0.45359237;
 
-export function formatTemp(celsius, units, { unit = true } = {}) {
+// delta: format a difference in temperature rather than a reading.
+export function formatTemp(celsius, units, { unit = true, delta = false } = {}) {
   if (!Number.isFinite(celsius)) return "–";
-  const value = units === "metric" ? celsius : (celsius * 9) / 5 + 32;
+  const value = units === "metric" ? celsius : (celsius * 9) / 5 + (delta ? 0 : 32);
   return `${Math.round(value)}°${unit ? (units === "metric" ? "C" : "F") : ""}`;
 }
 

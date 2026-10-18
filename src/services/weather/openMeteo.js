@@ -3,6 +3,7 @@
 
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 const GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search";
+const AIR_URL = "https://air-quality-api.open-meteo.com/v1/air-quality";
 
 const HOURLY = [
   "temperature_2m",
@@ -28,6 +29,8 @@ const CURRENT = [
   "wind_gusts_10m",
   "weather_code",
   "is_day",
+  "pressure_msl",
+  "dew_point_2m",
 ];
 
 const DAILY = [
@@ -57,7 +60,7 @@ export async function searchPlaces(query, { signal } = {}) {
 }
 
 /**
- * Current conditions, seven days, and an hourly forecast. Each hour has:
+ * Current conditions, fourteen days, and an hourly forecast. Each hour has:
  * time (Date), localHour, localDay, temp °C, apparent °C, rh %, wind m/s,
  * gust m/s, precipProb %, precip mm, code (WMO), uv, isDay, global,
  * directNormal, diffuse (W/m²).
@@ -72,7 +75,7 @@ export async function fetchForecast({ latitude, longitude }, { signal } = {}) {
     wind_speed_unit: "ms",
     timezone: "auto",
     timeformat: "unixtime",
-    forecast_days: "7",
+    forecast_days: "14",
   });
   const response = await fetch(`${FORECAST_URL}?${params}`, { signal });
   if (!response.ok) throw new Error("The weather service isn't responding. Try again in a moment.");
@@ -114,6 +117,8 @@ export function parseForecast(body) {
         gust: c.wind_gusts_10m ?? 0,
         code: c.weather_code ?? 0,
         isDay: Boolean(c.is_day),
+        pressure: c.pressure_msl ?? null,
+        dewPoint: c.dew_point_2m ?? null,
       }
     : null;
 
@@ -153,4 +158,57 @@ export function describeWeather(code) {
   if (code <= 82) return "Showers";
   if (code <= 86) return "Snow showers";
   return "Thunderstorms";
+}
+
+/**
+ * Hourly US AQI (and its main pollutants) for about five days, keyed by
+ * unix seconds so it can be joined onto forecast hours.
+ */
+export async function fetchAirQuality({ latitude, longitude }, { signal } = {}) {
+  const params = new URLSearchParams({
+    latitude: latitude.toFixed(4),
+    longitude: longitude.toFixed(4),
+    hourly: "us_aqi,pm2_5,ozone",
+    current: "us_aqi,pm2_5,ozone",
+    timezone: "auto",
+    timeformat: "unixtime",
+    forecast_days: "5",
+  });
+  const response = await fetch(`${AIR_URL}?${params}`, { signal });
+  if (!response.ok) throw new Error("Air quality isn't available right now.");
+  return parseAirQuality(await response.json());
+}
+
+export function parseAirQuality(body) {
+  const h = body.hourly ?? {};
+  const byTime = new Map();
+  (h.time ?? []).forEach((seconds, i) => {
+    const aqi = h.us_aqi?.[i];
+    if (Number.isFinite(aqi)) byTime.set(seconds * 1000, { aqi, pm25: h.pm2_5?.[i] ?? null, ozone: h.ozone?.[i] ?? null });
+  });
+  const c = body.current;
+  return {
+    byTime,
+    current: c && Number.isFinite(c.us_aqi) ? { aqi: c.us_aqi, pm25: c.pm2_5 ?? null, ozone: c.ozone ?? null } : null,
+  };
+}
+
+// Adds air quality to forecast hours that have it.
+export function withAirQuality(hours, air) {
+  if (!air) return hours;
+  return hours.map(hour => {
+    const reading = air.byTime.get(hour.time.getTime());
+    return reading ? { ...hour, aqi: reading.aqi, pm25: reading.pm25 } : hour;
+  });
+}
+
+// US EPA AQI categories.
+export function aqiCategory(aqi) {
+  if (!Number.isFinite(aqi)) return null;
+  if (aqi <= 50) return { label: "Good", tone: "good" };
+  if (aqi <= 100) return { label: "Moderate", tone: "moderate" };
+  if (aqi <= 150) return { label: "Unhealthy for sensitive groups", short: "Sensitive", tone: "usg" };
+  if (aqi <= 200) return { label: "Unhealthy", tone: "unhealthy" };
+  if (aqi <= 300) return { label: "Very unhealthy", tone: "very" };
+  return { label: "Hazardous", tone: "hazardous" };
 }

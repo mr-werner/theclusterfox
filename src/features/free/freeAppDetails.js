@@ -314,6 +314,15 @@ export const freeAppDetails = {
   OpenLearn: {},
   FutureLearn: { limits: ["freeTier"], note: "Free access to most courses is time-limited; upgrades add certificates." },
   "BBC Learning English": {},
+  "france.tv": { limits: ["region"], note: "Most shows are only available in France." },
+  "TF1+": { limits: ["ads", "region", "tracking"], note: "Mostly available in France and other French-speaking countries." },
+  "M6+": { limits: ["ads", "region", "tracking"], note: "Mostly available in France." },
+  PeerTube: OS,
+  Deezer: { limits: ["ads", "freeTier", "tracking"], note: "Free plan has ads and limited skips." },
+  "Radio France": { note: "Public radio with no ads, available worldwide." },
+  Gallica: {},
+  Lumni: { limits: ["region"], note: "Some videos are only playable in France." },
+  "TV5MONDE Learn French": {},
 };
 
 // Country where the company behind each commercial service is based.
@@ -475,5 +484,16 @@ export const freeAppCountries = {
   FutureLearn: "United Kingdom",
   "BBC Learning English": "United Kingdom",
   "Raspberry Pi OS": "United Kingdom",
-  OpenStreetMap: "United Kingdom",
+  OpenStreetMap: "United Kingdom",  "france.tv": "France",
+  "TF1+": "France",
+  "M6+": "France",
+  PeerTube: "France",
+  Deezer: "France",
+  "Radio France": "France",
+  Gallica: "France",
+  Lumni: "France",
+  "TV5MONDE Learn French": "France",
+  VLC: "France",
+  Lichess: "France",
+  CryptPad: "France",
 };

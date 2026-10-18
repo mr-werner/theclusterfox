@@ -46,6 +46,7 @@ import {
   siDbeaver,
   siDebian,
   siDeepseek,
+  siDeezer,
   siDeutschewelle,
   siDiagramsdotnet,
   siDiscord,
@@ -133,6 +134,7 @@ import {
   siOpera,
   siOperagx,
   siPandora,
+  siPeertube,
   siPenpot,
   siPerplexity,
   siPhotopea,
@@ -147,6 +149,7 @@ import {
   siPython,
   siQbittorrent,
   siQwant,
+  siRadiofrance,
   siRaspberrypi,
   siReddit,
   siRetroarch,
@@ -365,6 +368,10 @@ const categories = [
       { name: "ITVX", alt: "Netflix", url: "https://www.itv.com/", logo: siItvx, description: "ITV's shows, live channels, and a big free film library." },
       { name: "Channel 4", alt: "Netflix", url: "https://www.channel4.com/", logo: siChannel4, description: "Channel 4 series, box sets, and live TV." },
       { name: "My5", alt: "Netflix", url: "https://www.channel5.com/", mark: "5", color: "#e3007d", description: "Channel 5 shows, true crime, and documentaries." },
+      { name: "france.tv", alt: "Netflix", url: "https://www.france.tv/", mark: "ftv", color: "#2b52f6", description: "France Télévisions series, films, documentaries, and live channels." },
+      { name: "TF1+", alt: "Netflix", url: "https://www.tf1.fr/", mark: "TF1", color: "#1a5cf0", description: "TF1 shows, reality TV, and a free film catalog." },
+      { name: "M6+", alt: "Netflix", url: "https://www.m6plus.fr/", mark: "M6", color: "#e4002b", description: "M6 group shows, series, and live channels." },
+      { name: "PeerTube", alt: "YouTube", url: "https://joinpeertube.org/", logo: siPeertube, description: "Decentralized, ad-free video platform run by independent servers." },
     ],
   },
   {
@@ -427,6 +434,8 @@ const categories = [
       { name: "Pocket Casts", alt: "paid podcast apps", url: "https://pocketcasts.com/", logo: siPocketcasts, description: "Polished podcast app, free on every platform." },
       { name: "ARD Audiothek", alt: "Audible / Spotify", url: "https://www.ardaudiothek.de/", mark: "AA", color: "#003480", description: "Podcasts, radio dramas, audiobooks, and live German public radio." },
       { name: "BBC Sounds", alt: "Spotify / Audible", url: "https://www.bbc.co.uk/sounds", mark: "BBC", color: "#ff4c00", description: "BBC radio stations, podcasts, and DJ mixes." },
+      { name: "Deezer", alt: "Spotify Premium", url: "https://www.deezer.com/", logo: siDeezer, description: "Music streaming with Flow, a personal endless mix." },
+      { name: "Radio France", alt: "Spotify / Audible", url: "https://www.radiofrance.fr/", logo: siRadiofrance, description: "France Inter, FIP, France Culture, and thousands of podcasts." },
     ],
   },
   {
@@ -441,6 +450,7 @@ const categories = [
       { name: "Open Library", alt: "Kindle Unlimited", url: "https://openlibrary.org/", mark: "OL", color: "#3c6e9f", description: "Borrow millions of books online from the Internet Archive." },
       { name: "WEBTOON", alt: "paid comics apps", url: "https://www.webtoons.com/", logo: siWebtoon, description: "Thousands of free comics and webtoons." },
       { name: "Goodreads", alt: "paid book trackers", url: "https://www.goodreads.com/", logo: siGoodreads, description: "Track what you read and find what's next." },
+      { name: "Gallica", alt: "paid archives", url: "https://gallica.bnf.fr/", mark: "Ga", color: "#a3122a", description: "France's national library: millions of books, maps, and manuscripts." },
     ],
   },
   {
@@ -606,6 +616,7 @@ const categories = [
       { name: "BBC Bitesize", alt: "paid tutoring", url: "https://www.bbc.co.uk/bitesize", mark: "B", color: "#7b2ff7", description: "Lessons, videos, and revision for every school age." },
       { name: "OpenLearn", alt: "paid online courses", url: "https://www.open.edu/openlearn/", mark: "OL", color: "#326e9b", description: "Free courses from The Open University, with certificates." },
       { name: "FutureLearn", alt: "Coursera / Udemy", url: "https://www.futurelearn.com/", logo: siFuturelearn, description: "University courses from around the world." },
+      { name: "Lumni", alt: "paid tutoring", url: "https://www.lumni.fr/", mark: "Lu", color: "#5a3df5", description: "Educational videos and games for school, from public broadcasters." },
     ],
   },
   {
@@ -626,6 +637,7 @@ const categories = [
       { name: "Google Translate", alt: "paid translators", url: "https://translate.google.com/", mark: "GT", color: "#4285f4", description: "Translate text, speech, photos, and conversations." },
       { name: "DW Learn German", alt: "Babbel", url: "https://learngerman.dw.com/", logo: siDeutschewelle, description: "Full German courses from beginner to advanced by Deutsche Welle." },
       { name: "BBC Learning English", alt: "paid English courses", url: "https://www.bbc.co.uk/learningenglish", mark: "BBC", color: "#bb1919", description: "Free English lessons, grammar, and news-based practice." },
+      { name: "TV5MONDE Learn French", alt: "Babbel", url: "https://apprendre.tv5monde.com/", mark: "TV5", color: "#00a3e0", description: "French lessons built on real TV clips, from beginner to advanced." },
     ],
   },
 ];

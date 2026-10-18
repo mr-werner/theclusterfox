@@ -15,6 +15,12 @@ export function emptyData() {
     profile: { heightCm: null, weightKg: null, ageYears: null, sex: null },
     tolerance: "normal",
     shaded: false,
+    // Planned sessions: { id, activityId, title, day, startHour, hours, updatedAt }
+    plans: [],
+    deletedPlanIds: [],
+    // Training goals: { id, activityId, perWeek, minutes, timeOfDay, updatedAt }
+    goals: [],
+    deletedGoalIds: [],
     updatedAt: null,
     // Which account this browser last synced with (null = signed out data).
     syncedUserId: null,
@@ -39,6 +45,39 @@ function cleanPlace(place) {
 }
 
 const positive = value => (Number(value) > 0 ? Number(value) : null);
+const MAX_TOMBSTONES = 200;
+
+function cleanPlan(plan) {
+  if (!plan || typeof plan !== "object" || !plan.id || typeof plan.activityId !== "string") return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(plan.day ?? "")) return null;
+  const startHour = Math.round(Number(plan.startHour));
+  if (!(startHour >= 0 && startHour <= 23)) return null;
+  return {
+    id: String(plan.id),
+    activityId: plan.activityId,
+    title: typeof plan.title === "string" ? plan.title.slice(0, 60) : "",
+    day: plan.day,
+    startHour,
+    hours: [1, 2, 3, 4].includes(plan.hours) ? plan.hours : 1,
+    updatedAt: plan.updatedAt ?? null,
+  };
+}
+
+function cleanGoal(goal) {
+  if (!goal || typeof goal !== "object" || !goal.id || typeof goal.activityId !== "string") return null;
+  return {
+    id: String(goal.id),
+    activityId: goal.activityId,
+    perWeek: Math.min(7, Math.max(1, Math.round(Number(goal.perWeek) || 3))),
+    minutes: [30, 45, 60, 90, 120].includes(goal.minutes) ? goal.minutes : 60,
+    timeOfDay: ["any", "morning", "midday", "evening"].includes(goal.timeOfDay) ? goal.timeOfDay : "any",
+    updatedAt: goal.updatedAt ?? null,
+  };
+}
+
+const cleanList = (list, clean) => (Array.isArray(list) ? list.map(clean).filter(Boolean) : []);
+const cleanTombstones = list =>
+  Array.isArray(list) ? list.filter(t => t && t.id).slice(-MAX_TOMBSTONES) : [];
 
 export function normalizeData(value) {
   const base = emptyData();
@@ -61,6 +100,10 @@ export function normalizeData(value) {
     },
     tolerance: ["cold", "warm"].includes(value.tolerance) ? value.tolerance : "normal",
     shaded: value.shaded === true,
+    plans: cleanList(value.plans, cleanPlan),
+    deletedPlanIds: cleanTombstones(value.deletedPlanIds),
+    goals: cleanList(value.goals, cleanGoal),
+    deletedGoalIds: cleanTombstones(value.deletedGoalIds),
     updatedAt: value.updatedAt ?? null,
     syncedUserId: value.syncedUserId ?? null,
   };
@@ -85,15 +128,44 @@ export function saveData(data) {
 
 const time = value => (value ? Date.parse(value) || 0 : 0);
 
-// The newer document wins. When signed-out data meets an account for the
-// first time (combine), saved places are pooled and blank body details are
-// filled from the other copy so nothing typed in is lost.
+// Plans and goals merge item by item (newest edit wins, deletions stick).
+function mergeItems(listA, listB, tombA, tombB) {
+  const deleted = new Map();
+  for (const entry of [...tombA, ...tombB]) {
+    if (time(entry.at) >= time(deleted.get(entry.id)?.at)) deleted.set(entry.id, entry);
+  }
+  const items = new Map();
+  for (const item of [...listA, ...listB]) {
+    const current = items.get(item.id);
+    if (!current || time(item.updatedAt) > time(current.updatedAt)) items.set(item.id, item);
+  }
+  for (const [id, entry] of deleted) {
+    if (items.has(id) && time(items.get(id).updatedAt) <= time(entry.at)) items.delete(id);
+  }
+  return { items: [...items.values()], tombstones: [...deleted.values()].slice(-MAX_TOMBSTONES) };
+}
+
+// Settings follow the newer document. When signed-out data meets an account
+// for the first time (combine), saved places are pooled and blank body
+// details are filled from the other copy so nothing typed in is lost.
 export function mergeData(local, remote, { combine = false } = {}) {
   const a = normalizeData(local);
   const b = normalizeData(remote);
   const newer = time(b.updatedAt) > time(a.updatedAt) ? b : a;
   const older = newer === a ? b : a;
-  if (!combine) return { ...newer, syncedUserId: a.syncedUserId };
+
+  const plans = mergeItems(a.plans, b.plans, a.deletedPlanIds, b.deletedPlanIds);
+  const goals = mergeItems(a.goals, b.goals, a.deletedGoalIds, b.deletedGoalIds);
+  const merged = {
+    ...newer,
+    plans: plans.items.sort((x, y) => x.day.localeCompare(y.day) || x.startHour - y.startHour),
+    deletedPlanIds: plans.tombstones,
+    goals: goals.items,
+    deletedGoalIds: goals.tombstones,
+    updatedAt: [a.updatedAt, b.updatedAt].sort((x, y) => time(y) - time(x))[0] ?? null,
+    syncedUserId: a.syncedUserId,
+  };
+  if (!combine) return merged;
 
   const places = [];
   for (const place of [...newer.savedPlaces, ...older.savedPlaces]) {
@@ -103,11 +175,10 @@ export function mergeData(local, remote, { combine = false } = {}) {
   for (const key of Object.keys(profile)) profile[key] = profile[key] ?? older.profile[key];
 
   return {
-    ...newer,
+    ...merged,
     place: newer.place ?? older.place,
     savedPlaces: places.slice(0, MAX_SAVED_PLACES),
     profile,
-    syncedUserId: a.syncedUserId,
   };
 }
 

@@ -47,3 +47,7 @@ export function describeWindow(window) {
   const end = (last.localHour + 1) % 24;
   return `${formatHour(first.localHour)}–${formatHour(end)}`;
 }
+
+export function longDay(day) {
+  return new Date(`${day}T12:00:00Z`).toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" });
+}

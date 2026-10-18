@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, TreePine } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { CalendarDays, Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, Sun, Target, TreePine } from "lucide-react";
 
 import SiteHeader from "../../components/SiteHeader";
 import LocationPicker from "./components/LocationPicker";
+import Coach from "./components/Coach";
 import OutfitCard from "./components/OutfitCard";
+import Planner from "./components/Planner";
+import TodayBriefing from "./components/TodayBriefing";
 import ProfilePanel from "./components/ProfilePanel";
 import WeatherReport from "./components/WeatherReport";
 import WhenPicker from "./components/WhenPicker";
@@ -12,7 +15,7 @@ import WhyPanel from "./components/WhyPanel";
 import { activities, activitiesById } from "./data/activities";
 import { planOutfit } from "./model/plan";
 import { useClocastData } from "./state/useClocastData";
-import { fetchForecast } from "../../services/weather/openMeteo";
+import { fetchAirQuality, fetchForecast, withAirQuality } from "../../services/weather/openMeteo";
 import { formatTemp } from "./units";
 import { dayName, describeWindow, DURATIONS, PARTS, partAvailable, windowHours } from "./when";
 import "./clocast.css";
@@ -45,12 +48,25 @@ function SyncBadge({ status, isSignedIn }) {
 
 const EMPTY_FORECAST = { hours: [], days: [], current: null };
 
+const TABS = [
+  { id: "today", name: "Today", icon: Sun },
+  { id: "plan", name: "Planner", icon: CalendarDays },
+  { id: "coach", name: "Coach", icon: Target },
+];
+
 export default function ClocastPage() {
-  const { data, syncStatus, isSignedIn, update, setPlace, toggleSavedPlace, setProfile } = useClocastData();
+  const { data, syncStatus, isSignedIn, update, setPlace, toggleSavedPlace, setProfile, savePlan, deletePlan, saveGoal, deleteGoal } =
+    useClocastData();
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : "today";
+  const openTab = id => {
+    setParams(id === "today" ? {} : { tab: id });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const { place, units, profile, tolerance } = data;
   const activity = activitiesById.get(data.activityId) ?? activities[0];
 
-  const [forecast, setForecast] = useState({ key: null, status: "idle", data: EMPTY_FORECAST, error: "" });
+  const [forecast, setForecast] = useState({ key: null, status: "idle", data: EMPTY_FORECAST, air: null, error: "", at: 0 });
   const [choice, setChoice] = useState({ day: 0, part: "now" });
   const [reloads, setReloads] = useState(0);
   const placeKey = place ? `${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}` : null;
@@ -59,19 +75,31 @@ export default function ClocastPage() {
     if (!placeKey) return undefined;
     const controller = new AbortController();
     const [latitude, longitude] = placeKey.split(",").map(Number);
-    fetchForecast({ latitude, longitude }, { signal: controller.signal })
-      .then(result => setForecast({ key: placeKey, status: "ready", data: result, error: "" }))
+    // Air quality is a bonus: the forecast still shows without it.
+    const air = fetchAirQuality({ latitude, longitude }, { signal: controller.signal }).catch(() => null);
+    Promise.all([fetchForecast({ latitude, longitude }, { signal: controller.signal }), air])
+      .then(([result, airQuality]) =>
+        setForecast({ key: placeKey, status: "ready", data: result, air: airQuality, error: "", at: Date.now() })
+      )
       .catch(error => {
         if (error.name !== "AbortError") {
-          setForecast({ key: placeKey, status: "error", data: EMPTY_FORECAST, error: error.message || "Couldn't load the weather." });
+          setForecast({ key: placeKey, status: "error", data: EMPTY_FORECAST, air: null, error: error.message || "Couldn't load the weather.", at: 0 });
         }
       });
     return () => controller.abort();
   }, [placeKey, reloads]);
 
   const loading = Boolean(placeKey) && forecast.key !== placeKey;
-  const weather = forecast.key === placeKey ? forecast.data : EMPTY_FORECAST;
+  const fresh = forecast.key === placeKey;
+  const weather = useMemo(
+    () => (fresh ? { ...forecast.data, hours: withAirQuality(forecast.data.hours, forecast.air) } : EMPTY_FORECAST),
+    [fresh, forecast.data, forecast.air]
+  );
+  const now = forecast.at;
+  const scoreOptions = useMemo(() => ({ profile, tolerance }), [profile, tolerance]);
+  const todayOptions = useMemo(() => ({ profile, tolerance, shaded: data.shaded }), [profile, tolerance, data.shaded]);
   const dayKeys = useMemo(() => weather.days.map(d => d.day), [weather.days]);
+  const weekKeys = useMemo(() => dayKeys.slice(0, 7), [dayKeys]);
   const duration = DURATIONS.includes(data.hours) ? data.hours : 2;
 
   // Fall back to the first part of the day that hasn't passed yet.
@@ -127,7 +155,7 @@ export default function ClocastPage() {
           </div>
           <div>
             <p className="cc-eyebrow">CLOCAST</p>
-            <h1>Dress for the forecast.</h1>
+            <h1>Plan your day around the weather.</h1>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
         </header>
@@ -148,8 +176,22 @@ export default function ClocastPage() {
               </span>
             }
           />
-          {ready && <WhenPicker hours={weather.hours} days={dayKeys} when={when} onChange={changeWhen} />}
+          {ready && tab === "today" && <WhenPicker hours={weather.hours} days={weekKeys} when={when} onChange={changeWhen} />}
         </section>
+
+        {ready && (
+          <nav className="cc-tabs" aria-label="CloCast">
+            {TABS.map(item => {
+              const Icon = item.icon;
+              return (
+                <button key={item.id} type="button" aria-current={tab === item.id ? "page" : undefined} onClick={() => openTab(item.id)}>
+                  <Icon size={17} aria-hidden="true" />
+                  {item.name}
+                </button>
+              );
+            })}
+          </nav>
+        )}
 
         {!place && (
           <section className="cc-panel cc-empty">
@@ -176,7 +218,36 @@ export default function ClocastPage() {
           </section>
         )}
 
-        {ready && (
+        {ready && tab === "plan" && (
+          <Planner
+            forecast={weather}
+            place={place}
+            units={units}
+            options={scoreOptions}
+            plans={data.plans}
+            defaultActivityId={activity.id}
+            now={now}
+            onSave={savePlan}
+            onDelete={deletePlan}
+          />
+        )}
+
+        {ready && tab === "coach" && (
+          <Coach
+            forecast={weather}
+            place={place}
+            options={scoreOptions}
+            goals={data.goals}
+            plans={data.plans}
+            now={now}
+            onSaveGoal={saveGoal}
+            onDeleteGoal={deleteGoal}
+            onSavePlan={savePlan}
+            onOpenPlanner={() => openTab("plan")}
+          />
+        )}
+
+        {ready && tab === "today" && (
           <>
             <WeatherReport
               forecast={weather}
@@ -185,7 +256,20 @@ export default function ClocastPage() {
               dayIndex={choice.day}
               highlight={picked}
               next24={next24}
+              airNow={forecast.air?.current}
               onPickDay={day => setChoice(current => ({ ...current, day }))}
+            />
+
+            <TodayBriefing
+              hours={weather.hours}
+              days={dayKeys}
+              place={place}
+              activity={activity}
+              options={todayOptions}
+              units={units}
+              plans={data.plans}
+              now={now}
+              onOpenPlanner={() => openTab("plan")}
             />
 
             <section className="cc-panel cc-wear" aria-labelledby="cc-wear-title">

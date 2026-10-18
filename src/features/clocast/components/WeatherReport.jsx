@@ -1,6 +1,6 @@
-import { Droplet, Droplets, Sun, Sunrise, Sunset, Wind } from "lucide-react";
+import { Droplet, Droplets, Gauge, Leaf, Sun, Sunrise, Sunset, Thermometer, Wind } from "lucide-react";
 
-import { describeWeather } from "../../../services/weather/openMeteo";
+import { aqiCategory, describeWeather } from "../../../services/weather/openMeteo";
 import { formatHour, formatTemp, formatWind } from "../units";
 import { dayName } from "../when";
 import WeatherIcon from "./WeatherIcon";
@@ -23,8 +23,15 @@ function uvLabel(uv) {
  * A traditional forecast: conditions for the chosen day, hour by hour, and
  * the week ahead. The hours you're planning for are highlighted.
  */
-export default function WeatherReport({ forecast, units, place, dayIndex, highlight, next24, onPickDay }) {
-  const { current, days, hours } = forecast;
+function formatPressure(hpa, units) {
+  return units === "metric" ? `${Math.round(hpa)} hPa` : `${(hpa * 0.02953).toFixed(2)} inHg`;
+}
+
+const WEEK_DAYS = 10;
+
+export default function WeatherReport({ forecast, units, place, dayIndex, highlight, next24, airNow, onPickDay }) {
+  const { current, hours } = forecast;
+  const days = forecast.days.slice(0, Math.max(WEEK_DAYS, dayIndex + 1));
   const day = days[dayIndex] ?? days[0];
   const isToday = dayIndex === 0 && current;
   const highlighted = new Set(highlight.map(hour => hour.time.getTime()));
@@ -33,6 +40,11 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
   const strip = isToday
     ? next24
     : hours.filter(hour => hour.localDay === day.day && hour.localHour >= 5);
+
+  // Air quality now, or the worst hour of another day while it's forecast.
+  const dayAqi = hours.filter(h => h.localDay === day.day && Number.isFinite(h.aqi)).map(h => h.aqi);
+  const aqi = isToday && airNow ? airNow.aqi : dayAqi.length ? Math.max(...dayAqi) : null;
+  const air = aqiCategory(aqi);
 
   const weekLow = Math.min(...days.map(d => d.low));
   const weekHigh = Math.max(...days.map(d => d.high));
@@ -86,6 +98,26 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
             {Math.round(day.uv)} <small>{uvLabel(day.uv)}</small>
           </dd>
         </div>
+        {air && (
+          <div>
+            <dt><Leaf size={15} aria-hidden="true" /> Air quality{isToday ? "" : " (worst)"}</dt>
+            <dd>
+              {Math.round(aqi)} <small className={`cc-aqi is-${air.tone}`}>{air.short ?? air.label}</small>
+            </dd>
+          </div>
+        )}
+        {isToday && Number.isFinite(current.dewPoint) && (
+          <div>
+            <dt><Thermometer size={15} aria-hidden="true" /> Dew point</dt>
+            <dd>{formatTemp(current.dewPoint, units)}</dd>
+          </div>
+        )}
+        {isToday && Number.isFinite(current.pressure) && (
+          <div>
+            <dt><Gauge size={15} aria-hidden="true" /> Pressure</dt>
+            <dd>{formatPressure(current.pressure, units)}</dd>
+          </div>
+        )}
         <div>
           <dt><Sunrise size={15} aria-hidden="true" /> Sunrise</dt>
           <dd>{clockTime(day.sunrise)}</dd>
@@ -116,7 +148,7 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
         ))}
       </div>
 
-      <h3 className="cc-subhead">7-day forecast</h3>
+      <h3 className="cc-subhead">{days.length}-day forecast</h3>
       <ul className="cc-week">
         {days.map((d, index) => (
           <li key={d.day}>

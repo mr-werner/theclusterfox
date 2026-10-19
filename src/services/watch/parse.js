@@ -104,7 +104,25 @@ export function parseDetails(data, type, region) {
     seasons: type === "tv" ? data.number_of_seasons ?? null : null,
     trailer: pickTrailer(data.videos?.results),
     providers: parseWatchProviders(data["watch/providers"]?.results, region),
+    similar: moreLikeThis(data, type),
   };
+}
+
+const MORE_LIKE_THIS = 12;
+
+// TMDB "recommendations" (people who liked this also liked) reads better
+// than "similar" (shared genres and keywords), so similar only fills gaps.
+function moreLikeThis(data, type) {
+  const parse = list => (list ?? []).map(item => parseSearchResult(item, item.media_type ?? type)).filter(Boolean);
+  const seen = new Set([`${type}-${data.id}`]);
+  return [...parse(data.recommendations?.results), ...parse(data.similar?.results)]
+    .filter(item => {
+      const key = `${item.type}-${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, MORE_LIKE_THIS);
 }
 
 // Mix two lists A1 B1 A2 B2 … and drop repeats.

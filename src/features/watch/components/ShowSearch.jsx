@@ -144,6 +144,7 @@ export default function ShowSearch({ data, update, onPickServices }) {
           item={open}
           data={data}
           update={update}
+          onOpen={setOpen}
           onClose={() => setOpen(null)}
         />
       )}

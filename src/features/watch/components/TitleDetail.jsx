@@ -7,7 +7,7 @@ import { isFavorite, toggleFavorite } from "../state/watchStore";
 
 // A movie or show opened from browse or search: poster, synopsis, trailer
 // and where to watch it.
-export default function TitleDetail({ item, data, update, onClose }) {
+export default function TitleDetail({ item, data, update, onOpen, onClose }) {
   const { region, services: myServices } = data;
   const dialogRef = useRef(null);
   const key = `${item.type}-${item.id}-${region}`;
@@ -129,6 +129,39 @@ export default function TitleDetail({ item, data, update, onClose }) {
             />
           )}
         </div>
+
+        {!loading && state.title?.similar?.length > 0 && (
+          <div className="wf-detail-similar">
+            <h3>More like this</h3>
+            <ul className="wf-similar">
+              {state.title.similar.map(other => {
+                const OtherIcon = other.type === "tv" ? Tv : Film;
+                return (
+                  <li key={`${other.type}-${other.id}`}>
+                    <button type="button" className="wf-tile" onClick={() => onOpen(other)}>
+                      {other.poster ? (
+                        <img src={other.poster} alt="" loading="lazy" width="120" height="180" />
+                      ) : (
+                        <span className="wf-tile-blank" aria-hidden="true">
+                          <OtherIcon size={22} />
+                        </span>
+                      )}
+                      <span className="wf-tile-title">{other.title}</span>
+                      <span className="wf-tile-meta">
+                        {[other.year, other.type === "tv" ? "Show" : "Movie"].filter(Boolean).join(" · ")}
+                        {data.showRatings && other.rating && (
+                          <span className="wf-rating">
+                            <Star size={11} aria-hidden="true" /> {other.rating}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </div>
     </dialog>
   );

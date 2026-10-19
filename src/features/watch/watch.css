@@ -1049,3 +1049,34 @@
 .wf-note svg {
   vertical-align: -1px;
 }
+
+/* More like this */
+
+.wf-detail-similar {
+  padding: 0 24px 26px;
+}
+
+.wf-detail-similar h3 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.wf-similar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 640px) {
+  .wf-detail-similar {
+    padding: 0 16px 22px;
+  }
+
+  .wf-similar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+}

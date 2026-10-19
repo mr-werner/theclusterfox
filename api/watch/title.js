@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   try {
     const data = await tmdb(`/${type}/${id}`, {
       language: "en-US",
-      append_to_response: "videos,watch/providers",
+      append_to_response: "videos,watch/providers,recommendations,similar",
     });
 
     res.setHeader("Cache-Control", "s-maxage=21600, stale-while-revalidate=86400");

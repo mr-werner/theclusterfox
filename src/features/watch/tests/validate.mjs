@@ -57,6 +57,13 @@ assert.equal(details.rating, 8.4);
 assert.equal(details.backdrop, 'https://image.tmdb.org/t/p/w780/s.jpg');
 assert.equal(details.providers.stream[0].name, 'Apple TV Plus');
 assert.equal(parseDetails({ id: 1, title: 'x' }, 'movie').trailer, null);
+const withSimilar = parseDetails({
+  id: 1, title: 'Alien',
+  recommendations: { results: [{ id: 2, title: 'Aliens', media_type: 'movie' }, { id: 1, title: 'Alien', media_type: 'movie' }] },
+  similar: { results: [{ id: 2, title: 'Aliens' }, { id: 3, title: 'Prometheus' }] },
+}, 'movie', 'US');
+assert.deepEqual(withSimilar.similar.map(s => s.title), ['Aliens', 'Prometheus'], 'recommendations first, no repeats, not itself');
+assert.deepEqual(parseDetails({ id: 1, title: 'x' }, 'movie').similar, []);
 assert.equal(myOffers(details.providers, [{ id: 350, name: 'Apple TV Plus' }]).length, 1);
 assert.deepEqual(interleave([{ type: 'tv', id: 1 }, { type: 'tv', id: 2 }], [{ type: 'movie', id: 1 }, { type: 'tv', id: 1 }]).map(i => `${i.type}${i.id}`), ['tv1', 'movie1', 'tv2']);
 

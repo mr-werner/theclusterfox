@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Film, Heart, LoaderCircle, Play, Star, Tv, X } from "lucide-react";
 
 import WhereToWatch from "./WhereToWatch";
-import { fetchTitle } from "../../../services/watch/watchApi";
+import { fetchDirectLinks, fetchTitle } from "../../../services/watch/watchApi";
 import { isFavorite, toggleFavorite } from "../state/watchStore";
 
 // A movie or show opened from browse or search: poster, synopsis, trailer
@@ -13,6 +13,7 @@ export default function TitleDetail({ item, data, update, onClose }) {
   const key = `${item.type}-${item.id}-${region}`;
   const [state, setState] = useState({ key: null, title: null, error: "" });
   const [playing, setPlaying] = useState(false);
+  const [direct, setDirect] = useState({ key: null, links: [] });
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -26,6 +27,9 @@ export default function TitleDetail({ item, data, update, onClose }) {
       .catch(error => {
         if (error.name !== "AbortError") setState({ key, title: null, error: error.message });
       });
+    fetchDirectLinks(item.type, item.id, region, { signal: controller.signal }).then(links => {
+      if (!controller.signal.aborted) setDirect({ key, links });
+    });
     return () => controller.abort();
   }, [item.type, item.id, region, key]);
 
@@ -116,7 +120,14 @@ export default function TitleDetail({ item, data, update, onClose }) {
             </p>
           )}
           {!loading && state.error && <p className="wf-alert">{state.error}</p>}
-          {!loading && state.title && <WhereToWatch title={title.title} providers={state.title.providers} myServices={myServices} />}
+          {!loading && state.title && (
+            <WhereToWatch
+              title={title.title}
+              providers={state.title.providers}
+              myServices={myServices}
+              direct={direct.key === key ? direct.links : []}
+            />
+          )}
         </div>
       </div>
     </dialog>

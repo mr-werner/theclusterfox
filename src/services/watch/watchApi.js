@@ -52,3 +52,13 @@ export async function recommendTitles(favorites, options) {
   const data = await getJson(`/api/watch/recommend?items=${items}`, options);
   return data.results ?? [];
 }
+
+// Never throws: direct links are a bonus on top of the regular ones.
+export async function fetchDirectLinks(type, id, region, options) {
+  try {
+    const data = await getJson(`/api/watch/links?type=${type}&id=${id}&region=${region}`, options);
+    return data.links ?? [];
+  } catch {
+    return [];
+  }
+}

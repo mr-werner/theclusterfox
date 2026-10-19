@@ -4,7 +4,7 @@ import ProviderLogo from "./ProviderLogo";
 import { providerLink } from "../../../services/watch/links";
 import { splitByServices } from "../../../services/watch/parse";
 
-function ProviderList({ label, providers, mine, title, fallback }) {
+function ProviderList({ label, providers, mine, title, fallback, direct }) {
   if (!providers.length) return null;
   return (
     <div className="wf-offer">
@@ -12,7 +12,7 @@ function ProviderList({ label, providers, mine, title, fallback }) {
       <ul className="wf-offer-list">
         {providers.map(provider => (
           <li key={provider.id} className={mine ? "is-mine" : undefined}>
-            <a href={providerLink(provider, title, fallback)} target="_blank" rel="noreferrer">
+            <a href={providerLink(provider, title, fallback, direct)} target="_blank" rel="noreferrer">
               <ProviderLogo provider={provider} size={24} />
               {provider.name}
             </a>
@@ -23,7 +23,7 @@ function ProviderList({ label, providers, mine, title, fallback }) {
   );
 }
 
-export default function WhereToWatch({ title, providers, myServices }) {
+export default function WhereToWatch({ title, providers, myServices, direct = [] }) {
   if (providers === null) return <p className="wf-muted">Couldn’t check where this streams.</p>;
   if (!providers) return null;
 
@@ -32,7 +32,7 @@ export default function WhereToWatch({ title, providers, myServices }) {
   const mine = [...stream.mine, ...free.mine];
   const rentBuy = [...providers.rent, ...providers.buy.filter(b => !providers.rent.some(r => r.id === b.id))];
   const nowhere = !providers.stream.length && !providers.free.length && !rentBuy.length;
-  const common = { title, fallback: providers.link };
+  const common = { title, fallback: providers.link, direct };
 
   return (
     <>

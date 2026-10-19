@@ -35,7 +35,9 @@ const PROVIDERS = [
 
 // Unknown providers fall back to the title's TMDB watch page, which links
 // straight to each service.
-export function providerLink(provider, title, fallback) {
+export function providerLink(provider, title, fallback, direct = []) {
+  const exact = directLinkFor(provider, direct);
+  if (exact) return exact;
   const name = normalizeName(provider.name);
   const match = PROVIDERS.filter(([prefix]) => name.startsWith(prefix)).sort((a, b) => b[0].length - a[0].length)[0];
   return match ? match[1](title) : fallback ?? null;
@@ -60,3 +62,58 @@ const NETWORKS = new Map(
 );
 
 export const networkLink = name => NETWORKS.get(networkKey(name)) ?? null;
+
+// ----- Direct links (Watchmode) -----
+
+// Services go by different names in TMDB and Watchmode ("Amazon Prime
+// Video" vs "Prime Video", "HBO Max" vs "Max"), so both are reduced to a
+// shared key before matching.
+const SERVICE_KEYS = [
+  [/^(amazon|primevideo)/, "amazon"],
+  [/^(hbo)?max/, "max"],
+  [/^(appletv|itunes|apple)/, "apple"],
+  [/^disney/, "disney"],
+  [/^paramount/, "paramount"],
+  [/^peacock/, "peacock"],
+  [/^youtubetv/, "youtubetv"],
+  [/^youtube/, "youtube"],
+  [/^(googleplay|google)/, "google"],
+  [/^(vudu|fandango)/, "fandango"],
+  [/^netflix/, "netflix"],
+  [/^hulu/, "hulu"],
+  [/^(plutotv|pluto)/, "pluto"],
+  [/^(tubi)/, "tubi"],
+  [/^(therokuchannel|roku)/, "roku"],
+  [/^(starz)/, "starz"],
+  [/^(amc\+|amcplus)/, "amc+"],
+  [/^(crunchyroll)/, "crunchyroll"],
+];
+
+export function serviceKey(name) {
+  const plain = normalizeName(name);
+  return SERVICE_KEYS.find(([pattern]) => pattern.test(plain))?.[1] ?? plain;
+}
+
+// direct: [{ name, url }] from /api/watch/links.
+export function directLinkFor(provider, direct = []) {
+  if (!direct.length) return null;
+  const key = serviceKey(provider.name);
+  return direct.find(link => serviceKey(link.name) === key)?.url ?? null;
+}
+
+// Watchmode /title/{id}/sources → one link per service, subscription and
+// free listings before rentals.
+export function parseWatchmodeSources(sources, region) {
+  const order = { sub: 0, free: 1, tve: 2, rent: 3, buy: 4 };
+  const seen = new Set();
+  return (Array.isArray(sources) ? sources : [])
+    .filter(s => s && typeof s.web_url === "string" && /^https:\/\//.test(s.web_url) && (!s.region || s.region === region))
+    .sort((a, b) => (order[a.type] ?? 9) - (order[b.type] ?? 9))
+    .filter(s => {
+      const key = serviceKey(s.name);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map(s => ({ name: String(s.name), url: s.web_url }));
+}

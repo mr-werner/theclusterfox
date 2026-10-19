@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Film, LoaderCircle, Play, Star, Tv, X } from "lucide-react";
+import { Film, Heart, LoaderCircle, Play, Star, Tv, X } from "lucide-react";
 
 import WhereToWatch from "./WhereToWatch";
 import { fetchTitle } from "../../../services/watch/watchApi";
+import { isFavorite, toggleFavorite } from "../state/watchStore";
 
 // A movie or show opened from browse or search: poster, synopsis, trailer
 // and where to watch it.
-export default function TitleDetail({ item, region, myServices, onClose }) {
+export default function TitleDetail({ item, data, update, onClose }) {
+  const { region, services: myServices } = data;
   const dialogRef = useRef(null);
   const key = `${item.type}-${item.id}-${region}`;
   const [state, setState] = useState({ key: null, title: null, error: "" });
@@ -86,13 +88,21 @@ export default function TitleDetail({ item, region, myServices, onClose }) {
             <h2>{title.title}</h2>
             <p className="wf-type">
               <TypeIcon size={14} aria-hidden="true" /> {facts.join(" · ")}
-              {title.rating && (
+              {data.showRatings && title.rating && (
                 <span className="wf-rating">
                   <Star size={13} aria-hidden="true" /> {title.rating}
                 </span>
               )}
             </p>
             {title.genres?.length > 0 && <p className="wf-genres">{title.genres.join(", ")}</p>}
+            <button
+              type="button"
+              className="wf-chip wf-chip--small wf-fav-chip"
+              aria-pressed={isFavorite(data, title)}
+              onClick={() => update(current => toggleFavorite(current, title))}
+            >
+              <Heart size={13} aria-hidden="true" /> {isFavorite(data, title) ? "Favorited" : "Favorite"}
+            </button>
             {title.tagline && <p className="wf-tagline">{title.tagline}</p>}
             <p className="wf-overview">{title.overview || "No synopsis yet."}</p>
           </div>

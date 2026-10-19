@@ -34,9 +34,10 @@ export async function fetchGames(league, date, options) {
   return data.games ?? [];
 }
 
-export async function browseTitles(list, region, { providers = [], page = 1, signal } = {}) {
+export async function browseTitles(list, region, { providers = [], page = 1, genre = "", signal } = {}) {
   const params = new URLSearchParams({ list, region, page: String(page) });
   if (providers.length) params.set("providers", providers.join(","));
+  if (genre) params.set("genre", genre);
   const data = await getJson(`/api/watch/browse?${params}`, { signal });
   return data.results ?? [];
 }
@@ -44,4 +45,10 @@ export async function browseTitles(list, region, { providers = [], page = 1, sig
 export async function fetchTitle(type, id, region, options) {
   const data = await getJson(`/api/watch/title?type=${type}&id=${id}&region=${region}`, options);
   return data.title;
+}
+
+export async function recommendTitles(favorites, options) {
+  const items = favorites.map(f => `${f.type}:${f.id}`).join(",");
+  const data = await getJson(`/api/watch/recommend?items=${items}`, options);
+  return data.results ?? [];
 }

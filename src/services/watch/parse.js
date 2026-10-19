@@ -78,6 +78,7 @@ export function parseSearchResult(item, type = item?.media_type) {
     overview: item.overview ?? "",
     poster: item.poster_path ? `${TMDB_IMAGE}/w342${item.poster_path}` : null,
     popularity: item.popularity ?? 0,
+    rating: Number.isFinite(item.vote_average) && item.vote_count > 0 ? Math.round(item.vote_average * 10) / 10 : null,
   };
 }
 
@@ -101,7 +102,6 @@ export function parseDetails(data, type, region) {
     genres: (data.genres ?? []).map(g => g.name).filter(Boolean),
     runtime: Number.isFinite(runtime) && runtime > 0 ? runtime : null,
     seasons: type === "tv" ? data.number_of_seasons ?? null : null,
-    rating: Number.isFinite(data.vote_average) && data.vote_count > 0 ? Math.round(data.vote_average * 10) / 10 : null,
     trailer: pickTrailer(data.videos?.results),
     providers: parseWatchProviders(data["watch/providers"]?.results, region),
   };
@@ -125,11 +125,55 @@ export function interleave(a, b) {
 }
 
 export const BROWSE_LISTS = [
+  { id: "foryou", name: "For you" },
   { id: "trending", name: "Trending" },
   { id: "movies", name: "Popular movies" },
   { id: "shows", name: "Popular shows" },
   { id: "mine", name: "On my services" },
+  { id: "favorites", name: "Favorites" },
 ];
+
+// Categories. TMDB numbers genres differently for movies and shows, and
+// some only exist for one of them (null = not offered for that type).
+export const GENRES = [
+  { id: "action", name: "Action", movie: 28, tv: 10759 },
+  { id: "adventure", name: "Adventure", movie: 12, tv: 10759 },
+  { id: "animation", name: "Animation", movie: 16, tv: 16 },
+  { id: "comedy", name: "Comedy", movie: 35, tv: 35 },
+  { id: "crime", name: "Crime", movie: 80, tv: 80 },
+  { id: "documentary", name: "Documentary", movie: 99, tv: 99 },
+  { id: "drama", name: "Drama", movie: 18, tv: 18 },
+  { id: "family", name: "Family", movie: 10751, tv: 10751 },
+  { id: "fantasy", name: "Fantasy", movie: 14, tv: 10765 },
+  { id: "horror", name: "Horror", movie: 27, tv: null },
+  { id: "mystery", name: "Mystery", movie: 9648, tv: 9648 },
+  { id: "romance", name: "Romance", movie: 10749, tv: null },
+  { id: "scifi", name: "Sci-Fi", movie: 878, tv: 10765 },
+  { id: "thriller", name: "Thriller", movie: 53, tv: null },
+  { id: "war", name: "War", movie: 10752, tv: 10768 },
+  { id: "western", name: "Western", movie: 37, tv: 37 },
+  { id: "kids", name: "Kids", movie: null, tv: 10762 },
+  { id: "reality", name: "Reality", movie: null, tv: 10764 },
+];
+
+export const genresById = new Map(GENRES.map(g => [g.id, g]));
+
+// Recommendations from several favorites, merged. A title suggested by more
+// favorites ranks higher; within that, earlier spots in each list count more.
+export function rankRecommendations(lists, exclude = []) {
+  const skip = new Set(exclude);
+  const scores = new Map();
+  lists.forEach(list =>
+    list.forEach((item, index) => {
+      const key = `${item.type}-${item.id}`;
+      if (skip.has(key)) return;
+      const entry = scores.get(key) ?? { item, score: 0 };
+      entry.score += 1 + (list.length - index) / list.length;
+      scores.set(key, entry);
+    })
+  );
+  return [...scores.values()].sort((a, b) => b.score - a.score || b.item.popularity - a.item.popularity).map(e => e.item);
+}
 
 // "Netflix Standard with Ads" counts as Netflix, so a picked service
 // also matches the other plans and add-on channels named after it.

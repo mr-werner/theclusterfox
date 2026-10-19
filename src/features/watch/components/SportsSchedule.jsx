@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { LoaderCircle, RotateCcw, Trophy } from "lucide-react";
 
+import { networkLink } from "../../../services/watch/links";
 import { fetchGames } from "../../../services/watch/watchApi";
 import { canWatchNetwork, isBroadcastNetwork, LEAGUES, leaguesById, networksForServices } from "../../../services/watch/parse";
 import { pickedNames, toggleIn } from "../state/watchStore";
@@ -48,11 +49,23 @@ function Game({ game, networkKeys }) {
         {game.networks.map(network => {
           const mine = canWatchNetwork(network.name, networkKeys);
           const regional = network.market !== "national";
-          return (
-            <li key={`${network.name}-${network.market}`} className={mine ? "is-mine" : undefined}>
+          const link = networkLink(network.name);
+          const label = (
+            <>
               {network.name}
               {regional && <span className="wf-net-tag">{network.market === "home" ? "home area" : "away area"}</span>}
               {!mine && isBroadcastNetwork(network.name) && <span className="wf-net-tag">free with antenna</span>}
+            </>
+          );
+          return (
+            <li key={`${network.name}-${network.market}`} className={mine ? "is-mine" : undefined}>
+              {link ? (
+                <a href={link} target="_blank" rel="noreferrer">
+                  {label}
+                </a>
+              ) : (
+                label
+              )}
             </li>
           );
         })}

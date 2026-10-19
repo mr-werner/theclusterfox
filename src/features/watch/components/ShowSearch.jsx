@@ -3,9 +3,10 @@ import { ExternalLink, Film, LoaderCircle, Search, Tv } from "lucide-react";
 
 import ProviderLogo from "./ProviderLogo";
 import { searchTitles } from "../../../services/watch/watchApi";
+import { providerLink } from "../../../services/watch/links";
 import { splitByServices } from "../../../services/watch/parse";
 
-function ProviderList({ label, providers, mine }) {
+function ProviderList({ label, providers, mine, title, fallback }) {
   if (!providers.length) return null;
   return (
     <div className="wf-offer">
@@ -13,8 +14,10 @@ function ProviderList({ label, providers, mine }) {
       <ul className="wf-offer-list">
         {providers.map(provider => (
           <li key={provider.id} className={mine ? "is-mine" : undefined}>
-            <ProviderLogo provider={provider} size={24} />
-            {provider.name}
+            <a href={providerLink(provider, title, fallback)} target="_blank" rel="noreferrer">
+              <ProviderLogo provider={provider} size={24} />
+              {provider.name}
+            </a>
           </li>
         ))}
       </ul>
@@ -52,11 +55,11 @@ function TitleCard({ title, myServices }) {
         {nowhere && <p className="wf-muted">Not streaming anywhere in your region right now.</p>}
         {providers && (
           <>
-            <ProviderList label="On your services" providers={stream.mine} mine />
-            <ProviderList label="Free on your services" providers={free.mine} mine />
-            <ProviderList label="Also streaming on" providers={stream.other} />
-            <ProviderList label="Free with ads" providers={free.other} />
-            <ProviderList label="Rent or buy" providers={rentBuy} />
+            <ProviderList label="On your services" providers={stream.mine} mine title={title.title} fallback={providers.link} />
+            <ProviderList label="Free on your services" providers={free.mine} mine title={title.title} fallback={providers.link} />
+            <ProviderList label="Also streaming on" providers={stream.other} title={title.title} fallback={providers.link} />
+            <ProviderList label="Free with ads" providers={free.other} title={title.title} fallback={providers.link} />
+            <ProviderList label="Rent or buy" providers={rentBuy} title={title.title} fallback={providers.link} />
           </>
         )}
         {providers?.link && (

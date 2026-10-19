@@ -24,6 +24,7 @@
   --f4t: #92d46f;
   --clocast: #6cc6f2;
   --watchfox: #c79bff;
+  --planfox: #f5c451;
 
   --max-width: 1180px;
 }
@@ -289,6 +290,17 @@ select {
       145deg,
       #e3ccff,
       #a874f0
+    );
+}
+
+.app-icon--planfox {
+  color: #2b1c02;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe3a1,
+      #e9a93a
     );
 }
 

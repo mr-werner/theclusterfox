@@ -1,4 +1,4 @@
-import { CloudSun, Flame, MonitorPlay } from "lucide-react";
+import { CalendarRange, CloudSun, Flame, MonitorPlay } from "lucide-react";
 
 export const apps = [
   {
@@ -27,5 +27,14 @@ export const apps = [
     path: "/watch",
     icon: MonitorPlay,
     accent: "watchfox",
+  },
+  {
+    id: "planfox",
+    name: "Plan",
+    subtitle: "PlanFox",
+    description: "Calendar • Weather • Life",
+    path: "/plan",
+    icon: CalendarRange,
+    accent: "planfox",
   },
 ];

@@ -341,6 +341,7 @@ export function parseScoreboard(data, leagueId) {
       home: cleanTeam(home),
       away: cleanTeam(away),
       venue: competition.venue?.fullName ?? "",
+      venueCity: competition.venue?.address?.city ?? "",
       networks: eventNetworks(competition),
     };
   });

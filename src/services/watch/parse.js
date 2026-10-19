@@ -138,7 +138,7 @@ export const SERVICE_NETWORKS = [
 // Extra services for sports that TMDB doesn't list as show providers.
 export const LIVE_SERVICES = SERVICE_NETWORKS.filter(s => ["espn", "youtube-tv", "hulu-live", "fubo", "sling", "directv", "antenna"].includes(s.key));
 
-const networkKey = name =>
+export const networkKey = name =>
   normalizeName(name)
     .replace(/^usanet(work)?$/, "usa")
     .replace(/^(nflnet|nflnetwork)$/, "nfl")

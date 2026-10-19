@@ -3,6 +3,7 @@ import {
   canWatchNetwork, isBroadcastNetwork, mergeProviderLists, networksForServices, normalizeName,
   onMyServices, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
 } from '../../../services/watch/parse.js';
+import { networkLink, providerLink } from '../../../services/watch/links.js';
 import { normalizeData, toggleService, pickedNames } from '../state/watchStore.js';
 
 // Provider lists merge by id and keep TMDB's display order.
@@ -92,5 +93,13 @@ assert.deepEqual(data.live, ['YouTube TV']);
 assert.deepEqual(data.leagues, ['nfl']);
 assert.equal(toggleService(data, { id: 8, name: 'Netflix' }).services.length, 0);
 assert.deepEqual(pickedNames(toggleService(data, { id: 15, name: 'Hulu' })), ['Netflix', 'Hulu', 'YouTube TV']);
+
+// Chips link to the service: search pages where possible, else the TMDB listing.
+assert.equal(providerLink({ name: 'Netflix Standard with Ads' }, 'The Bear'), 'https://www.netflix.com/search?q=The%20Bear');
+assert.equal(providerLink({ name: 'YouTube TV' }, 'x'), 'https://tv.youtube.com/');
+assert.equal(providerLink({ name: 'Zee5' }, 'x', 'https://tmdb.example/watch'), 'https://tmdb.example/watch');
+assert.equal(networkLink('ESPN2'), 'https://www.espn.com/watch/');
+assert.equal(networkLink('NFL Net'), 'https://www.nfl.com/plus/');
+assert.equal(networkLink('KSHB'), null);
 
 console.log('WatchFox checks passed');

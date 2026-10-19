@@ -994,14 +994,7 @@
 }
 
 .wf-genres-row {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: thin;
-}
-
-.wf-genres-row li {
-  flex: 0 0 auto;
+  gap: 6px;
 }
 
 .wf-tile-wrap {

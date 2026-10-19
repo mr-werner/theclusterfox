@@ -64,20 +64,72 @@ export function parseWatchProviders(results, region) {
   };
 }
 
-export function parseSearchResult(item) {
-  if (item?.media_type !== "movie" && item?.media_type !== "tv") return null;
-  const title = item.media_type === "tv" ? item.name : item.title;
-  const date = item.media_type === "tv" ? item.first_air_date : item.release_date;
+// Search and trending results carry media_type; discover lists don't, so
+// the caller passes the type.
+export function parseSearchResult(item, type = item?.media_type) {
+  if (type !== "movie" && type !== "tv") return null;
+  const title = type === "tv" ? item.name : item.title;
+  const date = type === "tv" ? item.first_air_date : item.release_date;
   return {
     id: item.id,
-    type: item.media_type,
+    type,
     title: title || "Untitled",
     year: date ? date.slice(0, 4) : "",
     overview: item.overview ?? "",
-    poster: item.poster_path ? `${TMDB_IMAGE}/w185${item.poster_path}` : null,
+    poster: item.poster_path ? `${TMDB_IMAGE}/w342${item.poster_path}` : null,
     popularity: item.popularity ?? 0,
   };
 }
+
+// Prefer an official YouTube trailer, then any trailer, then a teaser.
+function pickTrailer(videos = []) {
+  const youtube = videos.filter(v => v.site === "YouTube" && v.key);
+  const rank = v => (v.type === "Trailer" ? 0 : v.type === "Teaser" ? 2 : 4) + (v.official ? 0 : 1);
+  const best = [...youtube].filter(v => v.type === "Trailer" || v.type === "Teaser").sort((a, b) => rank(a) - rank(b))[0];
+  return best ? { key: best.key, name: best.name ?? "Trailer" } : null;
+}
+
+// /{type}/{id}?append_to_response=videos,watch/providers
+export function parseDetails(data, type, region) {
+  const base = parseSearchResult(data, type);
+  if (!base) return null;
+  const runtime = type === "movie" ? data.runtime : data.episode_run_time?.[0];
+  return {
+    ...base,
+    tagline: data.tagline ?? "",
+    backdrop: data.backdrop_path ? `${TMDB_IMAGE}/w780${data.backdrop_path}` : null,
+    genres: (data.genres ?? []).map(g => g.name).filter(Boolean),
+    runtime: Number.isFinite(runtime) && runtime > 0 ? runtime : null,
+    seasons: type === "tv" ? data.number_of_seasons ?? null : null,
+    rating: Number.isFinite(data.vote_average) && data.vote_count > 0 ? Math.round(data.vote_average * 10) / 10 : null,
+    trailer: pickTrailer(data.videos?.results),
+    providers: parseWatchProviders(data["watch/providers"]?.results, region),
+  };
+}
+
+// Mix two lists A1 B1 A2 B2 … and drop repeats.
+export function interleave(a, b) {
+  const out = [];
+  const seen = new Set();
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    [a[i], b[i]].forEach(item => {
+      if (!item) return;
+      const key = `${item.type}-${item.id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push(item);
+      }
+    });
+  }
+  return out;
+}
+
+export const BROWSE_LISTS = [
+  { id: "trending", name: "Trending" },
+  { id: "movies", name: "Popular movies" },
+  { id: "shows", name: "Popular shows" },
+  { id: "mine", name: "On my services" },
+];
 
 // "Netflix Standard with Ads" counts as Netflix, so a picked service
 // also matches the other plans and add-on channels named after it.
@@ -89,6 +141,12 @@ export function onMyServices(provider, myProviders) {
 export function splitByServices(providers, myProviders) {
   const mine = providers.filter(p => onMyServices(p, myProviders));
   return { mine, other: providers.filter(p => !onMyServices(p, myProviders)) };
+}
+
+// Which of a title's streaming and free providers are on the viewer's services.
+export function myOffers(providers, myServices) {
+  if (!providers) return [];
+  return [...splitByServices(providers.stream, myServices).mine, ...splitByServices(providers.free, myServices).mine];
 }
 
 // ----- Sports -----

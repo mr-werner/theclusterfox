@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   canWatchNetwork, isBroadcastNetwork, mergeProviderLists, networksForServices, normalizeName,
-  onMyServices, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
+  interleave, myOffers, onMyServices, parseDetails, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
 } from '../../../services/watch/parse.js';
 import { networkLink, providerLink } from '../../../services/watch/links.js';
 import { normalizeData, toggleService, pickedNames } from '../state/watchStore.js';
@@ -34,6 +34,31 @@ assert.equal(parseSearchResult({ media_type: 'person', name: 'Someone' }), null)
 const show = parseSearchResult({ media_type: 'tv', id: 1, name: 'The Bear', first_air_date: '2022-06-23', poster_path: '/b.jpg' });
 assert.equal(show.title, 'The Bear');
 assert.equal(show.year, '2022');
+
+// Discover lists have no media_type, so the type comes from the caller.
+assert.equal(parseSearchResult({ id: 5, title: 'Dune', release_date: '2021-09-15' }, 'movie').year, '2021');
+
+// Title details: trailer, facts and where to watch.
+const details = parseDetails({
+  id: 7, name: 'Severance', first_air_date: '2022-02-18', overview: 'Work and life, split.',
+  backdrop_path: '/s.jpg', genres: [{ name: 'Drama' }], number_of_seasons: 2, episode_run_time: [], vote_average: 8.37, vote_count: 900,
+  videos: { results: [
+    { site: 'YouTube', key: 'teaser', type: 'Teaser', official: true },
+    { site: 'Vimeo', key: 'vim', type: 'Trailer', official: true },
+    { site: 'YouTube', key: 'fan', type: 'Trailer', official: false },
+    { site: 'YouTube', key: 'real', type: 'Trailer', official: true },
+  ] },
+  'watch/providers': { results: { US: { flatrate: [{ provider_id: 350, provider_name: 'Apple TV Plus' }] } } },
+}, 'tv', 'US');
+assert.equal(details.trailer.key, 'real');
+assert.equal(details.seasons, 2);
+assert.equal(details.runtime, null);
+assert.equal(details.rating, 8.4);
+assert.equal(details.backdrop, 'https://image.tmdb.org/t/p/w780/s.jpg');
+assert.equal(details.providers.stream[0].name, 'Apple TV Plus');
+assert.equal(parseDetails({ id: 1, title: 'x' }, 'movie').trailer, null);
+assert.equal(myOffers(details.providers, [{ id: 350, name: 'Apple TV Plus' }]).length, 1);
+assert.deepEqual(interleave([{ type: 'tv', id: 1 }, { type: 'tv', id: 2 }], [{ type: 'movie', id: 1 }, { type: 'tv', id: 1 }]).map(i => `${i.type}${i.id}`), ['tv1', 'movie1', 'tv2']);
 
 // A picked service also covers its ad plans and channels.
 const mine = [{ id: 8, name: 'Netflix' }, { id: 531, name: 'Paramount Plus' }];

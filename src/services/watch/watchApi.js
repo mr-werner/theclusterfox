@@ -33,3 +33,15 @@ export async function fetchGames(league, date, options) {
   const data = await getJson(`/api/watch/sports?league=${league}&date=${date}`, options);
   return data.games ?? [];
 }
+
+export async function browseTitles(list, region, { providers = [], page = 1, signal } = {}) {
+  const params = new URLSearchParams({ list, region, page: String(page) });
+  if (providers.length) params.set("providers", providers.join(","));
+  const data = await getJson(`/api/watch/browse?${params}`, { signal });
+  return data.results ?? [];
+}
+
+export async function fetchTitle(type, id, region, options) {
+  const data = await getJson(`/api/watch/title?type=${type}&id=${id}&region=${region}`, options);
+  return data.title;
+}

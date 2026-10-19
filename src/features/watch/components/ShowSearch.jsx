@@ -1,48 +1,27 @@
 import { useState } from "react";
-import { ExternalLink, Film, LoaderCircle, Search, Tv } from "lucide-react";
+import { Film, Info, LoaderCircle, Search, Tv, X } from "lucide-react";
 
-import ProviderLogo from "./ProviderLogo";
+import BrowseGrid from "./BrowseGrid";
+import TitleDetail from "./TitleDetail";
+import WhereToWatch from "./WhereToWatch";
+import { myOffers } from "../../../services/watch/parse";
 import { searchTitles } from "../../../services/watch/watchApi";
-import { providerLink } from "../../../services/watch/links";
-import { splitByServices } from "../../../services/watch/parse";
 
-function ProviderList({ label, providers, mine, title, fallback }) {
-  if (!providers.length) return null;
-  return (
-    <div className="wf-offer">
-      <p className="wf-offer-label">{label}</p>
-      <ul className="wf-offer-list">
-        {providers.map(provider => (
-          <li key={provider.id} className={mine ? "is-mine" : undefined}>
-            <a href={providerLink(provider, title, fallback)} target="_blank" rel="noreferrer">
-              <ProviderLogo provider={provider} size={24} />
-              {provider.name}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function TitleCard({ title, myServices }) {
-  const providers = title.providers;
-  const stream = providers ? splitByServices(providers.stream, myServices) : { mine: [], other: [] };
-  const free = providers ? splitByServices(providers.free, myServices) : { mine: [], other: [] };
-  const mine = [...stream.mine, ...free.mine];
-  const rentBuy = providers ? [...providers.rent, ...providers.buy.filter(b => !providers.rent.some(r => r.id === b.id))] : [];
-  const nowhere = providers && !providers.stream.length && !providers.free.length && !rentBuy.length;
+function TitleCard({ title, myServices, onOpen }) {
+  const mine = myOffers(title.providers, myServices);
   const TypeIcon = title.type === "tv" ? Tv : Film;
 
   return (
     <article className={`wf-title${mine.length ? " is-mine" : ""}`}>
-      {title.poster ? (
-        <img className="wf-poster" src={title.poster} alt="" loading="lazy" width="92" height="138" />
-      ) : (
-        <div className="wf-poster wf-poster--empty" aria-hidden="true">
-          <TypeIcon size={28} />
-        </div>
-      )}
+      <button type="button" className="wf-poster-btn" onClick={onOpen} aria-label={`Details for ${title.title}`}>
+        {title.poster ? (
+          <img className="wf-poster" src={title.poster} alt="" loading="lazy" width="92" height="138" />
+        ) : (
+          <span className="wf-poster wf-poster--empty" aria-hidden="true">
+            <TypeIcon size={28} />
+          </span>
+        )}
+      </button>
       <div className="wf-title-body">
         <h3>
           {title.title} {title.year && <span className="wf-muted">({title.year})</span>}
@@ -50,23 +29,10 @@ function TitleCard({ title, myServices }) {
         <p className="wf-type">
           <TypeIcon size={14} aria-hidden="true" /> {title.type === "tv" ? "TV show" : "Movie"}
         </p>
-        {mine.length > 0 && <p className="wf-verdict">Watch it on {mine.map(p => p.name).join(", ")}</p>}
-        {providers === null && <p className="wf-muted">Couldn’t check where this streams.</p>}
-        {nowhere && <p className="wf-muted">Not streaming anywhere in your region right now.</p>}
-        {providers && (
-          <>
-            <ProviderList label="On your services" providers={stream.mine} mine title={title.title} fallback={providers.link} />
-            <ProviderList label="Free on your services" providers={free.mine} mine title={title.title} fallback={providers.link} />
-            <ProviderList label="Also streaming on" providers={stream.other} title={title.title} fallback={providers.link} />
-            <ProviderList label="Free with ads" providers={free.other} title={title.title} fallback={providers.link} />
-            <ProviderList label="Rent or buy" providers={rentBuy} title={title.title} fallback={providers.link} />
-          </>
-        )}
-        {providers?.link && (
-          <a className="wf-more" href={providers.link} target="_blank" rel="noreferrer">
-            Full listing <ExternalLink size={13} aria-hidden="true" />
-          </a>
-        )}
+        <WhereToWatch title={title.title} providers={title.providers} myServices={myServices} />
+        <button type="button" className="wf-link-btn wf-details-btn" onClick={onOpen}>
+          <Info size={14} aria-hidden="true" /> Synopsis and trailer
+        </button>
       </div>
     </article>
   );
@@ -76,7 +42,9 @@ export default function ShowSearch({ data, onPickServices }) {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState({ status: "idle", items: [], error: "", code: "", query: "" });
   const [onlyMine, setOnlyMine] = useState(false);
+  const [open, setOpen] = useState(null);
   const hasServices = data.services.length > 0;
+  const searching = result.status !== "idle";
 
   async function search(event) {
     event.preventDefault();
@@ -91,9 +59,12 @@ export default function ShowSearch({ data, onPickServices }) {
     }
   }
 
-  const visible = onlyMine
-    ? result.items.filter(item => item.providers && splitByServices([...item.providers.stream, ...item.providers.free], data.services).mine.length)
-    : result.items;
+  function clear() {
+    setQuery("");
+    setResult({ status: "idle", items: [], error: "", code: "", query: "" });
+  }
+
+  const visible = onlyMine ? result.items.filter(item => myOffers(item.providers, data.services).length) : result.items;
 
   return (
     <section className="wf-panel">
@@ -103,7 +74,10 @@ export default function ShowSearch({ data, onPickServices }) {
           <input
             type="search"
             value={query}
-            onChange={event => setQuery(event.target.value)}
+            onChange={event => {
+              setQuery(event.target.value);
+              if (!event.target.value) clear();
+            }}
             placeholder="Search a show or movie"
             aria-label="Search a show or movie"
           />
@@ -115,9 +89,11 @@ export default function ShowSearch({ data, onPickServices }) {
 
       <div className="wf-toolbar">
         {hasServices ? (
-          <button type="button" className="wf-chip" aria-pressed={onlyMine} onClick={() => setOnlyMine(v => !v)}>
-            Only on my services
-          </button>
+          searching && (
+            <button type="button" className="wf-chip" aria-pressed={onlyMine} onClick={() => setOnlyMine(v => !v)}>
+              Only on my services
+            </button>
+          )
         ) : (
           <p className="wf-muted">
             <button type="button" className="wf-link-btn" onClick={onPickServices}>
@@ -126,7 +102,14 @@ export default function ShowSearch({ data, onPickServices }) {
             to see what you can watch right away.
           </p>
         )}
+        {searching && (
+          <button type="button" className="wf-link-btn" onClick={clear}>
+            <X size={14} aria-hidden="true" /> Back to browsing
+          </button>
+        )}
       </div>
+
+      {!searching && <BrowseGrid data={data} onOpen={setOpen} />}
 
       {result.status === "error" && (
         <p className="wf-alert">
@@ -142,12 +125,22 @@ export default function ShowSearch({ data, onPickServices }) {
         </p>
       )}
 
-      {visible.length > 0 && (
+      {searching && visible.length > 0 && (
         <div className="wf-results">
           {visible.map(title => (
-            <TitleCard key={`${title.type}-${title.id}`} title={title} myServices={data.services} />
+            <TitleCard key={`${title.type}-${title.id}`} title={title} myServices={data.services} onOpen={() => setOpen(title)} />
           ))}
         </div>
+      )}
+
+      {open && (
+        <TitleDetail
+          key={`${open.type}-${open.id}`}
+          item={open}
+          region={data.region}
+          myServices={data.services}
+          onClose={() => setOpen(null)}
+        />
       )}
     </section>
   );

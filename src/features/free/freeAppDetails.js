@@ -323,6 +323,15 @@ export const freeAppDetails = {
   Gallica: {},
   Lumni: { limits: ["region"], note: "Some videos are only playable in France." },
   "TV5MONDE Learn French": {},
+  "NHK WORLD-JAPAN": { note: "Public broadcaster with no ads, free worldwide." },
+  TVer: { limits: ["ads", "region", "tracking"], note: "Japan only, and mostly in Japanese." },
+  ABEMA: { limits: ["ads", "freeTier", "region", "tracking"], note: "Mostly Japan only. ABEMA Premium adds more shows and removes ads." },
+  niconico: { limits: ["ads", "freeTier", "tracking"], note: "Premium membership gives better video quality at busy times." },
+  LINE: { limits: ["tracking"] },
+  pixiv: { limits: ["ads", "freeTier", "tracking"], note: "Premium removes ads and adds search by popularity." },
+  radiko: { limits: ["region", "freeTier"], note: "Japan only. Free plan covers stations in your own area." },
+  "MANGA Plus": { limits: ["ads", "freeTier"], note: "Newest and first chapters are free; MAX plan unlocks full back catalogs." },
+  "NHK Easy Japanese": {},
 };
 
 // Country where the company behind each commercial service is based.
@@ -495,5 +504,13 @@ export const freeAppCountries = {
   "TV5MONDE Learn French": "France",
   VLC: "France",
   Lichess: "France",
-  CryptPad: "France",
+  CryptPad: "France",  "NHK WORLD-JAPAN": "Japan",
+  TVer: "Japan",
+  ABEMA: "Japan",
+  niconico: "Japan",
+  LINE: "Japan",
+  pixiv: "Japan",
+  radiko: "Japan",
+  "MANGA Plus": "Japan",
+  "NHK Easy Japanese": "Japan",
 };

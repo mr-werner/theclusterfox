@@ -103,6 +103,7 @@ import {
   siLibreoffice,
   siLibrewolf,
   siLichess,
+  siLine,
   siLineageos,
   siLinux,
   siLinuxmint,
@@ -122,6 +123,7 @@ import {
   siMonzo,
   siNeovim,
   siNextcloud,
+  siNiconico,
   siNodedotjs,
   siNotepadplusplus,
   siNotion,
@@ -140,6 +142,7 @@ import {
   siPhotopea,
   siPihole,
   siPinterest,
+  siPixiv,
   siPlex,
   siPocketcasts,
   siPopos,
@@ -372,6 +375,10 @@ const categories = [
       { name: "TF1+", alt: "Netflix", url: "https://www.tf1.fr/", mark: "TF1", color: "#1a5cf0", description: "TF1 shows, reality TV, and a free film catalog." },
       { name: "M6+", alt: "Netflix", url: "https://www.m6plus.fr/", mark: "M6", color: "#e4002b", description: "M6 group shows, series, and live channels." },
       { name: "PeerTube", alt: "YouTube", url: "https://joinpeertube.org/", logo: siPeertube, description: "Decentralized, ad-free video platform run by independent servers." },
+      { name: "NHK WORLD-JAPAN", alt: "paid news channels", url: "https://www3.nhk.or.jp/nhkworld/", mark: "NHK", color: "#0068b7", description: "Japan's public broadcaster in English: news, culture, and food shows." },
+      { name: "TVer", alt: "Netflix", url: "https://tver.jp/", mark: "TVer", color: "#00a0e9", description: "Catch-up dramas, anime, and variety shows from Japan's major networks." },
+      { name: "ABEMA", alt: "Netflix", url: "https://abema.tv/", mark: "AB", color: "#3c3c3c", description: "Free live TV channels for anime, news, sports, and reality shows." },
+      { name: "niconico", alt: "YouTube", url: "https://www.nicovideo.jp/", logo: siNiconico, description: "Japanese video site famous for comments that scroll across the video." },
     ],
   },
   {
@@ -396,6 +403,8 @@ const categories = [
       { name: "WhatsApp", alt: "SMS plans", url: "https://www.whatsapp.com/", logo: siWhatsapp, description: "Encrypted messaging and calls worldwide." },
       { name: "Telegram", alt: "SMS plans", url: "https://telegram.org/", logo: siTelegram, description: "Cloud messaging with huge groups and channels." },
       { name: "LinkedIn", alt: "paid job boards", url: "https://www.linkedin.com/", mark: "in", color: "#0a66c2", description: "Professional networking and job search." },
+      { name: "LINE", alt: "SMS plans", url: "https://line.me/", logo: siLine, description: "Japan's main messaging app, with stickers, calls, and news." },
+      { name: "pixiv", alt: "paid art communities", url: "https://www.pixiv.net/", logo: siPixiv, description: "Huge community for illustrations, manga, and novels." },
     ],
   },
   {
@@ -436,6 +445,7 @@ const categories = [
       { name: "BBC Sounds", alt: "Spotify / Audible", url: "https://www.bbc.co.uk/sounds", mark: "BBC", color: "#ff4c00", description: "BBC radio stations, podcasts, and DJ mixes." },
       { name: "Deezer", alt: "Spotify Premium", url: "https://www.deezer.com/", logo: siDeezer, description: "Music streaming with Flow, a personal endless mix." },
       { name: "Radio France", alt: "Spotify / Audible", url: "https://www.radiofrance.fr/", logo: siRadiofrance, description: "France Inter, FIP, France Culture, and thousands of podcasts." },
+      { name: "radiko", alt: "SiriusXM", url: "https://radiko.jp/", mark: "ra", color: "#00a7e9", description: "Live and catch-up Japanese radio stations." },
     ],
   },
   {
@@ -451,6 +461,7 @@ const categories = [
       { name: "WEBTOON", alt: "paid comics apps", url: "https://www.webtoons.com/", logo: siWebtoon, description: "Thousands of free comics and webtoons." },
       { name: "Goodreads", alt: "paid book trackers", url: "https://www.goodreads.com/", logo: siGoodreads, description: "Track what you read and find what's next." },
       { name: "Gallica", alt: "paid archives", url: "https://gallica.bnf.fr/", mark: "Ga", color: "#a3122a", description: "France's national library: millions of books, maps, and manuscripts." },
+      { name: "MANGA Plus", alt: "manga subscriptions", url: "https://mangaplus.shueisha.co.jp/", mark: "M+", color: "#e60012", description: "Official Shueisha manga, including One Piece, with new chapters free." },
     ],
   },
   {
@@ -638,6 +649,7 @@ const categories = [
       { name: "DW Learn German", alt: "Babbel", url: "https://learngerman.dw.com/", logo: siDeutschewelle, description: "Full German courses from beginner to advanced by Deutsche Welle." },
       { name: "BBC Learning English", alt: "paid English courses", url: "https://www.bbc.co.uk/learningenglish", mark: "BBC", color: "#bb1919", description: "Free English lessons, grammar, and news-based practice." },
       { name: "TV5MONDE Learn French", alt: "Babbel", url: "https://apprendre.tv5monde.com/", mark: "TV5", color: "#00a3e0", description: "French lessons built on real TV clips, from beginner to advanced." },
+      { name: "NHK Easy Japanese", alt: "Babbel", url: "https://www3.nhk.or.jp/nhkworld/en/learnjapanese/", mark: "NHK", color: "#0068b7", description: "Free Japanese lessons with audio, from NHK WORLD-JAPAN." },
     ],
   },
 ];

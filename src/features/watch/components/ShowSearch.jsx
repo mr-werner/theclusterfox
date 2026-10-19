@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Film, Info, LoaderCircle, Search, Tv, X } from "lucide-react";
+import { Film, Info, LoaderCircle, Search, Star, Tv, X } from "lucide-react";
 
 import BrowseGrid from "./BrowseGrid";
 import TitleDetail from "./TitleDetail";
@@ -7,7 +7,7 @@ import WhereToWatch from "./WhereToWatch";
 import { myOffers } from "../../../services/watch/parse";
 import { searchTitles } from "../../../services/watch/watchApi";
 
-function TitleCard({ title, myServices, onOpen }) {
+function TitleCard({ title, myServices, showRatings, onOpen }) {
   const mine = myOffers(title.providers, myServices);
   const TypeIcon = title.type === "tv" ? Tv : Film;
 
@@ -28,6 +28,11 @@ function TitleCard({ title, myServices, onOpen }) {
         </h3>
         <p className="wf-type">
           <TypeIcon size={14} aria-hidden="true" /> {title.type === "tv" ? "TV show" : "Movie"}
+          {showRatings && title.rating && (
+            <span className="wf-rating">
+              <Star size={13} aria-hidden="true" /> {title.rating}
+            </span>
+          )}
         </p>
         <WhereToWatch title={title.title} providers={title.providers} myServices={myServices} />
         <button type="button" className="wf-link-btn wf-details-btn" onClick={onOpen}>
@@ -38,7 +43,7 @@ function TitleCard({ title, myServices, onOpen }) {
   );
 }
 
-export default function ShowSearch({ data, onPickServices }) {
+export default function ShowSearch({ data, update, onPickServices }) {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState({ status: "idle", items: [], error: "", code: "", query: "" });
   const [onlyMine, setOnlyMine] = useState(false);
@@ -109,7 +114,7 @@ export default function ShowSearch({ data, onPickServices }) {
         )}
       </div>
 
-      {!searching && <BrowseGrid data={data} onOpen={setOpen} />}
+      {!searching && <BrowseGrid data={data} update={update} onOpen={setOpen} />}
 
       {result.status === "error" && (
         <p className="wf-alert">
@@ -128,7 +133,7 @@ export default function ShowSearch({ data, onPickServices }) {
       {searching && visible.length > 0 && (
         <div className="wf-results">
           {visible.map(title => (
-            <TitleCard key={`${title.type}-${title.id}`} title={title} myServices={data.services} onOpen={() => setOpen(title)} />
+            <TitleCard key={`${title.type}-${title.id}`} title={title} myServices={data.services} showRatings={data.showRatings} onOpen={() => setOpen(title)} />
           ))}
         </div>
       )}
@@ -137,8 +142,8 @@ export default function ShowSearch({ data, onPickServices }) {
         <TitleDetail
           key={`${open.type}-${open.id}`}
           item={open}
-          region={data.region}
-          myServices={data.services}
+          data={data}
+          update={update}
           onClose={() => setOpen(null)}
         />
       )}

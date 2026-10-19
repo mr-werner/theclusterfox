@@ -54,7 +54,7 @@ export default function WatchPage() {
           })}
         </nav>
 
-        {tab === "shows" && <ShowSearch data={data} onPickServices={() => openTab("services")} />}
+        {tab === "shows" && <ShowSearch data={data} update={update} onPickServices={() => openTab("services")} />}
         {tab === "sports" && <SportsSchedule data={data} update={update} />}
         {tab === "services" && <ServicePicker data={data} update={update} />}
 

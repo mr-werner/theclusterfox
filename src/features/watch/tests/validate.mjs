@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import {
   canWatchNetwork, isBroadcastNetwork, mergeProviderLists, networksForServices, normalizeName,
-  interleave, myOffers, onMyServices, parseDetails, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
+  genresById, interleave, myOffers, rankRecommendations, onMyServices, parseDetails, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
 } from '../../../services/watch/parse.js';
 import { networkLink, providerLink } from '../../../services/watch/links.js';
-import { normalizeData, toggleService, pickedNames } from '../state/watchStore.js';
+import { isFavorite, normalizeData, toggleFavorite, toggleService, pickedNames } from '../state/watchStore.js';
 
 // Provider lists merge by id and keep TMDB's display order.
 const merged = mergeProviderLists(
@@ -126,5 +126,26 @@ assert.equal(providerLink({ name: 'Zee5' }, 'x', 'https://tmdb.example/watch'), 
 assert.equal(networkLink('ESPN2'), 'https://www.espn.com/watch/');
 assert.equal(networkLink('NFL Net'), 'https://www.nfl.com/plus/');
 assert.equal(networkLink('KSHB'), null);
+
+// Recommendations: suggested by more favorites ranks first; favorites themselves are skipped.
+const rec = (id, popularity = 1) => ({ type: 'movie', id, popularity });
+const ranked = rankRecommendations([[rec(10), rec(11), rec(12)], [rec(12), rec(13), rec(1)]], ['movie-1']);
+assert.equal(ranked[0].id, 12, 'shared pick ranks first');
+assert(!ranked.some(r => r.id === 1), 'favorite excluded');
+assert.equal(ranked.length, 4);
+assert.equal(parseSearchResult({ id: 3, title: 'x', vote_average: 7.26, vote_count: 10 }, 'movie').rating, 7.3);
+assert.equal(parseSearchResult({ id: 3, title: 'x', vote_average: 0, vote_count: 0 }, 'movie').rating, null);
+assert.equal(genresById.get('horror').tv, null);
+
+// Favorites and the ratings switch persist cleanly.
+let saved = normalizeData({});
+assert.equal(saved.showRatings, true);
+assert.equal(normalizeData({ showRatings: false }).showRatings, false);
+saved = toggleFavorite(saved, { id: 603, type: 'movie', title: 'The Matrix', year: '1999', poster: null });
+saved = toggleFavorite(saved, { id: 1396, type: 'tv', title: 'Breaking Bad', year: '2008' });
+assert.deepEqual(saved.favorites.map(f => f.id), [1396, 603], 'newest first');
+assert(isFavorite(saved, { id: 603, type: 'movie' }) && !isFavorite(saved, { id: 603, type: 'tv' }));
+assert.equal(toggleFavorite(saved, { id: 603, type: 'movie' }).favorites.length, 1);
+assert.equal(normalizeData({ favorites: [{ id: 'x' }, { id: 5, type: 'movie', title: 'Ok' }] }).favorites.length, 1);
 
 console.log('WatchFox checks passed');

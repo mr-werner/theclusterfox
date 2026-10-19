@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "./features/home/HomePage";
 import F4TPage from "./features/f4t/F4TPage";
 import ClocastPage from "./features/clocast/ClocastPage";
+import WatchPage from "./features/watch/WatchPage";
 import LoginPage from "./features/auth/LoginPage";
 import SignUpPage from "./features/auth/SignUpPage";
 import ForgotPasswordPage from "./features/auth/ForgotPasswordPage";
@@ -18,6 +19,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/f4t" element={<F4TPage />} />
             <Route path="/clocast" element={<ClocastPage />} />
+            <Route path="/watch" element={<WatchPage />} />
             <Route
                 path="/free"
                 element={

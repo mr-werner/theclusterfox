@@ -1,4 +1,4 @@
-import { CloudSun, Flame } from "lucide-react";
+import { CloudSun, Flame, MonitorPlay } from "lucide-react";
 
 export const apps = [
   {
@@ -18,5 +18,14 @@ export const apps = [
     path: "/clocast",
     icon: CloudSun,
     accent: "clocast",
+  },
+  {
+    id: "watchfox",
+    name: "Watch",
+    subtitle: "WatchFox",
+    description: "Shows • Sports • Streaming",
+    path: "/watch",
+    icon: MonitorPlay,
+    accent: "watchfox",
   },
 ];

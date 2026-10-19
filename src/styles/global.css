@@ -23,6 +23,7 @@
 
   --f4t: #92d46f;
   --clocast: #6cc6f2;
+  --watchfox: #c79bff;
 
   --max-width: 1180px;
 }
@@ -277,6 +278,17 @@ select {
       145deg,
       #b4e6ff,
       #4fb0e3
+    );
+}
+
+.app-icon--watchfox {
+  color: #1d0b33;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e3ccff,
+      #a874f0
     );
 }
 

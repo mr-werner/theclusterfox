@@ -3,7 +3,7 @@ import {
   canWatchNetwork, isBroadcastNetwork, mergeProviderLists, networksForServices, normalizeName,
   genresById, interleave, myOffers, rankRecommendations, onMyServices, parseDetails, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
 } from '../../../services/watch/parse.js';
-import { networkLink, providerLink } from '../../../services/watch/links.js';
+import { directLinkFor, networkLink, parseWatchmodeSources, providerLink, serviceKey } from '../../../services/watch/links.js';
 import { isFavorite, normalizeData, toggleFavorite, toggleService, pickedNames } from '../state/watchStore.js';
 
 // Provider lists merge by id and keep TMDB's display order.
@@ -147,5 +147,23 @@ assert.deepEqual(saved.favorites.map(f => f.id), [1396, 603], 'newest first');
 assert(isFavorite(saved, { id: 603, type: 'movie' }) && !isFavorite(saved, { id: 603, type: 'tv' }));
 assert.equal(toggleFavorite(saved, { id: 603, type: 'movie' }).favorites.length, 1);
 assert.equal(normalizeData({ favorites: [{ id: 'x' }, { id: 5, type: 'movie', title: 'Ok' }] }).favorites.length, 1);
+
+// Direct links from Watchmode match TMDB names and win over search links.
+const direct = parseWatchmodeSources([
+  { name: 'Prime Video', type: 'buy', region: 'US', web_url: 'https://www.amazon.com/buy' },
+  { name: 'Prime Video', type: 'sub', region: 'US', web_url: 'https://www.amazon.com/gp/video/detail/B0' },
+  { name: 'Max', type: 'sub', region: 'US', web_url: 'https://play.max.com/movie/abc' },
+  { name: 'Netflix', type: 'sub', region: 'CA', web_url: 'https://www.netflix.com/title/ca' },
+  { name: 'Netflix', type: 'sub', region: 'US', web_url: 'https://www.netflix.com/title/80057281' },
+  { name: 'Sketchy', type: 'sub', region: 'US', web_url: 'javascript:alert(1)' },
+], 'US');
+assert.deepEqual(direct.map(d => d.url), ['https://www.amazon.com/gp/video/detail/B0', 'https://play.max.com/movie/abc', 'https://www.netflix.com/title/80057281']);
+assert.equal(serviceKey('Amazon Prime Video'), serviceKey('Prime Video'));
+assert.equal(serviceKey('HBO Max'), serviceKey('Max'));
+assert.notEqual(serviceKey('YouTube TV'), serviceKey('YouTube'));
+assert.equal(directLinkFor({ name: 'HBO Max' }, direct), 'https://play.max.com/movie/abc');
+assert.equal(providerLink({ name: 'Netflix Standard with Ads' }, 'Stranger Things', null, direct), 'https://www.netflix.com/title/80057281');
+assert.equal(providerLink({ name: 'Hulu' }, 'x', null, direct), 'https://www.hulu.com/search?q=x', 'no direct link keeps the search link');
+assert.deepEqual(parseWatchmodeSources({ error: 'quota' }, 'US'), []);
 
 console.log('WatchFox checks passed');

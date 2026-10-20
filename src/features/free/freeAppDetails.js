@@ -332,6 +332,14 @@ export const freeAppDetails = {
   radiko: { limits: ["region", "freeTier"], note: "Japan only. Free plan covers stations in your own area." },
   "MANGA Plus": { limits: ["ads", "freeTier"], note: "Newest and first chapters are free; MAX plan unlocks full back catalogs." },
   "NHK Easy Japanese": {},
+  "CBC Gem": { limits: ["ads", "freeTier", "region", "tracking"], note: "Canada only. Premium removes ads and adds live news." },
+  "ICI TOU.TV": { limits: ["freeTier", "region"], note: "Canada only. EXTRA subscription adds more shows." },
+  NFB: { limits: ["region"], note: "Free and public. A few films are only playable in Canada." },
+  "CBC Listen": { note: "Public radio and podcasts, available worldwide." },
+  OHdio: { note: "Public French radio and podcasts, available worldwide." },
+  Wattpad: { limits: ["ads", "freeTier", "tracking"], note: "Premium removes ads; some stories cost coins." },
+  Wealthsimple: { limits: ["freeTier", "region"], note: "Canada only. Paid plans add perks like USD accounts." },
+  Mauril: { limits: ["region"], note: "Free app from CBC/Radio-Canada, built for people in Canada." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -512,5 +520,12 @@ export const freeAppCountries = {
   pixiv: "Japan",
   radiko: "Japan",
   "MANGA Plus": "Japan",
-  "NHK Easy Japanese": "Japan",
+  "NHK Easy Japanese": "Japan",  "CBC Gem": "Canada",
+  "ICI TOU.TV": "Canada",
+  NFB: "Canada",
+  "CBC Listen": "Canada",
+  OHdio: "Canada",
+  Wattpad: "Canada",
+  Wealthsimple: "Canada",
+  Mauril: "Canada",
 };

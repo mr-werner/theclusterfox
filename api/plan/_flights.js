@@ -8,15 +8,19 @@ const PLACES = "https://autocomplete.travelpayouts.com/places2";
 const isCode = value => /^[A-Z]{3}$/.test(value);
 const isMonth = value => /^\d{4}-\d{2}$/.test(value);
 
-/** Cheapest fare per departure day: [{ day, price, airline, transfers, link }]. */
+/**
+ * Cheapest fare per departure day, airline and nonstop-or-not, so a trip
+ * can still be filtered by airline: [{ day, price, airline, transfers, link }].
+ */
 export function parseFares(body) {
   const best = new Map();
   for (const f of Array.isArray(body?.data) ? body.data : []) {
     const day = typeof f.departure_at === "string" ? f.departure_at.slice(0, 10) : null;
     if (!day || !Number.isFinite(f.price)) continue;
-    const current = best.get(day);
+    const key = `${day}|${f.airline ?? ""}|${f.transfers === 0 ? 0 : 1}`;
+    const current = best.get(key);
     if (current && current.price <= f.price) continue;
-    best.set(day, {
+    best.set(key, {
       day,
       price: f.price,
       airline: f.airline ?? "",
@@ -25,7 +29,7 @@ export function parseFares(body) {
       link: typeof f.link === "string" && f.link.startsWith("/") ? `https://www.aviasales.com${f.link}` : null,
     });
   }
-  return [...best.values()].sort((a, b) => a.day.localeCompare(b.day));
+  return [...best.values()].sort((a, b) => a.day.localeCompare(b.day) || a.price - b.price);
 }
 
 export function parsePlaces(list) {

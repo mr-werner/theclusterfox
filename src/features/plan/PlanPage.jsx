@@ -9,6 +9,8 @@ import DayPanel, { Tip } from "./components/DayPanel";
 import ItemEditor from "./components/ItemEditor";
 import LayerPanel from "./components/LayerPanel";
 import CalendarLinker from "./components/CalendarLinker";
+import TripPlanner from "./components/TripPlanner";
+import DetailModal from "./components/DetailModal";
 import TrainingPlanner from "./components/TrainingPlanner";
 import { LayerBar, SetupCard } from "./components/LayerBar";
 import PlaceSearch from "./components/PlaceSearch";
@@ -18,7 +20,7 @@ import { headsUp } from "./model/insights";
 import { planSessions, TIMES } from "./model/training";
 import { togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
-import { useLayerData } from "./state/useLayerData";
+import { fareCurrency, useLayerData } from "./state/useLayerData";
 import "./plan.css";
 
 const VIEWS = [
@@ -72,6 +74,14 @@ export default function PlanPage() {
   const [showLayers, setShowLayers] = useState(false);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showLinker, setShowLinker] = useState(false);
+  const [detail, setDetail] = useState(null);
+  // Trip planner: { day, code } it opened with, or null when closed.
+  const [tripStart, setTripStart] = useState(null);
+  const saveTrip = trip =>
+    update(current => ({
+      flights: { ...current.flights, to: [...current.flights.to.filter(t => t.code !== trip.code), trip].slice(-3) },
+      layers: { ...current.layers, flights: true },
+    }));
   // Cheap flight days need airports first, so turning it on opens settings.
   const toggleWithSetup = id => {
     toggleLayer(id);
@@ -129,10 +139,10 @@ export default function PlanPage() {
         releases: layerData.releases,
         feedEvents: layerData.feedEvents,
         nearbyEvents: layerData.nearbyEvents,
-        fares: layerData.fares,
+        trips: layerData.trips,
         teams: data.teams,
       }),
-    [data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents, layerData.nearbyEvents, layerData.fares]
+    [data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents, layerData.nearbyEvents, layerData.trips]
   );
   const forecastByDay = useMemo(() => new Map((forecast?.days ?? []).map(d => [d.day, d])), [forecast]);
 
@@ -157,10 +167,10 @@ export default function PlanPage() {
         planSessions: allSessions,
         planWindow,
         nearbyEvents: data.layers.nearby ? layerData.nearbyEvents : [],
-        fares: data.layers.flights ? layerData.fares : [],
+        trips: data.layers.flights ? layerData.trips : [],
         money,
       }),
-    [layerData.nearbyEvents, layerData.fares, now, alerts, allSessions, planWindow, today, forecast, data.place, data.layers, data.units, data.trainingActivityId, upcoming, games, holidays, awayForecasts]
+    [layerData.nearbyEvents, layerData.trips, now, alerts, allSessions, planWindow, today, forecast, data.place, data.layers, data.units, data.trainingActivityId, upcoming, games, holidays, awayForecasts]
   );
   const tipsByDay = useMemo(() => {
     const map = new Map();
@@ -299,10 +309,35 @@ export default function PlanPage() {
               setShowLayers(false);
               setShowPlanner(true);
             }}
+            onPlanTrip={() => {
+              setShowLayers(false);
+              setTripStart({ day: selected });
+            }}
             onOpenLinker={() => {
               setShowLayers(false);
               setShowLinker(true);
             }}
+          />
+        )}
+
+        {tripStart && (
+          <TripPlanner
+            key={`${tripStart.day}|${tripStart.code ?? ""}`}
+            home={data.flights.from}
+            trips={data.flights.to}
+            start={tripStart}
+            today={today}
+            currency={fareCurrency(data.units, data.country)}
+            onSetHome={from => update(current => ({ flights: { ...current.flights, from, to: current.flights.to.filter(t => t.code !== from?.code) } }))}
+            onSave={trip => {
+              saveTrip(trip);
+              setTripStart(null);
+            }}
+            onRemove={code => {
+              update(current => ({ flights: { ...current.flights, to: current.flights.to.filter(t => t.code !== code) } }));
+              setTripStart(null);
+            }}
+            onClose={() => setTripStart(null)}
           />
         )}
 
@@ -367,6 +402,8 @@ export default function PlanPage() {
               key={selected}
               day={selected}
               onLinkCalendar={() => setShowLinker(true)}
+              onPlanTrip={code => setTripStart({ day: selected, code })}
+              onOpenDetail={setDetail}
               today={today}
               now={now}
               entries={entriesByDay.get(selected) ?? []}
@@ -412,6 +449,15 @@ export default function PlanPage() {
           </p>
         </footer>
       </div>
+
+      {detail && (
+        <DetailModal
+          entry={detail}
+          country={data.country}
+          onAdd={item => saveItem({ ...item, id: crypto.randomUUID(), repeat: "none", done: [], updatedAt: new Date().toISOString() })}
+          onClose={() => setDetail(null)}
+        />
+      )}
 
       {editing && (
         <ItemEditor

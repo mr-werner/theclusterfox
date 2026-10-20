@@ -986,6 +986,8 @@ button.pf-entry-main:hover .pf-entry-title {
   flex-wrap: wrap;
   gap: 6px;
   margin: 8px 0;
+  padding: 0;
+  list-style: none;
 }
 
 .pf-chip {
@@ -1655,4 +1657,247 @@ button.pf-entry-main:hover .pf-entry-title {
 .pf-tip-text a {
   color: var(--pf-accent);
   font-weight: 600;
+}
+
+/* Trip planner */
+.pf-trip-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  margin: 16px 0;
+}
+
+.pf-trip .pf-form {
+  padding: 0;
+}
+
+.pf-trip-results {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--pf-line);
+  border-radius: 14px;
+  background: var(--pf-surface-2);
+}
+
+.pf-chip-inline {
+  justify-self: start;
+}
+
+.pf-nights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pf-muted);
+}
+
+.pf-trips {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-trips li {
+  padding: 10px 12px;
+  border: 1px solid var(--pf-line);
+  border-radius: 12px;
+  background: var(--pf-surface);
+}
+
+.pf-trips li.is-top {
+  border-color: color-mix(in srgb, var(--l-flights) 60%, transparent);
+}
+
+.pf-trip-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0 0 4px;
+}
+
+.pf-trip-rank {
+  color: var(--l-flights);
+  font-weight: 700;
+}
+
+.pf-trip-total {
+  margin-left: auto;
+  font-size: 1.05rem;
+}
+
+.pf-leg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+}
+
+.pf-leg > span {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.pf-leg a {
+  color: var(--pf-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.pf-leg-arrow.is-out { color: var(--l-flights); }
+.pf-leg-arrow.is-back { color: var(--pf-accent); }
+
+.pf-fare-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+}
+
+.pf-fare-days li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: var(--pf-surface);
+}
+
+.pf-fare-days svg {
+  vertical-align: -2px;
+}
+
+.pf-fare-days .is-low {
+  color: var(--pf-good);
+  font-weight: 700;
+}
+
+.pf-fare-day {
+  color: var(--pf-muted);
+}
+
+.pf-day-trip {
+  margin-top: 14px;
+}
+
+.pf-entry-more {
+  color: var(--pf-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Detail pop-up */
+.pf-detail {
+  width: min(calc(100% - 24px), 640px);
+}
+
+.pf-detail h2 {
+  margin: 2px 0 0;
+}
+
+.pf-detail-hero,
+.pf-trailer {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: #000;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.pf-trailer button {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.pf-trailer img,
+.pf-trailer iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.pf-play {
+  position: absolute;
+  inset: auto auto 12px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--pf-accent-ink);
+  background: var(--pf-accent);
+  font-weight: 700;
+}
+
+.pf-detail-facts {
+  margin: 0;
+  color: var(--pf-muted);
+  font-size: 0.85rem;
+}
+
+.pf-detail-tagline {
+  margin: 0;
+  font-style: italic;
+}
+
+.pf-detail-text {
+  margin: 0;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.pf-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pf-detail-links a {
+  text-decoration: none;
+}
+
+.pf .pf-detail-links a.pf-btn-primary {
+  color: var(--pf-accent-ink);
+}
+
+.pf-matchup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--pf-surface-2);
+}
+
+.pf-team {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.pf-team-score {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .pf-trip-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

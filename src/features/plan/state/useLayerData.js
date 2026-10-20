@@ -4,14 +4,15 @@ import { fetchFares, fetchFeed, fetchGameReleases, fetchMovies, fetchNearby, fet
 import { expandIcs } from "../../../services/plan/ics";
 import { fetchAlerts, inUnitedStates } from "../../../services/plan/alerts";
 import { fetchAirQuality, fetchForecast, withAirQuality } from "../../../services/weather/openMeteo";
-import { addDays, dayKey, dayRange, todayKey } from "../model/dates";
+import { addDays, dayKey, todayKey } from "../model/dates";
+import { departWindow, suggestTrips, tripMonths } from "../model/trips";
 import { fetchHolidays } from "../model/holidays";
 
 /**
  * Runs loader(signal) whenever key changes and keeps the latest answer.
  * A null key means "nothing to load". Returns { status, value, error }.
  */
-function useKeyed(key, loader) {
+export function useKeyed(key, loader) {
   const [state, setState] = useState({ key: null, value: null, error: null });
   useEffect(() => {
     if (key === null) return undefined;
@@ -28,6 +29,25 @@ function useKeyed(key, loader) {
   if (state.key !== key) return { status: "loading", value: null, error: null };
   if (state.error) return { status: state.error.code === "no-key" ? "no-key" : "error", value: null, error: state.error.message };
   return { status: "ok", value: state.value, error: null };
+}
+
+export const fareCurrency = (units, country) => (units === "metric" && country !== "US" ? "eur" : "usd");
+
+/** One-way fares both ways for a trip: { out, back }. */
+export async function loadTripFares(home, trip, months, currency, signal) {
+  const leg = (a, b) =>
+    Promise.allSettled(months.map(month => fetchFares(a.code, b.code, month, currency, { signal }))).then(results => {
+      if (results.every(r => r.status === "rejected")) throw results[0].reason;
+      return results.flatMap(r => (r.status === "fulfilled" ? r.value : [])).map(f => ({ ...f, from: a, to: b, currency }));
+    });
+  const [out, back] = await Promise.all([leg(home, trip), leg(trip, home)]);
+  return { out, back };
+}
+
+/** Fares for one trip being planned, outside the calendar layers. */
+export function useTripFares(home, trip, months, currency) {
+  const key = home && trip && months.length ? `${home.code}|${trip.code}|${months.join(",")}|${currency}` : null;
+  return useKeyed(key, signal => loadTripFares(home, trip, months, currency, signal));
 }
 
 const placeKey = place => (place ? `${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}` : null);
@@ -95,25 +115,36 @@ export function useLayerData(data, from, to) {
   const nearby = useKeyed(nearbyKey, signal => fetchNearby(place, from, to, nearbySettings.radius, { signal }));
   const nearbyEvents = useMemo(() => (nearby.value ?? []).filter(e => nearbySettings.kinds.includes(e.kind)), [nearby.value, nearbySettings.kinds]);
 
-  // Fares by month for each destination; months already past are skipped.
-  const months = [...new Set(dayRange(from < today ? today : from, to).map(d => d.slice(0, 7)))];
-  const currency = units === "metric" && country !== "US" ? "eur" : "usd";
-  const flightKey =
-    layers.flights && short && flightSettings.from && flightSettings.to.length && months.length
-      ? `${flightSettings.from.code}|${flightSettings.to.map(t => t.code).join(",")}|${months.join(",")}|${currency}`
-      : null;
+  // Each watched trip: one-way fares there and back for the months its
+  // departure window and return leg cover, then the best date pairs.
+  const currency = fareCurrency(units, country);
+  const plans = layers.flights && short && flightSettings.from
+    ? flightSettings.to.map(trip => {
+        const window = departWindow(trip, { from, to, today });
+        return { trip, window, months: tripMonths(trip, window) };
+      }).filter(p => p.months.length)
+    : [];
+  const flightKey = plans.length ? `${flightSettings.from.code}|${currency}|${plans.map(p => `${p.trip.code}:${p.months.join(",")}`).join("|")}` : null;
   const fares = useKeyed(flightKey, signal =>
-    Promise.allSettled(
-      flightSettings.to.flatMap(dest =>
-        months.map(month => fetchFares(flightSettings.from.code, dest.code, month, currency, { signal }).then(list => list.map(f => ({ ...f, to: dest, from: flightSettings.from, currency }))))
-      )
-    ).then(results => {
+    Promise.allSettled(plans.map(p => loadTripFares(flightSettings.from, p.trip, p.months, currency, signal))).then(results => {
       if (results.every(r => r.status === "rejected")) throw results[0].reason;
-      return results.flatMap(r => (r.status === "fulfilled" ? r.value : []));
+      return results.map(r => (r.status === "fulfilled" ? r.value : { out: [], back: [] }));
     })
   );
-
-  const upcomingFares = useMemo(() => (fares.value ?? []).filter(f => f.day >= today), [fares.value, today]);
+  const tripKey = JSON.stringify(plans.map(p => [p.trip, p.window]));
+  const trips = useMemo(
+    () =>
+      (fares.value ?? []).map((legs, i) => {
+        const { trip, window } = plans[i] ?? {};
+        if (!trip) return null;
+        const out = legs.out.filter(f => f.day >= today);
+        const back = legs.back.filter(f => f.day >= today);
+        return { trip, window, out, back, suggestions: suggestTrips(out, back, trip, window) };
+      }).filter(Boolean),
+    // plans is rebuilt every render; tripKey says when it changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fares.value, tripKey, today]
+  );
 
   const feedKey = layers.feeds && feeds.length ? feeds.map(f => f.url).join("|") : null;
   const feedData = useKeyed(feedKey, signal =>
@@ -159,7 +190,7 @@ export function useLayerData(data, from, to) {
     releases: releases.value ?? [],
     feedEvents,
     nearbyEvents,
-    fares: upcomingFares,
+    trips,
     feedErrors: (feedData.value ?? []).filter(f => f.error).map(f => ({ id: f.feed.id, error: f.error })),
     status: {
       weather: home.status,

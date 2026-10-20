@@ -223,39 +223,58 @@ function SessionEntry({ entry, today, now, hours, place, planWindow, onToggle })
   );
 }
 
-function OtherEntry({ entry }) {
+const hasDetail = entry => Boolean(entry.movie || entry.release || entry.nearby || entry.game);
+const tripCode = entry => entry.suggestion?.trip.code ?? (entry.fare ? (entry.title.startsWith("←") ? entry.fare.from.code : entry.fare.to.code) : null);
+
+function OtherEntry({ entry, onOpen, onPlanTrip }) {
   const g = entry.game;
+  const thumb = entry.movie?.poster ?? entry.release?.image ?? entry.nearby?.image;
+  const code = tripCode(entry);
+  const open = hasDetail(entry) ? () => onOpen(entry) : code ? () => onPlanTrip(code) : null;
+  const title = g ? (
+    <>
+      {g.away.logo && <img src={g.away.logo} alt="" width="16" height="16" loading="lazy" />} {g.away.short} at {g.home.logo && <img src={g.home.logo} alt="" width="16" height="16" loading="lazy" />} {g.home.short}
+    </>
+  ) : (
+    entry.title
+  );
+  const body = (
+    <>
+      <span className="pf-entry-title">
+        {g?.favorite && <Star size={13} className="pf-star" aria-label="Your team" />}
+        {!open && entry.link ? (
+          <a href={entry.link} target="_blank" rel="noreferrer">
+            {title}
+          </a>
+        ) : (
+          title
+        )}
+      </span>
+      <span className="pf-entry-meta">
+        {LAYER_LABEL[entry.layer]}
+        {g && ` · ${g.league.toUpperCase()}`}
+        {entry.time && ` · ${formatTime(entry.time)}`}
+        {g?.state === "post" && g.home.score != null && ` · Final ${g.away.score}–${g.home.score}`}
+        {entry.detail && ` · ${entry.detail}`}
+      </span>
+      {open && <span className="pf-entry-more">{hasDetail(entry) ? (entry.movie || entry.release ? "Trailer, summary and where to get it" : "Details and tickets") : "Plan this trip"}</span>}
+    </>
+  );
   return (
     <li className={`pf-entry pf-l-${entry.layer}${entry.minor ? " is-minor" : ""}`}>
-      {entry.movie?.poster ? <img className="pf-poster" src={entry.movie.poster} alt="" loading="lazy" /> : <span className="pf-dot" aria-hidden="true" />}
-      <div className="pf-entry-main">
-        <span className="pf-entry-title">
-          {g?.favorite && <Star size={13} className="pf-star" aria-label="Your team" />}
-          {g ? (
-            <>
-              {g.away.logo && <img src={g.away.logo} alt="" width="16" height="16" loading="lazy" />} {g.away.short} at {g.home.logo && <img src={g.home.logo} alt="" width="16" height="16" loading="lazy" />} {g.home.short}
-            </>
-          ) : entry.link ? (
-            <a href={entry.link} target="_blank" rel="noreferrer">
-              {entry.title}
-            </a>
-          ) : (
-            entry.title
-          )}
-        </span>
-        <span className="pf-entry-meta">
-          {LAYER_LABEL[entry.layer]}
-          {g && ` · ${g.league.toUpperCase()}`}
-          {entry.time && ` · ${formatTime(entry.time)}`}
-          {g?.state === "post" && g.home.score != null && ` · Final ${g.away.score}–${g.home.score}`}
-          {entry.detail && ` · ${entry.detail}`}
-        </span>
-      </div>
+      {thumb ? <img className="pf-poster" src={thumb} alt="" loading="lazy" /> : <span className="pf-dot" aria-hidden="true" />}
+      {open ? (
+        <button type="button" className="pf-entry-main" onClick={open}>
+          {body}
+        </button>
+      ) : (
+        <div className="pf-entry-main">{body}</div>
+      )}
     </li>
   );
 }
 
-export default function DayPanel({ onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
+export default function DayPanel({ onOpenDetail, onPlanTrip, onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
   const [showAllMinor, setShowAllMinor] = useState(false);
   const hours = forecast?.hours ?? [];
   const weather = forecast?.days.find(d => d.day === day);
@@ -352,10 +371,10 @@ export default function DayPanel({ onLinkCalendar, day, today, now, onToggleSess
           />
         ))}
         {others.map(entry => (
-          <OtherEntry key={entry.id} entry={entry} />
+          <OtherEntry key={entry.id} entry={entry} onOpen={onOpenDetail} onPlanTrip={onPlanTrip} />
         ))}
         {minorShown.map(entry => (
-          <OtherEntry key={entry.id} entry={entry} />
+          <OtherEntry key={entry.id} entry={entry} onOpen={onOpenDetail} onPlanTrip={onPlanTrip} />
         ))}
       </ul>
       {minor.length > MINOR_SHOWN && (
@@ -372,6 +391,10 @@ export default function DayPanel({ onLinkCalendar, day, today, now, onToggleSess
           you already use.
         </p>
       )}
+
+      <button type="button" className="pf-btn pf-day-trip" onClick={() => onPlanTrip(null)}>
+        <Plane size={15} aria-hidden="true" /> Plan a trip leaving {day === today ? "today" : "this day"}
+      </button>
 
       {layers.garden && (
         <p className="pf-note pf-garden-month">

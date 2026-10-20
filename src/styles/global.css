@@ -25,6 +25,7 @@
   --clocast: #6cc6f2;
   --watchfox: #c79bff;
   --planfox: #f5c451;
+  --liftfox: #ff7a6b;
 
   --max-width: 1180px;
 }
@@ -301,6 +302,17 @@ select {
       145deg,
       #ffe3a1,
       #e9a93a
+    );
+}
+
+.app-icon--liftfox {
+  color: #2e0904;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffc2b8,
+      #f0604f
     );
 }
 

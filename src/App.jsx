@@ -6,6 +6,7 @@ import F4TPage from "./features/f4t/F4TPage";
 import ClocastPage from "./features/clocast/ClocastPage";
 import WatchPage from "./features/watch/WatchPage";
 import PlanPage from "./features/plan/PlanPage";
+import LiftPage from "./features/lift/LiftPage";
 import LoginPage from "./features/auth/LoginPage";
 import SignUpPage from "./features/auth/SignUpPage";
 import ForgotPasswordPage from "./features/auth/ForgotPasswordPage";
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/clocast" element={<ClocastPage />} />
             <Route path="/watch" element={<WatchPage />} />
             <Route path="/plan" element={<PlanPage />} />
+            <Route path="/lift" element={<LiftPage />} />
             <Route
                 path="/free"
                 element={

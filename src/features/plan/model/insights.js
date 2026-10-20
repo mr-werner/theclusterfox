@@ -358,21 +358,23 @@ export function nearbyConflicts(instances, events) {
   return tips;
 }
 
-/** The cheapest day found for each destination. */
-export function cheapestFares(fares, { today, money = n => `$${Math.round(n)}` } = {}) {
-  const best = new Map();
-  for (const f of fares) {
-    if (today && f.day < today) continue;
-    if (!best.has(f.to.code) || f.price < best.get(f.to.code).price) best.set(f.to.code, f);
-  }
-  return [...best.values()].map(f => ({
-    day: f.day,
-    kind: "flight",
-    tone: "good",
-    title: `Cheapest day to fly to ${f.to.name.replace(/\s*\([A-Z]{3}\)$/, "")}: ${money(f.price, f.currency)}`,
-    text: `${parseDay(f.day).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })} from ${f.from.code}${f.transfers === 0 ? ", nonstop" : ""}. Based on fares travelers found recently, so check before you book.`,
-    link: f.link,
-  }));
+/** The best dates found for each watched trip. */
+export function bestTrips(trips, { money = n => `$${Math.round(n)}` } = {}) {
+  return trips
+    .filter(t => t.suggestions.length)
+    .map(({ trip, suggestions }) => {
+      const s = suggestions[0];
+      const name = trip.name.replace(/\s*\([A-Z]{3}\)$/, "");
+      const when = d => parseDay(d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      return {
+        day: s.depart,
+        kind: "flight",
+        tone: "good",
+        title: `Best dates for ${name}: ${when(s.depart)} to ${when(s.back)}, ${money(s.total, s.out.currency)}`,
+        text: `${money(s.out.price, s.out.currency)} there and ${money(s.ret.price, s.ret.currency)} back${s.out.transfers === 0 && s.ret.transfers === 0 ? ", both nonstop" : ""}. ${suggestions.length > 1 ? `${suggestions.length - 1} more good date${suggestions.length > 2 ? "s are" : " is"} on the calendar. ` : ""}Based on fares travelers found recently, so check before you book.`,
+        link: s.out.link,
+      };
+    });
 }
 
 /**
@@ -409,7 +411,7 @@ export function itemNotes(instances, holidays, today) {
  * The heads-up list: what's coming in the next two weeks that is worth
  * acting on now. Returns tips sorted by day, each with a day key.
  */
-export function headsUp({ today, forecast, place, instances = [], games = [], holidays = [], layers = {}, formatTemp = defaultFormat, trainingActivityId = "run-easy", options = {}, now = Date.now(), forecastFor = () => null, alerts = [], planSessions = [], planWindow, nearbyEvents = [], fares = [], money }) {
+export function headsUp({ today, forecast, place, instances = [], games = [], holidays = [], layers = {}, formatTemp = defaultFormat, trainingActivityId = "run-easy", options = {}, now = Date.now(), forecastFor = () => null, alerts = [], planSessions = [], planWindow, nearbyEvents = [], trips = [], money }) {
   const end = addDays(today, 14);
   const soon = list => list.filter(t => t.day >= today && t.day <= end);
   const tips = [];
@@ -444,7 +446,7 @@ export function headsUp({ today, forecast, place, instances = [], games = [], ho
 
   tips.push(...eventConflicts(soon(instances), games));
   if (layers.nearby) tips.push(...nearbyConflicts(soon(instances), nearbyEvents));
-  if (layers.flights) tips.push(...cheapestFares(fares, { today, money }));
+  if (layers.flights) tips.push(...bestTrips(trips, { money }));
   tips.push(...itemNotes(instances.filter(i => i.day <= end), holidays, today));
 
   for (const item of soon(instances)) {

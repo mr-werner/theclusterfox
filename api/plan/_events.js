@@ -62,6 +62,12 @@ export function parseEvents(body) {
         status: e.dates?.status?.code ?? "onsale",
         url: e.url ?? null,
         image: image?.url ?? null,
+        info: [e.info, e.pleaseNote].filter(Boolean).join("\n\n").slice(0, 1200),
+        promoter: e.promoter?.name ?? "",
+        seatmap: e.seatmap?.staticUrl ?? null,
+        // A performer's own video channel, when Ticketmaster lists one.
+        youtube: e._embedded?.attractions?.map(a => a.externalLinks?.youtube?.[0]?.url).find(Boolean) ?? null,
+        onsale: e.sales?.public?.startDateTime ?? null,
       };
     })
     // The same show is often listed once per ticket type.

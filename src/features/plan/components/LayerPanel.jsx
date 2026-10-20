@@ -25,7 +25,7 @@ const STATUS_TEXT = {
   setup: "Pick airports below",
 };
 
-export default function LayerPanel({ data, update, toggleLayer, status, errors, feedErrors, onClose, onOpenPlanner, onOpenLinker }) {
+export default function LayerPanel({ data, update, toggleLayer, status, errors, feedErrors, onClose, onOpenPlanner, onOpenLinker, onPlanTrip }) {
   const [teamText, setTeamText] = useState("");
   const [feedName, setFeedName] = useState("");
   const [feedLink, setFeedLink] = useState("");
@@ -201,6 +201,9 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
         <div className="pf-layer-group">
           <h3>Cheap flight days</h3>
           <p className="pf-note">Pick where you fly from and up to three places you'd like to go. The cheapest days each month are marked on the calendar.</p>
+          <button type="button" className="pf-btn" onClick={onPlanTrip}>
+            Plan a trip: best dates, airlines, nonstop
+          </button>
           {data.flights.from ? (
             <ul className="pf-chips" aria-label="Flying from">
               <li>

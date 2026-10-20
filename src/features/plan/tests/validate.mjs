@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import { addDays, dayRange, monthGrid, occurrences, relativeDay, formatTime } from '../model/dates.js';
 import { easter, usHolidays, parseNager } from '../model/holidays.js';
-import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips, nearbyConflicts, cheapestFares, trainingWindows, dayDetails, weatherSwings, dayFlags, uvLabel } from '../model/insights.js';
+import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips, nearbyConflicts, bestTrips, trainingWindows, dayDetails, weatherSwings, dayFlags, uvLabel } from '../model/insights.js';
 import { planSessions, weekFactor, weeklyMinutes } from '../model/training.js';
 import { parseAlerts, inUnitedStates } from '../../../services/plan/alerts.js';
 import { parseSchools } from '../../../../api/plan/_schools.js';
 import { buildEntries, expandItems, markCheapFares } from '../model/entries.js';
 import { geohash, parseEvents } from '../../../../api/plan/_events.js';
 import { parseFares, parsePlaces } from '../../../../api/plan/_flights.js';
+import { parseGame } from '../../../../api/plan/_games.js';
+import { airlinesIn, cheapestByDay, departWindow, suggestTrips, tripDefaults, tripMonths } from '../model/trips.js';
 import { normalizeData, mergeData, PRESETS, LAYERS, togglePreset } from '../state/planStore.js';
 import { parseIcs, expandIcs, parseIcsDate } from '../../../services/plan/ics.js';
 import { feedUrl, isPublicHost } from '../../../../api/plan/_feed.js';
@@ -354,18 +356,53 @@ const fares = parseFares({ data: [
   { departure_at: '2026-11-05T07:00:00-06:00', price: 99, airline: 'B6', transfers: 0 },
   { departure_at: '2026-11-08T07:00:00-06:00', price: 210, airline: 'UA', transfers: 1 },
 ] });
-assert.deepEqual(fares.map(f => [f.day, f.price]), [['2026-11-04', 89], ['2026-11-05', 99], ['2026-11-08', 210]], 'cheapest fare per day');
+assert.deepEqual(fares.map(f => [f.day, f.price, f.airline]), [['2026-11-04', 89, 'UA'], ['2026-11-04', 120, 'AA'], ['2026-11-05', 99, 'B6'], ['2026-11-08', 210, 'UA']], 'cheapest per day and airline');
 assert.equal(fares[0].link, 'https://www.aviasales.com/search/CHI0411NYC1');
-const trip = fares.map(f => ({ ...f, from: { code: 'CHI', name: 'Chicago' }, to: { code: 'NYC', name: 'New York' }, currency: 'usd' }));
-const marked = markCheapFares(trip);
+const CHI = { code: 'CHI', name: 'Chicago' };
+const NYC = { code: 'NYC', name: 'New York' };
+const outLeg = fares.map(f => ({ ...f, from: CHI, to: NYC, currency: 'usd' }));
+const marked = markCheapFares([...cheapestByDay(outLeg, tripDefaults(NYC)).values()]);
 assert.deepEqual(marked.map(f => f.cheap), [true, true, false], 'within 15% of the lowest');
-const flightEntries = buildEntries({ layers: { flights: true }, fares: trip });
-assert.equal(flightEntries.get('2026-11-04')[0].title, 'New York $89');
-assert.equal(flightEntries.get('2026-11-08')[0].minor, true);
-const best = cheapestFares(trip, { today: '2026-10-20' });
-assert.equal(best.length, 1);
-assert.match(best[0].title, /New York: \$89/);
-assert(headsUp({ today: '2026-10-20', forecast: null, place, layers: { flights: true }, fares: trip, now: 0 }).some(t => t.kind === 'flight'), 'cheapest fare shows even beyond two weeks');
+assert.equal(cheapestByDay(outLeg, tripDefaults({ ...NYC, airlines: ['AA'] })).get('2026-11-04').price, 120, 'preferred airline');
+assert.equal(cheapestByDay(outLeg, tripDefaults({ ...NYC, nonstop: true })).has('2026-11-08'), false, 'nonstop only');
+assert.deepEqual(airlinesIn(outLeg), ['UA', 'AA', 'B6']);
+
+// Trips: best leave and return pairs from one-way fares both ways
+const backLeg = [
+  { day: '2026-11-07', price: 70, airline: 'UA', transfers: 0 },
+  { day: '2026-11-08', price: 60, airline: 'B6', transfers: 0 },
+  { day: '2026-11-09', price: 150, airline: 'UA', transfers: 0 },
+  { day: '2026-11-12', price: 40, airline: 'NK', transfers: 0 },
+].map(f => ({ ...f, from: NYC, to: CHI, currency: 'usd' }));
+const nycTrip = tripDefaults({ ...NYC, around: '2026-11-05', flex: 3, minNights: 3, maxNights: 4, top: 3 });
+const window = departWindow(nycTrip, { from: '2026-10-01', to: '2026-10-31', today: '2026-10-20' });
+assert.deepEqual(window, ['2026-11-02', '2026-11-08']);
+assert.deepEqual(tripMonths(nycTrip, window), ['2026-11']);
+const picks = suggestTrips(outLeg, backLeg, nycTrip, window);
+assert.deepEqual(picks.map(p => [p.rank, p.depart, p.back, p.total]), [[1, '2026-11-04', '2026-11-08', 149], [2, '2026-11-05', '2026-11-08', 159], [3, '2026-11-08', '2026-11-12', 250]]);
+assert.equal(picks[0].nights, 4);
+assert.deepEqual(departWindow(tripDefaults({ ...NYC, around: '2026-11-20', flex: 30 }), { today: '2026-10-20' }), ['2026-11-01', '2026-11-30'], 'any time that month');
+assert.deepEqual(departWindow(tripDefaults(NYC), { from: '2026-10-01', to: '2026-10-31', today: '2026-10-20' }), ['2026-10-20', '2026-10-31'], 'no date: the dates on screen');
+const tripEntries = buildEntries({ layers: { flights: true }, trips: [{ trip: nycTrip, out: outLeg, back: backLeg, suggestions: picks }] });
+assert(tripEntries.get('2026-11-04').some(e => e.title === '→ New York $89'), 'outbound arrow');
+assert(tripEntries.get('2026-11-12').some(e => e.title === '← Chicago $40'), 'return arrow');
+assert(tripEntries.get('2026-11-04').some(e => e.title === 'Trip 1: New York $149' && !e.minor), 'best trip on the calendar');
+assert(tripEntries.get('2026-11-08').some(e => e.title === 'Trip 1 home from New York'));
+const tripTips = bestTrips([{ trip: nycTrip, suggestions: picks }]);
+assert.match(tripTips[0].title, /Best dates for New York: Wed, Nov 4 to Sun, Nov 8, \$149/);
+assert(headsUp({ today: '2026-10-20', forecast: null, place, layers: { flights: true }, trips: [{ trip: nycTrip, suggestions: picks }], now: 0 }).some(t => t.kind === 'flight'), 'best trip shows even beyond two weeks');
+const savedTrip = normalizeData({ flights: { from: CHI, to: [{ ...NYC, around: 'nope', minNights: 9, maxNights: 2, airlines: ['UA', 'bad!'], top: 7, nonstop: true }] } }).flights.to[0];
+assert.deepEqual([savedTrip.around, savedTrip.minNights, savedTrip.maxNights, savedTrip.airlines, savedTrip.top, savedTrip.nonstop], [null, 9, 9, ['UA'], 3, true]);
+
+// Game details for the pop-up
+const gameDetail = parseGame(
+  { id: 9, name: 'Space Game', released: '2026-10-30', description_raw: 'Fly around.', genres: [{ name: 'Action' }], parent_platforms: [{ platform: { name: 'PC' } }], stores: [{ store: { id: 1, name: 'Steam', domain: 'store.steampowered.com' } }, { store: { id: 3, name: 'PlayStation Store', domain: 'store.playstation.com' } }], slug: 'space-game', metacritic: 88 },
+  { results: [{ name: 'Launch trailer', preview: 'p.jpg', data: { 480: 'a.mp4', max: 'b.mp4' } }] },
+  { results: [{ store_id: 1, url: 'https://store.steampowered.com/app/1' }] }
+);
+assert.equal(gameDetail.trailer.video, 'b.mp4');
+assert.deepEqual(gameDetail.stores, [{ name: 'Steam', url: 'https://store.steampowered.com/app/1' }, { name: 'PlayStation Store', url: 'https://store.playstation.com' }]);
+assert.equal(gameDetail.metacritic, 88);
 assert.deepEqual(parsePlaces([{ code: 'CHI', name: 'Chicago', type: 'city', country_name: 'United States' }, { code: 'ORD', name: "O'Hare", city_name: 'Chicago', type: 'airport' }, { code: 'X', type: 'city' }]).map(p => p.name), ['Chicago', "O'Hare (ORD)"]);
 const flightData = normalizeData({ flights: { from: { code: 'CHI', name: 'Chicago' }, to: [{ code: 'CHI', name: 'Chicago' }, { code: 'NYC', name: 'New York' }, { code: 'nyc' }, { code: 'DEN', name: 'Denver' }, { code: 'LAX', name: 'LA' }, { code: 'MIA', name: 'Miami' }] }, nearby: { radius: 99, kinds: ['music', 'bogus'] } });
 assert.deepEqual(flightData.flights.to.map(t => t.code), ['NYC', 'DEN', 'LAX'], 'no flying home, at most three');

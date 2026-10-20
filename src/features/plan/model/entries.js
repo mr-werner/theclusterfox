@@ -1,12 +1,13 @@
 // Turns every layer into one list of calendar entries per day.
 
 import { itemLayer } from "../state/planStore.js";
-import { dayRange, occurrences } from "./dates.js";
+import { dayRange, occurrences, shortDate } from "./dates.js";
+import { airlineName, cheapestByDay } from "./trips.js";
 
 export const money = (amount, currency = "USD") =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase(), maximumFractionDigits: 0 }).format(amount);
 
-const cityName = place => place.name.replace(/\s*\([A-Z]{3}\)$/, "");
+export const cityName = place => place.name.replace(/\s*\([A-Z]{3}\)$/, "");
 
 /**
  * Cheap days for each destination: fares within 15% of the cheapest one
@@ -15,7 +16,7 @@ const cityName = place => place.name.replace(/\s*\([A-Z]{3}\)$/, "");
 export function markCheapFares(fares) {
   const byTrip = new Map();
   for (const f of fares) {
-    const key = `${f.to.code}|${f.day.slice(0, 7)}`;
+    const key = `${f.from.code}>${f.to.code}|${f.day.slice(0, 7)}`;
     if (!byTrip.has(key)) byTrip.set(key, []);
     byTrip.get(key).push(f);
   }
@@ -45,7 +46,7 @@ export function expandItems(items, from, to) {
  * Map of day → entries: { id, layer, title, time, detail, ... }, sorted
  * with all-day entries first, then by time.
  */
-export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [], nearbyEvents = [], fares = [] }) {
+export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [], nearbyEvents = [], trips = [] }) {
   const byDay = new Map();
   const add = entry => {
     if (!entry.day) return;
@@ -93,7 +94,7 @@ export function buildEntries({ layers, from, to, alerts = [], sessions = [], ins
     for (const m of movies) add({ id: `m:${m.id}`, day: m.day, layer: "movies", title: m.title, detail: m.release === "digital" ? "Digital release" : "In theaters", movie: m, minor: true });
   }
   if (layers.games) {
-    for (const r of releases) add({ id: `r:${r.id}`, day: r.day, layer: "games", title: r.title, detail: r.platforms.join(", "), link: r.url, minor: true });
+    for (const r of releases) add({ id: `r:${r.id}`, day: r.day, layer: "games", title: r.title, detail: r.platforms.join(", "), link: r.url, release: r, minor: true });
   }
 
   if (layers.nearby) {
@@ -112,17 +113,50 @@ export function buildEntries({ layers, from, to, alerts = [], sessions = [], ins
     }
   }
   if (layers.flights) {
-    for (const f of markCheapFares(fares)) {
-      add({
-        id: `f:${f.to.code}:${f.day}`,
-        day: f.day,
-        layer: "flights",
-        title: `${cityName(f.to)} ${money(f.price, f.currency)}`,
-        detail: [`${f.from.code} to ${f.to.code}`, f.transfers === 0 ? "nonstop" : f.transfers ? `${f.transfers} stop${f.transfers > 1 ? "s" : ""}` : null, f.cheapest ? "cheapest this month" : f.cheap ? "one of the cheapest days" : null].filter(Boolean).join(" · "),
-        link: f.link,
-        fare: f,
-        minor: !f.cheap,
-      });
+    for (const { trip, out, back, suggestions } of trips) {
+      // One-way fares: → there, ← back. Cheap days get a pill.
+      for (const [arrow, list] of [["→", out], ["←", back]]) {
+        for (const f of markCheapFares([...cheapestByDay(list, trip).values()])) {
+          add({
+            id: `f:${f.from.code}>${f.to.code}:${f.day}`,
+            day: f.day,
+            layer: "flights",
+            title: `${arrow} ${cityName(f.to)} ${money(f.price, f.currency)}`,
+            detail: [
+              `${f.from.code} to ${f.to.code}`,
+              airlineName(f.airline),
+              f.transfers === 0 ? "nonstop" : f.transfers ? `${f.transfers} stop${f.transfers > 1 ? "s" : ""}` : null,
+              f.cheapest ? "cheapest this month" : f.cheap ? "one of the cheapest days" : null,
+            ]
+              .filter(Boolean)
+              .join(" · "),
+            link: f.link,
+            fare: f,
+            minor: !f.cheap,
+          });
+        }
+      }
+      // The best trips: a pill on the day you'd leave and the day you'd come back.
+      for (const s of suggestions) {
+        add({
+          id: `t:${trip.code}:${s.rank}`,
+          day: s.depart,
+          layer: "flights",
+          title: `Trip ${s.rank}: ${cityName(trip)} ${money(s.total, s.out.currency)}`,
+          detail: `Round trip, back ${shortDate(s.back)} · ${s.nights} night${s.nights === 1 ? "" : "s"} · ${money(s.out.price, s.out.currency)} there, ${money(s.ret.price, s.ret.currency)} back`,
+          suggestion: { ...s, trip },
+          minor: s.rank > 3,
+        });
+        add({
+          id: `t:${trip.code}:${s.rank}:back`,
+          day: s.back,
+          layer: "flights",
+          title: `Trip ${s.rank} home from ${cityName(trip)}`,
+          detail: `Left ${shortDate(s.depart)} · ${money(s.total, s.out.currency)} round trip`,
+          suggestion: { ...s, trip },
+          minor: true,
+        });
+      }
     }
   }
 

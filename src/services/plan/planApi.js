@@ -38,6 +38,11 @@ export async function fetchGameReleases(from, to, options) {
   return data.games ?? [];
 }
 
+export async function fetchGame(id, options) {
+  const data = await getJson(`/api/plan/games?id=${id}`, options);
+  return data.game;
+}
+
 export async function fetchSchools(zip, options) {
   const data = await getJson(`/api/plan/schools?zip=${encodeURIComponent(zip)}`, options);
   return data.schools ?? [];

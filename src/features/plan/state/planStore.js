@@ -2,6 +2,7 @@
 // this browser for everyone, and mirrored to the account when signed in.
 
 import { isDayKey } from "../model/dates.js";
+import { tripDefaults } from "../model/trips.js";
 
 export const STORAGE_KEY = "clusterfox:plan-v1";
 const MAX_ITEMS = 1500;
@@ -114,7 +115,8 @@ export function emptyData() {
     programDone: [],
     // Events nearby: miles from your place, and which kinds to show.
     nearby: { radius: 25, kinds: NEARBY_KINDS.map(k => k.id) },
-    // Cheap flight days: { code, name } airports or cities.
+    // Cheap flight days: { code, name } airports or cities; each destination
+    // also carries trip preferences (see model/trips.js).
     flights: { from: null, to: [] },
     // The quick setup card shows until a choice is made or it's closed.
     setupDone: false,
@@ -190,7 +192,12 @@ function cleanNearby(n) {
 function cleanFlights(f) {
   if (!f || typeof f !== "object") return { from: null, to: [] };
   const from = cleanAirport(f.from);
-  const to = (Array.isArray(f.to) ? f.to.map(cleanAirport).filter(Boolean) : []).filter((a, i, list) => a.code !== from?.code && list.findIndex(b => b.code === a.code) === i);
+  // Each destination is a watched trip with its own dates and preferences.
+  const cleanTrip = t => {
+    const airport = cleanAirport(t);
+    return airport ? { ...tripDefaults({ ...t, around: isDayKey(t.around) ? t.around : null }), ...airport } : null;
+  };
+  const to = (Array.isArray(f.to) ? f.to.map(cleanTrip).filter(Boolean) : []).filter((a, i, list) => a.code !== from?.code && list.findIndex(b => b.code === a.code) === i);
   return { from, to: to.slice(0, 3) };
 }
 

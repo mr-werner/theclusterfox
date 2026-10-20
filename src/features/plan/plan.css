@@ -27,6 +27,8 @@
   --l-sports: #c79bff;
   --l-movies: #e6a8ff;
   --l-games: #7ee0d0;
+  --l-nearby: #ff8fd0;
+  --l-flights: #5fd4ff;
   --l-wear: #6cc6f2;
   --l-car: #f2c14e;
   --l-garden: #a8d65c;
@@ -49,6 +51,8 @@
 .pf-l-sports { --l: var(--l-sports); }
 .pf-l-movies { --l: var(--l-movies); }
 .pf-l-games { --l: var(--l-games); }
+.pf-l-nearby { --l: var(--l-nearby); }
+.pf-l-flights { --l: var(--l-flights); }
 .pf-l-wear { --l: var(--l-wear); }
 .pf-l-car { --l: var(--l-car); }
 .pf-l-garden { --l: var(--l-garden); }
@@ -1179,4 +1183,476 @@ button.pf-entry-main:hover .pf-entry-title {
   .pf-panel {
     padding: 16px;
   }
+}
+
+/* Layer bar and quick setup */
+
+.pf .pf-layer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-layer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--pf-line-strong);
+  border-radius: 999px;
+  color: var(--pf-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-layer-chip .pf-swatch {
+  margin-top: 0;
+  opacity: 0.35;
+}
+
+.pf-layer-chip[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--l) 55%, transparent);
+  color: var(--text, #f4f1ea);
+  background: color-mix(in srgb, var(--l) 16%, transparent);
+}
+
+.pf-layer-chip[aria-pressed="true"] .pf-swatch {
+  opacity: 1;
+}
+
+.pf-setup h2 {
+  margin-bottom: 4px;
+}
+
+.pf-setup .pf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pf .pf-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-preset {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 14px;
+  border: 1px solid var(--pf-line-strong);
+  border-radius: 14px;
+  color: inherit;
+  background: var(--pf-surface-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-preset:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.pf-preset[aria-pressed="true"] {
+  border-color: var(--pf-accent);
+  background: var(--pf-accent-soft);
+}
+
+.pf-preset .pf-muted {
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.pf-setup-done {
+  margin-top: 14px;
+}
+
+/* Training plans, alerts and schools */
+
+.pf {
+  --l-alerts: #ff5c5c;
+}
+
+.pf-l-alerts { --l: var(--l-alerts); }
+
+.pf-setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.pf-train .pf-link-btn {
+  display: block;
+  margin: 6px 0 0;
+}
+
+.pf-planner-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 24px;
+  margin: 16px 0;
+}
+
+.pf-planner .pf-form {
+  padding: 0;
+}
+
+.pf .pf-goals {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  margin-top: 0;
+}
+
+.pf-planner-preview {
+  padding: 16px;
+  border: 1px solid var(--pf-line);
+  border-radius: 14px;
+  background: var(--pf-surface-2);
+}
+
+.pf-planner-preview .pf-entries {
+  margin-top: 4px;
+}
+
+.pf-planner-check {
+  margin-top: 14px;
+}
+
+.pf-science {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.pf-planner-summary {
+  font-size: 0.85rem;
+}
+
+.pf-steps {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.pf-subhead {
+  margin-top: 16px;
+}
+
+.pf .pf-school-list {
+  display: grid;
+  gap: 2px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.pf-school {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 4px;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  background: none;
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-school:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pf-school svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--l-feeds);
+}
+
+.pf-school-link {
+  padding: 0 4px 10px 27px;
+}
+
+.pf-school-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+@media (max-width: 960px) {
+  .pf-planner-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Day numbers */
+.pf-weather > div,
+.pf-train > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.pf-stat {
+  padding: 8px 10px;
+  border: 1px solid var(--pf-line);
+  border-radius: 10px;
+  background: var(--pf-surface);
+}
+
+.pf-stat dt {
+  color: var(--pf-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pf-stat dd {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pf-stat dd svg {
+  vertical-align: -1px;
+  color: var(--pf-muted);
+}
+
+.pf-stat .pf-stat-note {
+  color: var(--pf-muted);
+  font-size: 0.74rem;
+  font-weight: 400;
+}
+
+.pf-stat.is-caution { border-color: color-mix(in srgb, var(--pf-caution) 45%, transparent); }
+.pf-stat.is-warn { border-color: color-mix(in srgb, var(--pf-warn) 55%, transparent); }
+.pf-stat.is-caution dd:first-of-type { color: var(--pf-caution); }
+.pf-stat.is-warn dd:first-of-type { color: var(--pf-warn); }
+
+/* Training windows */
+.pf-windows {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-windows li {
+  padding: 8px 10px;
+  border: 1px solid var(--pf-line);
+  border-radius: 10px;
+  background: var(--pf-surface);
+}
+
+.pf-windows li.is-top {
+  border-color: color-mix(in srgb, var(--l-training) 55%, transparent);
+}
+
+.pf-windows.is-compact {
+  margin-top: 6px;
+}
+
+.pf-windows.is-compact li {
+  padding: 6px 8px;
+}
+
+.pf-window-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.pf-window-slot {
+  min-width: 58px;
+  color: var(--pf-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pf-window-score { font-size: 0.8rem; font-weight: 600; }
+.pf-window-score.is-good { color: var(--pf-good); }
+.pf-window-score.is-ok { color: var(--pf-caution); }
+.pf-window-score.is-poor { color: var(--pf-warn); }
+
+.pf-window-best {
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: #062312;
+  background: var(--l-training);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.pf-window-wear,
+.pf-window-why {
+  margin: 3px 0 0;
+  color: var(--pf-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.pf-window-wear svg {
+  vertical-align: -1px;
+}
+
+.pf-train .pf-inline-select {
+  margin-top: 6px;
+}
+
+/* Problem days on the month grid */
+.pf-cell.has-flag {
+  box-shadow: inset 0 3px 0 var(--flag);
+}
+
+.pf-cell.is-flag-caution { --flag: var(--pf-caution); }
+.pf-cell.is-flag-warn { --flag: var(--pf-warn); }
+
+.pf-cell-flags {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  color: var(--flag);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.pf-cell-flags svg {
+  flex: none;
+}
+
+.pf-cell-flags span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-cell-rain {
+  color: var(--l-weather);
+  font-size: 0.68rem;
+}
+
+/* Linking calendars */
+.pf-link-chip {
+  border-style: dashed;
+  color: var(--pf-accent);
+}
+
+.pf-link-btn.pf-inline {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+}
+
+.pf-note.is-good {
+  color: var(--pf-good);
+}
+
+.pf-linker-tabs {
+  margin-top: 14px;
+}
+
+.pf-linker-steps {
+  margin: 14px 0 0;
+}
+
+.pf-linker-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pf-linker-form input {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.pf-linker-count {
+  margin-top: 10px;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 720px) {
+  .pf-cell-flags span,
+  .pf-cell-rain {
+    display: none;
+  }
+
+  .pf-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pf-stat.is-wide {
+  grid-column: span 2;
+}
+
+/* Airport search */
+.pf-airport {
+  margin-top: 8px;
+}
+
+.pf-airport-results {
+  display: grid;
+  gap: 2px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-airport-results button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--pf-line);
+  border-radius: 10px;
+  color: inherit;
+  background: var(--pf-surface-2);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-airport-results button:hover {
+  border-color: var(--pf-line-strong);
+}
+
+.pf-tip-text a {
+  color: var(--pf-accent);
+  font-weight: 600;
 }

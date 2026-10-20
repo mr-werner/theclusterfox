@@ -181,11 +181,11 @@ export function wearFor(hours, day, place, { time = null, durationHours = 2, act
  * Best time for an outdoor session on a day. With a planned time, says
  * how it scores and whether another time is clearly better.
  */
-export function trainingAdvice(hours, day, place, { activityId = "run-easy", time = null, minutes = 60, notBefore = 0, options = {} } = {}) {
+export function trainingAdvice(hours, day, place, { activityId = "run-easy", time = null, minutes = 60, notBefore = 0, earliest = 5, latest = 21, options = {} } = {}) {
   const activity = activitiesById.get(activityId);
   if (!activity || !place) return null;
   const duration = Math.max(1, Math.round(minutes / 60));
-  const ranked = rankStarts(hours, place, activity, { day, duration, earliest: 5, latest: 21, notBefore, options });
+  const ranked = rankStarts(hours, place, activity, { day, duration, earliest, latest, notBefore, options });
   const best = ranked[0];
   if (!best) return null;
   let chosen = null;
@@ -196,6 +196,109 @@ export function trainingAdvice(hours, day, place, { activityId = "run-easy", tim
   }
   const better = chosen && best.startHour !== chosen.startHour && best.score - chosen.score >= 10 ? best : null;
   return { activity, best, chosen, better, reasons: (chosen ?? best).factors.filter(f => f.penalty >= 5).map(f => f.text) };
+}
+
+const SLOTS = [
+  { id: "morning", name: "Morning", from: 5, to: 10 },
+  { id: "midday", name: "Midday", from: 11, to: 14 },
+  { id: "evening", name: "Evening", from: 15, to: 21 },
+];
+
+/**
+ * The best start in each part of the day (morning, midday, evening) for an
+ * outdoor session, each with what to wear for that activity at that time.
+ */
+export function trainingWindows(hours, day, place, { activityId = "run-easy", minutes = 60, notBefore = 0, earliest = 5, latest = 21, options = {} } = {}) {
+  const activity = activitiesById.get(activityId);
+  if (!activity || !place) return [];
+  const duration = Math.max(1, Math.round(minutes / 60));
+  const ranked = rankStarts(hours, place, activity, { day, duration, earliest, latest, notBefore, options });
+  return SLOTS.map(slot => {
+    const best = ranked.find(r => r.startHour >= slot.from && r.startHour <= slot.to);
+    if (!best) return null;
+    return {
+      slot: slot.id,
+      name: slot.name,
+      startHour: best.startHour,
+      score: best.score,
+      label: best.label,
+      top: best === ranked[0],
+      reasons: best.factors.filter(f => f.penalty >= 5).map(f => f.text),
+      wear: wearFor(hours, day, place, { time: `${best.startHour}:00`, durationHours: duration, activityId, options }),
+    };
+  }).filter(Boolean);
+}
+
+const UV_LEVELS = [
+  [3, "Low"],
+  [6, "Moderate"],
+  [8, "High"],
+  [11, "Very high"],
+  [Infinity, "Extreme"],
+];
+export const uvLabel = uv => UV_LEVELS.find(([max]) => uv < max)[1];
+
+/** The numbers behind one day: feels-like range, wind, UV, air, rain, humidity. */
+export function dayDetails(hours, day) {
+  const list = hours.filter(h => h.localDay === day);
+  if (!list.length) return null;
+  const awake = list.filter(h => h.localHour >= 7 && h.localHour <= 21);
+  const peak = (rows, key) => rows.reduce((a, b) => ((b[key] ?? 0) > (a[key] ?? 0) ? b : a));
+  const sunny = peak(list, "uv");
+  const strongUv = list.filter(h => h.uv >= 6).map(h => h.localHour);
+  const air = list.filter(h => Number.isFinite(h.aqi));
+  const worstAir = air.length ? peak(air, "aqi") : null;
+  const gusty = peak(awake.length ? awake : list, "gust");
+  return {
+    feelsHigh: Math.max(...list.map(h => h.apparent)),
+    feelsLow: Math.min(...list.map(h => h.apparent)),
+    wind: Math.max(...list.map(h => h.wind ?? 0)),
+    gust: gusty.gust ?? 0,
+    gustHour: gusty.localHour,
+    uv: sunny.uv ?? 0,
+    uvHour: sunny.localHour,
+    uvLabel: uvLabel(sunny.uv ?? 0),
+    strongUv: strongUv.length ? [strongUv[0], strongUv[strongUv.length - 1] + 1] : null,
+    aqi: worstAir ? Math.round(worstAir.aqi) : null,
+    aqiHour: worstAir?.localHour ?? null,
+    rain: list.reduce((sum, h) => sum + (h.precip ?? 0), 0),
+    rainProb: Math.max(...list.map(h => h.precipProb ?? 0)),
+    humidity: awake.length ? Math.round(awake.reduce((sum, h) => sum + (h.rh ?? 0), 0) / awake.length) : null,
+  };
+}
+
+/**
+ * Big day-to-day swings in the high, worth dressing differently for.
+ * Car and garden effects have their own checks.
+ */
+export function weatherSwings(days, { formatTemp = defaultFormat } = {}) {
+  const tips = [];
+  days.forEach((d, i) => {
+    const prev = days[i - 1];
+    if (!prev) return;
+    const change = d.high - prev.high;
+    if (Math.abs(change) < 8) return;
+    const colder = change < 0;
+    tips.push({
+      day: d.day,
+      kind: "swing",
+      tone: Math.abs(change) >= 12 ? "warn" : "caution",
+      title: `${formatTemp(Math.abs(change), { delta: true })} ${colder ? "colder" : "warmer"} than the day before`,
+      text: colder
+        ? `Highs drop from ${formatTemp(prev.high)} to ${formatTemp(d.high)}. Dress a layer warmer than the day before${d.low <= 2 ? " and expect frost overnight" : ""}.`
+        : `Highs jump from ${formatTemp(prev.high)} to ${formatTemp(d.high)}. Dress lighter, and drink more water if you train outside.`,
+    });
+  });
+  return tips;
+}
+
+/** Weather-driven problems worth seeing at a glance on the month grid. */
+const FLAG_KINDS = ["alert", "swing", "car", "garden", "rain", "train"];
+export function dayFlags(tips = []) {
+  const flagged = tips.filter(t => FLAG_KINDS.includes(t.kind) && (t.tone === "warn" || t.tone === "caution"));
+  if (!flagged.length) return null;
+  const kinds = [...new Set(flagged.map(t => t.kind))].sort((a, b) => FLAG_KINDS.indexOf(a) - FLAG_KINDS.indexOf(b));
+  return { tone: flagged.some(t => t.tone === "warn") ? "warn" : "caution", kinds, titles: flagged.map(t => t.title) };
 }
 
 const normalize = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
@@ -232,6 +335,47 @@ export function eventConflicts(instances, games) {
 }
 
 /**
+ * Big concerts and games near your plans: in the city you're headed to,
+ * or within 5 miles of home for plans without a place.
+ */
+export function nearbyConflicts(instances, events) {
+  const tips = [];
+  const big = events.filter(e => e.kind === "sports" || e.kind === "music");
+  for (const item of instances) {
+    if (item.kind !== "event" || item.done) continue;
+    const there = big.filter(e => e.day === item.day && (item.place ? gameInPlace({ venueCity: e.city }, item.place) : e.distance != null && e.distance <= 5));
+    if (!there.length) continue;
+    const first = there[0];
+    const at = first.time ? ` at ${formatTime(first.time)}` : "";
+    tips.push({
+      day: item.day,
+      kind: "traffic",
+      tone: "caution",
+      title: `${first.title} at ${first.venue}${there.length > 1 ? ` and ${there.length - 1} more` : ""}`,
+      text: `Your "${item.title}" is ${item.place ? `in ${item.place.name}` : "nearby"} the same day. The event starts${at || " that day"}. Go together, or plan for crowds, traffic and parking.`,
+    });
+  }
+  return tips;
+}
+
+/** The cheapest day found for each destination. */
+export function cheapestFares(fares, { today, money = n => `$${Math.round(n)}` } = {}) {
+  const best = new Map();
+  for (const f of fares) {
+    if (today && f.day < today) continue;
+    if (!best.has(f.to.code) || f.price < best.get(f.to.code).price) best.set(f.to.code, f);
+  }
+  return [...best.values()].map(f => ({
+    day: f.day,
+    kind: "flight",
+    tone: "good",
+    title: `Cheapest day to fly to ${f.to.name.replace(/\s*\([A-Z]{3}\)$/, "")}: ${money(f.price, f.currency)}`,
+    text: `${parseDay(f.day).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })} from ${f.from.code}${f.transfers === 0 ? ", nonstop" : ""}. Based on fares travelers found recently, so check before you book.`,
+    link: f.link,
+  }));
+}
+
+/**
  * Notes for one day's personal items: bills due on a weekend or holiday,
  * and items left undone.
  */
@@ -265,7 +409,7 @@ export function itemNotes(instances, holidays, today) {
  * The heads-up list: what's coming in the next two weeks that is worth
  * acting on now. Returns tips sorted by day, each with a day key.
  */
-export function headsUp({ today, forecast, place, instances = [], games = [], holidays = [], layers = {}, formatTemp = defaultFormat, trainingActivityId = "run-easy", options = {}, now = Date.now(), forecastFor = () => null }) {
+export function headsUp({ today, forecast, place, instances = [], games = [], holidays = [], layers = {}, formatTemp = defaultFormat, trainingActivityId = "run-easy", options = {}, now = Date.now(), forecastFor = () => null, alerts = [], planSessions = [], planWindow, nearbyEvents = [], fares = [], money }) {
   const end = addDays(today, 14);
   const soon = list => list.filter(t => t.day >= today && t.day <= end);
   const tips = [];
@@ -274,6 +418,7 @@ export function headsUp({ today, forecast, place, instances = [], games = [], ho
 
   if (layers.car !== false) tips.push(...carChecks(days, { formatTemp }));
   if (layers.garden) tips.push(...gardenTips(days, { formatTemp }));
+  if (layers.wear !== false) tips.push(...weatherSwings(days, { formatTemp }));
 
   if (layers.holidays !== false) {
     for (const h of soon(holidays)) {
@@ -282,7 +427,24 @@ export function headsUp({ today, forecast, place, instances = [], games = [], ho
     }
   }
 
+  if (layers.alerts !== false) {
+    for (const a of alerts) {
+      tips.push({
+        day: a.from < today ? today : a.from,
+        kind: "alert",
+        tone: a.tone,
+        title: a.event,
+        text: [a.headline, a.instruction].filter(Boolean).map(t => (/[.!?]$/.test(t) ? t : `${t}.`)).join(" ").slice(0, 320),
+      });
+    }
+  }
+  if (layers.training !== false && planSessions.length) {
+    tips.push(...planWeatherTips(planSessions.filter(s => !s.done && s.day >= today && s.day <= end), hours, place, { window: planWindow, notBefore: now, today }));
+  }
+
   tips.push(...eventConflicts(soon(instances), games));
+  if (layers.nearby) tips.push(...nearbyConflicts(soon(instances), nearbyEvents));
+  if (layers.flights) tips.push(...cheapestFares(fares, { today, money }));
   tips.push(...itemNotes(instances.filter(i => i.day <= end), holidays, today));
 
   for (const item of soon(instances)) {
@@ -331,6 +493,42 @@ export function headsUp({ today, forecast, place, instances = [], games = [], ho
   }
 
   return tips
-    .filter(t => (t.day >= today && t.day <= end) || t.kind === "overdue")
+    .filter(t => (t.day >= today && t.day <= end) || t.kind === "overdue" || (t.kind === "flight" && t.day >= today))
     .sort((a, b) => a.day.localeCompare(b.day));
+}
+
+/**
+ * Weather moves for a training plan: when an outdoor session lands on a
+ * poor day and the day before or after is free and clearly better, say so.
+ * window: { earliest, latest } local hours the person likes to train.
+ */
+export function planWeatherTips(sessions, hours, place, { window = { earliest: 6, latest: 21 }, notBefore = 0, today } = {}) {
+  if (!hours.length || !place) return [];
+  const busy = new Set(sessions.map(s => s.day));
+  const days = new Set(hours.map(h => h.localDay));
+  const best = (day, s) =>
+    trainingAdvice(hours, day, place, { activityId: s.activityId, minutes: s.minutes, notBefore: day === today ? notBefore : 0, ...window })?.best ?? null;
+  const tips = [];
+  for (const s of sessions) {
+    if (!s.outdoor || !days.has(s.day) || (today && s.day < today)) continue;
+    const here = best(s.day, s);
+    if (!here || here.score >= 45) continue;
+    const options = [addDays(s.day, -1), addDays(s.day, 1)]
+      .filter(d => days.has(d) && !busy.has(d) && (!today || d >= today))
+      .map(d => ({ day: d, best: best(d, s) }))
+      .filter(o => o.best && o.best.score - here.score >= 25)
+      .sort((a, b) => b.best.score - a.best.score);
+    const move = options[0];
+    const weekday = d => parseDay(d).toLocaleDateString("en-US", { weekday: "long" });
+    tips.push({
+      day: s.day,
+      kind: "train",
+      tone: "caution",
+      title: move ? `Move ${s.title.split(":")[0].toLowerCase()} to ${weekday(move.day)}` : `Rough weather for ${s.title.split(":")[0].toLowerCase()}`,
+      text: move
+        ? `${weekday(s.day)} scores ${here.score}/100 at best (${here.factors.slice(0, 2).map(f => f.text).join(", ") || "poor conditions"}). ${weekday(move.day)} at ${formatHour(move.best.startHour)} scores ${move.best.score}.`
+        : `Best window is ${formatHour(here.startHour)} (${here.score}/100). Consider doing it indoors.`,
+    });
+  }
+  return tips;
 }

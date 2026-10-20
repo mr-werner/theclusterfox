@@ -16,6 +16,7 @@ const MAX_TEAMS = 30;
 export const LAYERS = [
   { id: "weather", name: "Weather", group: "Outside", source: "Open-Meteo, 14 days ahead" },
   { id: "wear", name: "What to wear", group: "Outside", source: "CloCast clothing model" },
+  { id: "alerts", name: "Severe weather alerts", group: "Outside", source: "National Weather Service (US only)" },
   { id: "car", name: "Car checks", group: "Outside", source: "From the forecast" },
   { id: "garden", name: "Gardening", group: "Outside", source: "From the forecast, plus monthly jobs" },
   { id: "events", name: "My events", group: "Mine" },
@@ -28,7 +29,45 @@ export const LAYERS = [
   { id: "sports", name: "Sports", group: "World", source: "ESPN schedules" },
   { id: "movies", name: "Movie releases", group: "World", source: "TMDB" },
   { id: "games", name: "Game releases", group: "World", source: "RAWG", needsKey: "RAWG_API_KEY" },
+  { id: "nearby", name: "Events nearby", group: "World", source: "Concerts, games and shows from Ticketmaster", needsKey: "TICKETMASTER_API_KEY" },
+  { id: "flights", name: "Cheap flight days", group: "World", source: "Recent fares from Travelpayouts", needsKey: "TRAVELPAYOUTS_TOKEN" },
 ];
+
+// Kinds of nearby events people can filter to.
+export const NEARBY_KINDS = [
+  { id: "music", name: "Concerts" },
+  { id: "sports", name: "Sports" },
+  { id: "arts", name: "Theater & comedy" },
+  { id: "family", name: "Family" },
+  { id: "other", name: "Other" },
+];
+export const RADII = [10, 25, 50];
+
+// Short labels for the layer bar.
+const SHORT = { nearby: "Nearby", flights: "Flights", alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
+for (const layer of LAYERS) if (SHORT[layer.id]) layer.short = SHORT[layer.id];
+
+// Quick setups: each switches on the layers that fit a way of planning.
+export const PRESETS = [
+  { id: "everyday", name: "Everyday life", hint: "Weather, what to wear, car checks, bills, closures", layers: ["weather", "alerts", "wear", "car", "events", "tasks", "bills", "holidays"] },
+  { id: "training", name: "Training", hint: "Best times to train outside, what to wear for it", layers: ["weather", "wear", "training", "events"] },
+  { id: "family", name: "School & family", hint: "Deadlines, school calendars, holidays, tasks", layers: ["events", "tasks", "deadlines", "feeds", "holidays", "weather", "wear"] },
+  { id: "fan", name: "Sports fan", hint: "Your teams' games and traffic near stadiums", layers: ["sports", "events", "weather"] },
+  { id: "fun", name: "Entertainment", hint: "Concerts and shows nearby, movie and game releases", layers: ["nearby", "movies", "games", "events"] },
+  { id: "travel", name: "Travel", hint: "Cheapest days to fly, weather, holidays", layers: ["flights", "weather", "holidays", "events"] },
+  { id: "home", name: "Home & garden", hint: "Frost and watering, car care, bills, chores", layers: ["weather", "alerts", "garden", "car", "bills", "tasks"] },
+];
+
+/**
+ * Picking a quick setup switches its layers on; picking it again switches
+ * off the ones no other chosen setup needs.
+ */
+export function togglePreset(layers, preset) {
+  const isOn = p => p.layers.every(id => layers[id]);
+  if (!isOn(preset)) return { ...layers, ...Object.fromEntries(preset.layers.map(id => [id, true])) };
+  const keep = new Set(PRESETS.filter(p => p.id !== preset.id && isOn(p)).flatMap(p => p.layers));
+  return { ...layers, ...Object.fromEntries(preset.layers.filter(id => !keep.has(id)).map(id => [id, false])) };
+}
 
 export const ITEM_KINDS = [
   { id: "event", name: "Event", layer: "events" },
@@ -48,7 +87,9 @@ export const REPEATS = [
   { id: "yearly", name: "Every year" },
 ];
 
-const DEFAULT_LAYERS = Object.fromEntries(LAYERS.map(l => [l.id, !["garden", "games"].includes(l.id)]));
+// New calendars start small; quick setup and the layer bar add the rest.
+const STARTING_LAYERS = ["weather", "alerts", "wear", "events", "tasks", "holidays"];
+const DEFAULT_LAYERS = Object.fromEntries(LAYERS.map(l => [l.id, STARTING_LAYERS.includes(l.id)]));
 
 export function emptyData() {
   return {
@@ -67,6 +108,16 @@ export function emptyData() {
     // Team names to highlight, e.g. "Bears".
     teams: [],
     trainingActivityId: "run-easy",
+    // Training plan: { id, goal, level, days, start, weeks, cardio, time, updatedAt }
+    program: null,
+    // Plan sessions checked off, by session id.
+    programDone: [],
+    // Events nearby: miles from your place, and which kinds to show.
+    nearby: { radius: 25, kinds: NEARBY_KINDS.map(k => k.id) },
+    // Cheap flight days: { code, name } airports or cities.
+    flights: { from: null, to: [] },
+    // The quick setup card shows until a choice is made or it's closed.
+    setupDone: false,
     updatedAt: null,
     syncedUserId: null,
   };
@@ -81,6 +132,7 @@ function cleanPlace(place) {
     region: typeof place.region === "string" ? place.region.slice(0, 80) : "",
     latitude: place.latitude,
     longitude: place.longitude,
+    postcode: typeof place.postcode === "string" ? place.postcode.slice(0, 12) : null,
   };
 }
 
@@ -108,6 +160,38 @@ function cleanItem(item) {
     done: Array.isArray(item.done) ? [...new Set(item.done.filter(isDayKey))].slice(-400) : [],
     updatedAt: item.updatedAt ?? null,
   };
+}
+
+function cleanProgram(p) {
+  if (!p || typeof p !== "object" || !p.id || !isDayKey(p.start)) return null;
+  return {
+    id: String(p.id),
+    goal: ["general", "strength", "cardio", "5k"].includes(p.goal) ? p.goal : "general",
+    level: p.level === "some" ? "some" : "new",
+    days: Math.min(6, Math.max(3, Math.round(Number(p.days) || 3))),
+    start: p.start,
+    weeks: [8, 12, 16].includes(p.weeks) ? p.weeks : 12,
+    cardio: ["run", "bike", "walk"].includes(p.cardio) ? p.cardio : "run",
+    time: ["any", "morning", "midday", "evening"].includes(p.time) ? p.time : "any",
+    updatedAt: p.updatedAt ?? null,
+  };
+}
+
+const cleanAirport = a =>
+  a && typeof a === "object" && /^[A-Z]{3}$/.test(a.code) ? { code: a.code, name: text(a.name, 80).trim() || a.code } : null;
+
+function cleanNearby(n) {
+  const base = emptyData().nearby;
+  if (!n || typeof n !== "object") return base;
+  const kinds = Array.isArray(n.kinds) ? NEARBY_KINDS.map(k => k.id).filter(id => n.kinds.includes(id)) : base.kinds;
+  return { radius: RADII.includes(n.radius) ? n.radius : base.radius, kinds };
+}
+
+function cleanFlights(f) {
+  if (!f || typeof f !== "object") return { from: null, to: [] };
+  const from = cleanAirport(f.from);
+  const to = (Array.isArray(f.to) ? f.to.map(cleanAirport).filter(Boolean) : []).filter((a, i, list) => a.code !== from?.code && list.findIndex(b => b.code === a.code) === i);
+  return { from, to: to.slice(0, 3) };
 }
 
 function cleanFeed(feed) {
@@ -139,6 +223,11 @@ export function normalizeData(value) {
       ? [...new Set(value.teams.filter(t => typeof t === "string").map(t => t.trim().slice(0, 40)).filter(Boolean))].slice(0, MAX_TEAMS)
       : [],
     trainingActivityId: typeof value.trainingActivityId === "string" ? value.trainingActivityId : base.trainingActivityId,
+    program: cleanProgram(value.program),
+    nearby: cleanNearby(value.nearby),
+    flights: cleanFlights(value.flights),
+    programDone: Array.isArray(value.programDone) ? [...new Set(value.programDone.filter(id => typeof id === "string"))].slice(-600) : [],
+    setupDone: value.setupDone === true || (Array.isArray(value.items) && value.items.length > 0),
     updatedAt: value.updatedAt ?? null,
     syncedUserId: value.syncedUserId ?? null,
   };
@@ -215,6 +304,8 @@ export function mergeData(local, remote) {
     items: items.items.sort((x, y) => x.day.localeCompare(y.day)),
     deletedItemIds: items.tombstones,
     feeds: feeds.slice(0, MAX_FEEDS),
+    programDone: [...new Set([...a.programDone, ...b.programDone])].slice(-600),
+    setupDone: a.setupDone || b.setupDone,
     updatedAt: [a.updatedAt, b.updatedAt].sort((x, y) => time(y) - time(x))[0] ?? null,
     syncedUserId: a.syncedUserId,
   };

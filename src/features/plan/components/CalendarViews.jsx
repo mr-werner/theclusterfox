@@ -1,4 +1,6 @@
 import WeatherIcon from "../../clocast/components/WeatherIcon";
+import { dayFlags } from "../model/insights";
+import { TIP_ICONS } from "./DayPanel";
 import { formatTemp } from "../../clocast/units";
 import { formatTime, monthGrid, parseDay, relativeDay } from "../model/dates";
 
@@ -9,12 +11,13 @@ const MAX_PILLS = 3;
 function summarize(entries) {
   const major = entries.filter(e => !e.minor);
   const counts = {};
-  for (const e of entries) if (e.minor && e.layer !== "holidays") counts[e.layer] = (counts[e.layer] ?? 0) + 1;
+  // Ordinary fares only show in the day panel; cheap days get a pill.
+  for (const e of entries) if (e.minor && e.layer !== "holidays" && e.layer !== "flights") counts[e.layer] = (counts[e.layer] ?? 0) + 1;
   const minorHolidays = entries.filter(e => e.minor && e.layer === "holidays");
   return { major: [...major, ...minorHolidays], counts };
 }
 
-const COUNT_LABEL = { sports: ["game", "games"], movies: ["movie", "movies"], games: ["game release", "game releases"] };
+const COUNT_LABEL = { sports: ["game", "games"], movies: ["movie", "movies"], games: ["game release", "game releases"], nearby: ["event nearby", "events nearby"], flights: ["fare", "fares"] };
 
 function Pill({ entry }) {
   return (
@@ -25,7 +28,7 @@ function Pill({ entry }) {
   );
 }
 
-export function MonthView({ year, month, today, selected, entriesByDay, forecastByDay, units, showWeather, onSelect }) {
+export function MonthView({ year, month, today, selected, entriesByDay, forecastByDay, tipsByDay, units, showWeather, onSelect }) {
   const weeks = monthGrid(year, month);
   return (
     <div className="pf-month" role="grid" aria-label="Month">
@@ -43,17 +46,19 @@ export function MonthView({ year, month, today, selected, entriesByDay, forecast
             const entries = entriesByDay.get(day) ?? [];
             const { major, counts } = summarize(entries);
             const weather = showWeather ? forecastByDay.get(day) : null;
+            const flags = dayFlags(tipsByDay.get(day));
             const classes = [
               "pf-cell",
               date.getMonth() !== month && "is-other",
               day === today && "is-today",
               day === selected && "is-selected",
               day < today && "is-past",
+              flags && `has-flag is-flag-${flags.tone}`,
             ]
               .filter(Boolean)
               .join(" ");
             return (
-              <button key={day} type="button" role="gridcell" className={classes} onClick={() => onSelect(day)} aria-label={relativeDay(day, today) + `, ${entries.length} entries`} aria-pressed={day === selected}>
+              <button key={day} type="button" role="gridcell" className={classes} onClick={() => onSelect(day)} aria-label={relativeDay(day, today) + `, ${entries.length} entries` + (flags ? `, heads-up: ${flags.titles.join("; ")}` : "")} aria-pressed={day === selected}>
                 <span className="pf-cell-head">
                   <span className="pf-cell-date">{date.getDate()}</span>
                   {weather && (
@@ -63,9 +68,19 @@ export function MonthView({ year, month, today, selected, entriesByDay, forecast
                         {formatTemp(weather.high, units, { unit: false })}
                         <span className="pf-muted">/{formatTemp(weather.low, units, { unit: false })}</span>
                       </span>
+                      {weather.precipProb >= 40 && <span className="pf-cell-rain">{weather.precipProb}%</span>}
                     </span>
                   )}
                 </span>
+                {flags && (
+                  <span className={`pf-cell-flags is-${flags.tone}`} title={flags.titles.join("\n")}>
+                    {flags.kinds.slice(0, 3).map(kind => {
+                      const Icon = TIP_ICONS[kind];
+                      return <Icon key={kind} size={12} aria-hidden="true" />;
+                    })}
+                    <span>{flags.titles.length === 1 ? flags.titles[0] : `${flags.titles.length} heads-ups`}</span>
+                  </span>
+                )}
                 <ul className="pf-pills">
                   {major.slice(0, MAX_PILLS).map(entry => (
                     <Pill key={entry.id} entry={entry} />

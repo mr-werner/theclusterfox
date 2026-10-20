@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { fetchFeed, fetchGameReleases, fetchMovies, fetchSchedule } from "../../../services/plan/planApi";
+import { fetchFares, fetchFeed, fetchGameReleases, fetchMovies, fetchNearby, fetchSchedule } from "../../../services/plan/planApi";
 import { expandIcs } from "../../../services/plan/ics";
-import { fetchForecast } from "../../../services/weather/openMeteo";
-import { addDays, dayKey, todayKey } from "../model/dates";
+import { fetchAlerts, inUnitedStates } from "../../../services/plan/alerts";
+import { fetchAirQuality, fetchForecast, withAirQuality } from "../../../services/weather/openMeteo";
+import { addDays, dayKey, dayRange, todayKey } from "../model/dates";
 import { fetchHolidays } from "../model/holidays";
 
 /**
@@ -39,13 +40,19 @@ const matchesTeam = (team, teams) => teams.some(t => team.name.toLowerCase().inc
  * less (the month and agenda views), not for the year view.
  */
 export function useLayerData(data, from, to) {
-  const { layers, place, country, leagues, teams, feeds } = data;
+  const { layers, place, country, leagues, teams, feeds, nearby: nearbySettings, flights: flightSettings, units } = data;
   const today = todayKey();
   const short = to <= addDays(from, 62);
 
   const home = useKeyed(layers.weather || layers.wear || layers.car || layers.garden || layers.training ? placeKey(place) : null, signal =>
     fetchForecast(place, { signal })
   );
+
+  // Air quality covers about five days and feeds the training scores.
+  const air = useKeyed(layers.weather || layers.training ? placeKey(place) : null, signal => fetchAirQuality(place, { signal }));
+  const forecast = useMemo(() => (home.value && air.value ? { ...home.value, hours: withAirQuality(home.value.hours, air.value) } : home.value), [home.value, air.value]);
+
+  const alerts = useKeyed(layers.alerts && inUnitedStates(place) ? placeKey(place) : null, signal => fetchAlerts(place, { signal }));
 
   // Forecasts for the places of upcoming items elsewhere (up to three).
   const away = useMemo(() => {
@@ -84,6 +91,30 @@ export function useLayerData(data, from, to) {
 
   const releases = useKeyed(layers.games && short ? `${from}|${to}` : null, signal => fetchGameReleases(from, to, { signal }));
 
+  const nearbyKey = layers.nearby && short && place ? `${placeKey(place)}|${from}|${to}|${nearbySettings.radius}` : null;
+  const nearby = useKeyed(nearbyKey, signal => fetchNearby(place, from, to, nearbySettings.radius, { signal }));
+  const nearbyEvents = useMemo(() => (nearby.value ?? []).filter(e => nearbySettings.kinds.includes(e.kind)), [nearby.value, nearbySettings.kinds]);
+
+  // Fares by month for each destination; months already past are skipped.
+  const months = [...new Set(dayRange(from < today ? today : from, to).map(d => d.slice(0, 7)))];
+  const currency = units === "metric" && country !== "US" ? "eur" : "usd";
+  const flightKey =
+    layers.flights && short && flightSettings.from && flightSettings.to.length && months.length
+      ? `${flightSettings.from.code}|${flightSettings.to.map(t => t.code).join(",")}|${months.join(",")}|${currency}`
+      : null;
+  const fares = useKeyed(flightKey, signal =>
+    Promise.allSettled(
+      flightSettings.to.flatMap(dest =>
+        months.map(month => fetchFares(flightSettings.from.code, dest.code, month, currency, { signal }).then(list => list.map(f => ({ ...f, to: dest, from: flightSettings.from, currency }))))
+      )
+    ).then(results => {
+      if (results.every(r => r.status === "rejected")) throw results[0].reason;
+      return results.flatMap(r => (r.status === "fulfilled" ? r.value : []));
+    })
+  );
+
+  const upcomingFares = useMemo(() => (fares.value ?? []).filter(f => f.day >= today), [fares.value, today]);
+
   const feedKey = layers.feeds && feeds.length ? feeds.map(f => f.url).join("|") : null;
   const feedData = useKeyed(feedKey, signal =>
     Promise.all(
@@ -118,23 +149,29 @@ export function useLayerData(data, from, to) {
   );
 
   return {
-    forecast: home.value,
+    forecast,
     forecastStatus: home,
     awayForecasts: awayForecasts.value ?? new Map(),
     holidays: holidays.value ?? [],
+    alerts: alerts.value ?? [],
     games,
     movies: movies.value ?? [],
     releases: releases.value ?? [],
     feedEvents,
+    nearbyEvents,
+    fares: upcomingFares,
     feedErrors: (feedData.value ?? []).filter(f => f.error).map(f => ({ id: f.feed.id, error: f.error })),
     status: {
       weather: home.status,
+      alerts: layers.alerts && place && !inUnitedStates(place) ? "us-only" : alerts.status,
       holidays: holidays.status,
       sports: sportsKey === null && layers.sports && !short ? "range" : sports.status,
       movies: layers.movies && !short ? "range" : movies.status,
       games: layers.games && !short ? "range" : releases.status,
       feeds: feedData.status,
+      nearby: layers.nearby && !short ? "range" : layers.nearby && !place ? "place" : nearby.status,
+      flights: layers.flights && !short ? "range" : layers.flights && !flightKey ? "setup" : fares.status,
     },
-    errors: { weather: home.error, holidays: holidays.error, sports: sports.error, movies: movies.error, games: releases.error },
+    errors: { alerts: alerts.error, weather: home.error, holidays: holidays.error, sports: sports.error, movies: movies.error, games: releases.error, nearby: nearby.error, flights: fares.error },
   };
 }

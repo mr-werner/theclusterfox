@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
 import { addDays, dayRange, monthGrid, occurrences, relativeDay, formatTime } from '../model/dates.js';
 import { easter, usHolidays, parseNager } from '../model/holidays.js';
-import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice } from '../model/insights.js';
-import { buildEntries, expandItems } from '../model/entries.js';
-import { normalizeData, mergeData } from '../state/planStore.js';
+import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips, nearbyConflicts, cheapestFares, trainingWindows, dayDetails, weatherSwings, dayFlags, uvLabel } from '../model/insights.js';
+import { planSessions, weekFactor, weeklyMinutes } from '../model/training.js';
+import { parseAlerts, inUnitedStates } from '../../../services/plan/alerts.js';
+import { parseSchools } from '../../../../api/plan/_schools.js';
+import { buildEntries, expandItems, markCheapFares } from '../model/entries.js';
+import { geohash, parseEvents } from '../../../../api/plan/_events.js';
+import { parseFares, parsePlaces } from '../../../../api/plan/_flights.js';
+import { normalizeData, mergeData, PRESETS, LAYERS, togglePreset } from '../state/planStore.js';
 import { parseIcs, expandIcs, parseIcsDate } from '../../../services/plan/ics.js';
-import { feedUrl, isPublicHost } from '../../../../api/plan/feed.js';
+import { feedUrl, isPublicHost } from '../../../../api/plan/_feed.js';
 import { parseScoreboard } from '../../../services/watch/parse.js';
 
 // Dates
@@ -191,5 +196,180 @@ for (const bad of ['http://localhost/x.ics', 'http://127.0.0.1/x', 'http://10.0.
   assert.equal(feedUrl(bad), null, bad);
 }
 assert(isPublicHost('8.8.8.8'));
+
+// Quick setups only name real layers
+const layerIds = new Set(LAYERS.map(l => l.id));
+assert(PRESETS.every(p => p.layers.every(id => layerIds.has(id))));
+assert.equal(normalizeData({}).setupDone, false);
+assert.equal(normalizeData({ items: [{ id: 'x', day: '2026-10-01' }] }).setupDone, true, 'people who already use it skip setup');
+
+const start = normalizeData({}).layers;
+const fan = PRESETS.find(p => p.id === 'fan');
+const trainingSetup = PRESETS.find(p => p.id === 'training');
+const both = togglePreset(togglePreset(start, fan), trainingSetup);
+assert(both.sports && both.training, 'setups add layers');
+const fanOff = togglePreset(both, fan);
+assert(!fanOff.sports && fanOff.weather && fanOff.events, 'unpicking keeps layers another setup needs');
+
+// Training plans
+assert.equal(weekFactor(0), 1);
+assert.equal(weekFactor(1), 1.08);
+assert(weekFactor(3) < weekFactor(2), 'every fourth week is lighter');
+assert(weekFactor(4) > weekFactor(2), 'and building resumes after it');
+assert(weekFactor(40) <= 1.6, 'volume tops out');
+const general = planSessions({ id: 'p', goal: 'general', level: 'new', days: 4, start: '2026-10-26', weeks: 12, cardio: 'run', time: 'any' });
+assert.equal(general.length, 48, '4 days for 12 weeks');
+assert(general.every(s => s.day >= '2026-10-26'), 'nothing before the start');
+assert.equal(new Set(general.map(s => s.id)).size, general.length, 'ids are unique');
+const weeks = weeklyMinutes(general);
+assert([...weeks.values()].every(w => w.strengthDays >= 2), 'strength at least twice a week (WHO)');
+assert(weeks.get(3).cardio > weeks.get(1).cardio, 'cardio builds');
+assert(weeks.get(4).cardio < weeks.get(3).cardio, 'deload week is lighter');
+assert(general.filter(s => s.outdoor).every(s => s.activityId === 'run-easy'));
+const midweek = planSessions({ id: 'q', goal: 'strength', level: 'some', days: 3, start: '2026-10-28', weeks: 8, cardio: 'bike' });
+assert(midweek[0].day >= '2026-10-28' && midweek.length < 24, 'a midweek start skips the days already gone');
+const fiveK = planSessions({ id: 'r', goal: '5k', level: 'new', days: 5, start: '2026-10-26', weeks: 16 });
+assert.equal(fiveK.length, 27, '5K plan is 9 weeks of 3 days');
+assert.match(fiveK[0].title, /Run\/walk/);
+assert.match(fiveK.at(-1).title, /Run 30 min/);
+const cardioPlan = planSessions({ id: 's', goal: 'cardio', level: 'some', days: 5, start: '2026-10-26', weeks: 8, cardio: 'run' });
+assert(cardioPlan.some(s => /Intervals: 4 × 4/.test(s.title)), '4×4 intervals');
+assert.equal(planSessions(null).length, 0);
+
+// Plan sessions on a bad weather day get a move suggestion
+const stormy = [];
+for (const [day, bad] of [['2026-10-21', true], ['2026-10-22', false]]) {
+  for (let h = 0; h < 24; h++) {
+    stormy.push({
+      time: new Date(Date.UTC(2026, 9, day === '2026-10-21' ? 21 : 22, h + 5)), localHour: h, localDay: day, temp: bad ? 2 : 15, apparent: bad ? -4 : 15, rh: bad ? 95 : 55,
+      wind: bad ? 14 : 3, gust: bad ? 22 : 5, precipProb: bad ? 95 : 0, precip: bad ? 4 : 0, code: bad ? 95 : 1, uv: 2,
+      isDay: h >= 7 && h <= 18, global: 200, directNormal: 300, diffuse: 80,
+    });
+  }
+}
+const run = { id: 'p:2026-10-21', day: '2026-10-21', title: 'Easy run: 30 min', minutes: 30, outdoor: true, activityId: 'run-easy' };
+const moves = planWeatherTips([run], stormy, place, { today: '2026-10-20' });
+assert.equal(moves.length, 1);
+assert.match(moves[0].title, /Move easy run to Thursday/);
+assert.equal(planWeatherTips([{ ...run, outdoor: false }], stormy, place, { today: '2026-10-20' }).length, 0, 'indoor sessions are left alone');
+assert.equal(planWeatherTips([run, { ...run, id: 'x', day: '2026-10-22' }], stormy, place, { today: '2026-10-20' })[0].title.startsWith('Rough'), true, "doesn't move onto a day that already has a session");
+
+// Weather alerts (NWS)
+const alerts = parseAlerts({ features: [
+  { properties: { id: 'a1', event: 'Winter Storm Warning', headline: 'Winter Storm Warning until Thu', severity: 'Severe', onset: '2026-10-21T18:00:00-05:00', ends: '2026-10-23T06:00:00-05:00', areaDesc: 'Cook', description: 'Heavy  snow\n expected.' } },
+  { properties: { id: 'a2', event: 'Test Message', status: 'Test', sent: '2026-10-21T00:00:00Z' } },
+  { properties: { id: 'a3', event: 'Wind Advisory', severity: 'Minor', effective: '2026-10-22T09:00:00-05:00', expires: '2026-10-22T18:00:00-05:00' } },
+] });
+assert.equal(alerts.length, 2, 'test messages are dropped');
+assert.equal(alerts[0].tone, 'warn');
+assert.equal(alerts[0].text, 'Heavy snow expected.');
+assert.equal(alerts[1].tone, 'info');
+assert.deepEqual(parseAlerts({}), []);
+assert(inUnitedStates(place));
+assert(!inUnitedStates({ latitude: 51.5, longitude: -0.12 }), 'London is not covered');
+const alertEntries = buildEntries({ layers: { alerts: true }, from: '2026-10-01', to: '2026-10-31', alerts: [{ ...alerts[0], from: '2026-10-21', to: '2026-10-23' }] });
+assert.deepEqual([...alertEntries.keys()].sort(), ['2026-10-21', '2026-10-22', '2026-10-23'], 'an alert shows on every day it covers');
+const planEntries = buildEntries({ layers: { training: true }, sessions: [{ ...general[0], done: true }] });
+assert.equal(planEntries.get(general[0].day)[0].done, true);
+assert.equal(buildEntries({ layers: {}, sessions: general }).size, 0, 'hidden when training is off');
+const alertHeads = headsUp({ today: '2026-10-20', forecast: null, place, alerts, layers: { alerts: true }, now: 0 });
+assert(alertHeads.some(t => t.kind === 'alert' && /Winter Storm/.test(t.title)), 'alerts make the heads-up list');
+
+// Training plan in the store
+const withPlan = normalizeData({ program: { id: 'p', goal: 'cardio', level: 'some', days: 9, start: '2026-10-26', weeks: 12, cardio: 'run', time: 'morning' }, programDone: ['p:2026-10-27', 5] });
+assert.equal(withPlan.program.days, 6, 'days clamp to 6');
+assert.deepEqual(withPlan.programDone, ['p:2026-10-27']);
+assert.equal(normalizeData({ program: { goal: 'nonsense' } }).program, null);
+assert.deepEqual(mergeData(normalizeData({ programDone: ['a'] }), normalizeData({ programDone: ['b'] })).programDone.sort(), ['a', 'b']);
+
+// School directory
+const schools = parseSchools([
+  { ncessch: 3, school_name: 'Lincoln High', lea_name: 'District 1', school_level: 3, lowest_grade_offered: 9, highest_grade_offered: 12, city_location: 'Springfield' },
+  { ncessch: 1, school_name: 'Adams Elementary', lea_name: 'District 1', school_level: 1, lowest_grade_offered: -1, highest_grade_offered: 5 },
+  { ncessch: 2, school_name: 'Closed Middle', school_level: 2, school_status: 2 },
+]);
+assert.deepEqual(schools.map(s => s.name), ['Adams Elementary', 'Lincoln High'], 'closed schools dropped, elementary first');
+assert.equal(schools[0].grades, 'PK–5');
+assert.deepEqual(parseSchools(null), []);
+
+// Three training windows a day, each with what to wear for the activity
+const windows = trainingWindows(hours, '2026-10-21', place, { activityId: 'run-easy', minutes: 45 });
+assert.deepEqual(windows.map(w => w.slot), ['morning', 'midday', 'evening']);
+assert.equal(windows.filter(w => w.top).length, 1, 'one window is marked best');
+assert(windows.find(w => w.slot === 'evening').score < windows.find(w => w.top).score, 'rainy evening scores lower');
+assert(windows.every(w => w.wear && w.wear.layers.length), 'each window says what to wear');
+const runWear = windows[0].wear.name;
+const golfWear = trainingWindows(hours, '2026-10-21', place, { activityId: 'golf', minutes: 45 })[0]?.wear?.name;
+assert.notEqual(runWear, golfWear, 'what to wear depends on the activity');
+assert.equal(trainingWindows(hours, '2026-10-21', place, { earliest: 15, latest: 21 }).length, 1, 'an evenings-only plan gets evening options');
+
+// The numbers behind a day
+const details = dayDetails(hours.map(h => ({ ...h, aqi: h.localHour === 17 ? 120 : 30 })), '2026-10-21');
+assert.equal(details.aqi, 120);
+assert.equal(details.aqiHour, 17);
+assert(details.rainProb === 70 && details.rain > 5);
+assert(details.feelsHigh > details.feelsLow);
+assert.equal(dayDetails(hours, '2027-01-01'), null);
+assert.equal(uvLabel(2), 'Low');
+assert.equal(uvLabel(7), 'High');
+assert.equal(uvLabel(11), 'Extreme');
+
+// Big swings get flagged on the calendar
+const swingDays = [{ day: '2026-10-20', high: 22, low: 10 }, { day: '2026-10-21', high: 9, low: 1 }, { day: '2026-10-22', high: 11, low: 3 }, { day: '2026-10-23', high: 21, low: 9 }];
+const swings = weatherSwings(swingDays, { formatTemp: (c, o) => `${Math.round(o?.delta ? c * 1.8 : c * 1.8 + 32)}°F` });
+assert.deepEqual(swings.map(t => t.day), ['2026-10-21', '2026-10-23']);
+assert.match(swings[0].title, /23°F colder/);
+assert.match(swings[0].text, /frost/);
+assert.equal(swings[0].tone, 'warn');
+assert.match(swings[1].title, /warmer/);
+const flags = dayFlags([{ kind: 'swing', tone: 'caution', title: 'A' }, { kind: 'car', tone: 'warn', title: 'B' }, { kind: 'bill', tone: 'info', title: 'C' }, { kind: 'car', tone: 'info', title: 'D' }]);
+assert.deepEqual(flags, { tone: 'warn', kinds: ['swing', 'car'], titles: ['A', 'B'] });
+assert.equal(dayFlags([{ kind: 'bill', tone: 'info', title: 'Rent' }]), null, 'only problems are flagged');
+assert(headsUp({ today: '2026-10-19', forecast: { days: swingDays, hours: [] }, place, layers: {}, now: 0 }).some(t => t.kind === 'swing'));
+
+// Events nearby (Ticketmaster)
+assert.equal(geohash(57.64911, 10.40744), 'u4pruydqq');
+const tm = parseEvents({ _embedded: { events: [
+  { id: 'e1', name: 'Big Band', url: 'https://tm.example/e1', distance: 3.24, dates: { start: { localDate: '2026-10-24', localTime: '19:30:00' }, status: { code: 'onsale' } }, classifications: [{ segment: { name: 'Music' }, genre: { name: 'Rock' } }], priceRanges: [{ min: 45, max: 120, currency: 'USD' }], _embedded: { venues: [{ name: 'United Center', city: { name: 'Chicago' } }] } },
+  { id: 'e1b', name: 'Big Band', distance: 3.24, dates: { start: { localDate: '2026-10-24', localTime: '19:30:00' }, status: { code: 'onsale' } }, classifications: [{ segment: { name: 'Music' } }], _embedded: { venues: [{ name: 'United Center', city: { name: 'Chicago' } }] } },
+  { id: 'e2', name: 'Cancelled Show', dates: { start: { localDate: '2026-10-25' }, status: { code: 'cancelled' } } },
+  { id: 'e3', name: 'Kids Show', dates: { start: { localDate: '2026-10-26', timeTBA: true }, status: { code: 'onsale' } }, classifications: [{ segment: { name: 'Family' } }] },
+] } });
+assert.deepEqual(tm.map(e => e.id), ['e1', 'e3'], 'duplicates and cancelled shows dropped');
+assert.equal(tm[0].time, '19:30');
+assert.equal(tm[0].kind, 'music');
+assert.equal(tm[0].distance, 3.2);
+assert.equal(tm[1].time, null);
+assert.equal(tm[1].kind, 'family');
+const nearbyEntries = buildEntries({ layers: { nearby: true }, nearbyEvents: tm });
+assert(nearbyEntries.get('2026-10-24')[0].minor && /from \$45/.test(nearbyEntries.get('2026-10-24')[0].detail));
+const crowd = nearbyConflicts([{ kind: 'event', title: 'Dinner', day: '2026-10-24', done: false }, { kind: 'event', title: 'Lunch', day: '2026-10-24', place: { name: 'Milwaukee' }, done: false }], tm);
+assert.equal(crowd.length, 1, 'only plans near the event');
+assert.match(crowd[0].title, /Big Band at United Center/);
+
+// Cheap flight days (Travelpayouts)
+const fares = parseFares({ data: [
+  { departure_at: '2026-11-04T07:00:00-06:00', price: 89, airline: 'UA', transfers: 0, link: '/search/CHI0411NYC1' },
+  { departure_at: '2026-11-04T18:00:00-06:00', price: 120, airline: 'AA', transfers: 1 },
+  { departure_at: '2026-11-05T07:00:00-06:00', price: 99, airline: 'B6', transfers: 0 },
+  { departure_at: '2026-11-08T07:00:00-06:00', price: 210, airline: 'UA', transfers: 1 },
+] });
+assert.deepEqual(fares.map(f => [f.day, f.price]), [['2026-11-04', 89], ['2026-11-05', 99], ['2026-11-08', 210]], 'cheapest fare per day');
+assert.equal(fares[0].link, 'https://www.aviasales.com/search/CHI0411NYC1');
+const trip = fares.map(f => ({ ...f, from: { code: 'CHI', name: 'Chicago' }, to: { code: 'NYC', name: 'New York' }, currency: 'usd' }));
+const marked = markCheapFares(trip);
+assert.deepEqual(marked.map(f => f.cheap), [true, true, false], 'within 15% of the lowest');
+const flightEntries = buildEntries({ layers: { flights: true }, fares: trip });
+assert.equal(flightEntries.get('2026-11-04')[0].title, 'New York $89');
+assert.equal(flightEntries.get('2026-11-08')[0].minor, true);
+const best = cheapestFares(trip, { today: '2026-10-20' });
+assert.equal(best.length, 1);
+assert.match(best[0].title, /New York: \$89/);
+assert(headsUp({ today: '2026-10-20', forecast: null, place, layers: { flights: true }, fares: trip, now: 0 }).some(t => t.kind === 'flight'), 'cheapest fare shows even beyond two weeks');
+assert.deepEqual(parsePlaces([{ code: 'CHI', name: 'Chicago', type: 'city', country_name: 'United States' }, { code: 'ORD', name: "O'Hare", city_name: 'Chicago', type: 'airport' }, { code: 'X', type: 'city' }]).map(p => p.name), ['Chicago', "O'Hare (ORD)"]);
+const flightData = normalizeData({ flights: { from: { code: 'CHI', name: 'Chicago' }, to: [{ code: 'CHI', name: 'Chicago' }, { code: 'NYC', name: 'New York' }, { code: 'nyc' }, { code: 'DEN', name: 'Denver' }, { code: 'LAX', name: 'LA' }, { code: 'MIA', name: 'Miami' }] }, nearby: { radius: 99, kinds: ['music', 'bogus'] } });
+assert.deepEqual(flightData.flights.to.map(t => t.code), ['NYC', 'DEN', 'LAX'], 'no flying home, at most three');
+assert.equal(flightData.nearby.radius, 25);
+assert.deepEqual(flightData.nearby.kinds, ['music']);
 
 console.log('PlanFox checks passed.');

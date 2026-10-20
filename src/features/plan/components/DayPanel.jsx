@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { Car, CircleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Sunrise, Sunset, TrafficCone } from "lucide-react";
+import { Car, CircleAlert, TriangleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Plane, Sunrise, Sunset, Thermometer, TrafficCone } from "lucide-react";
 
 import WeatherIcon from "../../clocast/components/WeatherIcon";
 import { activities } from "../../clocast/data/activities";
 import { formatHour, formatTemp, formatWind } from "../../clocast/units";
-import { describeWeather } from "../../../services/weather/openMeteo";
+import { aqiCategory, describeWeather } from "../../../services/weather/openMeteo";
 import { formatTime, longDate, parseDay, relativeDay } from "../model/dates";
-import { GARDEN_MONTHS, trainingAdvice, wearFor } from "../model/insights";
+import { GARDEN_MONTHS, dayDetails, trainingAdvice, trainingWindows, wearFor } from "../model/insights";
 
-const TIP_ICONS = { car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell };
+export const TIP_ICONS = { alert: TriangleAlert, car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell, swing: Thermometer, flight: Plane };
 const LAYER_LABEL = {
   holidays: "Holiday",
+  alerts: "Weather alert",
   events: "Event",
   tasks: "Task",
   bills: "Bill",
@@ -20,10 +21,14 @@ const LAYER_LABEL = {
   sports: "Game",
   movies: "Movie",
   games: "Game release",
+  nearby: "Nearby",
+  flights: "Flight",
 };
 const CHECKABLE = new Set(["task", "bill", "deadline"]);
 const MINOR_SHOWN = 6;
 const placeKey = place => `${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}`;
+const formatRain = (mm, units) => (units === "metric" ? `${mm < 10 ? mm.toFixed(1) : Math.round(mm)} mm` : `${(mm / 25.4).toFixed(2)} in`);
+const hourRange = ([a, b]) => `${formatHour(a)}–${formatHour(b % 24)}`;
 const sunTime = t => (t ? `${t.hour % 12 || 12}:${String(t.minute).padStart(2, "0")} ${t.hour < 12 ? "AM" : "PM"}` : "–");
 
 export function Tip({ tip, showDay, today }) {
@@ -36,7 +41,17 @@ export function Tip({ tip, showDay, today }) {
           {showDay && <span className="pf-tip-day">{relativeDay(tip.day, today)}</span>}
           {tip.title}
         </p>
-        <p className="pf-tip-text">{tip.text}</p>
+        <p className="pf-tip-text">
+          {tip.text}
+          {tip.link && (
+            <>
+              {" "}
+              <a href={tip.link} target="_blank" rel="noreferrer">
+                See fares
+              </a>
+            </>
+          )}
+        </p>
       </div>
     </li>
   );
@@ -59,6 +74,68 @@ function WearCard({ wear, label }) {
         ))}
       </div>
     </div>
+  );
+}
+
+// The day's numbers as small tiles: quick to scan, there when you want them.
+function DayStats({ details, weather, units }) {
+  const air = aqiCategory(details.aqi);
+  const tiles = [
+    { label: "Feels like", value: `${formatTemp(details.feelsHigh, units)} / ${formatTemp(details.feelsLow, units)}` },
+    { label: "Wind", value: formatWind(details.wind, units), note: details.gust - details.wind >= 4 ? `gusts ${formatWind(details.gust, units)} around ${formatHour(details.gustHour)}` : null },
+    { label: "UV index", value: `${Math.round(details.uv)} · ${details.uvLabel}`, note: details.strongUv ? `sunscreen ${hourRange(details.strongUv)}` : null, tone: details.uv >= 8 ? "warn" : details.uv >= 6 ? "caution" : null },
+    air && { label: "Air quality", value: `${details.aqi} · ${air.short ?? air.label}`, note: details.aqi > 50 ? `worst around ${formatHour(details.aqiHour)}` : null, tone: details.aqi > 150 ? "warn" : details.aqi > 100 ? "caution" : null },
+    { label: "Rain", value: `${details.rainProb}%`, note: details.rain >= 0.2 ? formatRain(details.rain, units) : null, tone: details.rainProb >= 70 ? "caution" : null },
+    details.humidity != null && { label: "Humidity", value: `${details.humidity}%` },
+    weather.sunrise && { label: "Daylight", value: `${sunTime(weather.sunrise)} – ${sunTime(weather.sunset)}`, icons: true, wide: true },
+  ].filter(Boolean);
+  return (
+    <dl className="pf-stats">
+      {tiles.map(t => (
+        <div key={t.label} className={`pf-stat${t.tone ? ` is-${t.tone}` : ""}${t.wide ? " is-wide" : ""}`}>
+          <dt>{t.label}</dt>
+          <dd>
+            {t.icons ? (
+              <>
+                <Sunrise size={12} aria-hidden="true" /> {sunTime(weather.sunrise)} <Sunset size={12} aria-hidden="true" /> {sunTime(weather.sunset)}
+              </>
+            ) : (
+              t.value
+            )}
+          </dd>
+          {t.note && <dd className="pf-stat-note">{t.note}</dd>}
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+const wearLine = wear => [wear.layers.join(", "), wear.extras.length ? `bring ${wear.extras.join(", ").toLowerCase()}` : ""].filter(Boolean).join("; ");
+
+// Morning, midday and evening options, each with what to wear for it.
+function TrainWindows({ windows, compact = false }) {
+  if (!windows.length) return null;
+  return (
+    <ul className={`pf-windows${compact ? " is-compact" : ""}`}>
+      {windows.map(w => (
+        <li key={w.slot} className={w.top ? "is-top" : ""}>
+          <p className="pf-window-head">
+            <span className="pf-window-slot">{w.name}</span>
+            <strong>{formatHour(w.startHour)}</strong>
+            <span className={`pf-window-score is-${w.score >= 70 ? "good" : w.score >= 45 ? "ok" : "poor"}`}>
+              {w.label} {w.score}
+            </span>
+            {w.top && <span className="pf-window-best">Best</span>}
+          </p>
+          {w.wear && (
+            <p className="pf-window-wear">
+              <Shirt size={12} aria-hidden="true" /> {wearLine(w.wear)}
+            </p>
+          )}
+          {!compact && w.reasons.length > 0 && <p className="pf-window-why">Watch for {w.reasons.slice(0, 2).join(", ")}</p>}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -114,6 +191,38 @@ function ItemEntry({ entry, today, now, hours, homePlace, awayForecasts, units, 
   );
 }
 
+function SessionEntry({ entry, today, now, hours, place, planWindow, onToggle }) {
+  const s = entry.session;
+  const [open, setOpen] = useState(false);
+  const windows =
+    s.outdoor && hours.length && place
+      ? trainingWindows(hours, s.day, place, { activityId: s.activityId, minutes: s.minutes, notBefore: s.day === today ? now : 0, earliest: planWindow.earliest, latest: planWindow.latest })
+      : [];
+  return (
+    <li className={`pf-entry pf-l-training${s.done ? " is-done" : ""}`}>
+      <input type="checkbox" checked={s.done} onChange={() => onToggle(s.id)} aria-label={`Mark ${s.title} done`} />
+      <div className="pf-entry-main">
+        <button type="button" className="pf-entry-main" onClick={() => setOpen(v => !v)} aria-expanded={open}>
+          <span className="pf-entry-title">{s.title}</span>
+          <span className="pf-entry-meta">
+            Training plan · week {s.week}
+            {s.deload && " (lighter week)"} · {s.minutes} min{s.outdoor ? " · outside" : " · indoors or gym"}
+          </span>
+          <span className="pf-entry-note pf-muted">{s.intensity}</span>
+        </button>
+        <TrainWindows windows={windows} compact />
+        {open && (
+          <ol className="pf-steps">
+            {s.steps.map(step => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </li>
+  );
+}
+
 function OtherEntry({ entry }) {
   const g = entry.game;
   return (
@@ -146,18 +255,20 @@ function OtherEntry({ entry }) {
   );
 }
 
-export default function DayPanel({ day, today, now, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
+export default function DayPanel({ onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
   const [showAllMinor, setShowAllMinor] = useState(false);
   const hours = forecast?.hours ?? [];
   const weather = forecast?.days.find(d => d.day === day);
   const inForecast = Boolean(weather);
   const wear = layers.wear && inForecast && place ? wearFor(hours, day, place) : null;
-  const training = layers.training && inForecast && place ? trainingAdvice(hours, day, place, { activityId: trainingActivityId, notBefore: day === today ? now : 0 }) : null;
+  const windows = layers.training && inForecast && place ? trainingWindows(hours, day, place, { activityId: trainingActivityId, notBefore: day === today ? now : 0 }) : [];
+  const details = inForecast ? dayDetails(hours, day) : null;
   const outdoor = activities.filter(a => a.mets >= 3);
 
+  const plan = entries.filter(e => e.session);
   const mine = entries.filter(e => e.item);
-  const others = entries.filter(e => !e.item && !e.minor);
-  const minor = entries.filter(e => !e.item && e.minor);
+  const others = entries.filter(e => !e.item && !e.session && !e.minor);
+  const minor = entries.filter(e => !e.item && !e.session && e.minor);
   const minorShown = showAllMinor ? minor : minor.slice(0, MINOR_SHOWN);
 
   return (
@@ -179,29 +290,20 @@ export default function DayPanel({ day, today, now, entries, tips, forecast, pla
             <p className="pf-weather-main">
               {describeWeather(weather.code)}, {formatTemp(weather.high, units)} / {formatTemp(weather.low, units)}
             </p>
-            <p className="pf-muted">
-              {weather.precipProb}% rain · wind up to {formatWind(weather.wind, units)} · UV {Math.round(weather.uv)}
-            </p>
-            <p className="pf-muted pf-sun">
-              <Sunrise size={13} aria-hidden="true" /> {sunTime(weather.sunrise)} <Sunset size={13} aria-hidden="true" /> {sunTime(weather.sunset)}
-            </p>
+            {details ? <DayStats details={details} weather={weather} units={units} /> : <p className="pf-muted">{weather.precipProb}% rain · wind up to {formatWind(weather.wind, units)} · UV {Math.round(weather.uv)}</p>}
           </div>
         </div>
       )}
       {layers.weather && !weather && place && day >= today && <p className="pf-note">The forecast covers the next 14 days. Check back closer to the date.</p>}
       {layers.weather && !place && <p className="pf-note">Pick your town above to see weather, what to wear and the best times to be outside.</p>}
 
-      <WearCard wear={wear} label="WHAT TO WEAR, 9 AM TO 7 PM" />
+      <WearCard wear={wear} label="WHAT TO WEAR OUT AND ABOUT" />
 
-      {training && (
+      {windows.length > 0 && (
         <div className="pf-card pf-train">
           <Dumbbell size={20} aria-hidden="true" />
           <div>
-            <p className="pf-eyebrow">BEST TIME TO TRAIN OUTSIDE</p>
-            <p className="pf-wear-name">
-              {formatHour(training.best.startHour)} · {training.best.label} ({training.best.score}/100)
-            </p>
-            {training.reasons.length > 0 && <p className="pf-muted">Watch for: {training.reasons.join(", ")}</p>}
+            <p className="pf-eyebrow">BEST TIMES TO TRAIN OUTSIDE</p>
             <label className="pf-inline-select">
               <span className="pf-muted">For</span>
               <select value={trainingActivityId} onChange={e => onTrainingActivity(e.target.value)}>
@@ -212,6 +314,12 @@ export default function DayPanel({ day, today, now, entries, tips, forecast, pla
                 ))}
               </select>
             </label>
+            <TrainWindows windows={windows} />
+            {!plan.length && onOpenPlanner && (
+              <button type="button" className="pf-link-btn" onClick={onOpenPlanner}>
+                Get a training plan built for you
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -225,6 +333,9 @@ export default function DayPanel({ day, today, now, entries, tips, forecast, pla
       )}
 
       <ul className="pf-entries">
+        {plan.map(entry => (
+          <SessionEntry key={entry.id} entry={entry} today={today} now={now} hours={hours} place={place} planWindow={planWindow} onToggle={onToggleSession} />
+        ))}
         {mine.map(entry => (
           <ItemEntry
             key={entry.id}
@@ -252,7 +363,15 @@ export default function DayPanel({ day, today, now, entries, tips, forecast, pla
           {showAllMinor ? "Show fewer" : `Show all ${minor.length}`}
         </button>
       )}
-      {!entries.length && <p className="pf-muted">Nothing on this day yet.</p>}
+      {!entries.length && (
+        <p className="pf-muted">
+          Nothing on this day yet. Add something, or{" "}
+          <button type="button" className="pf-link-btn pf-inline" onClick={onLinkCalendar}>
+            link a calendar
+          </button>{" "}
+          you already use.
+        </p>
+      )}
 
       {layers.garden && (
         <p className="pf-note pf-garden-month">

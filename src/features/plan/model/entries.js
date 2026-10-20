@@ -1,7 +1,33 @@
 // Turns every layer into one list of calendar entries per day.
 
 import { itemLayer } from "../state/planStore.js";
-import { occurrences } from "./dates.js";
+import { dayRange, occurrences } from "./dates.js";
+
+export const money = (amount, currency = "USD") =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase(), maximumFractionDigits: 0 }).format(amount);
+
+const cityName = place => place.name.replace(/\s*\([A-Z]{3}\)$/, "");
+
+/**
+ * Cheap days for each destination: fares within 15% of the cheapest one
+ * found that month (and at most the five lowest) are called out.
+ */
+export function markCheapFares(fares) {
+  const byTrip = new Map();
+  for (const f of fares) {
+    const key = `${f.to.code}|${f.day.slice(0, 7)}`;
+    if (!byTrip.has(key)) byTrip.set(key, []);
+    byTrip.get(key).push(f);
+  }
+  const out = [];
+  for (const list of byTrip.values()) {
+    const sorted = [...list].sort((a, b) => a.price - b.price);
+    const low = sorted[0].price;
+    const cheap = new Set(sorted.filter(f => f.price <= low * 1.15).slice(0, 5));
+    for (const f of list) out.push({ ...f, cheap: cheap.has(f), cheapest: f.price === low });
+  }
+  return out;
+}
 
 const timeOf = iso => {
   const d = new Date(iso);
@@ -19,7 +45,7 @@ export function expandItems(items, from, to) {
  * Map of day → entries: { id, layer, title, time, detail, ... }, sorted
  * with all-day entries first, then by time.
  */
-export function buildEntries({ layers, instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [] }) {
+export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [], nearbyEvents = [], fares = [] }) {
   const byDay = new Map();
   const add = entry => {
     if (!entry.day) return;
@@ -29,6 +55,17 @@ export function buildEntries({ layers, instances = [], holidays = [], games = []
 
   if (layers.holidays) {
     for (const h of holidays) add({ id: `h:${h.day}:${h.name}`, day: h.day, layer: "holidays", title: h.name, detail: h.note, closed: h.closed, minor: h.kind === "observance" });
+  }
+  if (layers.alerts && from && to) {
+    for (const a of alerts) {
+      const start = a.from < from ? from : a.from;
+      const end = (a.to ?? a.from) > to ? to : a.to ?? a.from;
+      if (start > end) continue;
+      for (const day of dayRange(start, end)) add({ id: `a:${a.id}:${day}`, day, layer: "alerts", title: a.event, detail: a.headline, alert: a });
+    }
+  }
+  if (layers.training) {
+    for (const s of sessions) add({ id: `p:${s.id}`, day: s.day, layer: "training", title: s.title, session: s, done: s.done });
   }
   for (const item of instances) {
     const layer = itemLayer(item.kind);
@@ -57,6 +94,36 @@ export function buildEntries({ layers, instances = [], holidays = [], games = []
   }
   if (layers.games) {
     for (const r of releases) add({ id: `r:${r.id}`, day: r.day, layer: "games", title: r.title, detail: r.platforms.join(", "), link: r.url, minor: true });
+  }
+
+  if (layers.nearby) {
+    for (const e of nearbyEvents) {
+      add({
+        id: `n:${e.id}`,
+        day: e.day,
+        layer: "nearby",
+        title: e.title,
+        time: e.time,
+        detail: [e.venue, e.distance != null && `${e.distance} mi`, e.price && `from ${money(e.price.min, e.price.currency)}`, e.status === "offsale" && "sold out"].filter(Boolean).join(" · "),
+        link: e.url,
+        nearby: e,
+        minor: true,
+      });
+    }
+  }
+  if (layers.flights) {
+    for (const f of markCheapFares(fares)) {
+      add({
+        id: `f:${f.to.code}:${f.day}`,
+        day: f.day,
+        layer: "flights",
+        title: `${cityName(f.to)} ${money(f.price, f.currency)}`,
+        detail: [`${f.from.code} to ${f.to.code}`, f.transfers === 0 ? "nonstop" : f.transfers ? `${f.transfers} stop${f.transfers > 1 ? "s" : ""}` : null, f.cheapest ? "cheapest this month" : f.cheap ? "one of the cheapest days" : null].filter(Boolean).join(" · "),
+        link: f.link,
+        fare: f,
+        minor: !f.cheap,
+      });
+    }
   }
 
   for (const list of byDay.values()) {

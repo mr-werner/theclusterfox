@@ -29,10 +29,22 @@ export const LAYERS = [
   { id: "sports", name: "Sports", group: "World", source: "ESPN schedules" },
   { id: "movies", name: "Movie releases", group: "World", source: "TMDB" },
   { id: "games", name: "Game releases", group: "World", source: "RAWG", needsKey: "RAWG_API_KEY" },
+  { id: "nearby", name: "Events nearby", group: "World", source: "Concerts, games and shows from Ticketmaster", needsKey: "TICKETMASTER_API_KEY" },
+  { id: "flights", name: "Cheap flight days", group: "World", source: "Recent fares from Travelpayouts", needsKey: "TRAVELPAYOUTS_TOKEN" },
 ];
 
+// Kinds of nearby events people can filter to.
+export const NEARBY_KINDS = [
+  { id: "music", name: "Concerts" },
+  { id: "sports", name: "Sports" },
+  { id: "arts", name: "Theater & comedy" },
+  { id: "family", name: "Family" },
+  { id: "other", name: "Other" },
+];
+export const RADII = [10, 25, 50];
+
 // Short labels for the layer bar.
-const SHORT = { alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
+const SHORT = { nearby: "Nearby", flights: "Flights", alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
 for (const layer of LAYERS) if (SHORT[layer.id]) layer.short = SHORT[layer.id];
 
 // Quick setups: each switches on the layers that fit a way of planning.
@@ -41,7 +53,8 @@ export const PRESETS = [
   { id: "training", name: "Training", hint: "Best times to train outside, what to wear for it", layers: ["weather", "wear", "training", "events"] },
   { id: "family", name: "School & family", hint: "Deadlines, school calendars, holidays, tasks", layers: ["events", "tasks", "deadlines", "feeds", "holidays", "weather", "wear"] },
   { id: "fan", name: "Sports fan", hint: "Your teams' games and traffic near stadiums", layers: ["sports", "events", "weather"] },
-  { id: "fun", name: "Entertainment", hint: "Movie and game releases, games, nights out", layers: ["movies", "games", "sports", "events"] },
+  { id: "fun", name: "Entertainment", hint: "Concerts and shows nearby, movie and game releases", layers: ["nearby", "movies", "games", "events"] },
+  { id: "travel", name: "Travel", hint: "Cheapest days to fly, weather, holidays", layers: ["flights", "weather", "holidays", "events"] },
   { id: "home", name: "Home & garden", hint: "Frost and watering, car care, bills, chores", layers: ["weather", "alerts", "garden", "car", "bills", "tasks"] },
 ];
 
@@ -99,6 +112,10 @@ export function emptyData() {
     program: null,
     // Plan sessions checked off, by session id.
     programDone: [],
+    // Events nearby: miles from your place, and which kinds to show.
+    nearby: { radius: 25, kinds: NEARBY_KINDS.map(k => k.id) },
+    // Cheap flight days: { code, name } airports or cities.
+    flights: { from: null, to: [] },
     // The quick setup card shows until a choice is made or it's closed.
     setupDone: false,
     updatedAt: null,
@@ -160,6 +177,23 @@ function cleanProgram(p) {
   };
 }
 
+const cleanAirport = a =>
+  a && typeof a === "object" && /^[A-Z]{3}$/.test(a.code) ? { code: a.code, name: text(a.name, 80).trim() || a.code } : null;
+
+function cleanNearby(n) {
+  const base = emptyData().nearby;
+  if (!n || typeof n !== "object") return base;
+  const kinds = Array.isArray(n.kinds) ? NEARBY_KINDS.map(k => k.id).filter(id => n.kinds.includes(id)) : base.kinds;
+  return { radius: RADII.includes(n.radius) ? n.radius : base.radius, kinds };
+}
+
+function cleanFlights(f) {
+  if (!f || typeof f !== "object") return { from: null, to: [] };
+  const from = cleanAirport(f.from);
+  const to = (Array.isArray(f.to) ? f.to.map(cleanAirport).filter(Boolean) : []).filter((a, i, list) => a.code !== from?.code && list.findIndex(b => b.code === a.code) === i);
+  return { from, to: to.slice(0, 3) };
+}
+
 function cleanFeed(feed) {
   if (!feed || typeof feed !== "object" || !feed.id || typeof feed.url !== "string") return null;
   return { id: String(feed.id), name: text(feed.name, 60).trim() || "Calendar", url: feed.url.slice(0, 1000), updatedAt: feed.updatedAt ?? null };
@@ -190,6 +224,8 @@ export function normalizeData(value) {
       : [],
     trainingActivityId: typeof value.trainingActivityId === "string" ? value.trainingActivityId : base.trainingActivityId,
     program: cleanProgram(value.program),
+    nearby: cleanNearby(value.nearby),
+    flights: cleanFlights(value.flights),
     programDone: Array.isArray(value.programDone) ? [...new Set(value.programDone.filter(id => typeof id === "string"))].slice(-600) : [],
     setupDone: value.setupDone === true || (Array.isArray(value.items) && value.items.length > 0),
     updatedAt: value.updatedAt ?? null,

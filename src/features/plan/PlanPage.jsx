@@ -13,7 +13,7 @@ import TrainingPlanner from "./components/TrainingPlanner";
 import { LayerBar, SetupCard } from "./components/LayerBar";
 import PlaceSearch from "./components/PlaceSearch";
 import { addDays, dayKey, dayRange, monthGrid, monthName, parseDay, todayKey } from "./model/dates";
-import { buildEntries, expandItems } from "./model/entries";
+import { buildEntries, expandItems, money } from "./model/entries";
 import { headsUp } from "./model/insights";
 import { planSessions, TIMES } from "./model/training";
 import { togglePreset } from "./state/planStore";
@@ -72,6 +72,11 @@ export default function PlanPage() {
   const [showLayers, setShowLayers] = useState(false);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showLinker, setShowLinker] = useState(false);
+  // Cheap flight days need airports first, so turning it on opens settings.
+  const toggleWithSetup = id => {
+    toggleLayer(id);
+    if (id === "flights" && !data.layers.flights && !data.flights.from) setShowLayers(true);
+  };
   const linkFeed = ({ name, url }) =>
     update(current => ({
       feeds: [...current.feeds.filter(f => f.url !== url), { id: crypto.randomUUID(), name, url, updatedAt: new Date().toISOString() }],
@@ -123,9 +128,11 @@ export default function PlanPage() {
         movies: layerData.movies,
         releases: layerData.releases,
         feedEvents: layerData.feedEvents,
+        nearbyEvents: layerData.nearbyEvents,
+        fares: layerData.fares,
         teams: data.teams,
       }),
-    [data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents]
+    [data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents, layerData.nearbyEvents, layerData.fares]
   );
   const forecastByDay = useMemo(() => new Map((forecast?.days ?? []).map(d => [d.day, d])), [forecast]);
 
@@ -149,8 +156,11 @@ export default function PlanPage() {
         alerts: data.layers.alerts ? alerts : [],
         planSessions: allSessions,
         planWindow,
+        nearbyEvents: data.layers.nearby ? layerData.nearbyEvents : [],
+        fares: data.layers.flights ? layerData.fares : [],
+        money,
       }),
-    [now, alerts, allSessions, planWindow, today, forecast, data.place, data.layers, data.units, data.trainingActivityId, upcoming, games, holidays, awayForecasts]
+    [layerData.nearbyEvents, layerData.fares, now, alerts, allSessions, planWindow, today, forecast, data.place, data.layers, data.units, data.trainingActivityId, upcoming, games, holidays, awayForecasts]
   );
   const tipsByDay = useMemo(() => {
     const map = new Map();
@@ -272,7 +282,7 @@ export default function PlanPage() {
           </div>
         </div>
 
-        <LayerBar layers={data.layers} onToggle={toggleLayer} onLinkCalendar={() => setShowLinker(true)} />
+        <LayerBar layers={data.layers} onToggle={toggleWithSetup} onLinkCalendar={() => setShowLinker(true)} />
 
         {showLinker && <CalendarLinker place={data.place} feeds={data.feeds} onLink={linkFeed} onClose={() => setShowLinker(false)} />}
 
@@ -390,6 +400,12 @@ export default function PlanPage() {
             {data.country !== "US" && data.layers.holidays && (
               <>
                 , holidays from <a href="https://date.nager.at" target="_blank" rel="noreferrer">Nager.Date</a>
+              </>
+            )}
+            {data.layers.nearby && <>, events from Ticketmaster</>}
+            {data.layers.flights && (
+              <>
+                , fares from <a href="https://www.aviasales.com" target="_blank" rel="noreferrer">Aviasales</a> via Travelpayouts
               </>
             )}
             . This product uses the TMDB API but is not endorsed or certified by TMDB.

@@ -27,6 +27,8 @@
   --l-sports: #c79bff;
   --l-movies: #e6a8ff;
   --l-games: #7ee0d0;
+  --l-nearby: #ff8fd0;
+  --l-flights: #5fd4ff;
   --l-wear: #6cc6f2;
   --l-car: #f2c14e;
   --l-garden: #a8d65c;
@@ -49,6 +51,8 @@
 .pf-l-sports { --l: var(--l-sports); }
 .pf-l-movies { --l: var(--l-movies); }
 .pf-l-games { --l: var(--l-games); }
+.pf-l-nearby { --l: var(--l-nearby); }
+.pf-l-flights { --l: var(--l-flights); }
 .pf-l-wear { --l: var(--l-wear); }
 .pf-l-car { --l: var(--l-car); }
 .pf-l-garden { --l: var(--l-garden); }
@@ -1613,4 +1617,42 @@ button.pf-entry-main:hover .pf-entry-title {
 
 .pf-stat.is-wide {
   grid-column: span 2;
+}
+
+/* Airport search */
+.pf-airport {
+  margin-top: 8px;
+}
+
+.pf-airport-results {
+  display: grid;
+  gap: 2px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-airport-results button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--pf-line);
+  border-radius: 10px;
+  color: inherit;
+  background: var(--pf-surface-2);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-airport-results button:hover {
+  border-color: var(--pf-line-strong);
+}
+
+.pf-tip-text a {
+  color: var(--pf-accent);
+  font-weight: 600;
 }

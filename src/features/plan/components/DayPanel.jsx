@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Car, CircleAlert, TriangleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Sunrise, Sunset, Thermometer, TrafficCone } from "lucide-react";
+import { Car, CircleAlert, TriangleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Plane, Sunrise, Sunset, Thermometer, TrafficCone } from "lucide-react";
 
 import WeatherIcon from "../../clocast/components/WeatherIcon";
 import { activities } from "../../clocast/data/activities";
@@ -8,7 +8,7 @@ import { aqiCategory, describeWeather } from "../../../services/weather/openMete
 import { formatTime, longDate, parseDay, relativeDay } from "../model/dates";
 import { GARDEN_MONTHS, dayDetails, trainingAdvice, trainingWindows, wearFor } from "../model/insights";
 
-export const TIP_ICONS = { alert: TriangleAlert, car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell, swing: Thermometer };
+export const TIP_ICONS = { alert: TriangleAlert, car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell, swing: Thermometer, flight: Plane };
 const LAYER_LABEL = {
   holidays: "Holiday",
   alerts: "Weather alert",
@@ -21,6 +21,8 @@ const LAYER_LABEL = {
   sports: "Game",
   movies: "Movie",
   games: "Game release",
+  nearby: "Nearby",
+  flights: "Flight",
 };
 const CHECKABLE = new Set(["task", "bill", "deadline"]);
 const MINOR_SHOWN = 6;
@@ -39,7 +41,17 @@ export function Tip({ tip, showDay, today }) {
           {showDay && <span className="pf-tip-day">{relativeDay(tip.day, today)}</span>}
           {tip.title}
         </p>
-        <p className="pf-tip-text">{tip.text}</p>
+        <p className="pf-tip-text">
+          {tip.text}
+          {tip.link && (
+            <>
+              {" "}
+              <a href={tip.link} target="_blank" rel="noreferrer">
+                See fares
+              </a>
+            </>
+          )}
+        </p>
       </div>
     </li>
   );

@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { addDays, dayRange, monthGrid, occurrences, relativeDay, formatTime } from '../model/dates.js';
 import { easter, usHolidays, parseNager } from '../model/holidays.js';
-import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips, trainingWindows, dayDetails, weatherSwings, dayFlags, uvLabel } from '../model/insights.js';
+import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips, nearbyConflicts, cheapestFares, trainingWindows, dayDetails, weatherSwings, dayFlags, uvLabel } from '../model/insights.js';
 import { planSessions, weekFactor, weeklyMinutes } from '../model/training.js';
 import { parseAlerts, inUnitedStates } from '../../../services/plan/alerts.js';
 import { parseSchools } from '../../../../api/plan/_schools.js';
-import { buildEntries, expandItems } from '../model/entries.js';
+import { buildEntries, expandItems, markCheapFares } from '../model/entries.js';
+import { geohash, parseEvents } from '../../../../api/plan/_events.js';
+import { parseFares, parsePlaces } from '../../../../api/plan/_flights.js';
 import { normalizeData, mergeData, PRESETS, LAYERS, togglePreset } from '../state/planStore.js';
 import { parseIcs, expandIcs, parseIcsDate } from '../../../services/plan/ics.js';
 import { feedUrl, isPublicHost } from '../../../../api/plan/_feed.js';
@@ -324,5 +326,50 @@ const flags = dayFlags([{ kind: 'swing', tone: 'caution', title: 'A' }, { kind: 
 assert.deepEqual(flags, { tone: 'warn', kinds: ['swing', 'car'], titles: ['A', 'B'] });
 assert.equal(dayFlags([{ kind: 'bill', tone: 'info', title: 'Rent' }]), null, 'only problems are flagged');
 assert(headsUp({ today: '2026-10-19', forecast: { days: swingDays, hours: [] }, place, layers: {}, now: 0 }).some(t => t.kind === 'swing'));
+
+// Events nearby (Ticketmaster)
+assert.equal(geohash(57.64911, 10.40744), 'u4pruydqq');
+const tm = parseEvents({ _embedded: { events: [
+  { id: 'e1', name: 'Big Band', url: 'https://tm.example/e1', distance: 3.24, dates: { start: { localDate: '2026-10-24', localTime: '19:30:00' }, status: { code: 'onsale' } }, classifications: [{ segment: { name: 'Music' }, genre: { name: 'Rock' } }], priceRanges: [{ min: 45, max: 120, currency: 'USD' }], _embedded: { venues: [{ name: 'United Center', city: { name: 'Chicago' } }] } },
+  { id: 'e1b', name: 'Big Band', distance: 3.24, dates: { start: { localDate: '2026-10-24', localTime: '19:30:00' }, status: { code: 'onsale' } }, classifications: [{ segment: { name: 'Music' } }], _embedded: { venues: [{ name: 'United Center', city: { name: 'Chicago' } }] } },
+  { id: 'e2', name: 'Cancelled Show', dates: { start: { localDate: '2026-10-25' }, status: { code: 'cancelled' } } },
+  { id: 'e3', name: 'Kids Show', dates: { start: { localDate: '2026-10-26', timeTBA: true }, status: { code: 'onsale' } }, classifications: [{ segment: { name: 'Family' } }] },
+] } });
+assert.deepEqual(tm.map(e => e.id), ['e1', 'e3'], 'duplicates and cancelled shows dropped');
+assert.equal(tm[0].time, '19:30');
+assert.equal(tm[0].kind, 'music');
+assert.equal(tm[0].distance, 3.2);
+assert.equal(tm[1].time, null);
+assert.equal(tm[1].kind, 'family');
+const nearbyEntries = buildEntries({ layers: { nearby: true }, nearbyEvents: tm });
+assert(nearbyEntries.get('2026-10-24')[0].minor && /from \$45/.test(nearbyEntries.get('2026-10-24')[0].detail));
+const crowd = nearbyConflicts([{ kind: 'event', title: 'Dinner', day: '2026-10-24', done: false }, { kind: 'event', title: 'Lunch', day: '2026-10-24', place: { name: 'Milwaukee' }, done: false }], tm);
+assert.equal(crowd.length, 1, 'only plans near the event');
+assert.match(crowd[0].title, /Big Band at United Center/);
+
+// Cheap flight days (Travelpayouts)
+const fares = parseFares({ data: [
+  { departure_at: '2026-11-04T07:00:00-06:00', price: 89, airline: 'UA', transfers: 0, link: '/search/CHI0411NYC1' },
+  { departure_at: '2026-11-04T18:00:00-06:00', price: 120, airline: 'AA', transfers: 1 },
+  { departure_at: '2026-11-05T07:00:00-06:00', price: 99, airline: 'B6', transfers: 0 },
+  { departure_at: '2026-11-08T07:00:00-06:00', price: 210, airline: 'UA', transfers: 1 },
+] });
+assert.deepEqual(fares.map(f => [f.day, f.price]), [['2026-11-04', 89], ['2026-11-05', 99], ['2026-11-08', 210]], 'cheapest fare per day');
+assert.equal(fares[0].link, 'https://www.aviasales.com/search/CHI0411NYC1');
+const trip = fares.map(f => ({ ...f, from: { code: 'CHI', name: 'Chicago' }, to: { code: 'NYC', name: 'New York' }, currency: 'usd' }));
+const marked = markCheapFares(trip);
+assert.deepEqual(marked.map(f => f.cheap), [true, true, false], 'within 15% of the lowest');
+const flightEntries = buildEntries({ layers: { flights: true }, fares: trip });
+assert.equal(flightEntries.get('2026-11-04')[0].title, 'New York $89');
+assert.equal(flightEntries.get('2026-11-08')[0].minor, true);
+const best = cheapestFares(trip, { today: '2026-10-20' });
+assert.equal(best.length, 1);
+assert.match(best[0].title, /New York: \$89/);
+assert(headsUp({ today: '2026-10-20', forecast: null, place, layers: { flights: true }, fares: trip, now: 0 }).some(t => t.kind === 'flight'), 'cheapest fare shows even beyond two weeks');
+assert.deepEqual(parsePlaces([{ code: 'CHI', name: 'Chicago', type: 'city', country_name: 'United States' }, { code: 'ORD', name: "O'Hare", city_name: 'Chicago', type: 'airport' }, { code: 'X', type: 'city' }]).map(p => p.name), ['Chicago', "O'Hare (ORD)"]);
+const flightData = normalizeData({ flights: { from: { code: 'CHI', name: 'Chicago' }, to: [{ code: 'CHI', name: 'Chicago' }, { code: 'NYC', name: 'New York' }, { code: 'nyc' }, { code: 'DEN', name: 'Denver' }, { code: 'LAX', name: 'LA' }, { code: 'MIA', name: 'Miami' }] }, nearby: { radius: 99, kinds: ['music', 'bogus'] } });
+assert.deepEqual(flightData.flights.to.map(t => t.code), ['NYC', 'DEN', 'LAX'], 'no flying home, at most three');
+assert.equal(flightData.nearby.radius, 25);
+assert.deepEqual(flightData.nearby.kinds, ['music']);
 
 console.log('PlanFox checks passed.');

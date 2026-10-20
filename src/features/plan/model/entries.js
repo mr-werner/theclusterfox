@@ -3,6 +3,32 @@
 import { itemLayer } from "../state/planStore.js";
 import { dayRange, occurrences } from "./dates.js";
 
+export const money = (amount, currency = "USD") =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase(), maximumFractionDigits: 0 }).format(amount);
+
+const cityName = place => place.name.replace(/\s*\([A-Z]{3}\)$/, "");
+
+/**
+ * Cheap days for each destination: fares within 15% of the cheapest one
+ * found that month (and at most the five lowest) are called out.
+ */
+export function markCheapFares(fares) {
+  const byTrip = new Map();
+  for (const f of fares) {
+    const key = `${f.to.code}|${f.day.slice(0, 7)}`;
+    if (!byTrip.has(key)) byTrip.set(key, []);
+    byTrip.get(key).push(f);
+  }
+  const out = [];
+  for (const list of byTrip.values()) {
+    const sorted = [...list].sort((a, b) => a.price - b.price);
+    const low = sorted[0].price;
+    const cheap = new Set(sorted.filter(f => f.price <= low * 1.15).slice(0, 5));
+    for (const f of list) out.push({ ...f, cheap: cheap.has(f), cheapest: f.price === low });
+  }
+  return out;
+}
+
 const timeOf = iso => {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -19,7 +45,7 @@ export function expandItems(items, from, to) {
  * Map of day → entries: { id, layer, title, time, detail, ... }, sorted
  * with all-day entries first, then by time.
  */
-export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [] }) {
+export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [], nearbyEvents = [], fares = [] }) {
   const byDay = new Map();
   const add = entry => {
     if (!entry.day) return;
@@ -68,6 +94,36 @@ export function buildEntries({ layers, from, to, alerts = [], sessions = [], ins
   }
   if (layers.games) {
     for (const r of releases) add({ id: `r:${r.id}`, day: r.day, layer: "games", title: r.title, detail: r.platforms.join(", "), link: r.url, minor: true });
+  }
+
+  if (layers.nearby) {
+    for (const e of nearbyEvents) {
+      add({
+        id: `n:${e.id}`,
+        day: e.day,
+        layer: "nearby",
+        title: e.title,
+        time: e.time,
+        detail: [e.venue, e.distance != null && `${e.distance} mi`, e.price && `from ${money(e.price.min, e.price.currency)}`, e.status === "offsale" && "sold out"].filter(Boolean).join(" · "),
+        link: e.url,
+        nearby: e,
+        minor: true,
+      });
+    }
+  }
+  if (layers.flights) {
+    for (const f of markCheapFares(fares)) {
+      add({
+        id: `f:${f.to.code}:${f.day}`,
+        day: f.day,
+        layer: "flights",
+        title: `${cityName(f.to)} ${money(f.price, f.currency)}`,
+        detail: [`${f.from.code} to ${f.to.code}`, f.transfers === 0 ? "nonstop" : f.transfers ? `${f.transfers} stop${f.transfers > 1 ? "s" : ""}` : null, f.cheapest ? "cheapest this month" : f.cheap ? "one of the cheapest days" : null].filter(Boolean).join(" · "),
+        link: f.link,
+        fare: f,
+        minor: !f.cheap,
+      });
+    }
   }
 
   for (const list of byDay.values()) {

@@ -43,6 +43,21 @@ export async function fetchSchools(zip, options) {
   return data.schools ?? [];
 }
 
+export async function fetchNearby(place, from, to, radius, options) {
+  const data = await getJson(`/api/plan/events?lat=${place.latitude.toFixed(3)}&lon=${place.longitude.toFixed(3)}&from=${from}&to=${to}&radius=${radius}`, options);
+  return data.events ?? [];
+}
+
+export async function fetchFares(origin, destination, month, currency, options) {
+  const data = await getJson(`/api/plan/flights?from=${origin}&to=${destination}&month=${month}&currency=${currency}`, options);
+  return data.fares ?? [];
+}
+
+export async function searchAirports(term, options) {
+  const data = await getJson(`/api/plan/flights?term=${encodeURIComponent(term)}`, options);
+  return data.places ?? [];
+}
+
 export async function fetchFeed(url, options) {
   return getJson(`/api/plan/feed?url=${encodeURIComponent(url)}`, options);
 }

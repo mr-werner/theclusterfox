@@ -11,12 +11,13 @@ const MAX_PILLS = 3;
 function summarize(entries) {
   const major = entries.filter(e => !e.minor);
   const counts = {};
-  for (const e of entries) if (e.minor && e.layer !== "holidays") counts[e.layer] = (counts[e.layer] ?? 0) + 1;
+  // Ordinary fares only show in the day panel; cheap days get a pill.
+  for (const e of entries) if (e.minor && e.layer !== "holidays" && e.layer !== "flights") counts[e.layer] = (counts[e.layer] ?? 0) + 1;
   const minorHolidays = entries.filter(e => e.minor && e.layer === "holidays");
   return { major: [...major, ...minorHolidays], counts };
 }
 
-const COUNT_LABEL = { sports: ["game", "games"], movies: ["movie", "movies"], games: ["game release", "game releases"] };
+const COUNT_LABEL = { sports: ["game", "games"], movies: ["movie", "movies"], games: ["game release", "game releases"], nearby: ["event nearby", "events nearby"], flights: ["fare", "fares"] };
 
 function Pill({ entry }) {
   return (

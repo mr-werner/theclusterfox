@@ -1180,3 +1180,97 @@ button.pf-entry-main:hover .pf-entry-title {
     padding: 16px;
   }
 }
+
+/* Layer bar and quick setup */
+
+.pf .pf-layer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-layer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--pf-line-strong);
+  border-radius: 999px;
+  color: var(--pf-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-layer-chip .pf-swatch {
+  margin-top: 0;
+  opacity: 0.35;
+}
+
+.pf-layer-chip[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--l) 55%, transparent);
+  color: var(--text, #f4f1ea);
+  background: color-mix(in srgb, var(--l) 16%, transparent);
+}
+
+.pf-layer-chip[aria-pressed="true"] .pf-swatch {
+  opacity: 1;
+}
+
+.pf-setup h2 {
+  margin-bottom: 4px;
+}
+
+.pf-setup .pf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pf .pf-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-preset {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 14px;
+  border: 1px solid var(--pf-line-strong);
+  border-radius: 14px;
+  color: inherit;
+  background: var(--pf-surface-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-preset:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.pf-preset[aria-pressed="true"] {
+  border-color: var(--pf-accent);
+  background: var(--pf-accent-soft);
+}
+
+.pf-preset .pf-muted {
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.pf-setup-done {
+  margin-top: 14px;
+}

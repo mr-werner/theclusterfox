@@ -3,7 +3,7 @@ import { addDays, dayRange, monthGrid, occurrences, relativeDay, formatTime } fr
 import { easter, usHolidays, parseNager } from '../model/holidays.js';
 import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice } from '../model/insights.js';
 import { buildEntries, expandItems } from '../model/entries.js';
-import { normalizeData, mergeData } from '../state/planStore.js';
+import { normalizeData, mergeData, PRESETS, LAYERS, togglePreset } from '../state/planStore.js';
 import { parseIcs, expandIcs, parseIcsDate } from '../../../services/plan/ics.js';
 import { feedUrl, isPublicHost } from '../../../../api/plan/feed.js';
 import { parseScoreboard } from '../../../services/watch/parse.js';
@@ -191,5 +191,19 @@ for (const bad of ['http://localhost/x.ics', 'http://127.0.0.1/x', 'http://10.0.
   assert.equal(feedUrl(bad), null, bad);
 }
 assert(isPublicHost('8.8.8.8'));
+
+// Quick setups only name real layers
+const layerIds = new Set(LAYERS.map(l => l.id));
+assert(PRESETS.every(p => p.layers.every(id => layerIds.has(id))));
+assert.equal(normalizeData({}).setupDone, false);
+assert.equal(normalizeData({ items: [{ id: 'x', day: '2026-10-01' }] }).setupDone, true, 'people who already use it skip setup');
+
+const start = normalizeData({}).layers;
+const fan = PRESETS.find(p => p.id === 'fan');
+const trainingSetup = PRESETS.find(p => p.id === 'training');
+const both = togglePreset(togglePreset(start, fan), trainingSetup);
+assert(both.sports && both.training, 'setups add layers');
+const fanOff = togglePreset(both, fan);
+assert(!fanOff.sports && fanOff.weather && fanOff.events, 'unpicking keeps layers another setup needs');
 
 console.log('PlanFox checks passed.');

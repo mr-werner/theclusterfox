@@ -30,6 +30,31 @@ export const LAYERS = [
   { id: "games", name: "Game releases", group: "World", source: "RAWG", needsKey: "RAWG_API_KEY" },
 ];
 
+// Short labels for the layer bar.
+const SHORT = { wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
+for (const layer of LAYERS) if (SHORT[layer.id]) layer.short = SHORT[layer.id];
+
+// Quick setups: each switches on the layers that fit a way of planning.
+export const PRESETS = [
+  { id: "everyday", name: "Everyday life", hint: "Weather, what to wear, car checks, bills, closures", layers: ["weather", "wear", "car", "events", "tasks", "bills", "holidays"] },
+  { id: "training", name: "Training", hint: "Best times to train outside, what to wear for it", layers: ["weather", "wear", "training", "events"] },
+  { id: "family", name: "School & family", hint: "Deadlines, school calendars, holidays, tasks", layers: ["events", "tasks", "deadlines", "feeds", "holidays", "weather", "wear"] },
+  { id: "fan", name: "Sports fan", hint: "Your teams' games and traffic near stadiums", layers: ["sports", "events", "weather"] },
+  { id: "fun", name: "Entertainment", hint: "Movie and game releases, games, nights out", layers: ["movies", "games", "sports", "events"] },
+  { id: "home", name: "Home & garden", hint: "Frost and watering, car care, bills, chores", layers: ["weather", "garden", "car", "bills", "tasks"] },
+];
+
+/**
+ * Picking a quick setup switches its layers on; picking it again switches
+ * off the ones no other chosen setup needs.
+ */
+export function togglePreset(layers, preset) {
+  const isOn = p => p.layers.every(id => layers[id]);
+  if (!isOn(preset)) return { ...layers, ...Object.fromEntries(preset.layers.map(id => [id, true])) };
+  const keep = new Set(PRESETS.filter(p => p.id !== preset.id && isOn(p)).flatMap(p => p.layers));
+  return { ...layers, ...Object.fromEntries(preset.layers.filter(id => !keep.has(id)).map(id => [id, false])) };
+}
+
 export const ITEM_KINDS = [
   { id: "event", name: "Event", layer: "events" },
   { id: "task", name: "Task", layer: "tasks" },
@@ -48,7 +73,9 @@ export const REPEATS = [
   { id: "yearly", name: "Every year" },
 ];
 
-const DEFAULT_LAYERS = Object.fromEntries(LAYERS.map(l => [l.id, !["garden", "games"].includes(l.id)]));
+// New calendars start small; quick setup and the layer bar add the rest.
+const STARTING_LAYERS = ["weather", "wear", "events", "tasks", "holidays"];
+const DEFAULT_LAYERS = Object.fromEntries(LAYERS.map(l => [l.id, STARTING_LAYERS.includes(l.id)]));
 
 export function emptyData() {
   return {
@@ -67,6 +94,8 @@ export function emptyData() {
     // Team names to highlight, e.g. "Bears".
     teams: [],
     trainingActivityId: "run-easy",
+    // The quick setup card shows until a choice is made or it's closed.
+    setupDone: false,
     updatedAt: null,
     syncedUserId: null,
   };
@@ -139,6 +168,7 @@ export function normalizeData(value) {
       ? [...new Set(value.teams.filter(t => typeof t === "string").map(t => t.trim().slice(0, 40)).filter(Boolean))].slice(0, MAX_TEAMS)
       : [],
     trainingActivityId: typeof value.trainingActivityId === "string" ? value.trainingActivityId : base.trainingActivityId,
+    setupDone: value.setupDone === true || (Array.isArray(value.items) && value.items.length > 0),
     updatedAt: value.updatedAt ?? null,
     syncedUserId: value.syncedUserId ?? null,
   };

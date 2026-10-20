@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { BellRing, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, Layers, List, LoaderCircle, Plus } from "lucide-react";
+import { BellRing, CalendarDays, Settings2, Sparkles, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, List, LoaderCircle, Plus } from "lucide-react";
 
 import SiteHeader from "../../components/SiteHeader";
 import { formatTemp } from "../clocast/units";
@@ -8,10 +8,12 @@ import { AgendaView, MonthView, YearView } from "./components/CalendarViews";
 import DayPanel, { Tip } from "./components/DayPanel";
 import ItemEditor from "./components/ItemEditor";
 import LayerPanel from "./components/LayerPanel";
+import { LayerBar, SetupCard } from "./components/LayerBar";
 import PlaceSearch from "./components/PlaceSearch";
 import { addDays, dayKey, dayRange, monthGrid, monthName, parseDay, todayKey } from "./model/dates";
 import { buildEntries, expandItems } from "./model/entries";
 import { headsUp } from "./model/insights";
+import { togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { useLayerData } from "./state/useLayerData";
 import "./plan.css";
@@ -65,6 +67,12 @@ export default function PlanPage() {
   const [anchor, setAnchor] = useState(today);
   const [editing, setEditing] = useState(null);
   const [showLayers, setShowLayers] = useState(false);
+  const [showSetup, setShowSetup] = useState(!data.setupDone);
+  const closeSetup = () => {
+    setShowSetup(false);
+    if (!data.setupDone) update({ setupDone: true });
+  };
+  const applyPreset = preset => update(current => ({ layers: togglePreset(current.layers, preset) }));
   const [showAllTips, setShowAllTips] = useState(false);
 
   const anchorDate = parseDay(anchor);
@@ -179,6 +187,8 @@ export default function PlanPage() {
 
         <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
 
+        {showSetup && <SetupCard layers={data.layers} onPick={applyPreset} onDismiss={closeSetup} />}
+
         {(ahead.length > 0 || overdue.length > 0) && (
           <section className="pf-panel pf-heads" aria-label="Heads up">
             <h2>
@@ -224,14 +234,19 @@ export default function PlanPage() {
             </button>
           </div>
           <div className="pf-actions">
-            <button type="button" className="pf-btn" aria-expanded={showLayers} onClick={() => setShowLayers(v => !v)}>
-              <Layers size={15} aria-hidden="true" /> Layers
+            <button type="button" className="pf-btn" aria-expanded={showSetup} onClick={() => (showSetup ? closeSetup() : setShowSetup(true))}>
+              <Sparkles size={15} aria-hidden="true" /> Quick setup
+            </button>
+            <button type="button" className="pf-btn" aria-expanded={showLayers} onClick={() => setShowLayers(v => !v)} aria-label="Layer settings">
+              <Settings2 size={15} aria-hidden="true" /> Settings
             </button>
             <button type="button" className="pf-btn pf-btn-primary" onClick={() => openNew()}>
               <Plus size={15} aria-hidden="true" /> Add
             </button>
           </div>
         </div>
+
+        <LayerBar layers={data.layers} onToggle={toggleLayer} />
 
         {showLayers && (
           <LayerPanel

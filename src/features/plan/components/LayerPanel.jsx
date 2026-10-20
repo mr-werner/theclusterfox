@@ -63,7 +63,7 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
       <header className="pf-day-head">
         <div>
           <p className="pf-eyebrow">WHAT SHOWS ON YOUR CALENDAR</p>
-          <h2>Layers</h2>
+          <h2>Layer settings</h2>
         </div>
         <button type="button" className="pf-icon-btn" onClick={onClose} aria-label="Close layers">
           <X size={18} />

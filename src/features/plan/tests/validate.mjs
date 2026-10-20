@@ -4,11 +4,11 @@ import { easter, usHolidays, parseNager } from '../model/holidays.js';
 import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips } from '../model/insights.js';
 import { planSessions, weekFactor, weeklyMinutes } from '../model/training.js';
 import { parseAlerts, inUnitedStates } from '../../../services/plan/alerts.js';
-import { parseSchools } from '../../../../api/plan/schools.js';
+import { parseSchools } from '../../../../api/plan/_schools.js';
 import { buildEntries, expandItems } from '../model/entries.js';
 import { normalizeData, mergeData, PRESETS, LAYERS, togglePreset } from '../state/planStore.js';
 import { parseIcs, expandIcs, parseIcsDate } from '../../../services/plan/ics.js';
-import { feedUrl, isPublicHost } from '../../../../api/plan/feed.js';
+import { feedUrl, isPublicHost } from '../../../../api/plan/_feed.js';
 import { parseScoreboard } from '../../../services/watch/parse.js';
 
 // Dates

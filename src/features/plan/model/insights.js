@@ -181,11 +181,11 @@ export function wearFor(hours, day, place, { time = null, durationHours = 2, act
  * Best time for an outdoor session on a day. With a planned time, says
  * how it scores and whether another time is clearly better.
  */
-export function trainingAdvice(hours, day, place, { activityId = "run-easy", time = null, minutes = 60, notBefore = 0, options = {} } = {}) {
+export function trainingAdvice(hours, day, place, { activityId = "run-easy", time = null, minutes = 60, notBefore = 0, earliest = 5, latest = 21, options = {} } = {}) {
   const activity = activitiesById.get(activityId);
   if (!activity || !place) return null;
   const duration = Math.max(1, Math.round(minutes / 60));
-  const ranked = rankStarts(hours, place, activity, { day, duration, earliest: 5, latest: 21, notBefore, options });
+  const ranked = rankStarts(hours, place, activity, { day, duration, earliest, latest, notBefore, options });
   const best = ranked[0];
   if (!best) return null;
   let chosen = null;
@@ -265,7 +265,7 @@ export function itemNotes(instances, holidays, today) {
  * The heads-up list: what's coming in the next two weeks that is worth
  * acting on now. Returns tips sorted by day, each with a day key.
  */
-export function headsUp({ today, forecast, place, instances = [], games = [], holidays = [], layers = {}, formatTemp = defaultFormat, trainingActivityId = "run-easy", options = {}, now = Date.now(), forecastFor = () => null }) {
+export function headsUp({ today, forecast, place, instances = [], games = [], holidays = [], layers = {}, formatTemp = defaultFormat, trainingActivityId = "run-easy", options = {}, now = Date.now(), forecastFor = () => null, alerts = [], planSessions = [], planWindow }) {
   const end = addDays(today, 14);
   const soon = list => list.filter(t => t.day >= today && t.day <= end);
   const tips = [];
@@ -280,6 +280,21 @@ export function headsUp({ today, forecast, place, instances = [], games = [], ho
       if (!h.note) continue;
       tips.push({ day: h.day, kind: h.closed ? "closed" : "holiday", tone: h.closed ? "caution" : "info", title: h.name, text: h.note });
     }
+  }
+
+  if (layers.alerts !== false) {
+    for (const a of alerts) {
+      tips.push({
+        day: a.from < today ? today : a.from,
+        kind: "alert",
+        tone: a.tone,
+        title: a.event,
+        text: [a.headline, a.instruction].filter(Boolean).map(t => (/[.!?]$/.test(t) ? t : `${t}.`)).join(" ").slice(0, 320),
+      });
+    }
+  }
+  if (layers.training !== false && planSessions.length) {
+    tips.push(...planWeatherTips(planSessions.filter(s => !s.done && s.day >= today && s.day <= end), hours, place, { window: planWindow, notBefore: now, today }));
   }
 
   tips.push(...eventConflicts(soon(instances), games));
@@ -333,4 +348,40 @@ export function headsUp({ today, forecast, place, instances = [], games = [], ho
   return tips
     .filter(t => (t.day >= today && t.day <= end) || t.kind === "overdue")
     .sort((a, b) => a.day.localeCompare(b.day));
+}
+
+/**
+ * Weather moves for a training plan: when an outdoor session lands on a
+ * poor day and the day before or after is free and clearly better, say so.
+ * window: { earliest, latest } local hours the person likes to train.
+ */
+export function planWeatherTips(sessions, hours, place, { window = { earliest: 6, latest: 21 }, notBefore = 0, today } = {}) {
+  if (!hours.length || !place) return [];
+  const busy = new Set(sessions.map(s => s.day));
+  const days = new Set(hours.map(h => h.localDay));
+  const best = (day, s) =>
+    trainingAdvice(hours, day, place, { activityId: s.activityId, minutes: s.minutes, notBefore: day === today ? notBefore : 0, ...window })?.best ?? null;
+  const tips = [];
+  for (const s of sessions) {
+    if (!s.outdoor || !days.has(s.day) || (today && s.day < today)) continue;
+    const here = best(s.day, s);
+    if (!here || here.score >= 45) continue;
+    const options = [addDays(s.day, -1), addDays(s.day, 1)]
+      .filter(d => days.has(d) && !busy.has(d) && (!today || d >= today))
+      .map(d => ({ day: d, best: best(d, s) }))
+      .filter(o => o.best && o.best.score - here.score >= 25)
+      .sort((a, b) => b.best.score - a.best.score);
+    const move = options[0];
+    const weekday = d => parseDay(d).toLocaleDateString("en-US", { weekday: "long" });
+    tips.push({
+      day: s.day,
+      kind: "train",
+      tone: "caution",
+      title: move ? `Move ${s.title.split(":")[0].toLowerCase()} to ${weekday(move.day)}` : `Rough weather for ${s.title.split(":")[0].toLowerCase()}`,
+      text: move
+        ? `${weekday(s.day)} scores ${here.score}/100 at best (${here.factors.slice(0, 2).map(f => f.text).join(", ") || "poor conditions"}). ${weekday(move.day)} at ${formatHour(move.best.startHour)} scores ${move.best.score}.`
+        : `Best window is ${formatHour(here.startHour)} (${here.score}/100). Consider doing it indoors.`,
+    });
+  }
+  return tips;
 }

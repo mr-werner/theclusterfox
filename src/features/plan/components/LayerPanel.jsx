@@ -6,11 +6,12 @@ import { forgetFeed } from "../../../services/plan/planApi";
 import { feedUrlLooksValid } from "../model/feeds";
 import { COUNTRIES } from "../model/holidays";
 import { LAYERS } from "../state/planStore";
+import SchoolFinder from "./SchoolFinder";
 
 // Layers people asked for that need a paid or keyed data source first.
 const COMING = [
   { name: "Flight prices", why: "Needs a flight data provider (such as Duffel or Kiwi), which charges or needs approval." },
-  { name: "Local events & concerts", why: "Needs a free Ticketmaster or SeatGeek key." },
+  { name: "Local events & concerts", why: "Needs a free Ticketmaster key. Next on the list." },
   { name: "Traffic", why: "Needs a traffic data key (TomTom, HERE or Google)." },
   { name: "Road closures & city projects", why: "Each city publishes its own open data; most can be linked as a calendar below." },
 ];
@@ -20,9 +21,10 @@ const STATUS_TEXT = {
   error: "Couldn't load",
   "no-key": "Needs a key",
   range: "Shown in month and agenda views",
+  "us-only": "US locations only",
 };
 
-export default function LayerPanel({ data, update, toggleLayer, status, errors, feedErrors, onClose }) {
+export default function LayerPanel({ data, update, toggleLayer, status, errors, feedErrors, onClose, onOpenPlanner }) {
   const [teamText, setTeamText] = useState("");
   const [feedName, setFeedName] = useState("");
   const [feedLink, setFeedLink] = useState("");
@@ -51,6 +53,13 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
     setFeedName("");
     setFeedLink("");
     setFeedMessage("");
+  }
+
+  function linkSchool({ name, url }) {
+    update(current => ({
+      feeds: [...current.feeds.filter(f => f.url !== url), { id: crypto.randomUUID(), name, url, updatedAt: new Date().toISOString() }],
+      layers: { ...current.layers, feeds: true },
+    }));
   }
 
   function removeFeed(feed) {
@@ -183,6 +192,16 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
           </button>
         </form>
         {feedMessage && <p className="pf-note is-warn">{feedMessage}</p>}
+        <h3 className="pf-subhead">Find a school near you (US)</h3>
+        <SchoolFinder place={data.place} onLink={linkSchool} />
+      </div>
+
+      <div className="pf-layer-group">
+        <h3>Training plan</h3>
+        <p className="pf-note">{data.program ? "Your plan is on the calendar under Training." : "Get a plan for strength, cardio, general fitness or a first 5K, built from published exercise guidelines."}</p>
+        <button type="button" className="pf-btn" onClick={onOpenPlanner}>
+          {data.program ? "Edit training plan" : "Build a training plan"}
+        </button>
       </div>
 
       <div className="pf-layer-group">

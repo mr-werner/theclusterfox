@@ -38,6 +38,11 @@ export async function fetchGameReleases(from, to, options) {
   return data.games ?? [];
 }
 
+export async function fetchSchools(zip, options) {
+  const data = await getJson(`/api/plan/schools?zip=${encodeURIComponent(zip)}`, options);
+  return data.schools ?? [];
+}
+
 export async function fetchFeed(url, options) {
   return getJson(`/api/plan/feed?url=${encodeURIComponent(url)}`, options);
 }

@@ -1,7 +1,7 @@
 // Turns every layer into one list of calendar entries per day.
 
 import { itemLayer } from "../state/planStore.js";
-import { occurrences } from "./dates.js";
+import { dayRange, occurrences } from "./dates.js";
 
 const timeOf = iso => {
   const d = new Date(iso);
@@ -19,7 +19,7 @@ export function expandItems(items, from, to) {
  * Map of day → entries: { id, layer, title, time, detail, ... }, sorted
  * with all-day entries first, then by time.
  */
-export function buildEntries({ layers, instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [] }) {
+export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [] }) {
   const byDay = new Map();
   const add = entry => {
     if (!entry.day) return;
@@ -29,6 +29,17 @@ export function buildEntries({ layers, instances = [], holidays = [], games = []
 
   if (layers.holidays) {
     for (const h of holidays) add({ id: `h:${h.day}:${h.name}`, day: h.day, layer: "holidays", title: h.name, detail: h.note, closed: h.closed, minor: h.kind === "observance" });
+  }
+  if (layers.alerts && from && to) {
+    for (const a of alerts) {
+      const start = a.from < from ? from : a.from;
+      const end = (a.to ?? a.from) > to ? to : a.to ?? a.from;
+      if (start > end) continue;
+      for (const day of dayRange(start, end)) add({ id: `a:${a.id}:${day}`, day, layer: "alerts", title: a.event, detail: a.headline, alert: a });
+    }
+  }
+  if (layers.training) {
+    for (const s of sessions) add({ id: `p:${s.id}`, day: s.day, layer: "training", title: s.title, session: s, done: s.done });
   }
   for (const item of instances) {
     const layer = itemLayer(item.kind);

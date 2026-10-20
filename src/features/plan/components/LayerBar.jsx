@@ -20,7 +20,7 @@ export function LayerBar({ layers, onToggle }) {
 
 // First visit: pick what the calendar is for. Each choice switches on a
 // set of layers; anything can still be toggled afterwards.
-export function SetupCard({ layers, onPick, onDismiss }) {
+export function SetupCard({ layers, onPick, onDismiss, hasPlan, onOpenPlanner }) {
   return (
     <section className="pf-panel pf-setup" aria-label="What do you want to plan around?">
       <header className="pf-day-head">
@@ -45,9 +45,16 @@ export function SetupCard({ layers, onPick, onDismiss }) {
           </li>
         ))}
       </ul>
-      <button type="button" className="pf-btn pf-btn-primary pf-setup-done" onClick={onDismiss}>
-        Done
-      </button>
+      <div className="pf-setup-actions">
+        {layers.training && !hasPlan && (
+          <button type="button" className="pf-btn" onClick={onOpenPlanner}>
+            Build a training plan
+          </button>
+        )}
+        <button type="button" className="pf-btn pf-btn-primary" onClick={onDismiss}>
+          Done
+        </button>
+      </div>
     </section>
   );
 }

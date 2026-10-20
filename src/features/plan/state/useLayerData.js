@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { fetchFeed, fetchGameReleases, fetchMovies, fetchSchedule } from "../../../services/plan/planApi";
 import { expandIcs } from "../../../services/plan/ics";
+import { fetchAlerts, inUnitedStates } from "../../../services/plan/alerts";
 import { fetchForecast } from "../../../services/weather/openMeteo";
 import { addDays, dayKey, todayKey } from "../model/dates";
 import { fetchHolidays } from "../model/holidays";
@@ -46,6 +47,8 @@ export function useLayerData(data, from, to) {
   const home = useKeyed(layers.weather || layers.wear || layers.car || layers.garden || layers.training ? placeKey(place) : null, signal =>
     fetchForecast(place, { signal })
   );
+
+  const alerts = useKeyed(layers.alerts && inUnitedStates(place) ? placeKey(place) : null, signal => fetchAlerts(place, { signal }));
 
   // Forecasts for the places of upcoming items elsewhere (up to three).
   const away = useMemo(() => {
@@ -122,6 +125,7 @@ export function useLayerData(data, from, to) {
     forecastStatus: home,
     awayForecasts: awayForecasts.value ?? new Map(),
     holidays: holidays.value ?? [],
+    alerts: alerts.value ?? [],
     games,
     movies: movies.value ?? [],
     releases: releases.value ?? [],
@@ -129,12 +133,13 @@ export function useLayerData(data, from, to) {
     feedErrors: (feedData.value ?? []).filter(f => f.error).map(f => ({ id: f.feed.id, error: f.error })),
     status: {
       weather: home.status,
+      alerts: layers.alerts && place && !inUnitedStates(place) ? "us-only" : alerts.status,
       holidays: holidays.status,
       sports: sportsKey === null && layers.sports && !short ? "range" : sports.status,
       movies: layers.movies && !short ? "range" : movies.status,
       games: layers.games && !short ? "range" : releases.status,
       feeds: feedData.status,
     },
-    errors: { weather: home.error, holidays: holidays.error, sports: sports.error, movies: movies.error, games: releases.error },
+    errors: { alerts: alerts.error, weather: home.error, holidays: holidays.error, sports: sports.error, movies: movies.error, games: releases.error },
   };
 }

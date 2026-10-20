@@ -8,11 +8,13 @@ import { AgendaView, MonthView, YearView } from "./components/CalendarViews";
 import DayPanel, { Tip } from "./components/DayPanel";
 import ItemEditor from "./components/ItemEditor";
 import LayerPanel from "./components/LayerPanel";
+import TrainingPlanner from "./components/TrainingPlanner";
 import { LayerBar, SetupCard } from "./components/LayerBar";
 import PlaceSearch from "./components/PlaceSearch";
 import { addDays, dayKey, dayRange, monthGrid, monthName, parseDay, todayKey } from "./model/dates";
 import { buildEntries, expandItems } from "./model/entries";
 import { headsUp } from "./model/insights";
+import { planSessions, TIMES } from "./model/training";
 import { togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { useLayerData } from "./state/useLayerData";
@@ -67,6 +69,7 @@ export default function PlanPage() {
   const [anchor, setAnchor] = useState(today);
   const [editing, setEditing] = useState(null);
   const [showLayers, setShowLayers] = useState(false);
+  const [showPlanner, setShowPlanner] = useState(false);
   const [showSetup, setShowSetup] = useState(!data.setupDone);
   const closeSetup = () => {
     setShowSetup(false);
@@ -87,13 +90,26 @@ export default function PlanPage() {
   }, [view, year, month, anchor]);
 
   const layerData = useLayerData(data, from, to);
-  const { forecast, awayForecasts, holidays, games } = layerData;
+  const { forecast, awayForecasts, holidays, games, alerts } = layerData;
+
+  // Training plan sessions, with the ones already checked off marked done.
+  const allSessions = useMemo(() => {
+    const done = new Set(data.programDone);
+    return planSessions(data.program).map(s => ({ ...s, done: done.has(s.id) }));
+  }, [data.program, data.programDone]);
+  const sessions = useMemo(() => allSessions.filter(s => s.day >= from && s.day <= to), [allSessions, from, to]);
+  const planWindow = TIMES.find(t => t.id === data.program?.time) ?? TIMES[0];
+  const toggleSession = id => update(current => ({ programDone: current.programDone.includes(id) ? current.programDone.filter(d => d !== id) : [...current.programDone, id] }));
 
   const instances = useMemo(() => expandItems(data.items, from, to), [data.items, from, to]);
   const entriesByDay = useMemo(
     () =>
       buildEntries({
         layers: data.layers,
+        from,
+        to,
+        alerts,
+        sessions,
         instances,
         holidays,
         games,
@@ -102,7 +118,7 @@ export default function PlanPage() {
         feedEvents: layerData.feedEvents,
         teams: data.teams,
       }),
-    [data.layers, data.teams, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents]
+    [data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents]
   );
   const forecastByDay = useMemo(() => new Map((forecast?.days ?? []).map(d => [d.day, d])), [forecast]);
 
@@ -123,8 +139,11 @@ export default function PlanPage() {
         trainingActivityId: data.trainingActivityId,
         forecastFor: place => awayForecasts.get(placeKey(place)) ?? null,
         now,
+        alerts: data.layers.alerts ? alerts : [],
+        planSessions: allSessions,
+        planWindow,
       }),
-    [now, today, forecast, data.place, data.layers, data.units, data.trainingActivityId, upcoming, games, holidays, awayForecasts]
+    [now, alerts, allSessions, planWindow, today, forecast, data.place, data.layers, data.units, data.trainingActivityId, upcoming, games, holidays, awayForecasts]
   );
   const tipsByDay = useMemo(() => {
     const map = new Map();
@@ -187,7 +206,7 @@ export default function PlanPage() {
 
         <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
 
-        {showSetup && <SetupCard layers={data.layers} onPick={applyPreset} onDismiss={closeSetup} />}
+        {showSetup && <SetupCard layers={data.layers} onPick={applyPreset} onDismiss={closeSetup} hasPlan={Boolean(data.program)} onOpenPlanner={() => setShowPlanner(true)} />}
 
         {(ahead.length > 0 || overdue.length > 0) && (
           <section className="pf-panel pf-heads" aria-label="Heads up">
@@ -257,6 +276,25 @@ export default function PlanPage() {
             errors={layerData.errors}
             feedErrors={layerData.feedErrors}
             onClose={() => setShowLayers(false)}
+            onOpenPlanner={() => {
+              setShowLayers(false);
+              setShowPlanner(true);
+            }}
+          />
+        )}
+
+        {showPlanner && (
+          <TrainingPlanner
+            program={data.program}
+            onClose={() => setShowPlanner(false)}
+            onSave={program => {
+              update(current => ({ program, layers: { ...current.layers, training: true, weather: true } }));
+              setShowPlanner(false);
+            }}
+            onRemove={() => {
+              update({ program: null });
+              setShowPlanner(false);
+            }}
           />
         )}
 
@@ -318,6 +356,9 @@ export default function PlanPage() {
               onAdd={openNew}
               onEdit={openEdit}
               onToggleDone={toggleDone}
+              onToggleSession={toggleSession}
+              onOpenPlanner={data.program ? null : () => setShowPlanner(true)}
+              planWindow={planWindow}
             />
           )}
         </div>

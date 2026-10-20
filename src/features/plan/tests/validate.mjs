@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { addDays, dayRange, monthGrid, occurrences, relativeDay, formatTime } from '../model/dates.js';
 import { easter, usHolidays, parseNager } from '../model/holidays.js';
-import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice } from '../model/insights.js';
+import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips } from '../model/insights.js';
+import { planSessions, weekFactor, weeklyMinutes } from '../model/training.js';
+import { parseAlerts, inUnitedStates } from '../../../services/plan/alerts.js';
+import { parseSchools } from '../../../../api/plan/schools.js';
 import { buildEntries, expandItems } from '../model/entries.js';
 import { normalizeData, mergeData, PRESETS, LAYERS, togglePreset } from '../state/planStore.js';
 import { parseIcs, expandIcs, parseIcsDate } from '../../../services/plan/ics.js';
@@ -205,5 +208,86 @@ const both = togglePreset(togglePreset(start, fan), trainingSetup);
 assert(both.sports && both.training, 'setups add layers');
 const fanOff = togglePreset(both, fan);
 assert(!fanOff.sports && fanOff.weather && fanOff.events, 'unpicking keeps layers another setup needs');
+
+// Training plans
+assert.equal(weekFactor(0), 1);
+assert.equal(weekFactor(1), 1.08);
+assert(weekFactor(3) < weekFactor(2), 'every fourth week is lighter');
+assert(weekFactor(4) > weekFactor(2), 'and building resumes after it');
+assert(weekFactor(40) <= 1.6, 'volume tops out');
+const general = planSessions({ id: 'p', goal: 'general', level: 'new', days: 4, start: '2026-10-26', weeks: 12, cardio: 'run', time: 'any' });
+assert.equal(general.length, 48, '4 days for 12 weeks');
+assert(general.every(s => s.day >= '2026-10-26'), 'nothing before the start');
+assert.equal(new Set(general.map(s => s.id)).size, general.length, 'ids are unique');
+const weeks = weeklyMinutes(general);
+assert([...weeks.values()].every(w => w.strengthDays >= 2), 'strength at least twice a week (WHO)');
+assert(weeks.get(3).cardio > weeks.get(1).cardio, 'cardio builds');
+assert(weeks.get(4).cardio < weeks.get(3).cardio, 'deload week is lighter');
+assert(general.filter(s => s.outdoor).every(s => s.activityId === 'run-easy'));
+const midweek = planSessions({ id: 'q', goal: 'strength', level: 'some', days: 3, start: '2026-10-28', weeks: 8, cardio: 'bike' });
+assert(midweek[0].day >= '2026-10-28' && midweek.length < 24, 'a midweek start skips the days already gone');
+const fiveK = planSessions({ id: 'r', goal: '5k', level: 'new', days: 5, start: '2026-10-26', weeks: 16 });
+assert.equal(fiveK.length, 27, '5K plan is 9 weeks of 3 days');
+assert.match(fiveK[0].title, /Run\/walk/);
+assert.match(fiveK.at(-1).title, /Run 30 min/);
+const cardioPlan = planSessions({ id: 's', goal: 'cardio', level: 'some', days: 5, start: '2026-10-26', weeks: 8, cardio: 'run' });
+assert(cardioPlan.some(s => /Intervals: 4 × 4/.test(s.title)), '4×4 intervals');
+assert.equal(planSessions(null).length, 0);
+
+// Plan sessions on a bad weather day get a move suggestion
+const stormy = [];
+for (const [day, bad] of [['2026-10-21', true], ['2026-10-22', false]]) {
+  for (let h = 0; h < 24; h++) {
+    stormy.push({
+      time: new Date(Date.UTC(2026, 9, day === '2026-10-21' ? 21 : 22, h + 5)), localHour: h, localDay: day, temp: bad ? 2 : 15, apparent: bad ? -4 : 15, rh: bad ? 95 : 55,
+      wind: bad ? 14 : 3, gust: bad ? 22 : 5, precipProb: bad ? 95 : 0, precip: bad ? 4 : 0, code: bad ? 95 : 1, uv: 2,
+      isDay: h >= 7 && h <= 18, global: 200, directNormal: 300, diffuse: 80,
+    });
+  }
+}
+const run = { id: 'p:2026-10-21', day: '2026-10-21', title: 'Easy run: 30 min', minutes: 30, outdoor: true, activityId: 'run-easy' };
+const moves = planWeatherTips([run], stormy, place, { today: '2026-10-20' });
+assert.equal(moves.length, 1);
+assert.match(moves[0].title, /Move easy run to Thursday/);
+assert.equal(planWeatherTips([{ ...run, outdoor: false }], stormy, place, { today: '2026-10-20' }).length, 0, 'indoor sessions are left alone');
+assert.equal(planWeatherTips([run, { ...run, id: 'x', day: '2026-10-22' }], stormy, place, { today: '2026-10-20' })[0].title.startsWith('Rough'), true, "doesn't move onto a day that already has a session");
+
+// Weather alerts (NWS)
+const alerts = parseAlerts({ features: [
+  { properties: { id: 'a1', event: 'Winter Storm Warning', headline: 'Winter Storm Warning until Thu', severity: 'Severe', onset: '2026-10-21T18:00:00-05:00', ends: '2026-10-23T06:00:00-05:00', areaDesc: 'Cook', description: 'Heavy  snow\n expected.' } },
+  { properties: { id: 'a2', event: 'Test Message', status: 'Test', sent: '2026-10-21T00:00:00Z' } },
+  { properties: { id: 'a3', event: 'Wind Advisory', severity: 'Minor', effective: '2026-10-22T09:00:00-05:00', expires: '2026-10-22T18:00:00-05:00' } },
+] });
+assert.equal(alerts.length, 2, 'test messages are dropped');
+assert.equal(alerts[0].tone, 'warn');
+assert.equal(alerts[0].text, 'Heavy snow expected.');
+assert.equal(alerts[1].tone, 'info');
+assert.deepEqual(parseAlerts({}), []);
+assert(inUnitedStates(place));
+assert(!inUnitedStates({ latitude: 51.5, longitude: -0.12 }), 'London is not covered');
+const alertEntries = buildEntries({ layers: { alerts: true }, from: '2026-10-01', to: '2026-10-31', alerts: [{ ...alerts[0], from: '2026-10-21', to: '2026-10-23' }] });
+assert.deepEqual([...alertEntries.keys()].sort(), ['2026-10-21', '2026-10-22', '2026-10-23'], 'an alert shows on every day it covers');
+const planEntries = buildEntries({ layers: { training: true }, sessions: [{ ...general[0], done: true }] });
+assert.equal(planEntries.get(general[0].day)[0].done, true);
+assert.equal(buildEntries({ layers: {}, sessions: general }).size, 0, 'hidden when training is off');
+const alertHeads = headsUp({ today: '2026-10-20', forecast: null, place, alerts, layers: { alerts: true }, now: 0 });
+assert(alertHeads.some(t => t.kind === 'alert' && /Winter Storm/.test(t.title)), 'alerts make the heads-up list');
+
+// Training plan in the store
+const withPlan = normalizeData({ program: { id: 'p', goal: 'cardio', level: 'some', days: 9, start: '2026-10-26', weeks: 12, cardio: 'run', time: 'morning' }, programDone: ['p:2026-10-27', 5] });
+assert.equal(withPlan.program.days, 6, 'days clamp to 6');
+assert.deepEqual(withPlan.programDone, ['p:2026-10-27']);
+assert.equal(normalizeData({ program: { goal: 'nonsense' } }).program, null);
+assert.deepEqual(mergeData(normalizeData({ programDone: ['a'] }), normalizeData({ programDone: ['b'] })).programDone.sort(), ['a', 'b']);
+
+// School directory
+const schools = parseSchools([
+  { ncessch: 3, school_name: 'Lincoln High', lea_name: 'District 1', school_level: 3, lowest_grade_offered: 9, highest_grade_offered: 12, city_location: 'Springfield' },
+  { ncessch: 1, school_name: 'Adams Elementary', lea_name: 'District 1', school_level: 1, lowest_grade_offered: -1, highest_grade_offered: 5 },
+  { ncessch: 2, school_name: 'Closed Middle', school_level: 2, school_status: 2 },
+]);
+assert.deepEqual(schools.map(s => s.name), ['Adams Elementary', 'Lincoln High'], 'closed schools dropped, elementary first');
+assert.equal(schools[0].grades, 'PK–5');
+assert.deepEqual(parseSchools(null), []);
 
 console.log('PlanFox checks passed.');

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Car, CircleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Sunrise, Sunset, TrafficCone } from "lucide-react";
+import { Car, CircleAlert, TriangleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Sunrise, Sunset, TrafficCone } from "lucide-react";
 
 import WeatherIcon from "../../clocast/components/WeatherIcon";
 import { activities } from "../../clocast/data/activities";
@@ -8,9 +8,10 @@ import { describeWeather } from "../../../services/weather/openMeteo";
 import { formatTime, longDate, parseDay, relativeDay } from "../model/dates";
 import { GARDEN_MONTHS, trainingAdvice, wearFor } from "../model/insights";
 
-const TIP_ICONS = { car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell };
+const TIP_ICONS = { alert: TriangleAlert, car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell };
 const LAYER_LABEL = {
   holidays: "Holiday",
+  alerts: "Weather alert",
   events: "Event",
   tasks: "Task",
   bills: "Bill",
@@ -114,6 +115,43 @@ function ItemEntry({ entry, today, now, hours, homePlace, awayForecasts, units, 
   );
 }
 
+function SessionEntry({ entry, today, now, hours, place, planWindow, onToggle }) {
+  const s = entry.session;
+  const [open, setOpen] = useState(false);
+  const advice =
+    s.outdoor && hours.length && place
+      ? trainingAdvice(hours, s.day, place, { activityId: s.activityId, minutes: s.minutes, notBefore: s.day === today ? now : 0, earliest: planWindow.earliest, latest: planWindow.latest })
+      : null;
+  return (
+    <li className={`pf-entry pf-l-training${s.done ? " is-done" : ""}`}>
+      <input type="checkbox" checked={s.done} onChange={() => onToggle(s.id)} aria-label={`Mark ${s.title} done`} />
+      <div className="pf-entry-main">
+        <button type="button" className="pf-entry-main" onClick={() => setOpen(v => !v)} aria-expanded={open}>
+          <span className="pf-entry-title">{s.title}</span>
+          <span className="pf-entry-meta">
+            Training plan · week {s.week}
+            {s.deload && " (lighter week)"} · {s.minutes} min{s.outdoor ? " · outside" : " · indoors or gym"}
+          </span>
+          {advice && (
+            <span className="pf-entry-note">
+              Best time: {formatHour(advice.best.startHour)} ({advice.best.label.toLowerCase()}, {advice.best.score}/100)
+              {advice.reasons.length ? `. Watch for ${advice.reasons.join(", ")}` : ""}
+            </span>
+          )}
+          <span className="pf-entry-note pf-muted">{s.intensity}</span>
+        </button>
+        {open && (
+          <ol className="pf-steps">
+            {s.steps.map(step => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </li>
+  );
+}
+
 function OtherEntry({ entry }) {
   const g = entry.game;
   return (
@@ -146,7 +184,7 @@ function OtherEntry({ entry }) {
   );
 }
 
-export default function DayPanel({ day, today, now, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
+export default function DayPanel({ day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
   const [showAllMinor, setShowAllMinor] = useState(false);
   const hours = forecast?.hours ?? [];
   const weather = forecast?.days.find(d => d.day === day);
@@ -155,9 +193,10 @@ export default function DayPanel({ day, today, now, entries, tips, forecast, pla
   const training = layers.training && inForecast && place ? trainingAdvice(hours, day, place, { activityId: trainingActivityId, notBefore: day === today ? now : 0 }) : null;
   const outdoor = activities.filter(a => a.mets >= 3);
 
+  const plan = entries.filter(e => e.session);
   const mine = entries.filter(e => e.item);
-  const others = entries.filter(e => !e.item && !e.minor);
-  const minor = entries.filter(e => !e.item && e.minor);
+  const others = entries.filter(e => !e.item && !e.session && !e.minor);
+  const minor = entries.filter(e => !e.item && !e.session && e.minor);
   const minorShown = showAllMinor ? minor : minor.slice(0, MINOR_SHOWN);
 
   return (
@@ -202,6 +241,11 @@ export default function DayPanel({ day, today, now, entries, tips, forecast, pla
               {formatHour(training.best.startHour)} · {training.best.label} ({training.best.score}/100)
             </p>
             {training.reasons.length > 0 && <p className="pf-muted">Watch for: {training.reasons.join(", ")}</p>}
+            {!plan.length && onOpenPlanner && (
+              <button type="button" className="pf-link-btn" onClick={onOpenPlanner}>
+                Get a training plan built for you
+              </button>
+            )}
             <label className="pf-inline-select">
               <span className="pf-muted">For</span>
               <select value={trainingActivityId} onChange={e => onTrainingActivity(e.target.value)}>
@@ -225,6 +269,9 @@ export default function DayPanel({ day, today, now, entries, tips, forecast, pla
       )}
 
       <ul className="pf-entries">
+        {plan.map(entry => (
+          <SessionEntry key={entry.id} entry={entry} today={today} now={now} hours={hours} place={place} planWindow={planWindow} onToggle={onToggleSession} />
+        ))}
         {mine.map(entry => (
           <ItemEntry
             key={entry.id}

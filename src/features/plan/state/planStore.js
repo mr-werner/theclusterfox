@@ -16,6 +16,7 @@ const MAX_TEAMS = 30;
 export const LAYERS = [
   { id: "weather", name: "Weather", group: "Outside", source: "Open-Meteo, 14 days ahead" },
   { id: "wear", name: "What to wear", group: "Outside", source: "CloCast clothing model" },
+  { id: "alerts", name: "Severe weather alerts", group: "Outside", source: "National Weather Service (US only)" },
   { id: "car", name: "Car checks", group: "Outside", source: "From the forecast" },
   { id: "garden", name: "Gardening", group: "Outside", source: "From the forecast, plus monthly jobs" },
   { id: "events", name: "My events", group: "Mine" },
@@ -31,17 +32,17 @@ export const LAYERS = [
 ];
 
 // Short labels for the layer bar.
-const SHORT = { wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
+const SHORT = { alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
 for (const layer of LAYERS) if (SHORT[layer.id]) layer.short = SHORT[layer.id];
 
 // Quick setups: each switches on the layers that fit a way of planning.
 export const PRESETS = [
-  { id: "everyday", name: "Everyday life", hint: "Weather, what to wear, car checks, bills, closures", layers: ["weather", "wear", "car", "events", "tasks", "bills", "holidays"] },
+  { id: "everyday", name: "Everyday life", hint: "Weather, what to wear, car checks, bills, closures", layers: ["weather", "alerts", "wear", "car", "events", "tasks", "bills", "holidays"] },
   { id: "training", name: "Training", hint: "Best times to train outside, what to wear for it", layers: ["weather", "wear", "training", "events"] },
   { id: "family", name: "School & family", hint: "Deadlines, school calendars, holidays, tasks", layers: ["events", "tasks", "deadlines", "feeds", "holidays", "weather", "wear"] },
   { id: "fan", name: "Sports fan", hint: "Your teams' games and traffic near stadiums", layers: ["sports", "events", "weather"] },
   { id: "fun", name: "Entertainment", hint: "Movie and game releases, games, nights out", layers: ["movies", "games", "sports", "events"] },
-  { id: "home", name: "Home & garden", hint: "Frost and watering, car care, bills, chores", layers: ["weather", "garden", "car", "bills", "tasks"] },
+  { id: "home", name: "Home & garden", hint: "Frost and watering, car care, bills, chores", layers: ["weather", "alerts", "garden", "car", "bills", "tasks"] },
 ];
 
 /**
@@ -74,7 +75,7 @@ export const REPEATS = [
 ];
 
 // New calendars start small; quick setup and the layer bar add the rest.
-const STARTING_LAYERS = ["weather", "wear", "events", "tasks", "holidays"];
+const STARTING_LAYERS = ["weather", "alerts", "wear", "events", "tasks", "holidays"];
 const DEFAULT_LAYERS = Object.fromEntries(LAYERS.map(l => [l.id, STARTING_LAYERS.includes(l.id)]));
 
 export function emptyData() {
@@ -94,6 +95,10 @@ export function emptyData() {
     // Team names to highlight, e.g. "Bears".
     teams: [],
     trainingActivityId: "run-easy",
+    // Training plan: { id, goal, level, days, start, weeks, cardio, time, updatedAt }
+    program: null,
+    // Plan sessions checked off, by session id.
+    programDone: [],
     // The quick setup card shows until a choice is made or it's closed.
     setupDone: false,
     updatedAt: null,
@@ -110,6 +115,7 @@ function cleanPlace(place) {
     region: typeof place.region === "string" ? place.region.slice(0, 80) : "",
     latitude: place.latitude,
     longitude: place.longitude,
+    postcode: typeof place.postcode === "string" ? place.postcode.slice(0, 12) : null,
   };
 }
 
@@ -136,6 +142,21 @@ function cleanItem(item) {
     notes: text(item.notes, 1000),
     done: Array.isArray(item.done) ? [...new Set(item.done.filter(isDayKey))].slice(-400) : [],
     updatedAt: item.updatedAt ?? null,
+  };
+}
+
+function cleanProgram(p) {
+  if (!p || typeof p !== "object" || !p.id || !isDayKey(p.start)) return null;
+  return {
+    id: String(p.id),
+    goal: ["general", "strength", "cardio", "5k"].includes(p.goal) ? p.goal : "general",
+    level: p.level === "some" ? "some" : "new",
+    days: Math.min(6, Math.max(3, Math.round(Number(p.days) || 3))),
+    start: p.start,
+    weeks: [8, 12, 16].includes(p.weeks) ? p.weeks : 12,
+    cardio: ["run", "bike", "walk"].includes(p.cardio) ? p.cardio : "run",
+    time: ["any", "morning", "midday", "evening"].includes(p.time) ? p.time : "any",
+    updatedAt: p.updatedAt ?? null,
   };
 }
 
@@ -168,6 +189,8 @@ export function normalizeData(value) {
       ? [...new Set(value.teams.filter(t => typeof t === "string").map(t => t.trim().slice(0, 40)).filter(Boolean))].slice(0, MAX_TEAMS)
       : [],
     trainingActivityId: typeof value.trainingActivityId === "string" ? value.trainingActivityId : base.trainingActivityId,
+    program: cleanProgram(value.program),
+    programDone: Array.isArray(value.programDone) ? [...new Set(value.programDone.filter(id => typeof id === "string"))].slice(-600) : [],
     setupDone: value.setupDone === true || (Array.isArray(value.items) && value.items.length > 0),
     updatedAt: value.updatedAt ?? null,
     syncedUserId: value.syncedUserId ?? null,
@@ -245,6 +268,8 @@ export function mergeData(local, remote) {
     items: items.items.sort((x, y) => x.day.localeCompare(y.day)),
     deletedItemIds: items.tombstones,
     feeds: feeds.slice(0, MAX_FEEDS),
+    programDone: [...new Set([...a.programDone, ...b.programDone])].slice(-600),
+    setupDone: a.setupDone || b.setupDone,
     updatedAt: [a.updatedAt, b.updatedAt].sort((x, y) => time(y) - time(x))[0] ?? null,
     syncedUserId: a.syncedUserId,
   };

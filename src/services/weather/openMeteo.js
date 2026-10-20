@@ -56,6 +56,7 @@ export async function searchPlaces(query, { signal } = {}) {
     region: [result.admin1, result.country_code === "US" ? null : result.country].filter(Boolean).join(", "),
     latitude: result.latitude,
     longitude: result.longitude,
+    postcode: result.postcodes?.[0] ?? null,
   }));
 }
 

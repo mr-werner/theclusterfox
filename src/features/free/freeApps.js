@@ -36,6 +36,7 @@ import {
   siBlockbench,
   siBluesky,
   siBrave,
+  siCbc,
   siChannel4,
   siClaude,
   siCoinbase,
@@ -190,6 +191,7 @@ import {
   siVivaldi,
   siVlcmediaplayer,
   siVscodium,
+  siWattpad,
   siWebex,
   siWebtoon,
   siWhatsapp,
@@ -379,6 +381,9 @@ const categories = [
       { name: "TVer", alt: "Netflix", url: "https://tver.jp/", mark: "TVer", color: "#00a0e9", description: "Catch-up dramas, anime, and variety shows from Japan's major networks." },
       { name: "ABEMA", alt: "Netflix", url: "https://abema.tv/", mark: "AB", color: "#3c3c3c", description: "Free live TV channels for anime, news, sports, and reality shows." },
       { name: "niconico", alt: "YouTube", url: "https://www.nicovideo.jp/", logo: siNiconico, description: "Japanese video site famous for comments that scroll across the video." },
+      { name: "CBC Gem", alt: "Netflix", url: "https://gem.cbc.ca/", logo: siCbc, description: "CBC dramas, comedies, documentaries, and live TV." },
+      { name: "ICI TOU.TV", alt: "Netflix", url: "https://ici.tou.tv/", mark: "TOU", color: "#e4002b", description: "Radio-Canada's French-language series and films." },
+      { name: "NFB", alt: "paid documentary services", url: "https://www.nfb.ca/", mark: "NFB", color: "#c8102e", description: "Thousands of Canadian documentaries and animated films from the National Film Board." },
     ],
   },
   {
@@ -446,6 +451,8 @@ const categories = [
       { name: "Deezer", alt: "Spotify Premium", url: "https://www.deezer.com/", logo: siDeezer, description: "Music streaming with Flow, a personal endless mix." },
       { name: "Radio France", alt: "Spotify / Audible", url: "https://www.radiofrance.fr/", logo: siRadiofrance, description: "France Inter, FIP, France Culture, and thousands of podcasts." },
       { name: "radiko", alt: "SiriusXM", url: "https://radiko.jp/", mark: "ra", color: "#00a7e9", description: "Live and catch-up Japanese radio stations." },
+      { name: "CBC Listen", alt: "Spotify / SiriusXM", url: "https://www.cbc.ca/listen", logo: siCbc, description: "CBC Radio One, CBC Music, and CBC podcasts." },
+      { name: "OHdio", alt: "Spotify / Audible", url: "https://ici.radio-canada.ca/ohdio", mark: "OH", color: "#e4002b", description: "Radio-Canada's French radio, podcasts, and audiobooks." },
     ],
   },
   {
@@ -462,6 +469,7 @@ const categories = [
       { name: "Goodreads", alt: "paid book trackers", url: "https://www.goodreads.com/", logo: siGoodreads, description: "Track what you read and find what's next." },
       { name: "Gallica", alt: "paid archives", url: "https://gallica.bnf.fr/", mark: "Ga", color: "#a3122a", description: "France's national library: millions of books, maps, and manuscripts." },
       { name: "MANGA Plus", alt: "manga subscriptions", url: "https://mangaplus.shueisha.co.jp/", mark: "M+", color: "#e60012", description: "Official Shueisha manga, including One Piece, with new chapters free." },
+      { name: "Wattpad", alt: "paid e-book stores", url: "https://www.wattpad.com/", logo: siWattpad, description: "Millions of free stories from writers around the world." },
     ],
   },
   {
@@ -483,6 +491,7 @@ const categories = [
       { name: "Credit Karma", alt: "paid credit monitoring", url: "https://www.creditkarma.com/", mark: "CK", color: "#3f9c35", description: "Free credit scores, reports, and monitoring." },
       { name: "Empower", alt: "paid financial advisors", url: "https://www.empower.com/", mark: "Em", color: "#1d3557", description: "Free net worth and retirement dashboard." },
       { name: "Monzo", alt: "bank accounts with fees", url: "https://monzo.com/", logo: siMonzo, description: "App-based bank account with budgeting and saving pots." },
+      { name: "Wealthsimple", alt: "brokerages with fees", url: "https://www.wealthsimple.com/", mark: "W", color: "#32302f", description: "Commission-free stock and ETF trading, plus free tax filing." },
     ],
   },
   {
@@ -650,6 +659,7 @@ const categories = [
       { name: "BBC Learning English", alt: "paid English courses", url: "https://www.bbc.co.uk/learningenglish", mark: "BBC", color: "#bb1919", description: "Free English lessons, grammar, and news-based practice." },
       { name: "TV5MONDE Learn French", alt: "Babbel", url: "https://apprendre.tv5monde.com/", mark: "TV5", color: "#00a3e0", description: "French lessons built on real TV clips, from beginner to advanced." },
       { name: "NHK Easy Japanese", alt: "Babbel", url: "https://www3.nhk.or.jp/nhkworld/en/learnjapanese/", mark: "NHK", color: "#0068b7", description: "Free Japanese lessons with audio, from NHK WORLD-JAPAN." },
+      { name: "Mauril", alt: "Babbel", url: "https://mauril.ca/", mark: "Ma", color: "#5b2e91", description: "Learn English or French with CBC and Radio-Canada video clips." },
     ],
   },
 ];

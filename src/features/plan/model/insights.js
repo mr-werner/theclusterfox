@@ -198,6 +198,109 @@ export function trainingAdvice(hours, day, place, { activityId = "run-easy", tim
   return { activity, best, chosen, better, reasons: (chosen ?? best).factors.filter(f => f.penalty >= 5).map(f => f.text) };
 }
 
+const SLOTS = [
+  { id: "morning", name: "Morning", from: 5, to: 10 },
+  { id: "midday", name: "Midday", from: 11, to: 14 },
+  { id: "evening", name: "Evening", from: 15, to: 21 },
+];
+
+/**
+ * The best start in each part of the day (morning, midday, evening) for an
+ * outdoor session, each with what to wear for that activity at that time.
+ */
+export function trainingWindows(hours, day, place, { activityId = "run-easy", minutes = 60, notBefore = 0, earliest = 5, latest = 21, options = {} } = {}) {
+  const activity = activitiesById.get(activityId);
+  if (!activity || !place) return [];
+  const duration = Math.max(1, Math.round(minutes / 60));
+  const ranked = rankStarts(hours, place, activity, { day, duration, earliest, latest, notBefore, options });
+  return SLOTS.map(slot => {
+    const best = ranked.find(r => r.startHour >= slot.from && r.startHour <= slot.to);
+    if (!best) return null;
+    return {
+      slot: slot.id,
+      name: slot.name,
+      startHour: best.startHour,
+      score: best.score,
+      label: best.label,
+      top: best === ranked[0],
+      reasons: best.factors.filter(f => f.penalty >= 5).map(f => f.text),
+      wear: wearFor(hours, day, place, { time: `${best.startHour}:00`, durationHours: duration, activityId, options }),
+    };
+  }).filter(Boolean);
+}
+
+const UV_LEVELS = [
+  [3, "Low"],
+  [6, "Moderate"],
+  [8, "High"],
+  [11, "Very high"],
+  [Infinity, "Extreme"],
+];
+export const uvLabel = uv => UV_LEVELS.find(([max]) => uv < max)[1];
+
+/** The numbers behind one day: feels-like range, wind, UV, air, rain, humidity. */
+export function dayDetails(hours, day) {
+  const list = hours.filter(h => h.localDay === day);
+  if (!list.length) return null;
+  const awake = list.filter(h => h.localHour >= 7 && h.localHour <= 21);
+  const peak = (rows, key) => rows.reduce((a, b) => ((b[key] ?? 0) > (a[key] ?? 0) ? b : a));
+  const sunny = peak(list, "uv");
+  const strongUv = list.filter(h => h.uv >= 6).map(h => h.localHour);
+  const air = list.filter(h => Number.isFinite(h.aqi));
+  const worstAir = air.length ? peak(air, "aqi") : null;
+  const gusty = peak(awake.length ? awake : list, "gust");
+  return {
+    feelsHigh: Math.max(...list.map(h => h.apparent)),
+    feelsLow: Math.min(...list.map(h => h.apparent)),
+    wind: Math.max(...list.map(h => h.wind ?? 0)),
+    gust: gusty.gust ?? 0,
+    gustHour: gusty.localHour,
+    uv: sunny.uv ?? 0,
+    uvHour: sunny.localHour,
+    uvLabel: uvLabel(sunny.uv ?? 0),
+    strongUv: strongUv.length ? [strongUv[0], strongUv[strongUv.length - 1] + 1] : null,
+    aqi: worstAir ? Math.round(worstAir.aqi) : null,
+    aqiHour: worstAir?.localHour ?? null,
+    rain: list.reduce((sum, h) => sum + (h.precip ?? 0), 0),
+    rainProb: Math.max(...list.map(h => h.precipProb ?? 0)),
+    humidity: awake.length ? Math.round(awake.reduce((sum, h) => sum + (h.rh ?? 0), 0) / awake.length) : null,
+  };
+}
+
+/**
+ * Big day-to-day swings in the high, worth dressing differently for.
+ * Car and garden effects have their own checks.
+ */
+export function weatherSwings(days, { formatTemp = defaultFormat } = {}) {
+  const tips = [];
+  days.forEach((d, i) => {
+    const prev = days[i - 1];
+    if (!prev) return;
+    const change = d.high - prev.high;
+    if (Math.abs(change) < 8) return;
+    const colder = change < 0;
+    tips.push({
+      day: d.day,
+      kind: "swing",
+      tone: Math.abs(change) >= 12 ? "warn" : "caution",
+      title: `${formatTemp(Math.abs(change), { delta: true })} ${colder ? "colder" : "warmer"} than the day before`,
+      text: colder
+        ? `Highs drop from ${formatTemp(prev.high)} to ${formatTemp(d.high)}. Dress a layer warmer than the day before${d.low <= 2 ? " and expect frost overnight" : ""}.`
+        : `Highs jump from ${formatTemp(prev.high)} to ${formatTemp(d.high)}. Dress lighter, and drink more water if you train outside.`,
+    });
+  });
+  return tips;
+}
+
+/** Weather-driven problems worth seeing at a glance on the month grid. */
+const FLAG_KINDS = ["alert", "swing", "car", "garden", "rain", "train"];
+export function dayFlags(tips = []) {
+  const flagged = tips.filter(t => FLAG_KINDS.includes(t.kind) && (t.tone === "warn" || t.tone === "caution"));
+  if (!flagged.length) return null;
+  const kinds = [...new Set(flagged.map(t => t.kind))].sort((a, b) => FLAG_KINDS.indexOf(a) - FLAG_KINDS.indexOf(b));
+  return { tone: flagged.some(t => t.tone === "warn") ? "warn" : "caution", kinds, titles: flagged.map(t => t.title) };
+}
+
 const normalize = text => String(text ?? "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 
 // A game is "in" a place when its venue city matches the place name.
@@ -274,6 +377,7 @@ export function headsUp({ today, forecast, place, instances = [], games = [], ho
 
   if (layers.car !== false) tips.push(...carChecks(days, { formatTemp }));
   if (layers.garden) tips.push(...gardenTips(days, { formatTemp }));
+  if (layers.wear !== false) tips.push(...weatherSwings(days, { formatTemp }));
 
   if (layers.holidays !== false) {
     for (const h of soon(holidays)) {

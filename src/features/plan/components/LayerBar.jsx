@@ -1,9 +1,9 @@
-import { Sparkles, X } from "lucide-react";
+import { CalendarPlus, Sparkles, X } from "lucide-react";
 
 import { LAYERS, PRESETS } from "../state/planStore";
 
 // Every layer as a one-tap toggle, always on screen above the calendar.
-export function LayerBar({ layers, onToggle }) {
+export function LayerBar({ layers, onToggle, onLinkCalendar }) {
   return (
     <ul className="pf-layer-bar" aria-label="Show on calendar">
       {LAYERS.map(layer => (
@@ -14,13 +14,18 @@ export function LayerBar({ layers, onToggle }) {
           </button>
         </li>
       ))}
+      <li>
+        <button type="button" className="pf-layer-chip pf-link-chip" onClick={onLinkCalendar}>
+          <CalendarPlus size={13} aria-hidden="true" /> Link a calendar
+        </button>
+      </li>
     </ul>
   );
 }
 
 // First visit: pick what the calendar is for. Each choice switches on a
 // set of layers; anything can still be toggled afterwards.
-export function SetupCard({ layers, onPick, onDismiss, hasPlan, onOpenPlanner }) {
+export function SetupCard({ layers, onPick, onDismiss, hasPlan, onOpenPlanner, onLinkCalendar }) {
   return (
     <section className="pf-panel pf-setup" aria-label="What do you want to plan around?">
       <header className="pf-day-head">
@@ -46,6 +51,9 @@ export function SetupCard({ layers, onPick, onDismiss, hasPlan, onOpenPlanner })
         ))}
       </ul>
       <div className="pf-setup-actions">
+        <button type="button" className="pf-btn" onClick={onLinkCalendar}>
+          <CalendarPlus size={15} aria-hidden="true" /> Link Google, Apple, Outlook or school calendars
+        </button>
         {layers.training && !hasPlan && (
           <button type="button" className="pf-btn" onClick={onOpenPlanner}>
             Build a training plan

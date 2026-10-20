@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { addDays, dayRange, monthGrid, occurrences, relativeDay, formatTime } from '../model/dates.js';
 import { easter, usHolidays, parseNager } from '../model/holidays.js';
-import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips } from '../model/insights.js';
+import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp, wearFor, trainingAdvice, planWeatherTips, trainingWindows, dayDetails, weatherSwings, dayFlags, uvLabel } from '../model/insights.js';
 import { planSessions, weekFactor, weeklyMinutes } from '../model/training.js';
 import { parseAlerts, inUnitedStates } from '../../../services/plan/alerts.js';
 import { parseSchools } from '../../../../api/plan/_schools.js';
@@ -289,5 +289,40 @@ const schools = parseSchools([
 assert.deepEqual(schools.map(s => s.name), ['Adams Elementary', 'Lincoln High'], 'closed schools dropped, elementary first');
 assert.equal(schools[0].grades, 'PK–5');
 assert.deepEqual(parseSchools(null), []);
+
+// Three training windows a day, each with what to wear for the activity
+const windows = trainingWindows(hours, '2026-10-21', place, { activityId: 'run-easy', minutes: 45 });
+assert.deepEqual(windows.map(w => w.slot), ['morning', 'midday', 'evening']);
+assert.equal(windows.filter(w => w.top).length, 1, 'one window is marked best');
+assert(windows.find(w => w.slot === 'evening').score < windows.find(w => w.top).score, 'rainy evening scores lower');
+assert(windows.every(w => w.wear && w.wear.layers.length), 'each window says what to wear');
+const runWear = windows[0].wear.name;
+const golfWear = trainingWindows(hours, '2026-10-21', place, { activityId: 'golf', minutes: 45 })[0]?.wear?.name;
+assert.notEqual(runWear, golfWear, 'what to wear depends on the activity');
+assert.equal(trainingWindows(hours, '2026-10-21', place, { earliest: 15, latest: 21 }).length, 1, 'an evenings-only plan gets evening options');
+
+// The numbers behind a day
+const details = dayDetails(hours.map(h => ({ ...h, aqi: h.localHour === 17 ? 120 : 30 })), '2026-10-21');
+assert.equal(details.aqi, 120);
+assert.equal(details.aqiHour, 17);
+assert(details.rainProb === 70 && details.rain > 5);
+assert(details.feelsHigh > details.feelsLow);
+assert.equal(dayDetails(hours, '2027-01-01'), null);
+assert.equal(uvLabel(2), 'Low');
+assert.equal(uvLabel(7), 'High');
+assert.equal(uvLabel(11), 'Extreme');
+
+// Big swings get flagged on the calendar
+const swingDays = [{ day: '2026-10-20', high: 22, low: 10 }, { day: '2026-10-21', high: 9, low: 1 }, { day: '2026-10-22', high: 11, low: 3 }, { day: '2026-10-23', high: 21, low: 9 }];
+const swings = weatherSwings(swingDays, { formatTemp: (c, o) => `${Math.round(o?.delta ? c * 1.8 : c * 1.8 + 32)}°F` });
+assert.deepEqual(swings.map(t => t.day), ['2026-10-21', '2026-10-23']);
+assert.match(swings[0].title, /23°F colder/);
+assert.match(swings[0].text, /frost/);
+assert.equal(swings[0].tone, 'warn');
+assert.match(swings[1].title, /warmer/);
+const flags = dayFlags([{ kind: 'swing', tone: 'caution', title: 'A' }, { kind: 'car', tone: 'warn', title: 'B' }, { kind: 'bill', tone: 'info', title: 'C' }, { kind: 'car', tone: 'info', title: 'D' }]);
+assert.deepEqual(flags, { tone: 'warn', kinds: ['swing', 'car'], titles: ['A', 'B'] });
+assert.equal(dayFlags([{ kind: 'bill', tone: 'info', title: 'Rent' }]), null, 'only problems are flagged');
+assert(headsUp({ today: '2026-10-19', forecast: { days: swingDays, hours: [] }, place, layers: {}, now: 0 }).some(t => t.kind === 'swing'));
 
 console.log('PlanFox checks passed.');

@@ -24,7 +24,7 @@ const STATUS_TEXT = {
   "us-only": "US locations only",
 };
 
-export default function LayerPanel({ data, update, toggleLayer, status, errors, feedErrors, onClose, onOpenPlanner }) {
+export default function LayerPanel({ data, update, toggleLayer, status, errors, feedErrors, onClose, onOpenPlanner, onOpenLinker }) {
   const [teamText, setTeamText] = useState("");
   const [feedName, setFeedName] = useState("");
   const [feedLink, setFeedLink] = useState("");
@@ -163,10 +163,10 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
 
       <div className="pf-layer-group">
         <h3>Linked calendars</h3>
-        <p className="pf-note">
-          School calendars, work, your team's schedule or your city's events. Paste the iCal or "subscribe" link (it ends in .ics or starts with webcal://). Google Calendar: Settings → your
-          calendar → "Secret address in iCal format".
-        </p>
+        <p className="pf-note">School calendars, work, your team's schedule or your city's events. Paste the iCal or "subscribe" link (it ends in .ics or starts with webcal://).</p>
+        <button type="button" className="pf-btn" onClick={onOpenLinker}>
+          Step-by-step for Google, Apple, Outlook and schools
+        </button>
         <ul className="pf-feeds">
           {data.feeds.map(feed => {
             const error = feedErrors.find(f => f.id === feed.id)?.error;

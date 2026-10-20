@@ -1398,3 +1398,219 @@ button.pf-entry-main:hover .pf-entry-title {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Day numbers */
+.pf-weather > div,
+.pf-train > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.pf-stat {
+  padding: 8px 10px;
+  border: 1px solid var(--pf-line);
+  border-radius: 10px;
+  background: var(--pf-surface);
+}
+
+.pf-stat dt {
+  color: var(--pf-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pf-stat dd {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pf-stat dd svg {
+  vertical-align: -1px;
+  color: var(--pf-muted);
+}
+
+.pf-stat .pf-stat-note {
+  color: var(--pf-muted);
+  font-size: 0.74rem;
+  font-weight: 400;
+}
+
+.pf-stat.is-caution { border-color: color-mix(in srgb, var(--pf-caution) 45%, transparent); }
+.pf-stat.is-warn { border-color: color-mix(in srgb, var(--pf-warn) 55%, transparent); }
+.pf-stat.is-caution dd:first-of-type { color: var(--pf-caution); }
+.pf-stat.is-warn dd:first-of-type { color: var(--pf-warn); }
+
+/* Training windows */
+.pf-windows {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-windows li {
+  padding: 8px 10px;
+  border: 1px solid var(--pf-line);
+  border-radius: 10px;
+  background: var(--pf-surface);
+}
+
+.pf-windows li.is-top {
+  border-color: color-mix(in srgb, var(--l-training) 55%, transparent);
+}
+
+.pf-windows.is-compact {
+  margin-top: 6px;
+}
+
+.pf-windows.is-compact li {
+  padding: 6px 8px;
+}
+
+.pf-window-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.pf-window-slot {
+  min-width: 58px;
+  color: var(--pf-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pf-window-score { font-size: 0.8rem; font-weight: 600; }
+.pf-window-score.is-good { color: var(--pf-good); }
+.pf-window-score.is-ok { color: var(--pf-caution); }
+.pf-window-score.is-poor { color: var(--pf-warn); }
+
+.pf-window-best {
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: #062312;
+  background: var(--l-training);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.pf-window-wear,
+.pf-window-why {
+  margin: 3px 0 0;
+  color: var(--pf-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.pf-window-wear svg {
+  vertical-align: -1px;
+}
+
+.pf-train .pf-inline-select {
+  margin-top: 6px;
+}
+
+/* Problem days on the month grid */
+.pf-cell.has-flag {
+  box-shadow: inset 0 3px 0 var(--flag);
+}
+
+.pf-cell.is-flag-caution { --flag: var(--pf-caution); }
+.pf-cell.is-flag-warn { --flag: var(--pf-warn); }
+
+.pf-cell-flags {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  color: var(--flag);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.pf-cell-flags svg {
+  flex: none;
+}
+
+.pf-cell-flags span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-cell-rain {
+  color: var(--l-weather);
+  font-size: 0.68rem;
+}
+
+/* Linking calendars */
+.pf-link-chip {
+  border-style: dashed;
+  color: var(--pf-accent);
+}
+
+.pf-link-btn.pf-inline {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+}
+
+.pf-note.is-good {
+  color: var(--pf-good);
+}
+
+.pf-linker-tabs {
+  margin-top: 14px;
+}
+
+.pf-linker-steps {
+  margin: 14px 0 0;
+}
+
+.pf-linker-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pf-linker-form input {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.pf-linker-count {
+  margin-top: 10px;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 720px) {
+  .pf-cell-flags span,
+  .pf-cell-rain {
+    display: none;
+  }
+
+  .pf-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pf-stat.is-wide {
+  grid-column: span 2;
+}

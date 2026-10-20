@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchFeed, fetchGameReleases, fetchMovies, fetchSchedule } from "../../../services/plan/planApi";
 import { expandIcs } from "../../../services/plan/ics";
 import { fetchAlerts, inUnitedStates } from "../../../services/plan/alerts";
-import { fetchForecast } from "../../../services/weather/openMeteo";
+import { fetchAirQuality, fetchForecast, withAirQuality } from "../../../services/weather/openMeteo";
 import { addDays, dayKey, todayKey } from "../model/dates";
 import { fetchHolidays } from "../model/holidays";
 
@@ -47,6 +47,10 @@ export function useLayerData(data, from, to) {
   const home = useKeyed(layers.weather || layers.wear || layers.car || layers.garden || layers.training ? placeKey(place) : null, signal =>
     fetchForecast(place, { signal })
   );
+
+  // Air quality covers about five days and feeds the training scores.
+  const air = useKeyed(layers.weather || layers.training ? placeKey(place) : null, signal => fetchAirQuality(place, { signal }));
+  const forecast = useMemo(() => (home.value && air.value ? { ...home.value, hours: withAirQuality(home.value.hours, air.value) } : home.value), [home.value, air.value]);
 
   const alerts = useKeyed(layers.alerts && inUnitedStates(place) ? placeKey(place) : null, signal => fetchAlerts(place, { signal }));
 
@@ -121,7 +125,7 @@ export function useLayerData(data, from, to) {
   );
 
   return {
-    forecast: home.value,
+    forecast,
     forecastStatus: home,
     awayForecasts: awayForecasts.value ?? new Map(),
     holidays: holidays.value ?? [],

@@ -8,6 +8,7 @@ import { AgendaView, MonthView, YearView } from "./components/CalendarViews";
 import DayPanel, { Tip } from "./components/DayPanel";
 import ItemEditor from "./components/ItemEditor";
 import LayerPanel from "./components/LayerPanel";
+import CalendarLinker from "./components/CalendarLinker";
 import TrainingPlanner from "./components/TrainingPlanner";
 import { LayerBar, SetupCard } from "./components/LayerBar";
 import PlaceSearch from "./components/PlaceSearch";
@@ -70,6 +71,12 @@ export default function PlanPage() {
   const [editing, setEditing] = useState(null);
   const [showLayers, setShowLayers] = useState(false);
   const [showPlanner, setShowPlanner] = useState(false);
+  const [showLinker, setShowLinker] = useState(false);
+  const linkFeed = ({ name, url }) =>
+    update(current => ({
+      feeds: [...current.feeds.filter(f => f.url !== url), { id: crypto.randomUUID(), name, url, updatedAt: new Date().toISOString() }],
+      layers: { ...current.layers, feeds: true },
+    }));
   const [showSetup, setShowSetup] = useState(!data.setupDone);
   const closeSetup = () => {
     setShowSetup(false);
@@ -206,7 +213,7 @@ export default function PlanPage() {
 
         <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
 
-        {showSetup && <SetupCard layers={data.layers} onPick={applyPreset} onDismiss={closeSetup} hasPlan={Boolean(data.program)} onOpenPlanner={() => setShowPlanner(true)} />}
+        {showSetup && <SetupCard layers={data.layers} onPick={applyPreset} onDismiss={closeSetup} hasPlan={Boolean(data.program)} onOpenPlanner={() => setShowPlanner(true)} onLinkCalendar={() => setShowLinker(true)} />}
 
         {(ahead.length > 0 || overdue.length > 0) && (
           <section className="pf-panel pf-heads" aria-label="Heads up">
@@ -265,7 +272,9 @@ export default function PlanPage() {
           </div>
         </div>
 
-        <LayerBar layers={data.layers} onToggle={toggleLayer} />
+        <LayerBar layers={data.layers} onToggle={toggleLayer} onLinkCalendar={() => setShowLinker(true)} />
+
+        {showLinker && <CalendarLinker place={data.place} feeds={data.feeds} onLink={linkFeed} onClose={() => setShowLinker(false)} />}
 
         {showLayers && (
           <LayerPanel
@@ -279,6 +288,10 @@ export default function PlanPage() {
             onOpenPlanner={() => {
               setShowLayers(false);
               setShowPlanner(true);
+            }}
+            onOpenLinker={() => {
+              setShowLayers(false);
+              setShowLinker(true);
             }}
           />
         )}
@@ -308,6 +321,7 @@ export default function PlanPage() {
                 selected={selected}
                 entriesByDay={entriesByDay}
                 forecastByDay={forecastByDay}
+                tipsByDay={tipsByDay}
                 units={data.units}
                 showWeather={data.layers.weather}
                 onSelect={select}
@@ -342,6 +356,7 @@ export default function PlanPage() {
             <DayPanel
               key={selected}
               day={selected}
+              onLinkCalendar={() => setShowLinker(true)}
               today={today}
               now={now}
               entries={entriesByDay.get(selected) ?? []}

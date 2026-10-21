@@ -95,6 +95,7 @@ import {
   siJellyfin,
   siJitsi,
   siJoplin,
+  siKakaotalk,
   siKdenlive,
   siKeepassxc,
   siKhanacademy,
@@ -122,6 +123,7 @@ import {
   siMistralai,
   siMojeek,
   siMonzo,
+  siNaver,
   siNeovim,
   siNextcloud,
   siNiconico,
@@ -161,6 +163,7 @@ import {
   siRocketdotchat,
   siRoku,
   siSafari,
+  siSamsung,
   siSignal,
   siSnapchat,
   siSoundcloud,
@@ -384,6 +387,9 @@ const categories = [
       { name: "CBC Gem", alt: "Netflix", url: "https://gem.cbc.ca/", logo: siCbc, description: "CBC dramas, comedies, documentaries, and live TV." },
       { name: "ICI TOU.TV", alt: "Netflix", url: "https://ici.tou.tv/", mark: "TOU", color: "#e4002b", description: "Radio-Canada's French-language series and films." },
       { name: "NFB", alt: "paid documentary services", url: "https://www.nfb.ca/", mark: "NFB", color: "#c8102e", description: "Thousands of Canadian documentaries and animated films from the National Film Board." },
+      { name: "KBS World", alt: "paid K-drama services", url: "https://kbsworld.kbs.co.kr/", mark: "KBS", color: "#0060a9", description: "Korea's public broadcaster for global viewers, with K-dramas and variety shows." },
+      { name: "Arirang TV", alt: "paid news channels", url: "https://www.arirang.com/", mark: "AR", color: "#0083c9", description: "Korea's English-language public channel: news, K-pop, and culture." },
+      { name: "Samsung TV Plus", alt: "cable TV", url: "https://www.samsungtvplus.com/", logo: siSamsung, description: "Hundreds of free live channels on Samsung TVs, phones, and the web." },
     ],
   },
   {
@@ -410,6 +416,7 @@ const categories = [
       { name: "LinkedIn", alt: "paid job boards", url: "https://www.linkedin.com/", mark: "in", color: "#0a66c2", description: "Professional networking and job search." },
       { name: "LINE", alt: "SMS plans", url: "https://line.me/", logo: siLine, description: "Japan's main messaging app, with stickers, calls, and news." },
       { name: "pixiv", alt: "paid art communities", url: "https://www.pixiv.net/", logo: siPixiv, description: "Huge community for illustrations, manga, and novels." },
+      { name: "KakaoTalk", alt: "SMS plans", url: "https://www.kakaocorp.com/page/service/service/KakaoTalk", logo: siKakaotalk, description: "Korea's main messaging app, with calls, stickers, and payments." },
     ],
   },
   {
@@ -540,6 +547,8 @@ const categories = [
       { name: "Qwant", alt: "paid search", url: "https://www.qwant.com/", logo: siQwant, description: "European search engine with no tracking." },
       { name: "Mojeek", alt: "paid search", url: "https://www.mojeek.com/", logo: siMojeek, description: "Its own crawler and index, no tracking." },
       { name: "Yahoo Search", alt: "paid search", url: "https://search.yahoo.com/", mark: "Y!", color: "#6001d2", description: "Classic search powered by Bing results." },
+      { name: "Naver", alt: "Google Search", url: "https://www.naver.com/", logo: siNaver, description: "Korea's biggest search portal, with news, maps, and blogs." },
+      { name: "Samsung Internet", alt: "paid browsers", url: "https://www.samsung.com/us/support/owners/app/samsung-internet", mark: "SI", color: "#7362e4", description: "Fast Android browser with a built-in ad blocker option and Secret mode." },
     ],
   },
   {
@@ -637,6 +646,7 @@ const categories = [
       { name: "OpenLearn", alt: "paid online courses", url: "https://www.open.edu/openlearn/", mark: "OL", color: "#326e9b", description: "Free courses from The Open University, with certificates." },
       { name: "FutureLearn", alt: "Coursera / Udemy", url: "https://www.futurelearn.com/", logo: siFuturelearn, description: "University courses from around the world." },
       { name: "Lumni", alt: "paid tutoring", url: "https://www.lumni.fr/", mark: "Lu", color: "#5a3df5", description: "Educational videos and games for school, from public broadcasters." },
+      { name: "K-MOOC", alt: "Coursera / Udemy", url: "https://www.kmooc.kr/", mark: "K", color: "#1e4fa0", description: "Free online courses from Korean universities." },
     ],
   },
   {
@@ -660,6 +670,8 @@ const categories = [
       { name: "TV5MONDE Learn French", alt: "Babbel", url: "https://apprendre.tv5monde.com/", mark: "TV5", color: "#00a3e0", description: "French lessons built on real TV clips, from beginner to advanced." },
       { name: "NHK Easy Japanese", alt: "Babbel", url: "https://www3.nhk.or.jp/nhkworld/en/learnjapanese/", mark: "NHK", color: "#0068b7", description: "Free Japanese lessons with audio, from NHK WORLD-JAPAN." },
       { name: "Mauril", alt: "Babbel", url: "https://mauril.ca/", mark: "Ma", color: "#5b2e91", description: "Learn English or French with CBC and Radio-Canada video clips." },
+      { name: "Papago", alt: "paid translators", url: "https://papago.naver.com/", mark: "Pa", color: "#00c73c", description: "Naver's translator, strongest for Korean, Japanese, and Chinese." },
+      { name: "King Sejong Institute", alt: "Babbel", url: "https://www.iksi.or.kr/", mark: "KSI", color: "#003a70", description: "Free government-backed Korean courses online." },
     ],
   },
 ];

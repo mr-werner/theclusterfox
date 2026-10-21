@@ -340,6 +340,15 @@ export const freeAppDetails = {
   Wattpad: { limits: ["ads", "freeTier", "tracking"], note: "Premium removes ads; some stories cost coins." },
   Wealthsimple: { limits: ["freeTier", "region"], note: "Canada only. Paid plans add perks like USD accounts." },
   Mauril: { limits: ["region"], note: "Free app from CBC/Radio-Canada, built for people in Canada." },
+  "KBS World": { note: "Public broadcaster; many shows are free with subtitles, some vary by country." },
+  "Arirang TV": { note: "Public channel in English, free worldwide." },
+  "Samsung TV Plus": { limits: ["ads", "tracking", "region"], note: "Channel lineup varies by country; best on Samsung devices." },
+  KakaoTalk: { limits: ["tracking"] },
+  Naver: { limits: ["ads", "tracking"], note: "Mostly in Korean." },
+  "Samsung Internet": { limits: ["tracking"] },
+  "K-MOOC": { note: "Mostly taught in Korean." },
+  Papago: { limits: ["tracking"] },
+  "King Sejong Institute": {},
 };
 
 // Country where the company behind each commercial service is based.
@@ -527,5 +536,13 @@ export const freeAppCountries = {
   OHdio: "Canada",
   Wattpad: "Canada",
   Wealthsimple: "Canada",
-  Mauril: "Canada",
+  Mauril: "Canada",  "KBS World": "South Korea",
+  "Arirang TV": "South Korea",
+  "Samsung TV Plus": "South Korea",
+  KakaoTalk: "South Korea",
+  Naver: "South Korea",
+  "Samsung Internet": "South Korea",
+  "K-MOOC": "South Korea",
+  Papago: "South Korea",
+  "King Sejong Institute": "South Korea",
 };

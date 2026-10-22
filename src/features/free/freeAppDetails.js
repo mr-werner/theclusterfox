@@ -349,6 +349,13 @@ export const freeAppDetails = {
   "K-MOOC": { note: "Mostly taught in Korean." },
   Papago: { limits: ["tracking"] },
   "King Sejong Institute": {},
+  "NPO Start": { limits: ["freeTier", "region"], note: "Recent shows are free; NPO Plus adds the archive. Mostly Netherlands only." },
+  "NPO Luister": { note: "Public radio and podcasts with no ads, available worldwide." },
+  Delpher: {},
+  bunq: { limits: ["freeTier", "region"], note: "Free plan in Europe; paid plans add cards and interest." },
+  WeTransfer: { limits: ["ads", "freeTier"], note: "Free transfers have size and monthly limits." },
+  Buienradar: { limits: ["ads", "region", "tracking"], note: "Covers the Netherlands and Belgium." },
+  Schooltv: { limits: ["region"], note: "Some videos only play in the Netherlands." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -544,5 +551,11 @@ export const freeAppCountries = {
   "Samsung Internet": "South Korea",
   "K-MOOC": "South Korea",
   Papago: "South Korea",
-  "King Sejong Institute": "South Korea",
+  "King Sejong Institute": "South Korea",  "NPO Start": "Netherlands",
+  "NPO Luister": "Netherlands",
+  Delpher: "Netherlands",
+  bunq: "Netherlands",
+  WeTransfer: "Netherlands",
+  Buienradar: "Netherlands",
+  Schooltv: "Netherlands",
 };

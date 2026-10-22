@@ -36,6 +36,7 @@ import {
   siBlockbench,
   siBluesky,
   siBrave,
+  siBunq,
   siCbc,
   siChannel4,
   siClaude,
@@ -197,6 +198,7 @@ import {
   siWattpad,
   siWebex,
   siWebtoon,
+  siWetransfer,
   siWhatsapp,
   siWikipedia,
   siWireshark,
@@ -390,6 +392,7 @@ const categories = [
       { name: "KBS World", alt: "paid K-drama services", url: "https://kbsworld.kbs.co.kr/", mark: "KBS", color: "#0060a9", description: "Korea's public broadcaster for global viewers, with K-dramas and variety shows." },
       { name: "Arirang TV", alt: "paid news channels", url: "https://www.arirang.com/", mark: "AR", color: "#0083c9", description: "Korea's English-language public channel: news, K-pop, and culture." },
       { name: "Samsung TV Plus", alt: "cable TV", url: "https://www.samsungtvplus.com/", logo: siSamsung, description: "Hundreds of free live channels on Samsung TVs, phones, and the web." },
+      { name: "NPO Start", alt: "Netflix", url: "https://npo.nl/start", mark: "NPO", color: "#ff6d00", description: "Dutch public TV: series, documentaries, news, and live channels." },
     ],
   },
   {
@@ -460,6 +463,7 @@ const categories = [
       { name: "radiko", alt: "SiriusXM", url: "https://radiko.jp/", mark: "ra", color: "#00a7e9", description: "Live and catch-up Japanese radio stations." },
       { name: "CBC Listen", alt: "Spotify / SiriusXM", url: "https://www.cbc.ca/listen", logo: siCbc, description: "CBC Radio One, CBC Music, and CBC podcasts." },
       { name: "OHdio", alt: "Spotify / Audible", url: "https://ici.radio-canada.ca/ohdio", mark: "OH", color: "#e4002b", description: "Radio-Canada's French radio, podcasts, and audiobooks." },
+      { name: "NPO Luister", alt: "Spotify / Audible", url: "https://www.npoluister.nl/", mark: "NPO", color: "#ff6d00", description: "Dutch public radio stations and podcasts in one app." },
     ],
   },
   {
@@ -477,6 +481,7 @@ const categories = [
       { name: "Gallica", alt: "paid archives", url: "https://gallica.bnf.fr/", mark: "Ga", color: "#a3122a", description: "France's national library: millions of books, maps, and manuscripts." },
       { name: "MANGA Plus", alt: "manga subscriptions", url: "https://mangaplus.shueisha.co.jp/", mark: "M+", color: "#e60012", description: "Official Shueisha manga, including One Piece, with new chapters free." },
       { name: "Wattpad", alt: "paid e-book stores", url: "https://www.wattpad.com/", logo: siWattpad, description: "Millions of free stories from writers around the world." },
+      { name: "Delpher", alt: "paid archives", url: "https://www.delpher.nl/", mark: "De", color: "#0f4c81", description: "Millions of digitized Dutch books, newspapers, and magazines." },
     ],
   },
   {
@@ -499,6 +504,7 @@ const categories = [
       { name: "Empower", alt: "paid financial advisors", url: "https://www.empower.com/", mark: "Em", color: "#1d3557", description: "Free net worth and retirement dashboard." },
       { name: "Monzo", alt: "bank accounts with fees", url: "https://monzo.com/", logo: siMonzo, description: "App-based bank account with budgeting and saving pots." },
       { name: "Wealthsimple", alt: "brokerages with fees", url: "https://www.wealthsimple.com/", mark: "W", color: "#32302f", description: "Commission-free stock and ETF trading, plus free tax filing." },
+      { name: "bunq", alt: "bank accounts with fees", url: "https://www.bunq.com/", logo: siBunq, description: "App-based European bank with a free plan and budgeting tools." },
     ],
   },
   {
@@ -586,6 +592,8 @@ const categories = [
       { name: "BitTorrent", alt: "paid torrent clients", url: "https://www.bittorrent.com/", logo: siBittorrent, description: "The official client from the protocol's creators." },
       { name: "Transmission", alt: "paid torrent clients", url: "https://transmissionbt.com/", logo: siTransmission, description: "Lightweight, ad-free torrent client." },
       { name: "WinRAR", alt: "WinZip", url: "https://www.win-rar.com/", mark: "RAR", color: "#7a2a8c", description: "The classic archive tool, famous for its endless trial." },
+      { name: "WeTransfer", alt: "paid file transfer", url: "https://wetransfer.com/", logo: siWetransfer, description: "Send big files by link, no account needed." },
+      { name: "Buienradar", alt: "paid weather apps", url: "https://www.buienradar.nl/", mark: "BR", color: "#1e88e5", description: "Live rain radar and forecasts for the Netherlands and Belgium." },
     ],
   },
   {
@@ -647,6 +655,7 @@ const categories = [
       { name: "FutureLearn", alt: "Coursera / Udemy", url: "https://www.futurelearn.com/", logo: siFuturelearn, description: "University courses from around the world." },
       { name: "Lumni", alt: "paid tutoring", url: "https://www.lumni.fr/", mark: "Lu", color: "#5a3df5", description: "Educational videos and games for school, from public broadcasters." },
       { name: "K-MOOC", alt: "Coursera / Udemy", url: "https://www.kmooc.kr/", mark: "K", color: "#1e4fa0", description: "Free online courses from Korean universities." },
+      { name: "Schooltv", alt: "paid tutoring", url: "https://schooltv.nl/", mark: "St", color: "#ff6d00", description: "Short educational videos from Dutch public broadcasting." },
     ],
   },
   {

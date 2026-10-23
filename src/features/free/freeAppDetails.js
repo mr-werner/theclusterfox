@@ -356,6 +356,11 @@ export const freeAppDetails = {
   WeTransfer: { limits: ["ads", "freeTier"], note: "Free transfers have size and monthly limits." },
   Buienradar: { limits: ["ads", "region", "tracking"], note: "Covers the Netherlands and Belgium." },
   Schooltv: { limits: ["region"], note: "Some videos only play in the Netherlands." },
+  "SVT Play": { limits: ["region"], note: "Public and ad-free. Many shows are only available in Sweden." },
+  "Sveriges Radio": { note: "Public radio and podcasts with no ads, available worldwide." },
+  Truecaller: { limits: ["ads", "freeTier", "tracking"], note: "Works by sharing contact data; Premium removes ads." },
+  "UR Play": { limits: ["region"], note: "Some programs are only available in Sweden." },
+  "Learning Swedish": {},
 };
 
 // Country where the company behind each commercial service is based.
@@ -557,5 +562,9 @@ export const freeAppCountries = {
   bunq: "Netherlands",
   WeTransfer: "Netherlands",
   Buienradar: "Netherlands",
-  Schooltv: "Netherlands",
+  Schooltv: "Netherlands",  "SVT Play": "Sweden",
+  "Sveriges Radio": "Sweden",
+  Truecaller: "Sweden",
+  "UR Play": "Sweden",
+  "Learning Swedish": "Sweden",
 };

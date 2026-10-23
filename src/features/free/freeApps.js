@@ -393,6 +393,7 @@ const categories = [
       { name: "Arirang TV", alt: "paid news channels", url: "https://www.arirang.com/", mark: "AR", color: "#0083c9", description: "Korea's English-language public channel: news, K-pop, and culture." },
       { name: "Samsung TV Plus", alt: "cable TV", url: "https://www.samsungtvplus.com/", logo: siSamsung, description: "Hundreds of free live channels on Samsung TVs, phones, and the web." },
       { name: "NPO Start", alt: "Netflix", url: "https://npo.nl/start", mark: "NPO", color: "#ff6d00", description: "Dutch public TV: series, documentaries, news, and live channels." },
+      { name: "SVT Play", alt: "Netflix", url: "https://www.svtplay.se/", mark: "SVT", color: "#1f8a4c", description: "Swedish public TV: Nordic dramas, documentaries, and live channels." },
     ],
   },
   {
@@ -464,6 +465,7 @@ const categories = [
       { name: "CBC Listen", alt: "Spotify / SiriusXM", url: "https://www.cbc.ca/listen", logo: siCbc, description: "CBC Radio One, CBC Music, and CBC podcasts." },
       { name: "OHdio", alt: "Spotify / Audible", url: "https://ici.radio-canada.ca/ohdio", mark: "OH", color: "#e4002b", description: "Radio-Canada's French radio, podcasts, and audiobooks." },
       { name: "NPO Luister", alt: "Spotify / Audible", url: "https://www.npoluister.nl/", mark: "NPO", color: "#ff6d00", description: "Dutch public radio stations and podcasts in one app." },
+      { name: "Sveriges Radio", alt: "Spotify / SiriusXM", url: "https://www.sverigesradio.se/", mark: "SR", color: "#0d5ca6", description: "Swedish public radio stations and podcasts." },
     ],
   },
   {
@@ -594,6 +596,7 @@ const categories = [
       { name: "WinRAR", alt: "WinZip", url: "https://www.win-rar.com/", mark: "RAR", color: "#7a2a8c", description: "The classic archive tool, famous for its endless trial." },
       { name: "WeTransfer", alt: "paid file transfer", url: "https://wetransfer.com/", logo: siWetransfer, description: "Send big files by link, no account needed." },
       { name: "Buienradar", alt: "paid weather apps", url: "https://www.buienradar.nl/", mark: "BR", color: "#1e88e5", description: "Live rain radar and forecasts for the Netherlands and Belgium." },
+      { name: "Truecaller", alt: "paid caller ID", url: "https://www.truecaller.com/", mark: "Tc", color: "#0087ff", description: "Caller ID and spam call blocking." },
     ],
   },
   {
@@ -656,6 +659,7 @@ const categories = [
       { name: "Lumni", alt: "paid tutoring", url: "https://www.lumni.fr/", mark: "Lu", color: "#5a3df5", description: "Educational videos and games for school, from public broadcasters." },
       { name: "K-MOOC", alt: "Coursera / Udemy", url: "https://www.kmooc.kr/", mark: "K", color: "#1e4fa0", description: "Free online courses from Korean universities." },
       { name: "Schooltv", alt: "paid tutoring", url: "https://schooltv.nl/", mark: "St", color: "#ff6d00", description: "Short educational videos from Dutch public broadcasting." },
+      { name: "UR Play", alt: "paid tutoring", url: "https://urplay.se/", mark: "UR", color: "#7a2c8c", description: "Educational TV and radio from Sweden's public education broadcaster." },
     ],
   },
   {
@@ -681,6 +685,7 @@ const categories = [
       { name: "Mauril", alt: "Babbel", url: "https://mauril.ca/", mark: "Ma", color: "#5b2e91", description: "Learn English or French with CBC and Radio-Canada video clips." },
       { name: "Papago", alt: "paid translators", url: "https://papago.naver.com/", mark: "Pa", color: "#00c73c", description: "Naver's translator, strongest for Korean, Japanese, and Chinese." },
       { name: "King Sejong Institute", alt: "Babbel", url: "https://www.iksi.or.kr/", mark: "KSI", color: "#003a70", description: "Free government-backed Korean courses online." },
+      { name: "Learning Swedish", alt: "Babbel", url: "https://learningswedish.se/", mark: "LS", color: "#006aa7", description: "Free Swedish course from the Swedish Institute, beginner to intermediate." },
     ],
   },
 ];

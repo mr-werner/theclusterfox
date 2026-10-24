@@ -361,6 +361,12 @@ export const freeAppDetails = {
   Truecaller: { limits: ["ads", "freeTier", "tracking"], note: "Works by sharing contact data; Premium removes ads." },
   "UR Play": { limits: ["region"], note: "Some programs are only available in Sweden." },
   "Learning Swedish": {},
+  "ABC iview": { limits: ["region"], note: "Public and ad-free. Most shows are Australia only." },
+  "SBS On Demand": { limits: ["ads", "region", "tracking"], note: "Australia only; free account required." },
+  "7plus": { limits: ["ads", "region", "tracking"], note: "Australia only." },
+  "ABC listen": { note: "Public radio and podcasts with no ads, available worldwide." },
+  Trove: {},
+  "ABC Education": {},
 };
 
 // Country where the company behind each commercial service is based.
@@ -566,5 +572,10 @@ export const freeAppCountries = {
   "Sveriges Radio": "Sweden",
   Truecaller: "Sweden",
   "UR Play": "Sweden",
-  "Learning Swedish": "Sweden",
+  "Learning Swedish": "Sweden",  "ABC iview": "Australia",
+  "SBS On Demand": "Australia",
+  "7plus": "Australia",
+  "ABC listen": "Australia",
+  Trove: "Australia",
+  "ABC Education": "Australia",
 };

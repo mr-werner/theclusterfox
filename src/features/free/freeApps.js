@@ -182,6 +182,7 @@ import {
   siTradingview,
   siTransmission,
   siTrello,
+  siTrove,
   siTruenas,
   siTubi,
   siTumblr,
@@ -394,6 +395,9 @@ const categories = [
       { name: "Samsung TV Plus", alt: "cable TV", url: "https://www.samsungtvplus.com/", logo: siSamsung, description: "Hundreds of free live channels on Samsung TVs, phones, and the web." },
       { name: "NPO Start", alt: "Netflix", url: "https://npo.nl/start", mark: "NPO", color: "#ff6d00", description: "Dutch public TV: series, documentaries, news, and live channels." },
       { name: "SVT Play", alt: "Netflix", url: "https://www.svtplay.se/", mark: "SVT", color: "#1f8a4c", description: "Swedish public TV: Nordic dramas, documentaries, and live channels." },
+      { name: "ABC iview", alt: "Netflix", url: "https://iview.abc.net.au/", mark: "ABC", color: "#00a6e2", description: "Ad-free Australian public TV, kids' shows, and live channels." },
+      { name: "SBS On Demand", alt: "Netflix", url: "https://www.sbs.com.au/ondemand/", mark: "SBS", color: "#f9b600", description: "World cinema, international series, and live sport." },
+      { name: "7plus", alt: "Netflix", url: "https://7plus.com.au/", mark: "7+", color: "#e20613", description: "Channel 7 shows, live TV, and AFL." },
     ],
   },
   {
@@ -466,6 +470,7 @@ const categories = [
       { name: "OHdio", alt: "Spotify / Audible", url: "https://ici.radio-canada.ca/ohdio", mark: "OH", color: "#e4002b", description: "Radio-Canada's French radio, podcasts, and audiobooks." },
       { name: "NPO Luister", alt: "Spotify / Audible", url: "https://www.npoluister.nl/", mark: "NPO", color: "#ff6d00", description: "Dutch public radio stations and podcasts in one app." },
       { name: "Sveriges Radio", alt: "Spotify / SiriusXM", url: "https://www.sverigesradio.se/", mark: "SR", color: "#0d5ca6", description: "Swedish public radio stations and podcasts." },
+      { name: "ABC listen", alt: "Spotify / SiriusXM", url: "https://www.abc.net.au/listen", mark: "ABC", color: "#00a6e2", description: "ABC radio stations, triple j, and ABC podcasts." },
     ],
   },
   {
@@ -484,6 +489,7 @@ const categories = [
       { name: "MANGA Plus", alt: "manga subscriptions", url: "https://mangaplus.shueisha.co.jp/", mark: "M+", color: "#e60012", description: "Official Shueisha manga, including One Piece, with new chapters free." },
       { name: "Wattpad", alt: "paid e-book stores", url: "https://www.wattpad.com/", logo: siWattpad, description: "Millions of free stories from writers around the world." },
       { name: "Delpher", alt: "paid archives", url: "https://www.delpher.nl/", mark: "De", color: "#0f4c81", description: "Millions of digitized Dutch books, newspapers, and magazines." },
+      { name: "Trove", alt: "paid archives", url: "https://trove.nla.gov.au/", logo: siTrove, description: "The National Library of Australia's archive of books, newspapers, and photos." },
     ],
   },
   {
@@ -660,6 +666,7 @@ const categories = [
       { name: "K-MOOC", alt: "Coursera / Udemy", url: "https://www.kmooc.kr/", mark: "K", color: "#1e4fa0", description: "Free online courses from Korean universities." },
       { name: "Schooltv", alt: "paid tutoring", url: "https://schooltv.nl/", mark: "St", color: "#ff6d00", description: "Short educational videos from Dutch public broadcasting." },
       { name: "UR Play", alt: "paid tutoring", url: "https://urplay.se/", mark: "UR", color: "#7a2c8c", description: "Educational TV and radio from Sweden's public education broadcaster." },
+      { name: "ABC Education", alt: "paid tutoring", url: "https://www.abc.net.au/education", mark: "ABC", color: "#00a6e2", description: "Free videos, games, and lessons for school students." },
     ],
   },
   {

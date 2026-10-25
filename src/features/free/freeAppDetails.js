@@ -367,6 +367,12 @@ export const freeAppDetails = {
   "ABC listen": { note: "Public radio and podcasts with no ads, available worldwide." },
   Trove: {},
   "ABC Education": {},
+  "Play Suisse": { limits: ["region"], note: "Free account. Full catalog in Switzerland; a smaller selection abroad." },
+  "SRF Play": { limits: ["region"], note: "Many shows and live TV are Switzerland only." },
+  "Radio Swiss Classic": { note: "Public radio with no ads or talk, free worldwide." },
+  "Proton Drive": { limits: ["freeTier"], note: "Free plan includes a few GB of storage." },
+  kDrive: { limits: ["freeTier"], note: "Free plan includes 15 GB." },
+  "swissinfo.ch": {},
 };
 
 // Country where the company behind each commercial service is based.
@@ -577,5 +583,10 @@ export const freeAppCountries = {
   "7plus": "Australia",
   "ABC listen": "Australia",
   Trove: "Australia",
-  "ABC Education": "Australia",
+  "ABC Education": "Australia",  "Play Suisse": "Switzerland",
+  "SRF Play": "Switzerland",
+  "Radio Swiss Classic": "Switzerland",
+  "Proton Drive": "Switzerland",
+  kDrive: "Switzerland",
+  "swissinfo.ch": "Switzerland",
 };

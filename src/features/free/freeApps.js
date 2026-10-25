@@ -88,6 +88,7 @@ import {
   siIcloud,
   siIheartradio,
   siImmich,
+  siInfomaniak,
   siInkscape,
   siInstagram,
   siInternetarchive,
@@ -150,6 +151,7 @@ import {
   siPlex,
   siPocketcasts,
   siPopos,
+  siProtondrive,
   siProtonmail,
   siProtonvpn,
   siProxmox,
@@ -273,6 +275,8 @@ const categories = [
       { name: "OneDrive", alt: "paid cloud storage", url: "https://onedrive.live.com/", mark: "OD", color: "#0364b8", description: "Microsoft's cloud storage, built into Windows." },
       { name: "iCloud", alt: "paid cloud storage", url: "https://www.icloud.com/", logo: siIcloud, description: "Apple's cloud for photos, files, and backups." },
       { name: "MEGA", alt: "paid cloud storage", url: "https://mega.io/", logo: siMega, description: "End-to-end encrypted cloud storage." },
+      { name: "Proton Drive", alt: "Google Drive / Dropbox", url: "https://proton.me/drive", logo: siProtondrive, description: "End-to-end encrypted cloud storage and document editing." },
+      { name: "kDrive", alt: "Google Drive / Dropbox", url: "https://www.infomaniak.com/en/kdrive", logo: siInfomaniak, description: "Swiss-hosted cloud storage with online office apps." },
     ],
   },
   {
@@ -398,6 +402,8 @@ const categories = [
       { name: "ABC iview", alt: "Netflix", url: "https://iview.abc.net.au/", mark: "ABC", color: "#00a6e2", description: "Ad-free Australian public TV, kids' shows, and live channels." },
       { name: "SBS On Demand", alt: "Netflix", url: "https://www.sbs.com.au/ondemand/", mark: "SBS", color: "#f9b600", description: "World cinema, international series, and live sport." },
       { name: "7plus", alt: "Netflix", url: "https://7plus.com.au/", mark: "7+", color: "#e20613", description: "Channel 7 shows, live TV, and AFL." },
+      { name: "Play Suisse", alt: "Netflix", url: "https://www.playsuisse.ch/", mark: "PS", color: "#af001d", description: "Swiss series, films, and documentaries with subtitles in four languages." },
+      { name: "SRF Play", alt: "Netflix", url: "https://www.srf.ch/play/tv", mark: "SRF", color: "#af001d", description: "Swiss German public TV, news, and live channels." },
     ],
   },
   {
@@ -471,6 +477,7 @@ const categories = [
       { name: "NPO Luister", alt: "Spotify / Audible", url: "https://www.npoluister.nl/", mark: "NPO", color: "#ff6d00", description: "Dutch public radio stations and podcasts in one app." },
       { name: "Sveriges Radio", alt: "Spotify / SiriusXM", url: "https://www.sverigesradio.se/", mark: "SR", color: "#0d5ca6", description: "Swedish public radio stations and podcasts." },
       { name: "ABC listen", alt: "Spotify / SiriusXM", url: "https://www.abc.net.au/listen", mark: "ABC", color: "#00a6e2", description: "ABC radio stations, triple j, and ABC podcasts." },
+      { name: "Radio Swiss Classic", alt: "SiriusXM", url: "https://www.radioswissclassic.ch/", mark: "RSC", color: "#8a1538", description: "Non-stop classical music from Swiss public radio, plus Radio Swiss Jazz and Pop." },
     ],
   },
   {
@@ -667,6 +674,7 @@ const categories = [
       { name: "Schooltv", alt: "paid tutoring", url: "https://schooltv.nl/", mark: "St", color: "#ff6d00", description: "Short educational videos from Dutch public broadcasting." },
       { name: "UR Play", alt: "paid tutoring", url: "https://urplay.se/", mark: "UR", color: "#7a2c8c", description: "Educational TV and radio from Sweden's public education broadcaster." },
       { name: "ABC Education", alt: "paid tutoring", url: "https://www.abc.net.au/education", mark: "ABC", color: "#00a6e2", description: "Free videos, games, and lessons for school students." },
+      { name: "swissinfo.ch", alt: "paid news", url: "https://www.swissinfo.ch/", mark: "si", color: "#c8102e", description: "Swiss public news service published in ten languages." },
     ],
   },
   {

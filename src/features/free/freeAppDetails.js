@@ -373,6 +373,11 @@ export const freeAppDetails = {
   "Proton Drive": { limits: ["freeTier"], note: "Free plan includes a few GB of storage." },
   kDrive: { limits: ["freeTier"], note: "Free plan includes 15 GB." },
   "swissinfo.ch": {},
+  "NRK TV": { limits: ["region"], note: "Public and ad-free. Many shows are Norway only." },
+  "NRK Radio": { note: "Public radio and podcasts with no ads, mostly available worldwide." },
+  Yr: { note: "From Norway's public broadcaster and weather institute, with no ads." },
+  "Kahoot!": { limits: ["freeTier"], note: "Free plan limits players per game and some question types." },
+  "Norwegian on the Web": {},
 };
 
 // Country where the company behind each commercial service is based.
@@ -588,5 +593,9 @@ export const freeAppCountries = {
   "Radio Swiss Classic": "Switzerland",
   "Proton Drive": "Switzerland",
   kDrive: "Switzerland",
-  "swissinfo.ch": "Switzerland",
+  "swissinfo.ch": "Switzerland",  "NRK TV": "Norway",
+  "NRK Radio": "Norway",
+  Yr: "Norway",
+  "Kahoot!": "Norway",
+  "Norwegian on the Web": "Norway",
 };

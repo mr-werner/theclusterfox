@@ -97,6 +97,7 @@ import {
   siJellyfin,
   siJitsi,
   siJoplin,
+  siKahoot,
   siKakaotalk,
   siKdenlive,
   siKeepassxc,
@@ -208,6 +209,7 @@ import {
   siX,
   siYoutube,
   siYoutubemusic,
+  siYr,
   siZdf,
   siZoom,
   siZorin,
@@ -404,6 +406,7 @@ const categories = [
       { name: "7plus", alt: "Netflix", url: "https://7plus.com.au/", mark: "7+", color: "#e20613", description: "Channel 7 shows, live TV, and AFL." },
       { name: "Play Suisse", alt: "Netflix", url: "https://www.playsuisse.ch/", mark: "PS", color: "#af001d", description: "Swiss series, films, and documentaries with subtitles in four languages." },
       { name: "SRF Play", alt: "Netflix", url: "https://www.srf.ch/play/tv", mark: "SRF", color: "#af001d", description: "Swiss German public TV, news, and live channels." },
+      { name: "NRK TV", alt: "Netflix", url: "https://tv.nrk.no/", mark: "NRK", color: "#e2001a", description: "Norwegian public TV, including hits like Skam and slow TV." },
     ],
   },
   {
@@ -478,6 +481,7 @@ const categories = [
       { name: "Sveriges Radio", alt: "Spotify / SiriusXM", url: "https://www.sverigesradio.se/", mark: "SR", color: "#0d5ca6", description: "Swedish public radio stations and podcasts." },
       { name: "ABC listen", alt: "Spotify / SiriusXM", url: "https://www.abc.net.au/listen", mark: "ABC", color: "#00a6e2", description: "ABC radio stations, triple j, and ABC podcasts." },
       { name: "Radio Swiss Classic", alt: "SiriusXM", url: "https://www.radioswissclassic.ch/", mark: "RSC", color: "#8a1538", description: "Non-stop classical music from Swiss public radio, plus Radio Swiss Jazz and Pop." },
+      { name: "NRK Radio", alt: "Spotify / SiriusXM", url: "https://radio.nrk.no/", mark: "NRK", color: "#e2001a", description: "Norwegian public radio stations and podcasts." },
     ],
   },
   {
@@ -610,6 +614,7 @@ const categories = [
       { name: "WeTransfer", alt: "paid file transfer", url: "https://wetransfer.com/", logo: siWetransfer, description: "Send big files by link, no account needed." },
       { name: "Buienradar", alt: "paid weather apps", url: "https://www.buienradar.nl/", mark: "BR", color: "#1e88e5", description: "Live rain radar and forecasts for the Netherlands and Belgium." },
       { name: "Truecaller", alt: "paid caller ID", url: "https://www.truecaller.com/", mark: "Tc", color: "#0087ff", description: "Caller ID and spam call blocking." },
+      { name: "Yr", alt: "paid weather apps", url: "https://www.yr.no/en", logo: siYr, description: "Ad-free weather forecasts for anywhere in the world." },
     ],
   },
   {
@@ -675,6 +680,7 @@ const categories = [
       { name: "UR Play", alt: "paid tutoring", url: "https://urplay.se/", mark: "UR", color: "#7a2c8c", description: "Educational TV and radio from Sweden's public education broadcaster." },
       { name: "ABC Education", alt: "paid tutoring", url: "https://www.abc.net.au/education", mark: "ABC", color: "#00a6e2", description: "Free videos, games, and lessons for school students." },
       { name: "swissinfo.ch", alt: "paid news", url: "https://www.swissinfo.ch/", mark: "si", color: "#c8102e", description: "Swiss public news service published in ten languages." },
+      { name: "Kahoot!", alt: "paid quiz tools", url: "https://kahoot.com/", logo: siKahoot, description: "Make and play live quiz games for class, work, or parties." },
     ],
   },
   {
@@ -701,6 +707,7 @@ const categories = [
       { name: "Papago", alt: "paid translators", url: "https://papago.naver.com/", mark: "Pa", color: "#00c73c", description: "Naver's translator, strongest for Korean, Japanese, and Chinese." },
       { name: "King Sejong Institute", alt: "Babbel", url: "https://www.iksi.or.kr/", mark: "KSI", color: "#003a70", description: "Free government-backed Korean courses online." },
       { name: "Learning Swedish", alt: "Babbel", url: "https://learningswedish.se/", mark: "LS", color: "#006aa7", description: "Free Swedish course from the Swedish Institute, beginner to intermediate." },
+      { name: "Norwegian on the Web", alt: "Babbel", url: "https://www.ntnu.edu/now", mark: "NoW", color: "#00509e", description: "Free beginner Norwegian course from NTNU university." },
     ],
   },
 ];

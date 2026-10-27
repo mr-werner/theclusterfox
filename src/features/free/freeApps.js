@@ -26,6 +26,7 @@ import {
   siActualbudget,
   siAnki,
   siAntennapod,
+  siArduino,
   siAudacity,
   siAudiomack,
   siAvast,
@@ -407,6 +408,8 @@ const categories = [
       { name: "Play Suisse", alt: "Netflix", url: "https://www.playsuisse.ch/", mark: "PS", color: "#af001d", description: "Swiss series, films, and documentaries with subtitles in four languages." },
       { name: "SRF Play", alt: "Netflix", url: "https://www.srf.ch/play/tv", mark: "SRF", color: "#af001d", description: "Swiss German public TV, news, and live channels." },
       { name: "NRK TV", alt: "Netflix", url: "https://tv.nrk.no/", mark: "NRK", color: "#e2001a", description: "Norwegian public TV, including hits like Skam and slow TV." },
+      { name: "RaiPlay", alt: "Netflix", url: "https://www.raiplay.it/", mark: "Rai", color: "#0a5ea8", description: "Italian public TV: dramas, films, documentaries, and live channels." },
+      { name: "Mediaset Infinity", alt: "Netflix", url: "https://mediasetinfinity.mediaset.it/", mark: "MI", color: "#1d3c8f", description: "Mediaset shows, reality TV, and live Italian channels." },
     ],
   },
   {
@@ -482,6 +485,7 @@ const categories = [
       { name: "ABC listen", alt: "Spotify / SiriusXM", url: "https://www.abc.net.au/listen", mark: "ABC", color: "#00a6e2", description: "ABC radio stations, triple j, and ABC podcasts." },
       { name: "Radio Swiss Classic", alt: "SiriusXM", url: "https://www.radioswissclassic.ch/", mark: "RSC", color: "#8a1538", description: "Non-stop classical music from Swiss public radio, plus Radio Swiss Jazz and Pop." },
       { name: "NRK Radio", alt: "Spotify / SiriusXM", url: "https://radio.nrk.no/", mark: "NRK", color: "#e2001a", description: "Norwegian public radio stations and podcasts." },
+      { name: "RaiPlay Sound", alt: "Spotify / Audible", url: "https://www.raiplaysound.it/", mark: "Rai", color: "#0a5ea8", description: "Rai radio stations, podcasts, and audiobooks." },
     ],
   },
   {
@@ -545,6 +549,7 @@ const categories = [
       { name: "Hoppscotch", alt: "Postman", url: "https://hoppscotch.io/", logo: siHoppscotch, description: "Fast API testing in the browser." },
       { name: "GitLab", alt: "paid code hosting", url: "https://about.gitlab.com/", logo: siGitlab, description: "Code hosting with built-in CI/CD." },
       { name: "Cursor", alt: "paid AI IDEs", url: "https://cursor.com/", logo: siCursor, description: "AI-first code editor built on VS Code." },
+      { name: "Arduino IDE", alt: "paid embedded toolchains", url: "https://www.arduino.cc/en/software", logo: siArduino, description: "Write and upload code to Arduino and other microcontroller boards." },
     ],
   },
   {
@@ -681,6 +686,7 @@ const categories = [
       { name: "ABC Education", alt: "paid tutoring", url: "https://www.abc.net.au/education", mark: "ABC", color: "#00a6e2", description: "Free videos, games, and lessons for school students." },
       { name: "swissinfo.ch", alt: "paid news", url: "https://www.swissinfo.ch/", mark: "si", color: "#c8102e", description: "Swiss public news service published in ten languages." },
       { name: "Kahoot!", alt: "paid quiz tools", url: "https://kahoot.com/", logo: siKahoot, description: "Make and play live quiz games for class, work, or parties." },
+      { name: "Treccani", alt: "paid encyclopedias", url: "https://www.treccani.it/", mark: "Tr", color: "#9b1b30", description: "Italy's leading encyclopedia and dictionary, free online." },
     ],
   },
   {

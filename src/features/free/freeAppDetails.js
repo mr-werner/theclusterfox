@@ -378,6 +378,11 @@ export const freeAppDetails = {
   Yr: { note: "From Norway's public broadcaster and weather institute, with no ads." },
   "Kahoot!": { limits: ["freeTier"], note: "Free plan limits players per game and some question types." },
   "Norwegian on the Web": {},
+  RaiPlay: { limits: ["region"], note: "Free account. Many films, sports, and live TV are Italy only." },
+  "Mediaset Infinity": { limits: ["ads", "freeTier", "region", "tracking"], note: "Mostly Italy only. Infinity+ adds films and removes ads." },
+  "RaiPlay Sound": { note: "Public radio and podcasts, available worldwide." },
+  "Arduino IDE": OS,
+  Treccani: { limits: ["ads"], note: "Mostly in Italian." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -597,5 +602,9 @@ export const freeAppCountries = {
   "NRK Radio": "Norway",
   Yr: "Norway",
   "Kahoot!": "Norway",
-  "Norwegian on the Web": "Norway",
+  "Norwegian on the Web": "Norway",  RaiPlay: "Italy",
+  "Mediaset Infinity": "Italy",
+  "RaiPlay Sound": "Italy",
+  "Arduino IDE": "Italy",
+  Treccani: "Italy",
 };

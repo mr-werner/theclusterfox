@@ -383,6 +383,11 @@ export const freeAppDetails = {
   "RaiPlay Sound": { note: "Public radio and podcasts, available worldwide." },
   "Arduino IDE": OS,
   Treccani: { limits: ["ads"], note: "Mostly in Italian." },
+  "RTVE Play": { limits: ["region"], note: "Public broadcaster. Some shows and live TV are Spain only." },
+  Atresplayer: { limits: ["ads", "freeTier", "region", "tracking"], note: "Mostly Spain only. Premium removes ads and adds more shows." },
+  "RNE Radio": { note: "Public radio and podcasts, available worldwide." },
+  "Biblioteca Virtual Cervantes": {},
+  "Practica Español": { limits: ["ads"] },
 };
 
 // Country where the company behind each commercial service is based.
@@ -606,5 +611,9 @@ export const freeAppCountries = {
   "Mediaset Infinity": "Italy",
   "RaiPlay Sound": "Italy",
   "Arduino IDE": "Italy",
-  Treccani: "Italy",
+  Treccani: "Italy",  "RTVE Play": "Spain",
+  Atresplayer: "Spain",
+  "RNE Radio": "Spain",
+  "Biblioteca Virtual Cervantes": "Spain",
+  "Practica Español": "Spain",
 };

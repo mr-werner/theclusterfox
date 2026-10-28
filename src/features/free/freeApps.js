@@ -410,6 +410,8 @@ const categories = [
       { name: "NRK TV", alt: "Netflix", url: "https://tv.nrk.no/", mark: "NRK", color: "#e2001a", description: "Norwegian public TV, including hits like Skam and slow TV." },
       { name: "RaiPlay", alt: "Netflix", url: "https://www.raiplay.it/", mark: "Rai", color: "#0a5ea8", description: "Italian public TV: dramas, films, documentaries, and live channels." },
       { name: "Mediaset Infinity", alt: "Netflix", url: "https://mediasetinfinity.mediaset.it/", mark: "MI", color: "#1d3c8f", description: "Mediaset shows, reality TV, and live Italian channels." },
+      { name: "RTVE Play", alt: "Netflix", url: "https://www.rtve.es/play/", mark: "RTVE", color: "#e4002b", description: "Spanish public TV: series, films, documentaries, and live channels." },
+      { name: "Atresplayer", alt: "Netflix", url: "https://www.atresplayer.com/", mark: "A3", color: "#ff6a13", description: "Antena 3 and laSexta shows, series, and live TV." },
     ],
   },
   {
@@ -486,6 +488,7 @@ const categories = [
       { name: "Radio Swiss Classic", alt: "SiriusXM", url: "https://www.radioswissclassic.ch/", mark: "RSC", color: "#8a1538", description: "Non-stop classical music from Swiss public radio, plus Radio Swiss Jazz and Pop." },
       { name: "NRK Radio", alt: "Spotify / SiriusXM", url: "https://radio.nrk.no/", mark: "NRK", color: "#e2001a", description: "Norwegian public radio stations and podcasts." },
       { name: "RaiPlay Sound", alt: "Spotify / Audible", url: "https://www.raiplaysound.it/", mark: "Rai", color: "#0a5ea8", description: "Rai radio stations, podcasts, and audiobooks." },
+      { name: "RNE Radio", alt: "Spotify / SiriusXM", url: "https://www.rtve.es/play/radio/", mark: "RNE", color: "#e4002b", description: "Spanish public radio stations and podcasts from RTVE." },
     ],
   },
   {
@@ -505,6 +508,7 @@ const categories = [
       { name: "Wattpad", alt: "paid e-book stores", url: "https://www.wattpad.com/", logo: siWattpad, description: "Millions of free stories from writers around the world." },
       { name: "Delpher", alt: "paid archives", url: "https://www.delpher.nl/", mark: "De", color: "#0f4c81", description: "Millions of digitized Dutch books, newspapers, and magazines." },
       { name: "Trove", alt: "paid archives", url: "https://trove.nla.gov.au/", logo: siTrove, description: "The National Library of Australia's archive of books, newspapers, and photos." },
+      { name: "Biblioteca Virtual Cervantes", alt: "paid e-book stores", url: "https://www.cervantesvirtual.com/", mark: "BVC", color: "#8b1e2d", description: "Huge free library of Spanish and Latin American classics." },
     ],
   },
   {
@@ -714,6 +718,7 @@ const categories = [
       { name: "King Sejong Institute", alt: "Babbel", url: "https://www.iksi.or.kr/", mark: "KSI", color: "#003a70", description: "Free government-backed Korean courses online." },
       { name: "Learning Swedish", alt: "Babbel", url: "https://learningswedish.se/", mark: "LS", color: "#006aa7", description: "Free Swedish course from the Swedish Institute, beginner to intermediate." },
       { name: "Norwegian on the Web", alt: "Babbel", url: "https://www.ntnu.edu/now", mark: "NoW", color: "#00509e", description: "Free beginner Norwegian course from NTNU university." },
+      { name: "Practica Español", alt: "Babbel", url: "https://www.practicaespanol.com/", mark: "PE", color: "#c60b1e", description: "Free Spanish practice built on real news from the EFE agency." },
     ],
   },
 ];

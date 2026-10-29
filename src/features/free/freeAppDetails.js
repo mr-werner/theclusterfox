@@ -388,6 +388,10 @@ export const freeAppDetails = {
   "RNE Radio": { note: "Public radio and podcasts, available worldwide." },
   "Biblioteca Virtual Cervantes": {},
   "Practica Español": { limits: ["ads"] },
+  "DR TV": { limits: ["region"], note: "Public and ad-free. Many shows are Denmark only." },
+  "DR LYD": { note: "Public radio and podcasts with no ads, mostly available worldwide." },
+  eReolen: { limits: ["libraryCard", "region"], note: "Needs a Danish library login." },
+  "Too Good To Go": { limits: ["tracking"], note: "Free app; you pay only for the food you rescue." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -615,5 +619,8 @@ export const freeAppCountries = {
   Atresplayer: "Spain",
   "RNE Radio": "Spain",
   "Biblioteca Virtual Cervantes": "Spain",
-  "Practica Español": "Spain",
+  "Practica Español": "Spain",  "DR TV": "Denmark",
+  "DR LYD": "Denmark",
+  eReolen: "Denmark",
+  "Too Good To Go": "Denmark",
 };

@@ -412,6 +412,7 @@ const categories = [
       { name: "Mediaset Infinity", alt: "Netflix", url: "https://mediasetinfinity.mediaset.it/", mark: "MI", color: "#1d3c8f", description: "Mediaset shows, reality TV, and live Italian channels." },
       { name: "RTVE Play", alt: "Netflix", url: "https://www.rtve.es/play/", mark: "RTVE", color: "#e4002b", description: "Spanish public TV: series, films, documentaries, and live channels." },
       { name: "Atresplayer", alt: "Netflix", url: "https://www.atresplayer.com/", mark: "A3", color: "#ff6a13", description: "Antena 3 and laSexta shows, series, and live TV." },
+      { name: "DR TV", alt: "Netflix", url: "https://www.dr.dk/drtv/", mark: "DR", color: "#c8102e", description: "Danish public TV, including Nordic noir dramas like Borgen." },
     ],
   },
   {
@@ -489,6 +490,7 @@ const categories = [
       { name: "NRK Radio", alt: "Spotify / SiriusXM", url: "https://radio.nrk.no/", mark: "NRK", color: "#e2001a", description: "Norwegian public radio stations and podcasts." },
       { name: "RaiPlay Sound", alt: "Spotify / Audible", url: "https://www.raiplaysound.it/", mark: "Rai", color: "#0a5ea8", description: "Rai radio stations, podcasts, and audiobooks." },
       { name: "RNE Radio", alt: "Spotify / SiriusXM", url: "https://www.rtve.es/play/radio/", mark: "RNE", color: "#e4002b", description: "Spanish public radio stations and podcasts from RTVE." },
+      { name: "DR LYD", alt: "Spotify / SiriusXM", url: "https://www.dr.dk/lyd", mark: "DR", color: "#c8102e", description: "Danish public radio stations and podcasts." },
     ],
   },
   {
@@ -509,6 +511,7 @@ const categories = [
       { name: "Delpher", alt: "paid archives", url: "https://www.delpher.nl/", mark: "De", color: "#0f4c81", description: "Millions of digitized Dutch books, newspapers, and magazines." },
       { name: "Trove", alt: "paid archives", url: "https://trove.nla.gov.au/", logo: siTrove, description: "The National Library of Australia's archive of books, newspapers, and photos." },
       { name: "Biblioteca Virtual Cervantes", alt: "paid e-book stores", url: "https://www.cervantesvirtual.com/", mark: "BVC", color: "#8b1e2d", description: "Huge free library of Spanish and Latin American classics." },
+      { name: "eReolen", alt: "Kindle Unlimited / Audible", url: "https://ereolen.dk/", mark: "eR", color: "#0b6e4f", description: "Free e-books and audiobooks through Danish public libraries." },
     ],
   },
   {
@@ -624,6 +627,7 @@ const categories = [
       { name: "Buienradar", alt: "paid weather apps", url: "https://www.buienradar.nl/", mark: "BR", color: "#1e88e5", description: "Live rain radar and forecasts for the Netherlands and Belgium." },
       { name: "Truecaller", alt: "paid caller ID", url: "https://www.truecaller.com/", mark: "Tc", color: "#0087ff", description: "Caller ID and spam call blocking." },
       { name: "Yr", alt: "paid weather apps", url: "https://www.yr.no/en", logo: siYr, description: "Ad-free weather forecasts for anywhere in the world." },
+      { name: "Too Good To Go", alt: "full-price takeout", url: "https://www.toogoodtogo.com/", mark: "TG", color: "#00615f", description: "Buy surplus food from local shops and restaurants at a discount." },
     ],
   },
   {

@@ -392,6 +392,12 @@ export const freeAppDetails = {
   "DR LYD": { note: "Public radio and podcasts with no ads, mostly available worldwide." },
   eReolen: { limits: ["libraryCard", "region"], note: "Needs a Danish library login." },
   "Too Good To Go": { limits: ["tracking"], note: "Free app; you pay only for the food you rescue." },
+  "Yle Areena": { limits: ["region"], note: "Public and ad-free. Some shows and live TV are Finland only." },
+  "Yle Areena podcasts": { note: "Public radio and podcasts with no ads, mostly available worldwide." },
+  Digi: { note: "Free public archive; newer material is viewable only at Finnish legal deposit libraries." },
+  "Elements of AI": { note: "Free course from the University of Helsinki and MinnaLearn, in many languages." },
+  "MOOC.fi": { note: "Free university courses; some offer ECTS credits for Finnish students." },
+  "Yle Kielikoulu": { note: "Free browser tool from Yle; works with Areena shows you can watch in your region." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -619,8 +625,15 @@ export const freeAppCountries = {
   Atresplayer: "Spain",
   "RNE Radio": "Spain",
   "Biblioteca Virtual Cervantes": "Spain",
-  "Practica Español": "Spain",  "DR TV": "Denmark",
+  "Practica Español": "Spain",
+  "DR TV": "Denmark",
   "DR LYD": "Denmark",
   eReolen: "Denmark",
   "Too Good To Go": "Denmark",
+  "Yle Areena": "Finland",
+  "Yle Areena podcasts": "Finland",
+  Digi: "Finland",
+  "Elements of AI": "Finland",
+  "MOOC.fi": "Finland",
+  "Yle Kielikoulu": "Finland",
 };

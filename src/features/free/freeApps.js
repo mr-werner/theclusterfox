@@ -413,6 +413,7 @@ const categories = [
       { name: "RTVE Play", alt: "Netflix", url: "https://www.rtve.es/play/", mark: "RTVE", color: "#e4002b", description: "Spanish public TV: series, films, documentaries, and live channels." },
       { name: "Atresplayer", alt: "Netflix", url: "https://www.atresplayer.com/", mark: "A3", color: "#ff6a13", description: "Antena 3 and laSexta shows, series, and live TV." },
       { name: "DR TV", alt: "Netflix", url: "https://www.dr.dk/drtv/", mark: "DR", color: "#c8102e", description: "Danish public TV, including Nordic noir dramas like Borgen." },
+      { name: "Yle Areena", alt: "Netflix", url: "https://areena.yle.fi/", mark: "YA", color: "#00b4c4", description: "Finnish public TV, films and Nordic dramas, many with English subtitles." },
     ],
   },
   {
@@ -491,6 +492,7 @@ const categories = [
       { name: "RaiPlay Sound", alt: "Spotify / Audible", url: "https://www.raiplaysound.it/", mark: "Rai", color: "#0a5ea8", description: "Rai radio stations, podcasts, and audiobooks." },
       { name: "RNE Radio", alt: "Spotify / SiriusXM", url: "https://www.rtve.es/play/radio/", mark: "RNE", color: "#e4002b", description: "Spanish public radio stations and podcasts from RTVE." },
       { name: "DR LYD", alt: "Spotify / SiriusXM", url: "https://www.dr.dk/lyd", mark: "DR", color: "#c8102e", description: "Danish public radio stations and podcasts." },
+      { name: "Yle Areena podcasts", alt: "Spotify / Audible", url: "https://areena.yle.fi/podcastit", mark: "YA", color: "#00b4c4", description: "Yle radio channels, podcasts and audio dramas." },
     ],
   },
   {
@@ -512,6 +514,7 @@ const categories = [
       { name: "Trove", alt: "paid archives", url: "https://trove.nla.gov.au/", logo: siTrove, description: "The National Library of Australia's archive of books, newspapers, and photos." },
       { name: "Biblioteca Virtual Cervantes", alt: "paid e-book stores", url: "https://www.cervantesvirtual.com/", mark: "BVC", color: "#8b1e2d", description: "Huge free library of Spanish and Latin American classics." },
       { name: "eReolen", alt: "Kindle Unlimited / Audible", url: "https://ereolen.dk/", mark: "eR", color: "#0b6e4f", description: "Free e-books and audiobooks through Danish public libraries." },
+      { name: "Digi", alt: "Newspapers.com", url: "https://digi.kansalliskirjasto.fi/", mark: "KK", color: "#1b3f8b", description: "National Library of Finland archive of digitized newspapers and magazines." },
     ],
   },
   {
@@ -695,6 +698,8 @@ const categories = [
       { name: "swissinfo.ch", alt: "paid news", url: "https://www.swissinfo.ch/", mark: "si", color: "#c8102e", description: "Swiss public news service published in ten languages." },
       { name: "Kahoot!", alt: "paid quiz tools", url: "https://kahoot.com/", logo: siKahoot, description: "Make and play live quiz games for class, work, or parties." },
       { name: "Treccani", alt: "paid encyclopedias", url: "https://www.treccani.it/", mark: "Tr", color: "#9b1b30", description: "Italy's leading encyclopedia and dictionary, free online." },
+      { name: "Elements of AI", alt: "Coursera AI courses", url: "https://www.elementsofai.com/", mark: "EA", color: "#29264b", description: "University of Helsinki intro to AI, free with a certificate." },
+      { name: "MOOC.fi", alt: "Codecademy Pro", url: "https://www.mooc.fi/", mark: "MO", color: "#1a2333", description: "University of Helsinki programming courses in Python, Java and more." },
     ],
   },
   {
@@ -723,6 +728,7 @@ const categories = [
       { name: "Learning Swedish", alt: "Babbel", url: "https://learningswedish.se/", mark: "LS", color: "#006aa7", description: "Free Swedish course from the Swedish Institute, beginner to intermediate." },
       { name: "Norwegian on the Web", alt: "Babbel", url: "https://www.ntnu.edu/now", mark: "NoW", color: "#00509e", description: "Free beginner Norwegian course from NTNU university." },
       { name: "Practica Español", alt: "Babbel", url: "https://www.practicaespanol.com/", mark: "PE", color: "#c60b1e", description: "Free Spanish practice built on real news from the EFE agency." },
+      { name: "Yle Kielikoulu", alt: "Babbel", url: "https://kielikoulu.yle.fi/", mark: "YK", color: "#00b4c4", description: "Learn Finnish or Swedish with subtitles on Yle Areena shows." },
     ],
   },
 ];

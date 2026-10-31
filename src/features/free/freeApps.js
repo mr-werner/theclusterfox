@@ -414,6 +414,8 @@ const categories = [
       { name: "Atresplayer", alt: "Netflix", url: "https://www.atresplayer.com/", mark: "A3", color: "#ff6a13", description: "Antena 3 and laSexta shows, series, and live TV." },
       { name: "DR TV", alt: "Netflix", url: "https://www.dr.dk/drtv/", mark: "DR", color: "#c8102e", description: "Danish public TV, including Nordic noir dramas like Borgen." },
       { name: "Yle Areena", alt: "Netflix", url: "https://areena.yle.fi/", mark: "YA", color: "#00b4c4", description: "Finnish public TV, films and Nordic dramas, many with English subtitles." },
+      { name: "RTÉ Player", alt: "Netflix", url: "https://www.rte.ie/player/", mark: "RT", color: "#00a3a1", description: "Irish public TV with dramas, films and live channels." },
+      { name: "TG4 Player", alt: "Netflix", url: "https://www.tg4.ie/en/", mark: "T4", color: "#7ab800", description: "Irish-language TV with English subtitles, plus sport and docs." },
     ],
   },
   {
@@ -493,6 +495,7 @@ const categories = [
       { name: "RNE Radio", alt: "Spotify / SiriusXM", url: "https://www.rtve.es/play/radio/", mark: "RNE", color: "#e4002b", description: "Spanish public radio stations and podcasts from RTVE." },
       { name: "DR LYD", alt: "Spotify / SiriusXM", url: "https://www.dr.dk/lyd", mark: "DR", color: "#c8102e", description: "Danish public radio stations and podcasts." },
       { name: "Yle Areena podcasts", alt: "Spotify / Audible", url: "https://areena.yle.fi/podcastit", mark: "YA", color: "#00b4c4", description: "Yle radio channels, podcasts and audio dramas." },
+      { name: "RTÉ Radio", alt: "SiriusXM", url: "https://www.rte.ie/radio/", mark: "RT", color: "#00a3a1", description: "Irish public radio stations, podcasts and documentaries." },
     ],
   },
   {
@@ -515,6 +518,7 @@ const categories = [
       { name: "Biblioteca Virtual Cervantes", alt: "paid e-book stores", url: "https://www.cervantesvirtual.com/", mark: "BVC", color: "#8b1e2d", description: "Huge free library of Spanish and Latin American classics." },
       { name: "eReolen", alt: "Kindle Unlimited / Audible", url: "https://ereolen.dk/", mark: "eR", color: "#0b6e4f", description: "Free e-books and audiobooks through Danish public libraries." },
       { name: "Digi", alt: "Newspapers.com", url: "https://digi.kansalliskirjasto.fi/", mark: "KK", color: "#1b3f8b", description: "National Library of Finland archive of digitized newspapers and magazines." },
+      { name: "Dúchas", alt: "Ancestry archives", url: "https://www.duchas.ie/en", mark: "Dú", color: "#4b7f52", description: "Ireland's national folklore collection: stories, songs and photos." },
     ],
   },
   {
@@ -729,6 +733,7 @@ const categories = [
       { name: "Norwegian on the Web", alt: "Babbel", url: "https://www.ntnu.edu/now", mark: "NoW", color: "#00509e", description: "Free beginner Norwegian course from NTNU university." },
       { name: "Practica Español", alt: "Babbel", url: "https://www.practicaespanol.com/", mark: "PE", color: "#c60b1e", description: "Free Spanish practice built on real news from the EFE agency." },
       { name: "Yle Kielikoulu", alt: "Babbel", url: "https://kielikoulu.yle.fi/", mark: "YK", color: "#00b4c4", description: "Learn Finnish or Swedish with subtitles on Yle Areena shows." },
+      { name: "Teanglann", alt: "paid dictionaries", url: "https://www.teanglann.ie/en/", mark: "Te", color: "#167a3e", description: "Official Irish dictionaries with grammar and native-speaker audio." },
     ],
   },
 ];

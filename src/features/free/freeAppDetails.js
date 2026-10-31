@@ -398,6 +398,11 @@ export const freeAppDetails = {
   "Elements of AI": { note: "Free course from the University of Helsinki and MinnaLearn, in many languages." },
   "MOOC.fi": { note: "Free university courses; some offer ECTS credits for Finnish students." },
   "Yle Kielikoulu": { note: "Free browser tool from Yle; works with Areena shows you can watch in your region." },
+  "RTÉ Player": { limits: ["ads", "region", "tracking"], note: "Most shows are Ireland only; free account needed for some." },
+  "TG4 Player": { limits: ["region"], note: "Many programmes play worldwide; some sport is Ireland only." },
+  "RTÉ Radio": { note: "Live radio and podcasts, available worldwide." },
+  Dúchas: { note: "Free public archive from the National Folklore Collection at UCD." },
+  Teanglann: { note: "Free official dictionaries from Foras na Gaeilge." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -636,4 +641,9 @@ export const freeAppCountries = {
   "Elements of AI": "Finland",
   "MOOC.fi": "Finland",
   "Yle Kielikoulu": "Finland",
+  "RTÉ Player": "Ireland",
+  "TG4 Player": "Ireland",
+  "RTÉ Radio": "Ireland",
+  Dúchas: "Ireland",
+  Teanglann: "Ireland",
 };

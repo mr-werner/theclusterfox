@@ -403,6 +403,11 @@ export const freeAppDetails = {
   "RTÉ Radio": { note: "Live radio and podcasts, available worldwide." },
   Dúchas: { note: "Free public archive from the National Folklore Collection at UCD." },
   Teanglann: { note: "Free official dictionaries from Foras na Gaeilge." },
+  "TV Brasil Play": { note: "Public broadcaster EBC; free with no subscription." },
+  "Rádios EBC": { note: "Live public radio stations, available worldwide." },
+  "Domínio Público": { note: "Free public library run by Brazil's Ministry of Education." },
+  Nubank: { limits: ["region", "tracking"], note: "Accounts for residents of Brazil, Mexico and Colombia." },
+  "Escola Virtual.Gov": { note: "Free courses from ENAP, Brazil's national school of public administration." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -646,4 +651,9 @@ export const freeAppCountries = {
   "RTÉ Radio": "Ireland",
   Dúchas: "Ireland",
   Teanglann: "Ireland",
+  "TV Brasil Play": "Brazil",
+  "Rádios EBC": "Brazil",
+  "Domínio Público": "Brazil",
+  Nubank: "Brazil",
+  "Escola Virtual.Gov": "Brazil",
 };

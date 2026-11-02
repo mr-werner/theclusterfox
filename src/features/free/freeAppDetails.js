@@ -408,6 +408,12 @@ export const freeAppDetails = {
   "Domínio Público": { note: "Free public library run by Brazil's Ministry of Education." },
   Nubank: { limits: ["region", "tracking"], note: "Accounts for residents of Brazil, Mexico and Colombia." },
   "Escola Virtual.Gov": { note: "Free courses from ENAP, Brazil's national school of public administration." },
+  "Zoho Mail": { limits: ["freeTier"], note: "Free plan covers up to 5 users with 5 GB each; no ads." },
+  NewsOnAir: { note: "Public broadcaster Prasar Bharati; live radio available worldwide." },
+  "National Digital Library of India": { note: "Free account needed for some content." },
+  SWAYAM: { note: "Courses are free; certificates need a paid proctored exam." },
+  NPTEL: { note: "Courses are free; certificates need a paid proctored exam." },
+  DIKSHA: { note: "Ministry of Education platform, in many Indian languages." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -656,4 +662,10 @@ export const freeAppCountries = {
   "Domínio Público": "Brazil",
   Nubank: "Brazil",
   "Escola Virtual.Gov": "Brazil",
+  "Zoho Mail": "India",
+  NewsOnAir: "India",
+  "National Digital Library of India": "India",
+  SWAYAM: "India",
+  NPTEL: "India",
+  DIKSHA: "India",
 };

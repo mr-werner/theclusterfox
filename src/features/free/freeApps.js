@@ -213,6 +213,7 @@ import {
   siYoutubemusic,
   siYr,
   siZdf,
+  siZoho,
   siZoom,
   siZorin,
   siZotero,
@@ -281,6 +282,7 @@ const categories = [
       { name: "MEGA", alt: "paid cloud storage", url: "https://mega.io/", logo: siMega, description: "End-to-end encrypted cloud storage." },
       { name: "Proton Drive", alt: "Google Drive / Dropbox", url: "https://proton.me/drive", logo: siProtondrive, description: "End-to-end encrypted cloud storage and document editing." },
       { name: "kDrive", alt: "Google Drive / Dropbox", url: "https://www.infomaniak.com/en/kdrive", logo: siInfomaniak, description: "Swiss-hosted cloud storage with online office apps." },
+      { name: "Zoho Mail", alt: "Gmail / Outlook", url: "https://www.zoho.com/mail/", logo: siZoho, description: "Ad-free email with a free plan for personal use and small teams." },
     ],
   },
   {
@@ -499,6 +501,7 @@ const categories = [
       { name: "Yle Areena podcasts", alt: "Spotify / Audible", url: "https://areena.yle.fi/podcastit", mark: "YA", color: "#00b4c4", description: "Yle radio channels, podcasts and audio dramas." },
       { name: "RTÉ Radio", alt: "SiriusXM", url: "https://www.rte.ie/radio/", mark: "RT", color: "#00a3a1", description: "Irish public radio stations, podcasts and documentaries." },
       { name: "Rádios EBC", alt: "SiriusXM", url: "https://radios.ebc.com.br/", mark: "EB", color: "#0b7a3e", description: "Brazilian public radio, including Rádio Nacional and MEC classical." },
+      { name: "NewsOnAir", alt: "SiriusXM", url: "https://newsonair.gov.in/", mark: "AI", color: "#c1272d", description: "All India Radio live stations and news in dozens of languages." },
     ],
   },
   {
@@ -523,6 +526,7 @@ const categories = [
       { name: "Digi", alt: "Newspapers.com", url: "https://digi.kansalliskirjasto.fi/", mark: "KK", color: "#1b3f8b", description: "National Library of Finland archive of digitized newspapers and magazines." },
       { name: "Dúchas", alt: "Ancestry archives", url: "https://www.duchas.ie/en", mark: "Dú", color: "#4b7f52", description: "Ireland's national folklore collection: stories, songs and photos." },
       { name: "Domínio Público", alt: "Kindle Unlimited", url: "https://www.dominiopublico.gov.br/", mark: "DP", color: "#1351b4", description: "Brazil's government library of free public-domain books, music and video." },
+      { name: "National Digital Library of India", alt: "Kindle Unlimited / JSTOR", url: "https://ndl.iitkgp.ac.in/", mark: "ND", color: "#f26522", description: "Millions of free books, papers and lectures, hosted by IIT Kharagpur." },
     ],
   },
   {
@@ -710,6 +714,9 @@ const categories = [
       { name: "Elements of AI", alt: "Coursera AI courses", url: "https://www.elementsofai.com/", mark: "EA", color: "#29264b", description: "University of Helsinki intro to AI, free with a certificate." },
       { name: "MOOC.fi", alt: "Codecademy Pro", url: "https://www.mooc.fi/", mark: "MO", color: "#1a2333", description: "University of Helsinki programming courses in Python, Java and more." },
       { name: "Escola Virtual.Gov", alt: "LinkedIn Learning", url: "https://www.escolavirtual.gov.br/", mark: "EV", color: "#1351b4", description: "Free Brazilian government courses with certificates, in Portuguese." },
+      { name: "SWAYAM", alt: "Coursera", url: "https://swayam.gov.in/", mark: "SW", color: "#1f4e8c", description: "India's government MOOC platform with university courses for free." },
+      { name: "NPTEL", alt: "Coursera / edX", url: "https://nptel.ac.in/", mark: "NP", color: "#b8312f", description: "Free engineering and science courses from the IITs and IISc." },
+      { name: "DIKSHA", alt: "BYJU'S", url: "https://diksha.gov.in/", mark: "DK", color: "#024f9d", description: "Free school lessons and textbooks for grades 1 to 12." },
     ],
   },
   {

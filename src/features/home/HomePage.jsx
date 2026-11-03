@@ -1,6 +1,7 @@
 import { apps } from "../../app/apps";
 import AppTile from "../../components/AppTile";
 import SiteHeader from "../../components/SiteHeader";
+import SiteFooter from "../../components/SiteFooter";
 
 export default function HomePage() {
     return (
@@ -59,11 +60,7 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <footer className="site-footer">
-                <span>The Cluster Fox</span>
-                <span className="footer-dot">•</span>
-                <span>Build. Learn. Tinker.</span>
-            </footer>
+            <SiteFooter />
         </main>
     );
 }

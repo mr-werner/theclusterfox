@@ -414,6 +414,10 @@ export const freeAppDetails = {
   SWAYAM: { note: "Courses are free; certificates need a paid proctored exam." },
   NPTEL: { note: "Courses are free; certificates need a paid proctored exam." },
   DIKSHA: { note: "Ministry of Education platform, in many Indian languages." },
+  "Canal Once": { limits: ["region"], note: "Public broadcaster from IPN; some shows play only in Mexico." },
+  "Canal 22": { note: "Public culture channel with a free live stream." },
+  IMER: { note: "Mexican Institute of Radio; live public stations, available worldwide." },
+  "Aprende.org": { note: "Free courses with certificates from the Carlos Slim Foundation." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -668,4 +672,8 @@ export const freeAppCountries = {
   SWAYAM: "India",
   NPTEL: "India",
   DIKSHA: "India",
+  "Canal Once": "Mexico",
+  "Canal 22": "Mexico",
+  IMER: "Mexico",
+  "Aprende.org": "Mexico",
 };

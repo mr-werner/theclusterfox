@@ -420,6 +420,8 @@ const categories = [
       { name: "RTÉ Player", alt: "Netflix", url: "https://www.rte.ie/player/", mark: "RT", color: "#00a3a1", description: "Irish public TV with dramas, films and live channels." },
       { name: "TG4 Player", alt: "Netflix", url: "https://www.tg4.ie/en/", mark: "T4", color: "#7ab800", description: "Irish-language TV with English subtitles, plus sport and docs." },
       { name: "TV Brasil Play", alt: "Netflix", url: "https://tvbrasilplay.com.br/", mark: "TB", color: "#0b7a3e", description: "Brazilian public TV with films, documentaries and kids shows." },
+      { name: "Canal Once", alt: "Netflix", url: "https://canalonce.mx/", mark: "11", color: "#6c2c91", description: "Mexican public TV with live streams, documentaries and kids shows." },
+      { name: "Canal 22", alt: "Netflix", url: "https://www.canal22.org.mx/", mark: "22", color: "#e4002b", description: "Mexico's public culture channel: arts, films and history, streamed live." },
     ],
   },
   {
@@ -502,6 +504,7 @@ const categories = [
       { name: "RTÉ Radio", alt: "SiriusXM", url: "https://www.rte.ie/radio/", mark: "RT", color: "#00a3a1", description: "Irish public radio stations, podcasts and documentaries." },
       { name: "Rádios EBC", alt: "SiriusXM", url: "https://radios.ebc.com.br/", mark: "EB", color: "#0b7a3e", description: "Brazilian public radio, including Rádio Nacional and MEC classical." },
       { name: "NewsOnAir", alt: "SiriusXM", url: "https://newsonair.gov.in/", mark: "AI", color: "#c1272d", description: "All India Radio live stations and news in dozens of languages." },
+      { name: "IMER", alt: "SiriusXM", url: "https://www.imer.mx/", mark: "IM", color: "#00843d", description: "Mexican public radio stations streamed live, from news to rock and jazz." },
     ],
   },
   {
@@ -717,6 +720,7 @@ const categories = [
       { name: "SWAYAM", alt: "Coursera", url: "https://swayam.gov.in/", mark: "SW", color: "#1f4e8c", description: "India's government MOOC platform with university courses for free." },
       { name: "NPTEL", alt: "Coursera / edX", url: "https://nptel.ac.in/", mark: "NP", color: "#b8312f", description: "Free engineering and science courses from the IITs and IISc." },
       { name: "DIKSHA", alt: "BYJU'S", url: "https://diksha.gov.in/", mark: "DK", color: "#024f9d", description: "Free school lessons and textbooks for grades 1 to 12." },
+      { name: "Aprende.org", alt: "Coursera / LinkedIn Learning", url: "https://aprende.org/", mark: "Ap", color: "#ef7d00", description: "Free Spanish-language courses in job skills, health and school subjects." },
     ],
   },
   {

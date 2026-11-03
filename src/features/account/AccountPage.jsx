@@ -4,6 +4,7 @@ import { Link, Navigate } from "react-router-dom";
 import { authClient } from "../../lib/auth";
 import { useAuth } from "../../context/AuthContext";
 import SiteHeader from "../../components/SiteHeader";
+import SiteFooter from "../../components/SiteFooter";
 import { loadData } from "../f4t/state/f4tStore";
 
 export default function AccountPage() {
@@ -286,11 +287,7 @@ export default function AccountPage() {
                 </div>
             </div>
 
-            <footer className="site-footer">
-                <span>The Cluster Fox</span>
-                <span className="footer-dot">•</span>
-                <span>Build. Learn. Tinker.</span>
-            </footer>
+            <SiteFooter />
         </main>
     );
 }

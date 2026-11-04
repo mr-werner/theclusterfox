@@ -422,6 +422,8 @@ const categories = [
       { name: "TV Brasil Play", alt: "Netflix", url: "https://tvbrasilplay.com.br/", mark: "TB", color: "#0b7a3e", description: "Brazilian public TV with films, documentaries and kids shows." },
       { name: "Canal Once", alt: "Netflix", url: "https://canalonce.mx/", mark: "11", color: "#6c2c91", description: "Mexican public TV with live streams, documentaries and kids shows." },
       { name: "Canal 22", alt: "Netflix", url: "https://www.canal22.org.mx/", mark: "22", color: "#e4002b", description: "Mexico's public culture channel: arts, films and history, streamed live." },
+      { name: "TVP VOD", alt: "Netflix", url: "https://vod.tvp.pl/", mark: "TV", color: "#1a2c5b", description: "Polish public TV on demand: series, films, documentaries and live channels." },
+      { name: "Ninateka", alt: "MUBI / Criterion Channel", url: "https://ninateka.pl/", mark: "Ni", color: "#e30613", description: "Polish films, theatre, concerts and documentaries from a national institute." },
     ],
   },
   {
@@ -505,6 +507,7 @@ const categories = [
       { name: "Rádios EBC", alt: "SiriusXM", url: "https://radios.ebc.com.br/", mark: "EB", color: "#0b7a3e", description: "Brazilian public radio, including Rádio Nacional and MEC classical." },
       { name: "NewsOnAir", alt: "SiriusXM", url: "https://newsonair.gov.in/", mark: "AI", color: "#c1272d", description: "All India Radio live stations and news in dozens of languages." },
       { name: "IMER", alt: "SiriusXM", url: "https://www.imer.mx/", mark: "IM", color: "#00843d", description: "Mexican public radio stations streamed live, from news to rock and jazz." },
+      { name: "Polskie Radio", alt: "SiriusXM", url: "https://www.polskieradio.pl/", mark: "PR", color: "#e2001a", description: "Polish public radio channels, including Trójka and Dwójka classical, plus podcasts." },
     ],
   },
   {
@@ -530,6 +533,8 @@ const categories = [
       { name: "Dúchas", alt: "Ancestry archives", url: "https://www.duchas.ie/en", mark: "Dú", color: "#4b7f52", description: "Ireland's national folklore collection: stories, songs and photos." },
       { name: "Domínio Público", alt: "Kindle Unlimited", url: "https://www.dominiopublico.gov.br/", mark: "DP", color: "#1351b4", description: "Brazil's government library of free public-domain books, music and video." },
       { name: "National Digital Library of India", alt: "Kindle Unlimited / JSTOR", url: "https://ndl.iitkgp.ac.in/", mark: "ND", color: "#f26522", description: "Millions of free books, papers and lectures, hosted by IIT Kharagpur." },
+      { name: "Wolne Lektury", alt: "Kindle Unlimited / Audible", url: "https://wolnelektury.pl/", mark: "WL", color: "#007880", description: "Free Polish e-books and audiobooks of classic and school-reading literature." },
+      { name: "Polona", alt: "Newspapers.com / archives", url: "https://polona.pl/", mark: "Po", color: "#1d1d1b", description: "National Library of Poland digital collection of books, maps and manuscripts." },
     ],
   },
   {

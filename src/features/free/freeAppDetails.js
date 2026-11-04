@@ -418,6 +418,11 @@ export const freeAppDetails = {
   "Canal 22": { note: "Public culture channel with a free live stream." },
   IMER: { note: "Mexican Institute of Radio; live public stations, available worldwide." },
   "Aprende.org": { note: "Free courses with certificates from the Carlos Slim Foundation." },
+  "TVP VOD": { limits: ["ads", "region", "tracking"], note: "Public broadcaster with ads; many titles are Poland only." },
+  Ninateka: { limits: ["region"], note: "Run by the National Institute of Audiovisual; some titles are Poland only." },
+  "Polskie Radio": { note: "Live public radio and podcasts, available worldwide." },
+  "Wolne Lektury": { note: "Nonprofit library run by the Modern Poland Foundation; no ads." },
+  Polona: { note: "Free public archive from the National Library of Poland." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -676,4 +681,9 @@ export const freeAppCountries = {
   "Canal 22": "Mexico",
   IMER: "Mexico",
   "Aprende.org": "Mexico",
+  "TVP VOD": "Poland",
+  Ninateka: "Poland",
+  "Polskie Radio": "Poland",
+  "Wolne Lektury": "Poland",
+  Polona: "Poland",
 };

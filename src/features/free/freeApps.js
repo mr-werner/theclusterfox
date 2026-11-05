@@ -424,6 +424,9 @@ const categories = [
       { name: "Canal 22", alt: "Netflix", url: "https://www.canal22.org.mx/", mark: "22", color: "#e4002b", description: "Mexico's public culture channel: arts, films and history, streamed live." },
       { name: "TVP VOD", alt: "Netflix", url: "https://vod.tvp.pl/", mark: "TV", color: "#1a2c5b", description: "Polish public TV on demand: series, films, documentaries and live channels." },
       { name: "Ninateka", alt: "MUBI / Criterion Channel", url: "https://ninateka.pl/", mark: "Ni", color: "#e30613", description: "Polish films, theatre, concerts and documentaries from a national institute." },
+      { name: "TVNZ+", alt: "Netflix", url: "https://www.tvnz.co.nz/", mark: "T+", color: "#1d1d1b", description: "New Zealand public TV on demand: local dramas, reality and live channels." },
+      { name: "ThreeNow", alt: "Netflix", url: "https://www.threenow.co.nz/", mark: "3N", color: "#00a6d6", description: "Free New Zealand TV streaming with shows, news and live channels." },
+      { name: "Whakaata Māori", alt: "Netflix", url: "https://www.whakaatamaori.co.nz/", mark: "WM", color: "#d4202a", description: "Māori Television shows, films, kids content and live channels." },
     ],
   },
   {
@@ -508,6 +511,7 @@ const categories = [
       { name: "NewsOnAir", alt: "SiriusXM", url: "https://newsonair.gov.in/", mark: "AI", color: "#c1272d", description: "All India Radio live stations and news in dozens of languages." },
       { name: "IMER", alt: "SiriusXM", url: "https://www.imer.mx/", mark: "IM", color: "#00843d", description: "Mexican public radio stations streamed live, from news to rock and jazz." },
       { name: "Polskie Radio", alt: "SiriusXM", url: "https://www.polskieradio.pl/", mark: "PR", color: "#e2001a", description: "Polish public radio channels, including Trójka and Dwójka classical, plus podcasts." },
+      { name: "RNZ", alt: "SiriusXM / Spotify", url: "https://www.rnz.co.nz/", mark: "RN", color: "#e6332a", description: "Radio New Zealand live stations, podcasts and documentaries with no ads." },
     ],
   },
   {
@@ -535,6 +539,7 @@ const categories = [
       { name: "National Digital Library of India", alt: "Kindle Unlimited / JSTOR", url: "https://ndl.iitkgp.ac.in/", mark: "ND", color: "#f26522", description: "Millions of free books, papers and lectures, hosted by IIT Kharagpur." },
       { name: "Wolne Lektury", alt: "Kindle Unlimited / Audible", url: "https://wolnelektury.pl/", mark: "WL", color: "#007880", description: "Free Polish e-books and audiobooks of classic and school-reading literature." },
       { name: "Polona", alt: "Newspapers.com / archives", url: "https://polona.pl/", mark: "Po", color: "#1d1d1b", description: "National Library of Poland digital collection of books, maps and manuscripts." },
+      { name: "Papers Past", alt: "Newspapers.com", url: "https://paperspast.natlib.govt.nz/", mark: "PP", color: "#2b4c6f", description: "National Library of New Zealand archive of digitized newspapers and letters." },
     ],
   },
   {
@@ -756,6 +761,7 @@ const categories = [
       { name: "Practica Español", alt: "Babbel", url: "https://www.practicaespanol.com/", mark: "PE", color: "#c60b1e", description: "Free Spanish practice built on real news from the EFE agency." },
       { name: "Yle Kielikoulu", alt: "Babbel", url: "https://kielikoulu.yle.fi/", mark: "YK", color: "#00b4c4", description: "Learn Finnish or Swedish with subtitles on Yle Areena shows." },
       { name: "Teanglann", alt: "paid dictionaries", url: "https://www.teanglann.ie/en/", mark: "Te", color: "#167a3e", description: "Official Irish dictionaries with grammar and native-speaker audio." },
+      { name: "Te Aka Māori Dictionary", alt: "paid dictionaries", url: "https://maoridictionary.co.nz/", mark: "TA", color: "#8b2a1e", description: "Free Māori to English dictionary with example sentences and audio." },
     ],
   },
 ];

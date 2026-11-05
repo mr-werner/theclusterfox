@@ -423,6 +423,12 @@ export const freeAppDetails = {
   "Polskie Radio": { note: "Live public radio and podcasts, available worldwide." },
   "Wolne Lektury": { note: "Nonprofit library run by the Modern Poland Foundation; no ads." },
   Polona: { note: "Free public archive from the National Library of Poland." },
+  "TVNZ+": { limits: ["ads", "region", "tracking"], note: "Free with ads; New Zealand only." },
+  ThreeNow: { limits: ["ads", "region", "tracking"], note: "Free with ads; New Zealand only." },
+  "Whakaata Māori": { limits: ["region"], note: "Public Māori broadcaster; some shows are New Zealand only." },
+  RNZ: { note: "Public radio and podcasts with no ads, available worldwide." },
+  "Papers Past": { note: "Free public archive from the National Library of New Zealand." },
+  "Te Aka Māori Dictionary": { note: "Free online dictionary; the app has a small one-time cost." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -686,4 +692,10 @@ export const freeAppCountries = {
   "Polskie Radio": "Poland",
   "Wolne Lektury": "Poland",
   Polona: "Poland",
+  "TVNZ+": "New Zealand",
+  ThreeNow: "New Zealand",
+  "Whakaata Māori": "New Zealand",
+  RNZ: "New Zealand",
+  "Papers Past": "New Zealand",
+  "Te Aka Māori Dictionary": "New Zealand",
 };

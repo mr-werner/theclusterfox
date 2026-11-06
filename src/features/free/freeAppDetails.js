@@ -429,6 +429,11 @@ export const freeAppDetails = {
   RNZ: { note: "Public radio and podcasts with no ads, available worldwide." },
   "Papers Past": { note: "Free public archive from the National Library of New Zealand." },
   "Te Aka Māori Dictionary": { note: "Free online dictionary; the app has a small one-time cost." },
+  Odoo: { ...OS, limits: ["freeTier"], note: "Community edition is open source; the hosted free plan covers one app." },
+  "VRT MAX": { limits: ["region"], note: "Free account needed; many shows are Belgium only." },
+  "RTBF Auvio": { limits: ["region"], note: "Free account needed; many shows are Belgium only." },
+  "VRT radio": { note: "Live public radio and podcasts, available worldwide." },
+  BelgicaPress: { note: "Free archive; newspapers after 1950 only at the Royal Library." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -698,4 +703,9 @@ export const freeAppCountries = {
   RNZ: "New Zealand",
   "Papers Past": "New Zealand",
   "Te Aka Māori Dictionary": "New Zealand",
+  Odoo: "Belgium",
+  "VRT MAX": "Belgium",
+  "RTBF Auvio": "Belgium",
+  "VRT radio": "Belgium",
+  BelgicaPress: "Belgium",
 };

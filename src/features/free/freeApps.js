@@ -137,6 +137,7 @@ import {
   siNubank,
   siObsidian,
   siObsstudio,
+  siOdoo,
   siOllama,
   siOnlyoffice,
   siOpenscad,
@@ -283,6 +284,7 @@ const categories = [
       { name: "Proton Drive", alt: "Google Drive / Dropbox", url: "https://proton.me/drive", logo: siProtondrive, description: "End-to-end encrypted cloud storage and document editing." },
       { name: "kDrive", alt: "Google Drive / Dropbox", url: "https://www.infomaniak.com/en/kdrive", logo: siInfomaniak, description: "Swiss-hosted cloud storage with online office apps." },
       { name: "Zoho Mail", alt: "Gmail / Outlook", url: "https://www.zoho.com/mail/", logo: siZoho, description: "Ad-free email with a free plan for personal use and small teams." },
+      { name: "Odoo", alt: "SAP / NetSuite", url: "https://www.odoo.com/", logo: siOdoo, description: "Open-source business apps: CRM, invoicing, inventory and websites." },
     ],
   },
   {
@@ -427,6 +429,8 @@ const categories = [
       { name: "TVNZ+", alt: "Netflix", url: "https://www.tvnz.co.nz/", mark: "T+", color: "#1d1d1b", description: "New Zealand public TV on demand: local dramas, reality and live channels." },
       { name: "ThreeNow", alt: "Netflix", url: "https://www.threenow.co.nz/", mark: "3N", color: "#00a6d6", description: "Free New Zealand TV streaming with shows, news and live channels." },
       { name: "Whakaata Māori", alt: "Netflix", url: "https://www.whakaatamaori.co.nz/", mark: "WM", color: "#d4202a", description: "Māori Television shows, films, kids content and live channels." },
+      { name: "VRT MAX", alt: "Netflix", url: "https://www.vrt.be/vrtmax/", mark: "VM", color: "#5d2e8c", description: "Flemish public TV on demand, with dramas, docs and live channels." },
+      { name: "RTBF Auvio", alt: "Netflix", url: "https://auvio.rtbf.be/", mark: "Au", color: "#e2001a", description: "French-speaking Belgian public TV, radio and podcasts in one app." },
     ],
   },
   {
@@ -512,6 +516,7 @@ const categories = [
       { name: "IMER", alt: "SiriusXM", url: "https://www.imer.mx/", mark: "IM", color: "#00843d", description: "Mexican public radio stations streamed live, from news to rock and jazz." },
       { name: "Polskie Radio", alt: "SiriusXM", url: "https://www.polskieradio.pl/", mark: "PR", color: "#e2001a", description: "Polish public radio channels, including Trójka and Dwójka classical, plus podcasts." },
       { name: "RNZ", alt: "SiriusXM / Spotify", url: "https://www.rnz.co.nz/", mark: "RN", color: "#e6332a", description: "Radio New Zealand live stations, podcasts and documentaries with no ads." },
+      { name: "VRT radio", alt: "SiriusXM", url: "https://www.vrt.be/vrtmax/radio/", mark: "VR", color: "#5d2e8c", description: "Flemish public radio, including Radio 1, Studio Brussel and Klara." },
     ],
   },
   {
@@ -540,6 +545,7 @@ const categories = [
       { name: "Wolne Lektury", alt: "Kindle Unlimited / Audible", url: "https://wolnelektury.pl/", mark: "WL", color: "#007880", description: "Free Polish e-books and audiobooks of classic and school-reading literature." },
       { name: "Polona", alt: "Newspapers.com / archives", url: "https://polona.pl/", mark: "Po", color: "#1d1d1b", description: "National Library of Poland digital collection of books, maps and manuscripts." },
       { name: "Papers Past", alt: "Newspapers.com", url: "https://paperspast.natlib.govt.nz/", mark: "PP", color: "#2b4c6f", description: "National Library of New Zealand archive of digitized newspapers and letters." },
+      { name: "BelgicaPress", alt: "Newspapers.com", url: "https://www.belgicapress.be/", mark: "BP", color: "#004b87", description: "Royal Library of Belgium archive of digitized historical newspapers." },
     ],
   },
   {

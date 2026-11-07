@@ -434,6 +434,10 @@ export const freeAppDetails = {
   "RTBF Auvio": { limits: ["region"], note: "Free account needed; many shows are Belgium only." },
   "VRT radio": { note: "Live public radio and podcasts, available worldwide." },
   BelgicaPress: { note: "Free archive; newspapers after 1950 only at the Royal Library." },
+  "ORF ON": { limits: ["region"], note: "Public and free; many shows and live TV are Austria only." },
+  "ServusTV On": { limits: ["ads", "region", "tracking"], note: "Free with ads from Red Bull Media House; some sport is Austria only." },
+  "ORF Sound": { note: "Live public radio and podcasts, available worldwide." },
+  ANNO: { note: "Free public archive from the Austrian National Library." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -708,4 +712,8 @@ export const freeAppCountries = {
   "RTBF Auvio": "Belgium",
   "VRT radio": "Belgium",
   BelgicaPress: "Belgium",
+  "ORF ON": "Austria",
+  "ServusTV On": "Austria",
+  "ORF Sound": "Austria",
+  ANNO: "Austria",
 };

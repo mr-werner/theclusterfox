@@ -431,6 +431,8 @@ const categories = [
       { name: "Whakaata Māori", alt: "Netflix", url: "https://www.whakaatamaori.co.nz/", mark: "WM", color: "#d4202a", description: "Māori Television shows, films, kids content and live channels." },
       { name: "VRT MAX", alt: "Netflix", url: "https://www.vrt.be/vrtmax/", mark: "VM", color: "#5d2e8c", description: "Flemish public TV on demand, with dramas, docs and live channels." },
       { name: "RTBF Auvio", alt: "Netflix", url: "https://auvio.rtbf.be/", mark: "Au", color: "#e2001a", description: "French-speaking Belgian public TV, radio and podcasts in one app." },
+      { name: "ORF ON", alt: "Netflix", url: "https://on.orf.at/", mark: "OR", color: "#cc0000", description: "Austrian public TV on demand, with live channels, series and documentaries." },
+      { name: "ServusTV On", alt: "Netflix / sports streaming", url: "https://www.servustv.com/", mark: "ST", color: "#0a2a4a", description: "Free Austrian TV with nature docs, outdoor sports and live events." },
     ],
   },
   {
@@ -517,6 +519,7 @@ const categories = [
       { name: "Polskie Radio", alt: "SiriusXM", url: "https://www.polskieradio.pl/", mark: "PR", color: "#e2001a", description: "Polish public radio channels, including Trójka and Dwójka classical, plus podcasts." },
       { name: "RNZ", alt: "SiriusXM / Spotify", url: "https://www.rnz.co.nz/", mark: "RN", color: "#e6332a", description: "Radio New Zealand live stations, podcasts and documentaries with no ads." },
       { name: "VRT radio", alt: "SiriusXM", url: "https://www.vrt.be/vrtmax/radio/", mark: "VR", color: "#5d2e8c", description: "Flemish public radio, including Radio 1, Studio Brussel and Klara." },
+      { name: "ORF Sound", alt: "SiriusXM / Spotify", url: "https://sound.orf.at/", mark: "OR", color: "#cc0000", description: "Austrian public radio, including Ö1 and FM4, plus podcasts." },
     ],
   },
   {
@@ -546,6 +549,7 @@ const categories = [
       { name: "Polona", alt: "Newspapers.com / archives", url: "https://polona.pl/", mark: "Po", color: "#1d1d1b", description: "National Library of Poland digital collection of books, maps and manuscripts." },
       { name: "Papers Past", alt: "Newspapers.com", url: "https://paperspast.natlib.govt.nz/", mark: "PP", color: "#2b4c6f", description: "National Library of New Zealand archive of digitized newspapers and letters." },
       { name: "BelgicaPress", alt: "Newspapers.com", url: "https://www.belgicapress.be/", mark: "BP", color: "#004b87", description: "Royal Library of Belgium archive of digitized historical newspapers." },
+      { name: "ANNO", alt: "Newspapers.com", url: "https://anno.onb.ac.at/", mark: "AN", color: "#9b1b30", description: "Austrian National Library archive of historical newspapers and magazines." },
     ],
   },
   {

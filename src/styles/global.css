@@ -369,18 +369,13 @@ select {
 
 .footer-credit:hover,
 .footer-credit:focus-visible {
-  color: #5b9cf0;
+  color: var(--fox-light);
 }
 
 .footer-credit img {
   display: block;
-  box-sizing: content-box;
-  height: 18px;
+  height: 20px;
   width: auto;
-  padding: 3px 5px;
-
-  background: #eef3fb;
-  border-radius: 6px;
 }
 
 /* ----------------------------------------

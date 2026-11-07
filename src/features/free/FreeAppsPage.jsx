@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import SiteHeader from "../../components/SiteHeader";
+import SiteFooter from "../../components/SiteFooter";
 import FreeAppIcon from "./FreeAppIcon";
 import { freeAppCount, freeCategories } from "./freeApps";
 import { freeLimits } from "./freeAppDetails";
@@ -594,11 +595,7 @@ export default function FreeAppsPage() {
                 in this browser.
             </p>
 
-            <footer className="site-footer">
-                <span>The Cluster Fox</span>
-                <span className="footer-dot">•</span>
-                <span>Build. Learn. Tinker.</span>
-            </footer>
+            <SiteFooter />
         </main>
     );
 }

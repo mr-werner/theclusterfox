@@ -14,8 +14,8 @@ export default function SiteFooter() {
                 <img
                     src="/blueprint-webstudio-logo.png"
                     alt=""
-                    width="14"
-                    height="18"
+                    width="15"
+                    height="20"
                 />
                 <span>Built by Blueprint WebStudio</span>
             </a>

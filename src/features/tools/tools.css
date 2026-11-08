@@ -1442,3 +1442,442 @@
     width: 130px;
   }
 }
+
+/* Diagram mode */
+
+.tf-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tf-mode-row .tf-segmented {
+  width: 200px;
+}
+
+.tf-diagram {
+  margin-bottom: 16px;
+  padding: 10px;
+  background:
+    radial-gradient(circle 420px at 50% 0%, color-mix(in srgb, var(--tf-cat) 9%, transparent), transparent),
+    var(--tf-surface);
+}
+
+.tf-calc-grid.is-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.tf-inputs-title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.dg-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.dg {
+  position: relative;
+  width: 100%;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  border-radius: 12px;
+}
+
+.dg > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dg-at {
+  position: absolute;
+  z-index: 1;
+}
+
+.dg-num,
+.dg-pick {
+  display: inline-grid;
+  gap: 2px;
+  padding: 5px 7px 6px;
+  border: 1px solid color-mix(in srgb, var(--tf-cat) 55%, transparent);
+  border-radius: 11px;
+  background: rgba(13, 17, 16, 0.92);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.dg-num:focus-within,
+.dg-pick:focus-within {
+  border-color: var(--tf-cat);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-cat) 22%, transparent);
+}
+
+.dg-num.is-bad {
+  border-color: #ff7f6b;
+}
+
+.dg-num-label {
+  color: var(--tf-cat);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dg-num-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dg-num input {
+  min-width: 3ch;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tf .dg-num input:focus-visible {
+  outline: 0;
+}
+
+.dg-num select,
+.dg-pick select {
+  max-width: 120px;
+  padding: 2px 16px 2px 5px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--tf-surface-3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' fill='none' stroke='%239aa39f' stroke-width='1.5'%3E%3Cpath d='M1 1l3 3 3-3'/%3E%3C/svg%3E") no-repeat right 5px center;
+  color: #d8ddda;
+  font-size: 0.76rem;
+  appearance: none;
+  cursor: pointer;
+}
+
+.dg-pick select {
+  max-width: 210px;
+  padding: 3px 18px 3px 2px;
+  background-color: transparent;
+  color: #fff;
+  font-size: 0.86rem;
+}
+
+.dg-num-unit {
+  color: var(--tf-muted);
+  font-size: 0.8rem;
+}
+
+.dg-pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 11px;
+  background: rgba(13, 17, 16, 0.9);
+}
+
+.dg-pills button {
+  padding: 5px 10px;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tf-muted);
+  font-size: 0.8rem;
+}
+
+.dg-pills button[aria-checked="true"] {
+  background: var(--tf-cat);
+  color: #071311;
+  font-weight: 600;
+}
+
+.dg-badge {
+  display: inline-grid;
+  gap: 1px;
+  padding: 6px 10px;
+  border: 1px solid var(--tf-line);
+  border-radius: 10px;
+  background: rgba(13, 17, 16, 0.85);
+  white-space: nowrap;
+}
+
+.dg-badge span {
+  color: var(--tf-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dg-badge strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.98rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dg-badge.is-strong {
+  border-color: color-mix(in srgb, var(--tf-cat) 60%, transparent);
+  background: color-mix(in srgb, var(--tf-cat) 16%, rgba(13, 17, 16, 0.9));
+}
+
+.dg-badge.is-strong strong {
+  font-size: 1.25rem;
+}
+
+.dg-badge.is-strong span {
+  color: var(--tf-cat);
+}
+
+.dg-stack {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.dg-stack.is-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.dg-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(13, 17, 16, 0.75);
+  color: #e8ece9;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Drawing styles */
+
+.dg-dim line {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1.2;
+}
+
+.dg-handle {
+  fill: var(--tf-cat);
+  stroke: #0f1312;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--tf-cat) 70%, transparent));
+}
+
+.dg-handle-glyph {
+  fill: none;
+  stroke: #0b1210;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+g:focus-visible > .dg-handle,
+.dg-handle:focus-visible {
+  outline: none;
+  stroke: #fff;
+}
+
+.dg-load line {
+  stroke: #ff8a4c;
+  stroke-width: 3;
+}
+
+.dg-load path {
+  fill: #ff8a4c;
+}
+
+.dg-udl {
+  fill: rgba(255, 138, 76, 0.18);
+  stroke: #ff8a4c;
+}
+
+.dg-beam {
+  fill: #6d7a76;
+  stroke: #a9b3af;
+  stroke-width: 1.5;
+}
+
+.dg-support {
+  fill: #2c3431;
+  stroke: #a9b3af;
+  stroke-width: 1.5;
+}
+
+.dg-ground,
+.dg-hatch {
+  stroke: #a9b3af;
+  stroke-width: 1.5;
+}
+
+.dg-deflected {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 2.5;
+  stroke-dasharray: 7 5;
+}
+
+.dg-callout circle {
+  fill: var(--tf-cat);
+}
+
+.dg-callout text,
+.dg-reaction text {
+  fill: #e8ece9;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dg-reaction text {
+  fill: #9ad1ff;
+}
+
+.dg-tank {
+  fill: none;
+  stroke: #c5ccc8;
+  stroke-width: 3;
+}
+
+.dg-tank-top,
+.dg-tank-3d {
+  fill: none;
+  stroke: rgba(197, 204, 200, 0.45);
+  stroke-width: 2;
+}
+
+.dg-wave {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 2;
+}
+
+.dg-level {
+  stroke: var(--tf-cat);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.dg-bore {
+  fill: #0d1514;
+}
+
+.dg-flow {
+  stroke: var(--tf-cat);
+  stroke-width: 3;
+  stroke-dasharray: 14 18;
+  stroke-linecap: round;
+  animation: dg-flow linear infinite;
+}
+
+@keyframes dg-flow {
+  to {
+    stroke-dashoffset: -64;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-flow {
+    animation: none;
+  }
+}
+
+.dg-pipe-end {
+  fill: #0d1514;
+  stroke: #6b7774;
+  stroke-width: 2;
+}
+
+.dg-arrow {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dg-gauge circle:first-child {
+  fill: #0f1312;
+  stroke: #a9b3af;
+  stroke-width: 2;
+}
+
+.dg-gauge-arc {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 3;
+}
+
+.dg-needle {
+  stroke: #ff8a4c;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: transform 300ms ease;
+}
+
+.dg-needle-hub {
+  fill: #ff8a4c;
+}
+
+.dg-stem {
+  stroke: #6b7774;
+  stroke-width: 4;
+}
+
+.dg-section path,
+.dg-section rect,
+.dg-section circle {
+  fill: color-mix(in srgb, var(--tf-cat) 30%, transparent);
+  stroke: var(--tf-cat);
+  stroke-width: 2;
+}
+
+.dg-axis {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-dasharray: 8 4 2 4;
+}
+
+.dg-axis-label {
+  fill: var(--tf-muted);
+  font-size: 14px;
+}
+
+.dg-leader {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-dasharray: 3 3;
+}
+
+.dg-slope {
+  fill: color-mix(in srgb, var(--tf-cat) 18%, transparent);
+  stroke: var(--tf-cat);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.dg-right-angle,
+.dg-arc {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1.5;
+}
+
+@media (max-width: 560px) {
+  .tf-diagram {
+    padding: 6px;
+  }
+}

@@ -1,4 +1,4 @@
-import { CalendarRange, CloudSun, Dumbbell, Flame, MonitorPlay } from "lucide-react";
+import { CalendarRange, CloudSun, Dumbbell, Flame, MonitorPlay, Wrench } from "lucide-react";
 
 export const apps = [
   {
@@ -45,5 +45,14 @@ export const apps = [
     path: "/lift",
     icon: Dumbbell,
     accent: "liftfox",
+  },
+  {
+    id: "toolfox",
+    name: "Tools",
+    subtitle: "ToolFox",
+    description: "Calculators • Units • Data",
+    path: "/tools",
+    icon: Wrench,
+    accent: "toolfox",
   },
 ];

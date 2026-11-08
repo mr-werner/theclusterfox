@@ -1,0 +1,150 @@
+// Typical room-temperature properties of common engineering materials.
+// Values are representative figures from public handbooks (ASM, MIL-HDBK-5/MMPDS,
+// manufacturer datasheets); real parts vary with temper, grade and supplier.
+//
+// Columns: name, group, density kg/m³, E GPa, yield MPa, UTS MPa,
+//          k W/(m·K), cp J/(kg·K), α µm/(m·K), Poisson's ratio
+
+const RAW = [
+  ["Structural steel (ASTM A36)", "Steel", 7850, 200, 250, 400, 51, 486, 11.7, 0.26],
+  ["Carbon steel 1018 (cold drawn)", "Steel", 7870, 205, 370, 440, 51.9, 486, 11.5, 0.29],
+  ["Alloy steel 4140 (Q&T)", "Steel", 7850, 205, 655, 1020, 42.6, 473, 12.2, 0.29],
+  ["Stainless 304", "Stainless", 8000, 193, 215, 505, 16.2, 500, 17.3, 0.29],
+  ["Stainless 316", "Stainless", 8000, 193, 205, 515, 16.3, 500, 15.9, 0.3],
+  ["Stainless 17-4 PH (H1025)", "Stainless", 7800, 197, 1000, 1070, 18.3, 460, 10.8, 0.27],
+  ["Gray cast iron (class 30)", "Iron", 7200, 100, null, 214, 46, 490, 10.8, 0.26],
+  ["Ductile iron 65-45-12", "Iron", 7100, 169, 310, 448, 36, 506, 11.2, 0.29],
+  ["Aluminum 6061-T6", "Aluminum", 2700, 68.9, 276, 310, 167, 896, 23.6, 0.33],
+  ["Aluminum 6063-T5", "Aluminum", 2690, 68.9, 145, 186, 209, 900, 23.4, 0.33],
+  ["Aluminum 7075-T6", "Aluminum", 2810, 71.7, 503, 572, 130, 960, 23.6, 0.33],
+  ["Aluminum 5052-H32", "Aluminum", 2680, 70.3, 193, 228, 138, 880, 23.8, 0.33],
+  ["Aluminum 2024-T3", "Aluminum", 2780, 73.1, 345, 483, 121, 875, 23.2, 0.33],
+  ["Copper C11000 (annealed)", "Copper alloys", 8940, 117, 69, 220, 391, 385, 17, 0.34],
+  ["Brass C26000 (cartridge)", "Copper alloys", 8530, 110, 110, 340, 120, 375, 20, 0.34],
+  ["Bronze C93200 (bearing)", "Copper alloys", 8930, 100, 125, 240, 58, 376, 18, 0.34],
+  ["Titanium Ti-6Al-4V", "Titanium", 4430, 113.8, 880, 950, 6.7, 526, 8.6, 0.34],
+  ["Titanium grade 2", "Titanium", 4510, 105, 275, 345, 16.4, 523, 8.6, 0.37],
+  ["Magnesium AZ31B", "Other metals", 1770, 45, 200, 260, 96, 1000, 26, 0.35],
+  ["Nickel alloy 625", "Other metals", 8440, 208, 490, 965, 9.8, 410, 12.8, 0.28],
+  ["Lead", "Other metals", 11340, 16, null, 17, 35, 129, 29, 0.44],
+  ["Zinc", "Other metals", 7140, 108, null, 120, 116, 388, 30, 0.25],
+  ["Tungsten", "Other metals", 19300, 411, null, 980, 173, 132, 4.5, 0.28],
+  ["Gold", "Other metals", 19300, 79, null, 120, 318, 129, 14.2, 0.42],
+  ["Silver", "Other metals", 10490, 83, null, 170, 429, 235, 18.9, 0.37],
+  ["ABS", "Plastics", 1050, 2.3, 40, 44, 0.17, 1400, 90, 0.35],
+  ["PLA", "Plastics", 1240, 3.5, 60, 60, 0.13, 1800, 68, 0.36],
+  ["PETG", "Plastics", 1270, 2.1, 50, 53, 0.2, 1200, 68, 0.38],
+  ["Nylon 6/6", "Plastics", 1140, 2.9, 75, 82, 0.25, 1670, 80, 0.39],
+  ["Polycarbonate", "Plastics", 1200, 2.4, 62, 65, 0.2, 1200, 65, 0.37],
+  ["Acrylic (PMMA)", "Plastics", 1180, 3.2, 70, 72, 0.19, 1470, 70, 0.37],
+  ["HDPE", "Plastics", 950, 0.9, 26, 30, 0.48, 1900, 120, 0.42],
+  ["Rigid PVC", "Plastics", 1400, 3, 45, 50, 0.19, 1000, 60, 0.38],
+  ["PTFE", "Plastics", 2200, 0.5, 10, 25, 0.25, 1000, 130, 0.46],
+  ["Acetal (POM)", "Plastics", 1410, 3.1, 65, 70, 0.31, 1470, 110, 0.35],
+  ["PEEK", "Plastics", 1320, 3.6, 100, 100, 0.25, 1340, 47, 0.38],
+  ["Natural rubber", "Plastics", 930, 0.05, null, 25, 0.13, 1900, 220, 0.49],
+  ["CFRP laminate (quasi-isotropic)", "Composites", 1600, 70, null, 600, 5, 1100, 2, 0.3],
+  ["GFRP (E-glass/epoxy)", "Composites", 1900, 25, null, 400, 0.35, 900, 15, 0.28],
+  ["Concrete (normal weight)", "Construction", 2400, 30, null, 3, 1.7, 880, 10, 0.2],
+  ["Brick (common)", "Construction", 1900, 15, null, 3, 0.7, 840, 6, 0.2],
+  ["Glass (soda-lime)", "Construction", 2500, 72, null, 50, 1, 840, 9, 0.22],
+  ["Granite", "Construction", 2700, 50, null, 10, 2.8, 790, 8, 0.25],
+  ["Douglas fir (along grain)", "Wood", 530, 13.4, null, 85, 0.12, 1600, 3.5, 0.29],
+  ["Red oak (along grain)", "Wood", 660, 12.5, null, 99, 0.17, 1700, 4.9, 0.35],
+  ["Southern yellow pine", "Wood", 590, 13.7, null, 90, 0.13, 1600, 4, 0.33],
+];
+
+export const MATERIALS = RAW.map(([name, group, rho, E, Sy, Su, k, cp, alpha, nu]) => ({
+  name,
+  group,
+  rho,
+  E: E * 1e9,
+  Sy: Sy == null ? null : Sy * 1e6,
+  Su: Su * 1e6,
+  k,
+  cp,
+  alpha: alpha * 1e-6,
+  nu,
+}));
+
+export const material = (name) => MATERIALS.find((m) => m.name === name);
+
+// Thermal conductivity of insulation and building materials (W/(m·K), around 24 °C).
+export const INSULATION = [
+  ["Polyisocyanurate board (foil faced)", 0.022],
+  ["Closed-cell spray foam", 0.024],
+  ["Extruded polystyrene (XPS)", 0.029],
+  ["Expanded polystyrene (EPS)", 0.036],
+  ["Mineral wool board", 0.035],
+  ["Fiberglass batt", 0.04],
+  ["Cellulose (loose fill)", 0.04],
+  ["Open-cell spray foam", 0.037],
+  ["Cork board", 0.04],
+  ["Still air", 0.026],
+  ["Softwood lumber", 0.12],
+  ["Plywood", 0.12],
+  ["Oriented strand board", 0.13],
+  ["Gypsum board", 0.17],
+  ["Hardwood", 0.16],
+  ["Common brick", 0.7],
+  ["Glass", 1.0],
+  ["Concrete", 1.4],
+  ["Stone (granite)", 2.8],
+].map(([name, k]) => ({ name, k }));
+
+// Coefficients of friction, dry and clean unless noted. Classic textbook values; real
+// surfaces vary a lot with finish, contamination and humidity.
+export const FRICTION = [
+  ["Steel on steel", 0.74, 0.57],
+  ["Steel on steel (lubricated)", 0.15, 0.09],
+  ["Aluminum on steel", 0.61, 0.47],
+  ["Copper on steel", 0.53, 0.36],
+  ["Brass on steel", 0.51, 0.44],
+  ["Cast iron on cast iron", 1.1, 0.15],
+  ["Rubber on dry concrete", 1.0, 0.8],
+  ["Rubber on wet concrete", 0.7, 0.5],
+  ["Wood on wood", 0.4, 0.2],
+  ["Wood on concrete", 0.62, 0.45],
+  ["Glass on glass", 0.94, 0.4],
+  ["PTFE on PTFE", 0.04, 0.04],
+  ["PTFE on steel", 0.04, 0.04],
+  ["Nylon on steel", 0.35, 0.3],
+  ["Ice on ice", 0.1, 0.03],
+  ["Waxed ski on snow", 0.1, 0.05],
+  ["Leather on wood", 0.4, 0.3],
+  ["Brake pad on cast iron", 0.45, 0.4],
+].map(([pair, mus, muk]) => ({ pair, mus, muk }));
+
+// Total hemispherical emissivity near room temperature.
+export const EMISSIVITY = [
+  ["Aluminum, polished", 0.05],
+  ["Aluminum, oxidized", 0.25],
+  ["Aluminum, anodized", 0.77],
+  ["Copper, polished", 0.03],
+  ["Copper, oxidized", 0.65],
+  ["Steel, polished", 0.07],
+  ["Steel, oxidized / rusted", 0.8],
+  ["Stainless steel, polished", 0.15],
+  ["Galvanized steel, new", 0.25],
+  ["Cast iron, oxidized", 0.64],
+  ["Gold, polished", 0.02],
+  ["Brick, red", 0.93],
+  ["Concrete", 0.9],
+  ["Glass", 0.92],
+  ["Paint, black matte", 0.97],
+  ["Paint, white", 0.9],
+  ["Water", 0.96],
+  ["Human skin", 0.98],
+  ["Wood", 0.9],
+  ["Ice", 0.97],
+].map(([surface, eps]) => ({ surface, eps }));
+
+// Typical ranges of convective heat transfer coefficients, W/(m²·K).
+export const CONVECTION = [
+  ["Free convection, gases", 2, 25],
+  ["Free convection, liquids", 50, 1000],
+  ["Forced convection, gases", 25, 250],
+  ["Forced convection, liquids", 100, 20000],
+  ["Boiling water", 2500, 100000],
+  ["Condensing steam", 5000, 100000],
+].map(([regime, lo, hi]) => ({ regime, lo, hi }));

@@ -14,6 +14,8 @@ import AccountPage from "./features/account/AccountPage";
 
 // Brand icons make this page heavy, so it loads on demand.
 const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
+// ToolFox carries a lot of reference data, so it loads on demand too.
+const ToolsPage = lazy(() => import("./features/tools/ToolsPage"));
 
 export default function App() {
     return (
@@ -24,6 +26,14 @@ export default function App() {
             <Route path="/watch" element={<WatchPage />} />
             <Route path="/plan" element={<PlanPage />} />
             <Route path="/lift" element={<LiftPage />} />
+            <Route
+                path="/tools/*"
+                element={
+                    <Suspense fallback={null}>
+                        <ToolsPage />
+                    </Suspense>
+                }
+            />
             <Route
                 path="/free"
                 element={

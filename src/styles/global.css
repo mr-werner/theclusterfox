@@ -26,6 +26,7 @@
   --watchfox: #c79bff;
   --planfox: #f5c451;
   --liftfox: #ff7a6b;
+  --toolfox: #4fd8c4;
 
   --max-width: 1180px;
 }
@@ -313,6 +314,17 @@ select {
       145deg,
       #ffc2b8,
       #f0604f
+    );
+}
+
+.app-icon--toolfox {
+  color: #032621;
+
+  background:
+    linear-gradient(
+      145deg,
+      #b5fff2,
+      #2fbfa9
     );
 }
 

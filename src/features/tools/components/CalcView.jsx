@@ -6,6 +6,19 @@ import { defaultsOf, run, toParams, fromParams, applyPreset, matchingPreset, isV
 import { defaultUnit, fromSI, unitLabel, fmt } from "../model/units";
 import { NumField, ChoiceField, PresetField, TextField, UnitSelect } from "./Fields";
 import Visual from "./Visuals";
+import { DIAGRAMS } from "../diagrams";
+
+const MODE_KEY = "toolfox-mode";
+const readMode = () => {
+  try {
+    const saved = localStorage.getItem(MODE_KEY);
+    if (saved) return saved === "form" ? "form" : "diagram";
+  } catch {
+    // Fall through to the default below.
+  }
+  // Drawings are wide, so phones start on the form; the switch is right there.
+  return typeof window !== "undefined" && window.innerWidth < 640 ? "form" : "diagram";
+};
 
 export default function CalcView({ id, prefsApi }) {
   const calc = calcById[id];
@@ -14,6 +27,15 @@ export default function CalcView({ id, prefsApi }) {
   const [values, setValues] = useState(() => (calc ? fromParams(calc, params) : {}));
   const [outUnits, setOutUnits] = useState({});
   const [copied, setCopied] = useState("");
+  const [mode, setModeState] = useState(readMode);
+  const setMode = (m) => {
+    setModeState(m);
+    try {
+      localStorage.setItem(MODE_KEY, m);
+    } catch {
+      // Not saved; the choice still applies on this page.
+    }
+  };
 
   useEffect(() => {
     if (!calc) return;
@@ -47,6 +69,13 @@ export default function CalcView({ id, prefsApi }) {
   const unitFor = (dim) => prefs.units[dim] || defaultUnit(dim, prefs.system);
   const outUnitFor = (r) => outUnits[r.id] || (r.unit && !prefs.units[r.dim] ? r.unit : unitFor(r.dim));
   const set = (key, v) => setValues((cur) => ({ ...cur, [key]: v }));
+  const diagram = DIAGRAMS[calc.id];
+  const useDiagram = Boolean(diagram) && mode === "diagram";
+  const onDiagram = (input) => useDiagram && diagram.fields.includes(input.id);
+  const restInputs = calc.inputs.filter((i) => isVisible(i, values) && !onDiagram(i));
+  const pick = (presetId, label) => setValues((cur) => applyPreset(calc, cur, presetId, label));
+  const presetValue = (presetId) => matchingPreset(calc.inputs.find((i) => i.id === presetId), values);
+  const showVisual = !useDiagram || ["beam", "moody", "line"].includes(output.visual?.type);
   const primary = output.results.find((r) => r.primary);
   const others = output.results.filter((r) => !r.primary);
 
@@ -85,10 +114,42 @@ export default function CalcView({ id, prefsApi }) {
         <p className="tf-lede">{calc.blurb}</p>
       </header>
 
-      <div className="tf-calc-grid">
-        <section className="tf-card tf-inputs" aria-label="Inputs">
-          {calc.inputs.map((input) => {
-            if (!isVisible(input, values)) return null;
+      {diagram && (
+        <div className="tf-mode-row">
+          <div className="tf-segmented is-small" role="radiogroup" aria-label="Input style">
+            {[
+              ["diagram", "Diagram"],
+              ["form", "Form"],
+            ].map(([k, label]) => (
+              <button key={k} type="button" role="radio" aria-checked={mode === k} onClick={() => setMode(k)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {useDiagram && <span className="tf-muted tf-small">{diagram.hint}</span>}
+        </div>
+      )}
+
+      {useDiagram && (
+        <section className="tf-card tf-diagram" aria-label="Diagram inputs">
+          <diagram.component
+            calc={calc}
+            values={values}
+            set={set}
+            output={output}
+            unit={unitFor}
+            setUnit={setUnit}
+            pick={pick}
+            presetValue={presetValue}
+          />
+        </section>
+      )}
+
+      <div className={`tf-calc-grid ${restInputs.length === 0 ? "is-single" : ""}`}>
+        {restInputs.length > 0 && (
+        <section className="tf-card tf-inputs" aria-label={useDiagram ? "More settings" : "Inputs"}>
+          {useDiagram && <h2 className="tf-inputs-title">More settings</h2>}
+          {restInputs.map((input) => {
             const fid = `in-${calc.id}-${input.id}`;
             if (input.type === "num")
               return (
@@ -111,6 +172,7 @@ export default function CalcView({ id, prefsApi }) {
           })}
           <p className="tf-tip">Tip: type 4.7k, 1 1/4 or 3/8. Arrow keys nudge a value.</p>
         </section>
+        )}
 
         <div className="tf-results-col">
           <section className="tf-card tf-results" aria-live="polite" aria-label="Results">
@@ -156,7 +218,7 @@ export default function CalcView({ id, prefsApi }) {
               </p>
             ))}
           </section>
-          <Visual visual={output.visual} system={prefs.system} />
+          {showVisual && <Visual visual={output.visual} system={prefs.system} />}
         </div>
       </div>
 

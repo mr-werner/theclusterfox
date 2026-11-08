@@ -438,6 +438,10 @@ export const freeAppDetails = {
   "ServusTV On": { limits: ["ads", "region", "tracking"], note: "Free with ads from Red Bull Media House; some sport is Austria only." },
   "ORF Sound": { note: "Live public radio and podcasts, available worldwide." },
   ANNO: { note: "Free public archive from the Austrian National Library." },
+  "RTP Play": { limits: ["region"], note: "Public and free; some shows and live sport are Portugal only." },
+  "RTP Antena": { note: "Live public radio, available worldwide." },
+  "Biblioteca Nacional Digital": { note: "Free public archive from the National Library of Portugal." },
+  "Arquivo.pt": { note: "Free public service run by Portugal's FCT research foundation." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -716,4 +720,8 @@ export const freeAppCountries = {
   "ServusTV On": "Austria",
   "ORF Sound": "Austria",
   ANNO: "Austria",
+  "RTP Play": "Portugal",
+  "RTP Antena": "Portugal",
+  "Biblioteca Nacional Digital": "Portugal",
+  "Arquivo.pt": "Portugal",
 };

@@ -1,0 +1,627 @@
+/* CalmFox identity: a quiet retreat. Sage, mist and lavender over warm
+   neutrals, very round shapes, a soft serif and slow, breathing motion.
+   Light by day and dark at night (follows the device unless pinned). */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Nunito:wght@500;600;700&display=swap");
+
+.cm {
+  --cm-sage: #8fae96;
+  --cm-mist: #9fbfd2;
+  --cm-lavender: #b7a8d9;
+  --cm-sand: #e9dfcf;
+
+  --cm-serif: "Fraunces", Georgia, serif;
+  --cm-radius: 28px;
+  --cm-slow: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  position: relative;
+  min-height: 100vh;
+  font-family: "Nunito", "DM Sans", sans-serif;
+  isolation: isolate;
+}
+
+/* ---- Light: morning mist ---- */
+.cm[data-theme="light"] {
+  --text: #2f3a35;
+  --cm-accent: #5f8a6c;
+  --cm-accent-ink: #ffffff;
+  --cm-accent-soft: rgba(95, 138, 108, 0.14);
+  --cm-breath: #6f9fbd;
+  --cm-timer: #c49a5b;
+  --cm-surface: rgba(255, 255, 255, 0.62);
+  --cm-surface-2: rgba(255, 255, 255, 0.82);
+  --cm-line: rgba(47, 58, 53, 0.08);
+  --cm-line-strong: rgba(47, 58, 53, 0.16);
+  --cm-muted: #66746d;
+  --cm-sky-1: #eef2ec;
+  --cm-sky-2: #e4ecef;
+  --cm-sky-3: #ece6f2;
+
+  color: var(--text);
+  background: #f3f1ea;
+  color-scheme: light;
+}
+
+/* ---- Dark: evening, same family of colors, lowered ---- */
+.cm[data-theme="dark"] {
+  --text: #e9ece6;
+  --cm-accent: #a7c7ae;
+  --cm-accent-ink: #13201a;
+  --cm-accent-soft: rgba(167, 199, 174, 0.14);
+  --cm-breath: #9cc6dd;
+  --cm-timer: #e0be8a;
+  --cm-surface: rgba(255, 255, 255, 0.05);
+  --cm-surface-2: rgba(255, 255, 255, 0.08);
+  --cm-line: rgba(255, 255, 255, 0.07);
+  --cm-line-strong: rgba(255, 255, 255, 0.14);
+  --cm-muted: #a7b1ac;
+  --cm-sky-1: #1b2420;
+  --cm-sky-2: #17202a;
+  --cm-sky-3: #221d2e;
+
+  color: var(--text);
+  background: #121815;
+  color-scheme: dark;
+}
+
+/* Drifting color fields behind everything. */
+.cm::before {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  background:
+    radial-gradient(38% 34% at 18% 18%, color-mix(in srgb, var(--cm-sage) 38%, transparent), transparent 70%),
+    radial-gradient(34% 30% at 82% 26%, color-mix(in srgb, var(--cm-mist) 34%, transparent), transparent 70%),
+    radial-gradient(44% 40% at 62% 92%, color-mix(in srgb, var(--cm-lavender) 34%, transparent), transparent 70%),
+    linear-gradient(160deg, var(--cm-sky-1), var(--cm-sky-2) 55%, var(--cm-sky-3));
+  filter: blur(36px);
+  opacity: 0.9;
+  animation: cm-drift 32s var(--cm-slow) infinite alternate;
+}
+
+.cm[data-theme="dark"]::before {
+  opacity: 0.55;
+}
+
+@keyframes cm-drift {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) scale(1.08);
+  }
+}
+
+.cm *,
+.cm *::before,
+.cm *::after {
+  transition-duration: 400ms;
+  transition-timing-function: var(--cm-slow);
+}
+
+.cm h1,
+.cm h2,
+.cm h3 {
+  font-family: var(--cm-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.cm-shell {
+  width: min(calc(100% - 32px), 960px);
+  padding-top: 24px;
+  animation: cm-arrive 1100ms var(--cm-slow) both;
+}
+
+@keyframes cm-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Navigation lives quietly in the app bar ---- */
+.appbar[data-app="calmfox"] {
+  --ab-bg: transparent;
+  --ab-line: transparent;
+  --ab-accent: var(--cm-accent);
+  --ab-accent-ink: var(--cm-accent-ink);
+  --ab-fg: var(--text);
+  --ab-font: "Fraunces", Georgia, serif;
+  --ab-name-weight: 400;
+  --ab-name-size: 1.2rem;
+  --ab-radius: 50%;
+  backdrop-filter: none;
+}
+
+.cm[data-theme="light"] .appbar[data-app="calmfox"] .appbar-chip,
+.cm[data-theme="light"] .appbar[data-app="calmfox"] .appbar-signin {
+  border-color: var(--cm-line-strong);
+}
+
+.cm .cm-tabs {
+  position: static;
+  display: flex;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  backdrop-filter: none;
+}
+
+.cm .cm-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--cm-muted);
+  background: transparent;
+  font: 600 0.86rem "Nunito", sans-serif;
+  cursor: pointer;
+}
+
+.cm .cm-tabs button:hover {
+  color: var(--text);
+}
+
+.cm .cm-tabs button[aria-current="page"] {
+  color: var(--text);
+  background: var(--cm-surface-2);
+}
+
+@media (max-width: 600px) {
+  .cm .cm-tabs button span {
+    display: none;
+  }
+}
+
+/* ---- Home: one question ---- */
+.cm-home {
+  display: grid;
+  gap: 34px;
+  padding: 4vh 0 10px;
+}
+
+.cm-ask {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(2.3rem, 7vw, 4rem);
+  font-weight: 300 !important;
+  line-height: 1.04;
+}
+
+.cm-ask em {
+  color: var(--cm-accent);
+  font-style: italic;
+}
+
+.cm-moods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .cm-moods {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (min-width: 900px) {
+  .cm-moods {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.cm-mood-tile {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 148px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid var(--cm-line);
+  border-radius: var(--cm-radius);
+  color: var(--text);
+  background: var(--cm-surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: cm-arrive 900ms var(--cm-slow) both;
+  animation-delay: calc(var(--i) * 60ms);
+}
+
+.cm-mood-tile::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  bottom: -40px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--tile, var(--cm-sage));
+  opacity: 0.18;
+  filter: blur(6px);
+  transition: transform 900ms var(--cm-slow), opacity 900ms var(--cm-slow);
+}
+
+.cm-mood-tile:hover,
+.cm-mood-tile:focus-visible {
+  border-color: var(--cm-line-strong);
+  transform: translateY(-2px);
+}
+
+.cm-mood-tile:hover::after,
+.cm-mood-tile:focus-visible::after {
+  opacity: 0.32;
+  transform: scale(1.35);
+}
+
+.cm-mood-tile--breathe,
+.cm-mood-tile--sleep {
+  --tile: var(--cm-mist);
+}
+
+.cm-mood-tile--anxiety,
+.cm-mood-tile--kindness,
+.cm-mood-tile--timer {
+  --tile: var(--cm-lavender);
+}
+
+.cm-mood-tile--energy,
+.cm-mood-tile--quick {
+  --tile: #e3b778;
+}
+
+.cm-mood-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  color: var(--text);
+  background: color-mix(in srgb, var(--tile, var(--cm-sage)) 34%, transparent);
+}
+
+.cm-mood-name {
+  font-family: var(--cm-serif);
+  font-size: 1.25rem;
+}
+
+.cm-mood-blurb {
+  color: var(--cm-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+/* Breathe gets the wide tile: it is the most direct way in. */
+@media (min-width: 640px) {
+  .cm-mood-tile--breathe,
+  .cm-mood-tile--timer {
+    grid-column: span 2;
+  }
+}
+
+.cm-favs h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+
+.cm-fav-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+
+.cm-fav-row button {
+  display: grid;
+  gap: 2px;
+  flex: none;
+  min-width: 170px;
+  padding: 14px 18px;
+  border: 1px solid var(--cm-line);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--cm-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cm-fav-row span {
+  color: var(--cm-muted);
+  font-size: 0.8rem;
+}
+
+.cm-quiet-stat {
+  margin: 30px 0 0;
+  color: var(--cm-muted);
+  font-family: var(--cm-serif);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ---- A chosen mood: its sessions ---- */
+.cm-mood-list {
+  display: grid;
+  gap: 22px;
+}
+
+.cm-mood-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cm-mood-head .cm-mood-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0;
+}
+
+.cm-mood-head h1 {
+  margin: 0 0 4px;
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  font-weight: 300;
+}
+
+.cm-mood-head p {
+  margin: 0;
+}
+
+.cm-card,
+.cm-panel,
+.cm-tile,
+.cm-pill {
+  border-color: var(--cm-line);
+  background: var(--cm-surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.cm-card h3 {
+  font-size: 1.15rem;
+}
+
+.cm-back {
+  justify-self: start;
+  border-radius: 999px;
+}
+
+/* ---- Breathe: set your own rhythm ---- */
+.cm-breathe {
+  display: grid;
+  gap: 20px;
+}
+
+.cm-builder {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 22px;
+  align-items: center;
+  padding: 26px;
+  border: 1px solid var(--cm-line);
+  border-radius: 36px;
+  background: var(--cm-surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.cm-builder-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  max-width: 320px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.cm-builder-orb {
+  --level: 0.5;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.7), transparent 34%),
+    radial-gradient(circle, color-mix(in srgb, var(--cm-breath) 80%, white), color-mix(in srgb, var(--cm-sage) 70%, transparent) 72%);
+  box-shadow: 0 0 70px color-mix(in srgb, var(--cm-breath) 40%, transparent);
+  opacity: calc(0.55 + 0.45 * var(--level));
+  transform: scale(calc(0.5 + 0.5 * var(--level)));
+  transition: none !important;
+}
+
+.cm-builder-label {
+  position: absolute;
+  color: var(--text);
+  font-family: var(--cm-serif);
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.cm-builder-panel h2 {
+  margin: 0 0 6px;
+  font-size: 1.8rem;
+  font-weight: 300;
+}
+
+.cm-steppers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.cm-stepper {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--cm-line);
+  border-radius: 22px;
+  background: var(--cm-surface-2);
+}
+
+.cm-stepper-name {
+  color: var(--cm-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.cm-stepper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cm-stepper-row output {
+  font-family: var(--cm-serif);
+  font-size: 1.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cm-stepper-row output small {
+  margin-left: 2px;
+  color: var(--cm-muted);
+  font-size: 0.9rem;
+}
+
+.cm-stepper-row button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--cm-line-strong);
+  border-radius: 50%;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.cm-stepper-row button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .cm-builder {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .cm-builder-stage {
+    max-width: 220px;
+  }
+}
+
+/* ---- The session itself: almost nothing but the breath ---- */
+.cm-player {
+  font-family: "Nunito", sans-serif;
+}
+
+.cm[data-theme="light"] .cm-player {
+  color: #2f3a35;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--cm-kind) 26%, transparent), transparent 62%),
+    linear-gradient(180deg, #eef2ec, #e6ebef 60%, #ece7f1);
+}
+
+.cm[data-theme="dark"] .cm-player {
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--cm-kind) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, #121a17, #0e1216);
+}
+
+.cm-player-top {
+  opacity: 0.55;
+  transition: opacity 600ms var(--cm-slow);
+}
+
+.cm-player-top:hover,
+.cm-player-top:focus-within {
+  opacity: 1;
+}
+
+.cm-player .cm-controls,
+.cm-player .cm-end {
+  opacity: 0.6;
+}
+
+.cm-player .cm-controls:hover,
+.cm-player .cm-controls:focus-within,
+.cm-player .cm-end:hover,
+.cm-player .cm-end:focus-visible {
+  opacity: 1;
+}
+
+.cm-phase,
+.cm-caption,
+.cm-done h2 {
+  font-family: var(--cm-serif);
+}
+
+.cm-caption {
+  font-style: italic;
+}
+
+.cm[data-theme="light"] .cm-caption {
+  color: rgba(47, 58, 53, 0.86);
+}
+
+.cm[data-theme="light"] .cm-orb {
+  background:
+    radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.75), transparent 34%),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--cm-kind) 75%, white), color-mix(in srgb, var(--cm-kind) 70%, var(--cm-sage)) 72%);
+}
+
+.cm[data-theme="light"] .cm-ring-track {
+  stroke: rgba(47, 58, 53, 0.1);
+}
+
+.cm-done-icon {
+  animation: cm-bloom 1400ms var(--cm-slow) both;
+}
+
+@keyframes cm-bloom {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--cm-accent) 40%, transparent);
+  }
+  60% {
+    opacity: 1;
+    box-shadow: 0 0 0 26px transparent;
+  }
+  to {
+    transform: none;
+  }
+}
+
+.cm-theme-btn {
+  margin-left: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm::before,
+  .cm-shell,
+  .cm-mood-tile,
+  .cm-done-icon {
+    animation: none;
+  }
+}

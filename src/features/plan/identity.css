@@ -1,0 +1,628 @@
+/* PlanFox identity: a well-kept paper planner in a leather cover. Serif
+   headings, ruled pages, a highlighter accent and tabbed sections. */
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Caveat:wght@600&display=swap");
+
+.pf {
+  --pf-accent: #f7c948;
+  --pf-accent-ink: #2b1c02;
+  --pf-accent-soft: rgba(247, 201, 72, 0.14);
+  --pf-surface: #1f1b16;
+  --pf-surface-2: #29241d;
+  --pf-line: rgba(255, 240, 210, 0.09);
+  --pf-line-strong: rgba(255, 240, 210, 0.17);
+  --pf-muted: #b0a690;
+  --pf-radius: 10px;
+
+  min-height: 100vh;
+  background-color: #17130f;
+  background-image:
+    radial-gradient(ellipse 1100px 500px at 50% -200px, rgba(247, 201, 72, 0.09), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.pf > *:not(.appbar) {
+  animation: pf-open 460ms cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  transform-origin: left center;
+}
+
+@keyframes pf-open {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pf h1,
+.pf h2 {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.pf h3 {
+  letter-spacing: -0.01em;
+}
+
+.pf-eyebrow {
+  font-family: "Caveat", cursive;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* Ruled paper inside the big panels, with a margin line. */
+.pf-panel {
+  position: relative;
+  background-image:
+    linear-gradient(90deg, transparent 38px, rgba(242, 122, 108, 0.22) 38px, rgba(242, 122, 108, 0.22) 39px, transparent 39px),
+    repeating-linear-gradient(transparent 0 27px, rgba(255, 240, 210, 0.045) 27px 28px);
+  box-shadow: 0 1px 0 rgba(255, 240, 210, 0.04) inset, 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* A highlighter swipe behind the hero title. */
+.pf-hero h1 {
+  display: inline;
+  background: linear-gradient(transparent 62%, rgba(247, 201, 72, 0.32) 62%, rgba(247, 201, 72, 0.32) 92%, transparent 92%);
+}
+
+.pf-segment button[aria-pressed="true"],
+.pf-segment button[aria-current="page"] {
+  box-shadow: 0 -3px 0 var(--pf-accent) inset;
+}
+
+.appbar[data-app="planfox"] {
+  --ab-bg: rgba(33, 24, 16, 0.94);
+  --ab-line: rgba(255, 240, 210, 0.12);
+  --ab-accent: #f7c948;
+  --ab-accent-ink: #2b1c02;
+  --ab-font: "DM Serif Display", Georgia, serif;
+  --ab-name-size: 1.25rem;
+  --ab-name-weight: 400;
+  --ab-radius: 6px;
+  /* stitched leather edge */
+  box-shadow: inset 0 -6px 0 -4px rgba(255, 240, 210, 0.08);
+  background-image: linear-gradient(90deg, rgba(255, 240, 210, 0.18) 50%, transparent 50%);
+  background-size: 10px 1px;
+  background-repeat: repeat-x;
+  background-position: 0 calc(100% - 5px);
+}
+
+.pf-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Today: a single planner page. Date in serif, a ruled to-do list with a
+   red margin, a handwritten kicker, and the week as tabs you drop onto. */
+.pf-today {
+  position: relative;
+  padding: 26px 26px 22px 58px;
+  border: 1px solid var(--pf-line);
+  border-radius: var(--pf-radius);
+  background-color: #231e17;
+  background-image:
+    linear-gradient(90deg, transparent 38px, rgba(242, 122, 108, 0.3) 38px, rgba(242, 122, 108, 0.3) 39px, transparent 39px),
+    repeating-linear-gradient(transparent 0 31px, rgba(255, 240, 210, 0.05) 31px 32px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Binder rings down the left edge. */
+.pf-today::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  bottom: 28px;
+  left: 12px;
+  width: 12px;
+  background: radial-gradient(circle at 6px 6px, #0f0c09 0 4px, rgba(255, 240, 210, 0.22) 4.5px 5.5px, transparent 6px) 0 0 / 12px 64px repeat-y;
+}
+
+.pf-today-kicker {
+  margin: 0;
+  color: var(--pf-accent);
+  font-family: "Caveat", cursive;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.pf-today-head h2 {
+  margin: 2px 0 4px;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  line-height: 1.05;
+}
+
+.pf-today-head p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 18px;
+}
+
+.pf-quick {
+  margin: 0 0 18px;
+}
+
+.pf-quick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--pf-line-strong);
+  border-radius: 999px;
+  color: var(--pf-muted);
+  background: rgba(15, 12, 9, 0.55);
+}
+
+.pf-quick-row:focus-within {
+  border-color: var(--pf-accent);
+  box-shadow: 0 0 0 3px rgba(247, 201, 72, 0.15);
+}
+
+.pf .pf-quick-row input {
+  flex: 1;
+  box-shadow: none;
+  min-width: 0;
+  padding: 8px 0;
+  border: 0;
+  outline: 0;
+  color: #fbf3e2;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+}
+
+.pf-flag,
+.pf-quick-go {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.pf-flag {
+  color: var(--pf-muted);
+  background: transparent;
+}
+
+.pf-flag.is-high {
+  color: #ff8a6b;
+}
+
+.pf-flag.is-high svg {
+  fill: currentColor;
+}
+
+.pf-flag.is-low {
+  color: #8fb3c9;
+}
+
+.pf-quick-go {
+  color: var(--pf-accent-ink);
+  background: var(--pf-accent);
+}
+
+.pf-quick-go:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pf-quick-hint {
+  margin: 6px 0 0 16px;
+  color: var(--pf-muted);
+  font-size: 0.8rem;
+}
+
+.pf-quick-hint b {
+  color: #fbf3e2;
+  font-weight: 600;
+}
+
+.pf-tasks {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-task {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--pf-line);
+  animation: pf-task-in 260ms ease-out both;
+}
+
+@keyframes pf-task-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Priority shows as a highlighter mark in the margin. */
+.pf-task::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: -24px;
+  width: 4px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.pf-task.is-high::before {
+  background: #ff8a6b;
+}
+
+.pf-task.is-low::before {
+  background: rgba(143, 179, 201, 0.5);
+}
+
+.pf-task[draggable="true"] {
+  cursor: grab;
+}
+
+.pf-task-grip {
+  flex: 0 0 auto;
+  margin-left: -6px;
+  color: rgba(255, 240, 210, 0.22);
+}
+
+.pf-task-check {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid rgba(255, 240, 210, 0.4);
+  border-radius: 6px;
+  color: var(--pf-accent-ink);
+  background: transparent;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.pf-task-check[aria-checked="true"] {
+  border-color: var(--pf-accent);
+  background: var(--pf-accent);
+}
+
+.pf-task-body {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  color: #fbf3e2;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-task-title {
+  font-size: 1.02rem;
+}
+
+.pf-task.is-done .pf-task-title {
+  color: var(--pf-muted);
+  text-decoration: line-through;
+  text-decoration-color: rgba(247, 201, 72, 0.7);
+  text-decoration-thickness: 2px;
+}
+
+.pf-task-meta {
+  color: var(--pf-muted);
+  font-size: 0.78rem;
+}
+
+.pf-task.is-overdue .pf-task-meta {
+  color: #ff9f86;
+}
+
+.pf-task-move {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--pf-muted);
+}
+
+.pf-task-move:hover,
+.pf-task-move:focus-within {
+  color: var(--pf-accent);
+  background: rgba(247, 201, 72, 0.1);
+}
+
+.pf-task-move select {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pf-today-empty {
+  margin: 4px 0 8px;
+  color: var(--pf-muted);
+  font-family: "Caveat", cursive;
+  font-size: 1.35rem;
+}
+
+.pf-done-list {
+  margin-top: 10px;
+}
+
+.pf-done-list summary {
+  color: var(--pf-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pf-schedule,
+.pf-week-strip {
+  margin-top: 24px;
+}
+
+.pf-schedule h3,
+.pf-week-strip h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0 0 10px;
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.pf-week-strip h3 .pf-muted {
+  font-family: var(--font-sans, system-ui), sans-serif;
+  font-size: 0.78rem;
+}
+
+.pf-schedule ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-schedule li {
+  display: flex;
+  gap: 12px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--l, var(--pf-accent));
+  border-radius: 4px;
+  background: rgba(15, 12, 9, 0.4);
+}
+
+.pf-schedule-time {
+  min-width: 64px;
+  color: var(--pf-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-wk {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-wk-day {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 140px;
+  border: 1px solid var(--pf-line);
+  border-radius: 8px 8px 4px 4px;
+  background: rgba(15, 12, 9, 0.35);
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.pf-wk-day.is-today {
+  border-top: 3px solid var(--pf-accent);
+}
+
+.pf-wk-day.is-selected {
+  border-color: rgba(247, 201, 72, 0.6);
+}
+
+.pf-wk-day.is-over {
+  border-style: dashed;
+  border-color: var(--pf-accent);
+  background: rgba(247, 201, 72, 0.12);
+  transform: translateY(-2px);
+}
+
+.pf-wk-head {
+  display: grid;
+  justify-items: start;
+  gap: 0;
+  padding: 8px 8px 6px;
+  border: 0;
+  color: #fbf3e2;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-wk-name {
+  color: var(--pf-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pf-wk-date {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 1.4rem;
+  line-height: 1.1;
+}
+
+.pf-wk-weather {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--pf-muted);
+  font-size: 0.72rem;
+}
+
+.pf-wk-list {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0 6px 8px;
+  list-style: none;
+}
+
+.pf-wk-list li {
+  overflow: hidden;
+  padding: 2px 6px;
+  border-left: 2px solid var(--l, var(--pf-accent));
+  border-radius: 3px;
+  background: rgba(255, 240, 210, 0.05);
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-wk-list li.is-done {
+  color: var(--pf-muted);
+  text-decoration: line-through;
+}
+
+.pf-wk-list li.is-high {
+  border-left-color: #ff8a6b;
+}
+
+.pf-wk-list .pf-wk-more {
+  white-space: normal;
+  border: 0;
+  background: none;
+  color: var(--pf-muted);
+}
+
+/* Month view: personal one-offs can be dragged to a new day. */
+.pf-pill.is-movable {
+  cursor: grab;
+}
+
+.pf-pill.is-high {
+  box-shadow: inset 2px 0 0 #ff8a6b;
+}
+
+.pf-cell.is-drop {
+  outline: 2px dashed var(--pf-accent);
+  outline-offset: -3px;
+  background: rgba(247, 201, 72, 0.1);
+}
+
+.pf-priority .is-high[aria-pressed="true"] {
+  box-shadow: 0 -3px 0 #ff8a6b inset;
+}
+
+@media (max-width: 760px) {
+  .pf-today {
+    padding: 20px 14px 18px 40px;
+  }
+
+  .pf-today::before {
+    left: 6px;
+  }
+
+  .pf-today {
+    background-image:
+      linear-gradient(90deg, transparent 26px, rgba(242, 122, 108, 0.3) 26px, rgba(242, 122, 108, 0.3) 27px, transparent 27px),
+      repeating-linear-gradient(transparent 0 31px, rgba(255, 240, 210, 0.05) 31px 32px);
+  }
+
+  .pf-task::before {
+    left: -18px;
+  }
+
+  .pf-task-grip {
+    display: none;
+  }
+
+  .pf-wk {
+    display: flex;
+    margin-right: -14px;
+    padding-right: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .pf-wk-day {
+    flex: 0 0 104px;
+    scroll-snap-align: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-task {
+    animation: none;
+  }
+
+  .pf-wk-day.is-over {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf > *:not(.appbar) {
+    animation: none;
+  }
+}
+
+/* The top bar no longer sticks, so the day panel can sit higher. */
+.pf-day {
+  top: 16px;
+  max-height: calc(100vh - 32px);
+}
+
+.pf-hint-touch {
+  display: none;
+}
+
+@media (hover: none) {
+  .pf-hint-drag {
+    display: none;
+  }
+
+  .pf-hint-touch {
+    display: inline;
+  }
+}

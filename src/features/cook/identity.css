@@ -1,0 +1,26 @@
+/* CookFox keeps its own design. This only lets the shared ClusterFox
+   app bar match CookFox's cream and sage. */
+
+.ck-topbar {
+  background: transparent;
+  color: inherit;
+}
+
+.appbar[data-app="cookfox"] {
+  --ab-bg: rgba(247, 241, 230, 0.88);
+  --ab-fg: #2b2925;
+  --ab-muted: #6c6457;
+  --ab-line: rgba(70, 52, 28, 0.14);
+  --ab-accent: #557a4b;
+  --ab-accent-ink: #fff;
+  --ab-font: "Fraunces", Georgia, serif;
+  --ab-name-size: 1.3rem;
+  --ab-name-weight: 700;
+  --ab-radius: 50%;
+}
+
+.ck[data-theme="dark"] .appbar[data-app="cookfox"] {
+  --ab-bg: rgba(28, 26, 23, 0.9);
+  --ab-fg: #f1ebe0;
+  --ab-line: rgba(255, 255, 255, 0.08);
+}

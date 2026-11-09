@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { goals, goalsById, sessions } from "../data/sessions.js";
-import { patterns, PHASE_TYPES, describePattern } from "../data/breathing.js";
+import { customBreathSession, goals, goalsById, sessions } from "../data/sessions.js";
+import { patterns, PHASE_TYPES, describePattern, customPattern, patternOf } from "../data/breathing.js";
 import { buildTimeline, speakSeconds, GAP } from "../model/schedule.js";
 import { breathAt, cycleSeconds } from "../model/breath.js";
 import { clock, currentStreak, lastDays, longestStreak, summarize } from "../model/stats.js";
@@ -188,6 +188,22 @@ for (const s of sessions) {
   const arrive = sessions.find(s => s.id === "arrive");
   const tl = buildTimeline(arrive, { seconds: 300, interval: 20, lengthOf: t => manifest.willow[lineKey(t)] });
   for (let i = 1; i < tl.length; i++) assert(tl[i].at >= tl[i - 1].end, "recorded lines don't overlap");
+}
+
+// The "Breathe" rhythm: every line it speaks already has a recording, and
+// holds or rests of 0 seconds are left out.
+{
+  const known = new Set(allLines());
+  const custom = customBreathSession({ in: 4, hold: 0, out: 6, rest: 0 });
+  assert.equal(patternOf(custom).phases.length, 2, "zero-second phases are skipped");
+  assert.equal(customPattern({ in: 4, hold: 4, out: 4, rest: 4 }).phases.length, 4);
+  for (const line of [...custom.opening, ...custom.prompts, ...custom.closing, ...patternOf(custom).phases.map(p => p.cue)]) {
+    assert(known.has(line), `Breathe rhythm line has no recording: ${line}`);
+  }
+  assert(custom.prompts.length >= 6, "Breathe rhythm needs enough prompts");
+  const cleaned = normalizeData({ prefs: { custom: { in: 99, hold: -3, out: 6, rest: "x" }, theme: "purple" } }).prefs;
+  assert.deepEqual(cleaned.custom, { in: 10, hold: 0, out: 6, rest: 0 }, "custom rhythm is clamped");
+  assert.equal(cleaned.theme, "auto");
 }
 
 console.log(`CalmFox: ${sessions.length} sessions across ${goals.length} goals, all checks passed.`);

@@ -48,8 +48,9 @@ export const apps = [
   },
   {
     id: "toolfox",
-    name: "Engineering",
+    name: "Engineer",
     subtitle: "ToolFox",
+    fullName: "Engineer ToolFox",
     description: "Calculators • Units • Data",
     path: "/tools",
     icon: Wrench,

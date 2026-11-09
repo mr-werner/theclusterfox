@@ -4,7 +4,8 @@ import {
   genresById, interleave, myOffers, rankRecommendations, onMyServices, parseDetails, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
 } from '../../../services/watch/parse.js';
 import { directLinkFor, networkLink, parseWatchmodeSources, providerLink, serviceKey } from '../../../services/watch/links.js';
-import { isFavorite, normalizeData, toggleFavorite, toggleService, pickedNames } from '../state/watchStore.js';
+import { firstSyncAction } from '../../../lib/syncDecision.js';
+import { isFavorite, isIn, normalizeData, toggleFavorite, toggleTitle, toggleService, pickedNames } from '../state/watchStore.js';
 
 // Provider lists merge by id and keep TMDB's display order.
 const merged = mergeProviderLists(
@@ -174,3 +175,33 @@ assert.equal(providerLink({ name: 'Hulu' }, 'x', null, direct), 'https://www.hul
 assert.deepEqual(parseWatchmodeSources({ error: 'quota' }, 'US'), []);
 
 console.log('WatchFox checks passed');
+
+// Watchlist and seen lists: seeing a title takes it off the watchlist.
+{
+  let lists = normalizeData({});
+  assert.deepEqual([lists.watchlist, lists.watched], [[], []], 'old saves get empty lists');
+  const dune = { id: 438631, type: 'movie', title: 'Dune', year: '2021', poster: null, overview: 'not stored' };
+  lists = toggleTitle(lists, 'watchlist', dune);
+  assert(isIn(lists, 'watchlist', dune));
+  assert.equal(lists.watchlist[0].overview, undefined, 'only the basics are stored');
+  lists = toggleTitle(lists, 'watched', dune);
+  assert(isIn(lists, 'watched', dune) && !isIn(lists, 'watchlist', dune), 'seen moves it off the watchlist');
+  lists = toggleTitle(lists, 'watched', dune);
+  assert(!isIn(lists, 'watched', dune));
+  assert.equal(normalizeData({ watched: [dune, { id: 'bad' }] }).watched.length, 1);
+  console.log('WatchFox: watchlist and seen lists check out.');
+}
+
+// Account sync: the newest copy wins, and one account's data never moves to another.
+{
+  const me = 'user-a';
+  const old = '2026-01-01T00:00:00Z';
+  const newer = '2026-02-01T00:00:00Z';
+  assert.equal(firstSyncAction({}, null, me), 'push', 'first sign-in uploads what is here');
+  assert.equal(firstSyncAction({ userId: 'user-b' }, null, me), 'reset', 'another account\'s data is not uploaded');
+  assert.equal(firstSyncAction({ userId: 'user-b', updatedAt: newer }, { doc: {}, updatedAt: old }, me), 'pull');
+  assert.equal(firstSyncAction({ userId: me, updatedAt: old }, { doc: {}, updatedAt: newer }, me), 'pull');
+  assert.equal(firstSyncAction({ userId: me, updatedAt: newer }, { doc: {}, updatedAt: old }, me), 'push');
+  assert.equal(firstSyncAction({}, { doc: {}, updatedAt: old }, me), 'pull', 'never-stamped devices take the account copy');
+  console.log('Account sync: first-sync decisions check out.');
+}

@@ -3,6 +3,9 @@ import { dayFlags } from "../model/insights";
 import { TIP_ICONS } from "./DayPanel";
 import { formatTemp } from "../../clocast/units";
 import { formatTime, monthGrid, parseDay, relativeDay } from "../model/dates";
+import { canMove } from "../model/tasks";
+
+const DRAG_TYPE = "application/x-planfox-item";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MAX_PILLS = 3;
@@ -20,15 +23,24 @@ function summarize(entries) {
 const COUNT_LABEL = { sports: ["game", "games"], movies: ["movie", "movies"], games: ["game release", "game releases"], nearby: ["event nearby", "events nearby"], flights: ["fare", "fares"] };
 
 function Pill({ entry }) {
+  const movable = Boolean(entry.item) && canMove(entry.item);
   return (
-    <li className={`pf-pill pf-l-${entry.layer}${entry.done ? " is-done" : ""}${entry.closed ? " is-closed" : ""}`}>
+    <li
+      className={`pf-pill pf-l-${entry.layer}${entry.done ? " is-done" : ""}${entry.closed ? " is-closed" : ""}${movable ? " is-movable" : ""}${entry.item?.priority === "high" ? " is-high" : ""}`}
+      draggable={movable || undefined}
+      onDragStart={movable ? event => {
+        event.stopPropagation();
+        event.dataTransfer.setData(DRAG_TYPE, entry.item.itemId);
+        event.dataTransfer.effectAllowed = "move";
+      } : undefined}
+    >
       {entry.time && <span className="pf-pill-time">{formatTime(entry.time).replace(" ", "").toLowerCase()}</span>}
       {entry.title}
     </li>
   );
 }
 
-export function MonthView({ year, month, today, selected, entriesByDay, forecastByDay, tipsByDay, units, showWeather, onSelect }) {
+export function MonthView({ year, month, today, selected, entriesByDay, forecastByDay, tipsByDay, units, showWeather, onSelect, onMove }) {
   const weeks = monthGrid(year, month);
   return (
     <div className="pf-month" role="grid" aria-label="Month">
@@ -58,7 +70,26 @@ export function MonthView({ year, month, today, selected, entriesByDay, forecast
               .filter(Boolean)
               .join(" ");
             return (
-              <button key={day} type="button" role="gridcell" className={classes} onClick={() => onSelect(day)} aria-label={relativeDay(day, today) + `, ${entries.length} entries` + (flags ? `, heads-up: ${flags.titles.join("; ")}` : "")} aria-pressed={day === selected}>
+              <button
+                key={day}
+                type="button"
+                role="gridcell"
+                className={classes}
+                onClick={() => onSelect(day)}
+                onDragOver={event => {
+                  if (!onMove || !event.dataTransfer.types.includes(DRAG_TYPE)) return;
+                  event.preventDefault();
+                  event.currentTarget.classList.add("is-drop");
+                }}
+                onDragLeave={event => event.currentTarget.classList.remove("is-drop")}
+                onDrop={event => {
+                  event.currentTarget.classList.remove("is-drop");
+                  const id = event.dataTransfer.getData(DRAG_TYPE);
+                  if (id && onMove) {
+                    event.preventDefault();
+                    onMove(id, day);
+                  }
+                }} aria-label={relativeDay(day, today) + `, ${entries.length} entries` + (flags ? `, heads-up: ${flags.titles.join("; ")}` : "")} aria-pressed={day === selected}>
                 <span className="pf-cell-head">
                   <span className="pf-cell-date">{date.getDate()}</span>
                   {weather && (

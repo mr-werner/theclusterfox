@@ -76,3 +76,21 @@ export function describePattern(pattern, pace = 1) {
   const fmt = n => String(Math.round(n * 10) / 10);
   return pattern.phases.map(p => `${short[p.type]} ${fmt(p.sec * pace)}`).join(" · ");
 }
+
+// A pattern the listener sets themselves: seconds for in, hold, out and rest.
+// A hold or rest of 0 is left out. Cues reuse lines that already have recordings.
+export const CUSTOM_LIMITS = { in: [2, 10], hold: [0, 10], out: [2, 12], rest: [0, 10] };
+export const CUSTOM_DEFAULT = { in: 4, hold: 0, out: 6, rest: 0 };
+
+export function customPattern(c = CUSTOM_DEFAULT) {
+  const phases = [{ type: "in", sec: c.in, to: 1, label: "Breathe in", cue: "Breathe in" }];
+  if (c.hold > 0) phases.push({ type: "hold", sec: c.hold, label: "Hold", cue: "Hold" });
+  phases.push({ type: "out", sec: c.out, to: 0, label: "Breathe out", cue: "Breathe out" });
+  if (c.rest > 0) phases.push({ type: "rest", sec: c.rest, label: "Rest", cue: "Rest" });
+  return { id: "custom", name: "Your rhythm", phases };
+}
+
+/** The pattern a session breathes to: its own custom one, or a named one. */
+export function patternOf(session) {
+  return session.patternDef ?? patterns[session.pattern];
+}

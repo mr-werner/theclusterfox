@@ -1,0 +1,355 @@
+/* MathFox identity: a chalkboard. Slate green, graph-paper grid, chalk
+   colors and handwritten headings, with typeset math left crisp. */
+@import url("https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+.mf {
+  --mf-accent: #ff9fcd;
+  --mf-accent-ink: #2b0a1b;
+  --mf-accent-soft: rgba(255, 159, 205, 0.14);
+  --mf-c1: #ff9fcd;
+  --mf-c2: #8fd6ff;
+  --mf-c3: #ffe07a;
+  --mf-c4: #9ee6b4;
+  --mf-surface: rgba(33, 52, 45, 0.92);
+  --mf-surface-2: rgba(44, 66, 58, 0.92);
+  --mf-line: rgba(240, 245, 235, 0.12);
+  --mf-line-strong: rgba(240, 245, 235, 0.24);
+  --mf-muted: #b3c2ba;
+  --mf-text: #f2f4ec;
+  --mf-radius: 10px;
+
+  min-height: 100vh;
+  color: #f2f4ec;
+  background-color: #1b2a24;
+  background-image:
+    radial-gradient(60% 40% at 30% 10%, rgba(255, 255, 255, 0.05), transparent 70%),
+    radial-gradient(40% 30% at 80% 70%, rgba(255, 255, 255, 0.035), transparent 70%),
+    linear-gradient(rgba(240, 245, 235, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240, 245, 235, 0.045) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
+}
+
+.mf-shell {
+  animation: mf-write 500ms ease-out both;
+}
+
+@keyframes mf-write {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+.mf h1,
+.mf h2,
+.mf h3 {
+  font-family: "Kalam", "Comic Sans MS", cursive;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.mf-hero h1 {
+  font-size: clamp(2rem, 5.4vw, 3rem);
+  line-height: 1.05;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* A chalk underline under the title. */
+.mf-hero h1::after {
+  content: "";
+  display: block;
+  width: 180px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: var(--mf-c3);
+  opacity: 0.7;
+  transform: rotate(-1deg);
+}
+
+.mf-eyebrow {
+  font-family: "Kalam", cursive;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.mf-input,
+.mf-chip,
+.mf-example,
+.mf-syntax {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.mf-card {
+  border: 1px solid var(--mf-line-strong);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.18);
+}
+
+/* A wooden chalk ledge under the board. */
+.mf-shell::after {
+  content: "";
+  display: block;
+  height: 10px;
+  margin-top: 28px;
+  border-radius: 3px;
+  background: linear-gradient(#8a5a35, #5d3b22);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.appbar[data-app="mathfox"] {
+  --ab-bg: rgba(20, 33, 28, 0.94);
+  --ab-line: rgba(240, 245, 235, 0.12);
+  --ab-accent: #ff9fcd;
+  --ab-accent-ink: #2b0a1b;
+  --ab-font: "Kalam", cursive;
+  --ab-name-size: 1.25rem;
+  --ab-name-weight: 700;
+  --ab-radius: 8px;
+}
+
+/* Chalk dust: a faint noise over everything on the board. */
+.mf::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.mf-shell {
+  position: relative;
+  z-index: 1;
+}
+
+/* Typeset math is written in chalk. */
+.mf .katex {
+  color: #f7f8f1;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+/* The question box is the board itself, framed in wood. */
+.mf-ask {
+  border: 10px solid transparent !important;
+  border-radius: 6px !important;
+  background:
+    linear-gradient(#203a31, #1c332b) padding-box,
+    linear-gradient(135deg, #a06a3e, #6d4527 40%, #8f5d36 70%, #5f3b20) border-box !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), inset 0 0 40px rgba(0, 0, 0, 0.25);
+}
+
+.mf-input {
+  height: 58px;
+  border: 0;
+  border-bottom: 2px dashed rgba(240, 245, 235, 0.35);
+  border-radius: 0;
+  background: transparent;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 1.15rem;
+}
+
+.mf-input:focus {
+  border-bottom-color: var(--mf-c3);
+  box-shadow: none;
+}
+
+.mf-input::placeholder {
+  color: rgba(240, 245, 235, 0.38);
+}
+
+.mf-btn {
+  border-radius: 999px;
+  font-family: "Kalam", cursive;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Example problems sit on the board like chalk notes. */
+.mf-example {
+  border-style: dashed;
+  border-color: rgba(240, 245, 235, 0.25);
+  border-radius: 6px;
+  color: #eef1e6;
+  background: rgba(240, 245, 235, 0.03);
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.mf-example:hover {
+  border-color: var(--mf-c3);
+  transform: rotate(-1deg) translateY(-1px);
+}
+
+.mf-tab.is-on {
+  color: var(--mf-accent-ink);
+}
+
+/* The problem, big, as if written across the top of the board. */
+.mf-problem {
+  font-size: 1.5rem;
+}
+
+/* The answer gets boxed in yellow chalk, slightly hand-drawn. */
+.mf-answer__box {
+  position: relative;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.mf-answer__box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2.5px solid var(--mf-c3);
+  border-radius: 10px 4px 12px 6px;
+  opacity: 0.85;
+  transform: rotate(-0.4deg);
+  pointer-events: none;
+}
+
+.mf-answer__box::after {
+  content: "";
+  position: absolute;
+  inset: 4px -3px -3px 4px;
+  border: 1.5px solid var(--mf-c3);
+  border-radius: 6px 12px 4px 10px;
+  opacity: 0.35;
+  transform: rotate(0.5deg);
+  pointer-events: none;
+}
+
+.mf-answer__label {
+  color: var(--mf-c3);
+  font-family: "Kalam", cursive;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.mf-answer__line {
+  font-size: 1.35rem;
+}
+
+/* Steps: circled numbers, and each step is written in as it appears. */
+.mf-step__n {
+  border: 2px solid currentColor;
+  color: var(--mf-c2);
+  background: transparent;
+  font-family: "Kalam", cursive;
+  font-weight: 700;
+  transform: rotate(-4deg);
+}
+
+.mf-step {
+  border-top: 1px dashed var(--mf-line);
+  animation: mf-chalk 520ms ease-out both;
+}
+
+.mf-step:nth-child(2) { animation-delay: 60ms; }
+.mf-step:nth-child(3) { animation-delay: 120ms; }
+.mf-step:nth-child(4) { animation-delay: 180ms; }
+.mf-step:nth-child(5) { animation-delay: 240ms; }
+.mf-step:nth-child(n + 6) { animation-delay: 300ms; }
+
+@keyframes mf-chalk {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.mf-step__text {
+  font-size: 1.02rem;
+}
+
+.mf-step__math,
+.mf-step__work {
+  padding-left: 6px;
+  border-left: 2px solid rgba(143, 214, 255, 0.25);
+}
+
+/* The graph is drawn on the board too. */
+.mf-graph__bg {
+  fill: #1a2f28;
+}
+
+.mf-graph__grid {
+  stroke: rgba(240, 245, 235, 0.07);
+}
+
+.mf-graph__axis {
+  stroke: rgba(240, 245, 235, 0.65);
+  stroke-width: 1.8;
+}
+
+.mf-graph__tick {
+  fill: #b9c6bf;
+}
+
+.mf-graph__pt circle {
+  stroke: #1a2f28;
+}
+
+.mf-graph__pt circle.is-hollow {
+  fill: #1a2f28;
+}
+
+.mf-graph__frame svg path[stroke^="var(--mf-c"] {
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.25));
+}
+
+.mf-graph__tools button,
+.mf-graph__readout {
+  background: rgba(26, 47, 40, 0.9);
+}
+
+/* Notes and the error box read like chalk asides. */
+.mf-notes li svg {
+  color: var(--mf-c3);
+}
+
+.mf-error {
+  border-color: rgba(255, 159, 205, 0.45) !important;
+}
+
+.mf-syntax code,
+.mf code {
+  border-radius: 4px;
+  background: rgba(240, 245, 235, 0.07);
+  color: #f7f8f1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-shell,
+  .mf-step {
+    animation: none;
+  }
+
+  .mf-example:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .mf-ask {
+    border-width: 6px !important;
+    padding: 12px !important;
+  }
+
+  .mf-input {
+    padding: 0 6px;
+    font-size: 1.05rem;
+  }
+
+  .mf-problem {
+    font-size: 1.25rem;
+  }
+}

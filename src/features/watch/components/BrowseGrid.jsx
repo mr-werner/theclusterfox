@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { Film, Heart, LoaderCircle, Star, Tv } from "lucide-react";
+import { Bookmark, Check, Film, Heart, LoaderCircle, Star, Tv } from "lucide-react";
 
 import { browseTitles, recommendTitles } from "../../../services/watch/watchApi";
 import { BROWSE_LISTS, GENRES } from "../../../services/watch/parse";
-import { isFavorite, toggleFavorite } from "../state/watchStore";
+import Featured from "./Featured";
+import PosterRow from "./PosterRow";
+import { isFavorite, isIn, toggleFavorite } from "../state/watchStore";
 
 const MAX_PAGES = 5;
 const MAX_SEEDS = 10;
+// Lists kept on this device rather than fetched.
+const LOCAL = ["favorites", "watchlist", "watched"];
 
 function firstList(data) {
   if (data.favorites.length) return "foryou";
@@ -18,20 +22,24 @@ export default function BrowseGrid({ data, update, onOpen }) {
   const hasServices = data.services.length > 0;
   const hasFavorites = data.favorites.length > 0;
   const lists = BROWSE_LISTS.filter(
-    l => (l.id !== "mine" || hasServices) && ((l.id !== "foryou" && l.id !== "favorites") || hasFavorites)
+    l =>
+      (l.id !== "mine" || hasServices) &&
+      (l.id !== "foryou" || hasFavorites) &&
+      (!LOCAL.includes(l.id) || data[l.id]?.length > 0)
   );
   const [listId, setListId] = useState(() => firstList(data));
   const [genreId, setGenreId] = useState("");
   const list = lists.some(l => l.id === listId) ? listId : "trending";
   const genreOptions = GENRES.filter(g => (list === "movies" ? g.movie : list === "shows" ? g.tv : true));
-  const usesGenres = !["foryou", "favorites"].includes(list);
+  const isLocal = LOCAL.includes(list);
+  const usesGenres = list !== "foryou" && !isLocal;
   const genre = usesGenres && genreOptions.some(g => g.id === genreId) ? genreId : "";
   const providerIds = data.services.map(s => s.id);
   const seeds = data.favorites.slice(0, MAX_SEEDS);
   const seedKey = seeds.map(f => `${f.type}:${f.id}`).join(",");
   const requestKey =
-    list === "favorites"
-      ? "favorites"
+    isLocal
+      ? list
       : list === "foryou"
         ? `foryou|${seedKey}`
         : `${list}|${data.region}|${genre}|${list === "mine" ? providerIds.join(",") : ""}`;
@@ -39,7 +47,7 @@ export default function BrowseGrid({ data, update, onOpen }) {
   const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    if (requestKey === "favorites") return undefined;
+    if (LOCAL.includes(requestKey)) return undefined;
     const controller = new AbortController();
     const [id, ...rest] = requestKey.split("|");
     const request =
@@ -83,12 +91,37 @@ export default function BrowseGrid({ data, update, onOpen }) {
     }
   }
 
-  const showingFavorites = list === "favorites";
-  const items = showingFavorites ? data.favorites : state.items;
-  const loading = !showingFavorites && state.key !== requestKey;
+  const all = isLocal ? data[list] : state.items;
+  const loading = !isLocal && state.key !== requestKey;
+  const unseen = all.filter(i => !isIn(data, "watched", i));
+  // The marquee: the top title you haven't seen yet.
+  const featured = !isLocal && !loading ? (unseen[0] ?? all[0] ?? null) : null;
+  const items = featured ? all.filter(i => i !== featured) : all;
+  const listName = lists.find(l => l.id === list)?.name ?? "";
+
+  function pickForMe() {
+    const pool = unseen.length ? unseen : all;
+    if (pool.length) onOpen(pool[Math.floor(Math.random() * pool.length)]);
+  }
 
   return (
     <div className="wf-browse">
+      {featured && (
+        <Featured
+          key={`${featured.type}-${featured.id}`}
+          item={featured}
+          data={data}
+          update={update}
+          onOpen={onOpen}
+          onPick={all.length > 1 ? pickForMe : null}
+          badge={list === "mine" ? "Top pick on your services" : `Top of ${listName}`}
+        />
+      )}
+
+      {list !== "watchlist" && (
+        <PosterRow title="Up next on your watchlist" items={data.watchlist} onOpen={onOpen} onSeeAll={() => setListId("watchlist")} />
+      )}
+
       <div className="wf-browse-head">
         <h2>Browse</h2>
         <button
@@ -142,10 +175,10 @@ export default function BrowseGrid({ data, update, onOpen }) {
           <LoaderCircle size={16} className="spin" aria-hidden="true" /> Loading titles…
         </p>
       )}
-      {!loading && state.error && !showingFavorites && (
+      {!loading && state.error && !isLocal && (
         <p className="wf-alert">{state.code === "no-key" ? "Browsing isn’t switched on yet: the TMDB key is missing." : state.error}</p>
       )}
-      {!loading && !(state.error && !showingFavorites) && !items.length && <p className="wf-muted">Nothing to show here yet.</p>}
+      {!loading && !(state.error && !isLocal) && !all.length && <p className="wf-muted">Nothing to show here yet.</p>}
 
       {!loading && items.length > 0 && (
         <>
@@ -153,9 +186,17 @@ export default function BrowseGrid({ data, update, onOpen }) {
             {items.map(item => {
               const TypeIcon = item.type === "tv" ? Tv : Film;
               const saved = isFavorite(data, item);
+              const seen = isIn(data, "watched", item);
+              const later = isIn(data, "watchlist", item);
               return (
                 <li key={`${item.type}-${item.id}`} className="wf-tile-wrap">
-                  <button type="button" className="wf-tile" onClick={() => onOpen(item)}>
+                  <button type="button" className={`wf-tile${seen ? " is-seen" : ""}`} onClick={() => onOpen(item)}>
+                    {(seen || later) && (
+                      <span className={`wf-badge ${seen ? "is-seen" : "is-later"}`}>
+                        {seen ? <Check size={11} aria-hidden="true" /> : <Bookmark size={11} aria-hidden="true" />}
+                        {seen ? "Seen" : "Watchlist"}
+                      </span>
+                    )}
                     {item.poster ? (
                       <img src={item.poster} alt="" loading="lazy" width="171" height="256" />
                     ) : (
@@ -186,7 +227,7 @@ export default function BrowseGrid({ data, update, onOpen }) {
               );
             })}
           </ul>
-          {!showingFavorites && state.more && (
+          {!isLocal && state.more && (
             <button type="button" className="wf-btn wf-btn--ghost" onClick={loadMore} disabled={loadingMore}>
               {loadingMore ? <LoaderCircle size={17} className="spin" aria-hidden="true" /> : "Show more"}
             </button>

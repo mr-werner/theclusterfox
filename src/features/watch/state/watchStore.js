@@ -17,6 +17,9 @@ export function emptyData() {
     leagues: DEFAULT_LEAGUES,
     // Saved titles, newest first: { id, type, title, year, poster }
     favorites: [],
+    // To watch later, and already seen. Same shape as favorites.
+    watchlist: [],
+    watched: [],
     showRatings: true,
   };
 }
@@ -34,8 +37,9 @@ export function normalizeData(value) {
     : [];
   const live = Array.isArray(value.live) ? [...new Set(value.live.filter(l => liveLabels.has(l)))] : [];
   const leagues = Array.isArray(value.leagues) ? [...new Set(value.leagues.filter(id => leaguesById.has(id)))] : base.leagues;
-  const favorites = Array.isArray(value.favorites)
-    ? value.favorites
+  const titles = list =>
+    Array.isArray(list)
+      ? list
         .filter(f => f && Number.isInteger(f.id) && (f.type === "movie" || f.type === "tv") && typeof f.title === "string")
         .map(f => ({
           id: f.id,
@@ -45,14 +49,16 @@ export function normalizeData(value) {
           poster: typeof f.poster === "string" ? f.poster : null,
         }))
         .slice(0, MAX_FAVORITES)
-    : [];
+      : [];
   return {
     ...base,
     region: isRegion(value.region) ? value.region : base.region,
     services,
     live,
     leagues,
-    favorites,
+    favorites: titles(value.favorites),
+    watchlist: titles(value.watchlist),
+    watched: titles(value.watched),
     showRatings: value.showRatings !== false,
   };
 }
@@ -88,12 +94,22 @@ export const toggleIn = (list, value) => (list.includes(value) ? list.filter(v =
 // Every service name the viewer picked, for matching sports networks.
 export const pickedNames = data => [...data.services.map(s => s.name), ...data.live];
 
-export const isFavorite = (data, item) => data.favorites.some(f => f.id === item.id && f.type === item.type);
+// The viewer's own lists of titles.
+export const TITLE_LISTS = ["favorites", "watchlist", "watched"];
 
-export function toggleFavorite(data, item) {
-  if (isFavorite(data, item)) {
-    return { ...data, favorites: data.favorites.filter(f => !(f.id === item.id && f.type === item.type)) };
-  }
+const same = item => f => f.id === item.id && f.type === item.type;
+
+export const isIn = (data, list, item) => (data[list] ?? []).some(same(item));
+
+export function toggleTitle(data, list, item) {
+  const current = data[list] ?? [];
+  if (current.some(same(item))) return { ...data, [list]: current.filter(f => !same(item)(f)) };
   const saved = { id: item.id, type: item.type, title: item.title, year: item.year ?? "", poster: item.poster ?? null };
-  return { ...data, favorites: [saved, ...data.favorites].slice(0, MAX_FAVORITES) };
+  const next = { ...data, [list]: [saved, ...current].slice(0, MAX_FAVORITES) };
+  // Seeing something takes it off the watchlist.
+  if (list === "watched") next.watchlist = (data.watchlist ?? []).filter(f => !same(item)(f));
+  return next;
 }
+
+export const isFavorite = (data, item) => isIn(data, "favorites", item);
+export const toggleFavorite = (data, item) => toggleTitle(data, "favorites", item);

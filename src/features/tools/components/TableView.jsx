@@ -21,7 +21,7 @@ export default function TableView({ id, prefsApi }) {
   useEffect(() => {
     if (!table) return;
     touch(`table:${table.id}`);
-    document.title = `${table.name} · Engineering ToolFox`;
+    document.title = `${table.name} · Engineer ToolFox`;
     return () => {
       document.title = "The ClusterFOX";
     };

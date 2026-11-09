@@ -1,7 +1,7 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { CalendarRange, Cloud, CloudOff, Dumbbell, HardDrive, History, LoaderCircle } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import WorkoutBuilder from "./components/WorkoutBuilder";
 import WorkoutView from "./components/WorkoutView";
 import PlansTab from "./components/PlansTab";
@@ -11,6 +11,7 @@ import { PLAN_GOALS, toIsoDay } from "./model/program";
 import { useLiftData } from "./state/useLiftData";
 import { withNext } from "../../lib/redirect";
 import "./lift.css";
+import "./identity.css";
 
 function SyncBadge({ status, isSignedIn }) {
   if (!isSignedIn) {
@@ -39,9 +40,9 @@ function SyncBadge({ status, isSignedIn }) {
 }
 
 const TABS = [
-  { id: "workout", name: "Workout", icon: Dumbbell },
+  { id: "workout", name: "Train", icon: Dumbbell },
   { id: "plans", name: "Plans", icon: CalendarRange },
-  { id: "history", name: "History", icon: History },
+  { id: "history", name: "Progress", icon: History },
 ];
 
 export default function LiftPage() {
@@ -85,7 +86,7 @@ export default function LiftPage() {
 
   return (
     <main className="lift-page lf">
-      <SiteHeader />
+      <AppBar appId="liftfox" />
 
       <div className="lf-shell">
         <header className="lf-hero">
@@ -117,6 +118,8 @@ export default function LiftPage() {
             <WorkoutView
               workout={current}
               history={data.history}
+              prefs={data.prefs}
+              setPrefs={setPrefs}
               onChange={updateCurrent}
               onShuffle={() => build()}
               onFinish={() => {
@@ -142,7 +145,7 @@ export default function LiftPage() {
           />
         )}
 
-        {tab === "history" && <HistoryTab history={data.history} isSignedIn={isSignedIn} onDelete={deleteHistory} />}
+        {tab === "history" && <HistoryTab history={data.history} isSignedIn={isSignedIn} onDelete={deleteHistory} unit={data.prefs.unit} />}
 
         <p className="lf-credit">
           Workouts are general guidance, not medical advice. Start light, stop if something hurts, and check with a doctor

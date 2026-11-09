@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bell, BellOff, Info, Play, Star, Volume2 } from "lucide-react";
 
 import { goalsById, KINDS } from "../data/sessions";
-import { describePattern as describe, patterns } from "../data/breathing";
+import { describePattern as describe, patternOf } from "../data/breathing";
 import { buildTimeline, spokenCount } from "../model/schedule";
 import { INTERVALS } from "../state/calmStore";
 import { NATURAL_VOICES, pickVoice, recordedSeconds, speak, stopSpeaking, voiceSupported } from "../audio/voice";
@@ -29,14 +29,14 @@ function intervalName(sec, kind) {
   return sec < 60 ? `${sec} sec` : `${sec / 60} min`;
 }
 
-export default function SessionSetup({ session, prefs, setPrefs, voices, favorite, onToggleFavorite, onBack, onStart }) {
+export default function SessionSetup({ session, prefs, setPrefs, voices, favorite, onToggleFavorite, onBack, onStart, hideHead = false }) {
   const [minutes, setMinutes] = useState(session.minutes);
   const [trying, setTrying] = useState(false);
   const tryRef = useRef(null);
-  const goal = goalsById.get(session.goal);
-  const GoalIcon = GOAL_ICONS[session.goal];
+  const goal = goalsById.get(session.goal) ?? { name: "Breathe" };
+  const GoalIcon = GOAL_ICONS[session.goal] ?? KIND_ICONS.breath;
   const KindIcon = KIND_ICONS[session.kind];
-  const pattern = patterns[session.pattern];
+  const pattern = patternOf(session);
   const isBreath = session.kind === "breath";
   const isTimer = session.kind === "timer";
   const usesVoice = !isTimer || session.voiceTimer;
@@ -96,6 +96,8 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
 
   return (
     <section className="cm-setup" aria-labelledby="cm-setup-title">
+      {!hideHead && (
+        <>
       <button type="button" className="cm-back" onClick={onBack}>
         <ArrowLeft size={17} aria-hidden="true" /> All sessions
       </button>
@@ -129,6 +131,8 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
           </p>
         )}
       </header>
+        </>
+      )}
 
       <div className="cm-panel">
         <h3>How long?</h3>
@@ -189,6 +193,8 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
             ))}
           </div>
           <p className="cm-note">{CUES.find(c => c.id === prefs.cueMode)?.note}</p>
+          {!session.custom && (
+            <>
           <h3 className="cm-sub">Pace</h3>
           <div className="cm-chips" role="group" aria-label="Breathing pace">
             {PACES.map(p => (
@@ -198,6 +204,8 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
             ))}
           </div>
           <p className="cm-note">{describe(pattern, prefs.pace)} seconds.</p>
+            </>
+          )}
         </div>
       )}
 

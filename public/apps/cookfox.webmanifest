@@ -1,0 +1,28 @@
+{
+  "id": "/cook",
+  "name": "CookFox",
+  "short_name": "CookFox",
+  "start_url": "/cook",
+  "scope": "/cook",
+  "display": "standalone",
+  "background_color": "#f7f1e6",
+  "theme_color": "#f7f1e6",
+  "icons": [
+    {
+      "src": "/apps/cookfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/cookfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/cookfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

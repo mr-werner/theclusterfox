@@ -7,6 +7,7 @@ import { BONES, blendPose, buildFigure, solveJoint } from '../model/figure.js';
 import { alternatives, estimateMinutes, generateWorkout, GOALS, workoutTitle } from '../model/generate.js';
 import { buildProgram, nextSession, progress, sessionDate } from '../model/program.js';
 import { mergeData, normalizeData } from '../state/liftStore.js';
+import { bestByExercise, convert, e1rm, lastSets, parseLoad, targetReps, weeklyVolume } from '../model/records.js';
 
 // The library is consistent.
 const ids = new Set();
@@ -134,3 +135,28 @@ const deleted = mergeData(local, { ...remote, deletedHistoryIds: [{ id: 'a', at:
 assert(!deleted.history.some(x => x.id === 'a'), 'deletions stick');
 
 console.log('LiftFox: all checks passed');
+
+// Records: Epley 1RM, unit conversion, bests, last sets and weekly volume.
+{
+  assert.equal(e1rm(100, 1), 100);
+  assert.ok(Math.abs(e1rm(100, 10) - 133.33) < 0.01);
+  assert.equal(e1rm(100, 15), null, 'high-rep sets are not trusted for 1RM');
+  assert.equal(e1rm(0, 5), null);
+  assert.ok(Math.abs(convert(100, 'kg', 'lb') - 220.462) < 0.01);
+  assert.equal(parseLoad('135 lb'), 135);
+  assert.equal(parseLoad('red band'), null);
+  assert.equal(targetReps({ reps: '8-12' }), 8);
+  const hist = normalizeData({ history: [
+    { id: 'b', date: '2026-11-03', unit: 'kg', sets: { squat: [{ w: 100, r: 5 }] } },
+    { id: 'a', date: '2026-10-27', unit: 'lb', sets: { squat: [{ w: 200, r: 5 }, { w: 'x', r: 5 }] } },
+  ] }).history;
+  assert.equal(hist[1].sets.squat[1].w, null, 'bad weights are dropped');
+  const best = bestByExercise(hist, 'lb');
+  assert.ok(Math.abs(best.squat.e1rm - 100 * 2.20462 * (1 + 5 / 30)) < 0.01, 'kg history counts in lb');
+  assert.equal(lastSets(hist, 'squat').date, '2026-11-03');
+  const vol = weeklyVolume(hist, 'kg', '2026-11-05', 4);
+  assert.equal(vol.length, 4);
+  assert.equal(vol[3].volume, 500);
+  assert.equal(normalizeData({ prefs: { unit: 'stone' } }).prefs.unit, 'lb');
+}
+console.log('LiftFox records check out.');

@@ -159,6 +159,7 @@ function cleanItem(item) {
     activityId: kind === "training" && typeof item.activityId === "string" ? item.activityId : null,
     minutes: kind === "training" ? Math.min(240, Math.max(15, Math.round(Number(item.minutes) || 60))) : null,
     notes: text(item.notes, 1000),
+    priority: ["high", "low"].includes(item.priority) ? item.priority : "normal",
     done: Array.isArray(item.done) ? [...new Set(item.done.filter(isDayKey))].slice(-400) : [],
     updatedAt: item.updatedAt ?? null,
   };

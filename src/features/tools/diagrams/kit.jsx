@@ -45,14 +45,14 @@ export function At({ x, y, anchor = "c", children, className = "" }) {
 }
 
 /** A compact number + unit box that lives on the drawing. */
-export function Num({ label, dim, value, unit, onValue, onUnit, wide }) {
+export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact }) {
   const [text, setText] = useState("");
   const [editing, setEditing] = useState(false);
   const shown = Number.isFinite(value) ? fmtInput(fromSI(value, dim, unit), 5) : text;
   const bad = editing && text.trim() !== "" && !Number.isFinite(parseNumber(text));
   const units = DIMS[dim]?.units || [];
   return (
-    <label className={`dg-num ${bad ? "is-bad" : ""} ${wide ? "is-wide" : ""}`}>
+    <label className={`dg-num ${bad ? "is-bad" : ""} ${wide ? "is-wide" : ""} ${compact ? "is-compact" : ""}`}>
       <span className="dg-num-label">{label}</span>
       <span className="dg-num-row">
         <input

@@ -20,7 +20,7 @@ export const DIAGRAMS = {
   "tank-volume": { component: TankDiagram, fields: ["shape", "D", "L", "W", "H", "h"], hint: "Drag the level handle up and down, or type the sizes on the drawing." },
   "pressure-drop": { component: PipeDiagram, fields: ["Q", "pipe", "D", "L", "fluid", "mat"], hint: "Type the flow and pipe size on the drawing. The flow lines speed up as velocity rises." },
   "section-properties": { component: SectionDiagram, fields: ["shape", "b", "h", "D", "B", "H", "s", "t", "tf", "tw"], hint: "Type each dimension where it sits on the shape." },
-  "beam-builder": { component: BeamBuilderDiagram, fields: ["L", "model"], always: true, hint: "Add supports and loads, then drag them along the beam. Values are in the list below the drawing." },
+  "beam-builder": { component: BeamBuilderDiagram, fields: ["L", "model"], always: true, hint: "Add supports and loads, drag them along the beam, and type values right on the drawing. Click any item to move, change or remove it." },
   "stress-strain": { component: AxialDiagram, fields: ["F", "A", "L", "mat"], hint: "Drag the force handle to pull harder. The bar changes colour as it nears yield." },
   buckling: { component: BucklingDiagram, fields: ["ends", "L", "I", "A", "mat"], hint: "Pick the end supports to see how the column bows." },
   "torque-power": { component: TorqueDiagram, fields: ["P", "n", "tau"], hint: "Type the motor's power and speed. The shaft spins faster as the speed goes up." },

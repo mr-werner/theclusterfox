@@ -2360,3 +2360,113 @@ g:focus-visible > .dg-mass {
     animation: none;
   }
 }
+
+/* Beam builder: values on the drawing */
+
+.dg-num.is-compact {
+  padding: 3px 6px 4px;
+  border-radius: 9px;
+}
+
+.dg-num.is-compact .dg-num-label {
+  font-size: 0.6rem;
+}
+
+.dg-num.is-compact input {
+  font-size: 0.95rem;
+}
+
+.dg-on.is-sel {
+  z-index: 3;
+}
+
+.dg-on.is-sel .dg-num {
+  border-color: var(--tf-cat);
+}
+
+.dg-pop {
+  display: grid;
+  gap: 8px;
+  min-width: 230px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--tf-cat);
+  border-radius: 14px;
+  background: rgba(13, 17, 16, 0.96);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.dg-pop-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dg-pop-x {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tf-muted);
+}
+
+.dg-pop-x:hover {
+  background: var(--tf-surface-3);
+  color: #fff;
+}
+
+.dg-pop-fields {
+  display: flex;
+  gap: 8px;
+}
+
+.dg-pop-fields .dg-num {
+  box-shadow: none;
+}
+
+.dg-pop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dg-pop-actions button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 5px 10px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: #d8ddda;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.dg-pop-actions button:hover {
+  border-color: var(--tf-cat);
+}
+
+.dg-pop-actions .is-danger:hover {
+  border-color: #ff7f6b;
+  color: #ff7f6b;
+}
+
+.dg-list {
+  margin-top: 10px;
+}
+
+.dg-list summary {
+  width: fit-content;
+  padding: 4px 2px;
+  color: var(--tf-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dg-list summary:hover {
+  color: #fff;
+}

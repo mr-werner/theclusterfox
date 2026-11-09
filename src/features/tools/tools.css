@@ -1,4 +1,4 @@
-/* ToolFox. Everything is scoped under .tf. */
+/* Engineering ToolFox. Everything is scoped under .tf. */
 
 .tf {
   --tf-accent: var(--toolfox, #4fd8c4);
@@ -84,10 +84,25 @@
   font-family: "Space Grotesk", sans-serif;
   font-size: 1.3rem;
   letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
 .tf-brand strong {
   color: var(--tf-accent);
+}
+
+.tf-brand-text {
+  display: grid;
+  line-height: 1.05;
+}
+
+.tf-brand-text small {
+  color: var(--tf-muted);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .tf-brand-mark {

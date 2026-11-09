@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-// ToolFox remembers the unit system, favorites and recently used tools in this browser.
+// Engineering ToolFox remembers the unit system, favorites and recently used tools in this browser.
 const KEY = "toolfox-prefs-v1";
 const EMPTY = { system: "si", favorites: [], recent: [], units: {} };
 

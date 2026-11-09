@@ -31,13 +31,16 @@ export default function ToolsPage() {
     <main className="tools-page tf">
       <SiteHeader />
       <div className="tf-shell">
-        <aside className="tf-side" aria-label="ToolFox sections">
+        <aside className="tf-side" aria-label="Engineering ToolFox sections">
           <Link to="/tools" className="tf-brand">
             <span className="tf-brand-mark" aria-hidden="true">
               <Wrench size={18} />
             </span>
             <span>
-              Tool<strong>Fox</strong>
+              <span className="tf-brand-text">
+                <small>Engineering</small>
+                <span>Tool<strong>Fox</strong></span>
+              </span>
             </span>
           </Link>
           <button type="button" className="tf-side-search" onClick={() => setPaletteOpen(true)}>
@@ -135,7 +138,7 @@ function Home({ prefsApi, openSearch }) {
   const recent = prefs.recent.map(itemFor).filter(Boolean).filter((r) => !prefs.favorites.includes(r.key)).slice(0, 4);
 
   useEffect(() => {
-    document.title = "ToolFox · Engineering calculators and data";
+    document.title = "Engineering ToolFox · Engineering calculators and data";
     return () => {
       document.title = "The ClusterFOX";
     };
@@ -144,7 +147,7 @@ function Home({ prefsApi, openSearch }) {
   return (
     <div className="tf-home">
       <section className="tf-hero">
-        <p className="tf-eyebrow">TOOLFOX</p>
+        <p className="tf-eyebrow">Engineering ToolFox</p>
         <h1>Engineering answers, without the clutter.</h1>
         <p className="tf-lede">
           {CALCS.length} live calculators and {TABLES.length} reference tables for fluids, heat, air, structures and electrical work. Every number works in any unit.
@@ -231,7 +234,7 @@ function CategoryRoute() {
   const { cat: catId } = useParams();
   const cat = categoryById[catId];
   useEffect(() => {
-    if (cat) document.title = `${cat.name} · ToolFox`;
+    if (cat) document.title = `${cat.name} · Engineering ToolFox`;
     return () => {
       document.title = "The ClusterFOX";
     };
@@ -243,7 +246,7 @@ function CategoryRoute() {
     <div className="tf-category" style={{ "--tf-cat": cat.hue }}>
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          ToolFox
+          Engineering ToolFox
         </Link>
         <div className="tf-title-row">
           <span className="tf-cat-icon is-big" aria-hidden="true">
@@ -278,7 +281,7 @@ function AllData() {
     <div className="tf-category">
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          ToolFox
+          Engineering ToolFox
         </Link>
         <h1>Reference data</h1>
         <p className="tf-lede">Sortable, filterable tables. Pick any unit in a column header; download what you see as CSV.</p>
@@ -320,7 +323,7 @@ function Palette({ onClose }) {
 
   return (
     <div className="tf-palette-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="tf-palette" role="dialog" aria-modal="true" aria-label="Search ToolFox">
+      <div className="tf-palette" role="dialog" aria-modal="true" aria-label="Search Engineering ToolFox">
         <div className="tf-palette-input">
           <Search size={18} aria-hidden="true" />
           <input

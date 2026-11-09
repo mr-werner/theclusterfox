@@ -28,6 +28,7 @@
   --liftfox: #ff7a6b;
   --toolfox: #4fd8c4;
   --calmfox: #9aa8ff;
+  --cookfox: #a8c69a;
 
   --max-width: 1180px;
 }
@@ -337,6 +338,17 @@ select {
       145deg,
       #dbe1ff,
       #7488f0
+    );
+}
+
+.app-icon--cookfox {
+  color: #17260f;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f3efd9,
+      #8fb27f
     );
 }
 

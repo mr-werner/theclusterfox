@@ -14,6 +14,7 @@ import GearDiagram from "./GearDiagram";
 import BoltDiagram from "./BoltDiagram";
 import SpringDiagram from "./SpringDiagram";
 import EnergyDiagram from "./EnergyDiagram";
+import FanSystemBuilder from "./FanSystemBuilder";
 
 export const DIAGRAMS = {
   beam: { component: BeamDiagram, fields: ["support", "load", "L", "P", "a", "w"], hint: "Drag the load arrow along the beam, or type on the drawing." },
@@ -28,5 +29,6 @@ export const DIAGRAMS = {
   "bolt-torque": { component: BoltDiagram, fields: ["size", "grade", "pct", "cond", "K"], hint: "Pick the bolt and how the threads are lubricated." },
   spring: { component: SpringDiagram, fields: ["d", "Dm", "Na", "F"], hint: "The spring is drawn to scale: wire, coil size and deflection are real." },
   "energy-motion": { component: EnergyDiagram, fields: ["m", "v", "h"], hint: "Drag the block up or down to change its height." },
+  "fan-system": { component: FanSystemBuilder, fields: ["Q", "model", "z", "T"], always: true, hint: "List the path the air takes, from intake to the farthest outlet. Each item shows its own pressure loss." },
   slope: { component: SlopeDiagram, fields: ["rise", "run"], hint: "Drag the top corner to change the rise." },
 };

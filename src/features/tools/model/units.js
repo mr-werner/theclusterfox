@@ -84,6 +84,12 @@ export const DIMS = {
     si: "N", us: "lbf",
   },
   pressure: { label: "Pressure", units: PRESSURE_UNITS, si: "kPa", us: "psi" },
+  airPressure: { alias: "pressure", label: "Air pressure", si: "Pa", us: "inH2O" },
+  pressureGradient: {
+    label: "Friction rate",
+    units: [u("Pa/m", "Pa/m", 1), u("inH2O/100ft", "in H₂O/100 ft", 249.08891 / 30.48), u("mmH2O/m", "mm H₂O/m", 9.80665)],
+    si: "Pa/m", us: "inH2O/100ft",
+  },
   stress: { alias: "pressure", label: "Stress", si: "MPa", us: "ksi" },
   modulus: { alias: "pressure", label: "Modulus", si: "GPa", us: "ksi" },
   energy: {

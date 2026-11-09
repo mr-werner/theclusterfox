@@ -7,11 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node src/features/f4t/tests/validate.mjs && node src/features/clocast/tests/validate.mjs && node src/features/watch/tests/validate.mjs && node src/features/plan/tests/validate.mjs && node src/features/lift/tests/validate.mjs && node src/features/tools/tests/validate.mjs && node src/features/calm/tests/validate.mjs",
+    "test": "node src/features/f4t/tests/validate.mjs && node src/features/clocast/tests/validate.mjs && node src/features/watch/tests/validate.mjs && node src/features/plan/tests/validate.mjs && node src/features/lift/tests/validate.mjs && node src/features/tools/tests/validate.mjs && node src/features/calm/tests/validate.mjs && node src/features/math/tests/validate.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
     "@neondatabase/neon-js": "^0.7.0-beta",
+    "katex": "^0.19.1",
     "lucide-react": "^1.52.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

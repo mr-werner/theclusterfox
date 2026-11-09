@@ -27,6 +27,7 @@
   --planfox: #f5c451;
   --liftfox: #ff7a6b;
   --toolfox: #4fd8c4;
+  --calmfox: #9aa8ff;
 
   --max-width: 1180px;
 }
@@ -325,6 +326,17 @@ select {
       145deg,
       #b5fff2,
       #2fbfa9
+    );
+}
+
+.app-icon--calmfox {
+  color: #0d1433;
+
+  background:
+    linear-gradient(
+      145deg,
+      #dbe1ff,
+      #7488f0
     );
 }
 

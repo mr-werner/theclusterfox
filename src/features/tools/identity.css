@@ -278,7 +278,7 @@
 
 @media (max-width: 760px) {
   .tf-about {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .tf-about-block:first-child {

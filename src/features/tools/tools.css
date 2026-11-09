@@ -1568,9 +1568,84 @@
   font-size: 0.95rem;
 }
 
-.dg-scroll {
-  overflow-x: auto;
+.dg-setup {
+  margin-bottom: 10px;
+}
+
+/* Zoomable drawing frame (components/ZoomPan.jsx). */
+.zp {
+  min-width: 0;
+}
+
+.zp-bar {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.zp-hint {
+  margin-right: auto;
+  color: var(--tf-muted);
+  font-size: 0.72rem;
+}
+
+.zp-bar button {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 8px;
+  background: var(--tf-surface-2);
+  color: #fff;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.zp-bar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.zp-bar button:not(:disabled):hover {
+  border-color: var(--tf-cat, var(--tf-accent));
+}
+
+.zp-level {
+  min-width: 3.4em;
+  color: var(--tf-muted);
+  font-size: 0.74rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.zp-view {
+  position: relative;
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
+  border-radius: 12px;
+}
+
+.zp.is-zoomed .zp-view {
+  box-shadow: inset 0 0 0 1px var(--tf-line-strong);
+}
+
+.zp-sizer {
+  position: relative;
+}
+
+.zp-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  transform-origin: 0 0;
 }
 
 .dg {

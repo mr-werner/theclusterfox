@@ -26,6 +26,18 @@
   background-position: -1px -1px;
 }
 
+/* Native dropdown lists use the select's text colour. Without these, phones draw
+   white option text on a white list, so the choices look blank. */
+.tf {
+  color-scheme: dark;
+}
+
+.tf option,
+.tf optgroup {
+  background-color: #0d2846;
+  color: #fff;
+}
+
 .tf-main {
   animation: tf-plot 520ms ease-out both;
 }

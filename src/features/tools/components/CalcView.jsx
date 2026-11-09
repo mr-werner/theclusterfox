@@ -17,8 +17,8 @@ const readMode = () => {
   } catch {
     // Fall through to the default below.
   }
-  // Drawings are wide, so phones start on the form; the switch is right there.
-  return typeof window !== "undefined" && window.innerWidth < 640 ? "form" : "diagram";
+  // Drawings scale to fit any screen (and zoom), so everyone starts on the drawing.
+  return "diagram";
 };
 
 export default function CalcView({ id, prefsApi }) {
@@ -69,8 +69,13 @@ export default function CalcView({ id, prefsApi }) {
   const fav = prefs.favorites.includes(`calc:${calc.id}`);
   const unitFor = (dim) => prefs.units[dim] || defaultUnit(dim, prefs.system);
   const outUnitFor = (r) => outUnits[r.id] || (r.unit && !prefs.units[r.dim] ? r.unit : unitFor(r.dim));
-  const set = (key, v) => setValues((cur) => ({ ...cur, [key]: v }));
-  const diagram = DIAGRAMS[calc.id];
+  const set = (key, v) =>
+    setValues((cur) => {
+      const next = { ...cur, [key]: v };
+      return calc.onSet ? calc.onSet(next, key, cur) : next;
+    });
+  const entry = DIAGRAMS[calc.id];
+  const diagram = entry?.pick ? { ...entry, ...entry.pick(values) } : entry;
   const useDiagram = Boolean(diagram) && (mode === "diagram" || diagram.always);
   const onDiagram = (input) => useDiagram && diagram.fields.includes(input.id);
   const restInputs = calc.inputs.filter((i) => isVisible(i, values) && !onDiagram(i));

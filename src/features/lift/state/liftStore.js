@@ -9,7 +9,7 @@ const MAX_TOMBSTONES = 200;
 export function emptyData() {
   return {
     version: 1,
-    prefs: { muscles: [], goal: "size", minutes: 45, gear: [], level: 1 },
+    prefs: { muscles: [], goal: "size", minutes: 45, gear: [], level: 1, unit: "lb", restSound: true },
     // The workout being followed right now (see model/generate.js).
     current: null,
     // Finished workouts: { id, date, title, goal, minutes, muscles, setsDone, setsTotal, loads, planId, sessionId, updatedAt }
@@ -26,6 +26,23 @@ export function emptyData() {
 
 const GOALS = ["strength", "size", "stamina"];
 const isObject = v => Boolean(v && typeof v === "object" && !Array.isArray(v));
+
+// One logged set: weight and reps, either may be missing (bodyweight, timed).
+const cleanSet = s => {
+  if (!isObject(s)) return null;
+  const w = Number.isFinite(s.w) && s.w >= 0 && s.w < 5000 ? s.w : null;
+  const r = Number.isFinite(s.r) && s.r >= 0 && s.r < 1000 ? Math.round(s.r) : null;
+  return { w, r };
+};
+
+function cleanSetsMap(map) {
+  if (!isObject(map)) return {};
+  const out = {};
+  for (const [id, sets] of Object.entries(map)) {
+    if (Array.isArray(sets)) out[id] = sets.map(cleanSet).filter(Boolean).slice(0, 12);
+  }
+  return out;
+}
 const strings = v => (Array.isArray(v) ? v.filter(x => typeof x === "string") : []);
 
 function cleanPrefs(prefs) {
@@ -37,6 +54,8 @@ function cleanPrefs(prefs) {
     minutes: Number.isFinite(prefs.minutes) && prefs.minutes >= 10 && prefs.minutes <= 120 ? prefs.minutes : base.minutes,
     gear: strings(prefs.gear),
     level: [1, 2, 3].includes(prefs.level) ? prefs.level : base.level,
+    unit: prefs.unit === "kg" ? "kg" : "lb",
+    restSound: prefs.restSound !== false,
   };
 }
 
@@ -53,6 +72,7 @@ function cleanItem(item) {
     perSide: item.perSide === true,
     done,
     load: typeof item.load === "string" ? item.load.slice(0, 24) : "",
+    log: Array.from({ length: sets }, (_, i) => (Array.isArray(item.log) ? cleanSet(item.log[i]) : null)),
   };
 }
 
@@ -82,6 +102,8 @@ function cleanHistory(entry) {
     setsDone: Number(entry.setsDone) || 0,
     setsTotal: Number(entry.setsTotal) || 0,
     loads: isObject(entry.loads) ? entry.loads : {},
+    sets: cleanSetsMap(entry.sets),
+    unit: entry.unit === "kg" ? "kg" : "lb",
     planId: entry.planId ?? null,
     sessionId: entry.sessionId ?? null,
     updatedAt: entry.updatedAt ?? null,

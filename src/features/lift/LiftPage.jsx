@@ -40,9 +40,9 @@ function SyncBadge({ status, isSignedIn }) {
 }
 
 const TABS = [
-  { id: "workout", name: "Workout", icon: Dumbbell },
+  { id: "workout", name: "Train", icon: Dumbbell },
   { id: "plans", name: "Plans", icon: CalendarRange },
-  { id: "history", name: "History", icon: History },
+  { id: "history", name: "Progress", icon: History },
 ];
 
 export default function LiftPage() {
@@ -118,6 +118,8 @@ export default function LiftPage() {
             <WorkoutView
               workout={current}
               history={data.history}
+              prefs={data.prefs}
+              setPrefs={setPrefs}
               onChange={updateCurrent}
               onShuffle={() => build()}
               onFinish={() => {
@@ -143,7 +145,7 @@ export default function LiftPage() {
           />
         )}
 
-        {tab === "history" && <HistoryTab history={data.history} isSignedIn={isSignedIn} onDelete={deleteHistory} />}
+        {tab === "history" && <HistoryTab history={data.history} isSignedIn={isSignedIn} onDelete={deleteHistory} unit={data.prefs.unit} />}
 
         <p className="lf-credit">
           Workouts are general guidance, not medical advice. Start light, stop if something hurts, and check with a doctor

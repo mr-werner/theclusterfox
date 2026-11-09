@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { Check, ChevronDown, RefreshCw, Repeat, Shuffle, Timer, Trash2, Trophy, X } from "lucide-react";
+import { Check, ChevronDown, Play, RefreshCw, Repeat, Shuffle, Timer, Trash2, Trophy, X } from "lucide-react";
 
 import HowTo from "./HowTo";
+import FocusMode from "./FocusMode";
 import { exercisesById } from "../data/exercises";
 import { alternatives, GOALS, swapItem } from "../model/generate";
 import { describeItem, formatRest, restFor } from "../model/format";
@@ -138,8 +139,9 @@ function Checklist({ title, steps, done, onToggle }) {
 }
 
 /** The workout being followed: tick sets off, rest, swap moves, finish. */
-export default function WorkoutView({ workout, history, onChange, onShuffle, onFinish, onDiscard }) {
+export default function WorkoutView({ workout, history, prefs, setPrefs, onChange, onShuffle, onFinish, onDiscard }) {
   const [rest, setRest] = useState(null);
+  const [focus, setFocus] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const endRest = useCallback(() => setRest(null), []);
   const setsTotal = workout.items.reduce((n, i) => n + i.sets, 0);
@@ -176,6 +178,10 @@ export default function WorkoutView({ workout, history, onChange, onShuffle, onF
           <span style={{ width: `${(setsDone / Math.max(1, setsTotal)) * 100}%` }} />
         </div>
         <p className="lf-muted lf-small">{setsDone} of {setsTotal} sets done</p>
+        <button type="button" className="lf-btn lf-btn--train" onClick={() => setFocus(true)}>
+          <Play size={20} fill="currentColor" aria-hidden="true" />
+          {started ? "Back to training" : "Start training"}
+        </button>
         <div className="lf-actions">
           {!started && !workout.planId && (
             <button type="button" className="lf-ghost" onClick={onShuffle}>
@@ -224,7 +230,22 @@ export default function WorkoutView({ workout, history, onChange, onShuffle, onF
         {setsDone === setsTotal ? "Finish workout" : started ? `Finish early (${setsDone}/${setsTotal} sets)` : "Tick off a set to start"}
       </button>
 
-      {rest && <RestTimer key={rest.key} rest={rest} onDone={endRest} />}
+      {rest && !focus && <RestTimer key={rest.key} rest={rest} onDone={endRest} />}
+
+      {focus && (
+        <FocusMode
+          workout={workout}
+          history={history}
+          prefs={prefs}
+          setPrefs={setPrefs}
+          onChange={onChange}
+          onFinish={() => {
+            setFocus(false);
+            onFinish();
+          }}
+          onExit={() => setFocus(false)}
+        />
+      )}
     </div>
   );
 }

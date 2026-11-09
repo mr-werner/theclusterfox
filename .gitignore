@@ -34,3 +34,8 @@ dist-ssr
 .vercel/
 
 
+
+# CalmFox voice generator (scripts/calm-voices)
+.venv
+kokoro-v1.0.onnx
+voices-v1.0.bin

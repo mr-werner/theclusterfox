@@ -1,11 +1,12 @@
 // Everything CookFox remembers lives in this browser: preferences, favorites,
 // cooking sessions in progress and cooking history. No account needed.
 import { recipesById } from "../data/recipes.js";
-import { ALLERGENS } from "../data/ingredients.js";
+import { ALLERGENS, ingredientsById } from "../data/ingredients.js";
 import { TASTES, EQUIPMENT, DIFFICULTY } from "../data/recipes.js";
 import { DIETS } from "../model/recipe.js";
 import { PRIORITIES, DEFAULT_PRIORITIES } from "../model/discover.js";
 import { normalizeSession } from "../model/session.js";
+import { cleanChoices } from "../model/swaps.js";
 
 export const STORAGE_KEY = "cookfox-data-v1";
 export const MAX_HISTORY = 200;
@@ -38,6 +39,12 @@ export function emptyData() {
     sessions: {},
     // { id, recipeId, title, date, servings, minutes, status: "cooked"|"stopped", rating, again, timing, note }
     history: [],
+    // { id, ing | null, name | null, expires (YYYY-MM-DD) | null, low, added }
+    pantry: [],
+    // { id, ing | null, name | null, sources: [{ recipeId, amount }], extra, manual?, checked }
+    shopping: [],
+    // recipeId -> { lineKey: swapId }, the cook's saved version of a recipe
+    custom: {},
   };
 }
 
@@ -91,7 +98,40 @@ function cleanHistory(e) {
     again: typeof e.again === "boolean" ? e.again : null,
     timing: ["faster", "right", "slower"].includes(e.timing) ? e.timing : null,
     note: str(e.note, 500),
+    swaps: cleanChoices(recipesById.get(e.recipeId), e.swaps),
   };
+}
+
+const isDay = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+function cleanCustom(c) {
+  const out = {};
+  if (!isObject(c)) return out;
+  for (const [id, choices] of Object.entries(c)) {
+    if (!recipesById.has(id)) continue;
+    const clean = cleanChoices(recipesById.get(id), choices);
+    if (Object.keys(clean).length) out[id] = clean;
+  }
+  return out;
+}
+
+function cleanPantryItem(p) {
+  if (!isObject(p) || !p.id) return null;
+  const ing = ingredientsById.has(p.ing) ? p.ing : null;
+  const name = ing ? null : str(p.name, 60).trim();
+  if (!ing && !name) return null;
+  return { id: String(p.id).slice(0, 40), ing, name, expires: isDay(p.expires) ? p.expires : null, low: p.low === true, added: isDay(p.added) ? p.added : null };
+}
+
+function cleanShoppingItem(i) {
+  if (!isObject(i) || !i.id) return null;
+  const ing = ingredientsById.has(i.ing) ? i.ing : null;
+  const name = ing ? null : str(i.name, 60).trim();
+  if (!ing && !name) return null;
+  const sources = ing && Array.isArray(i.sources)
+    ? i.sources.filter(s => isObject(s) && recipesById.has(s.recipeId) && Number.isFinite(s.amount) && s.amount > 0).map(s => ({ recipeId: s.recipeId, amount: s.amount }))
+    : [];
+  return { id: String(i.id).slice(0, 40), ing, name, sources, extra: ing && Number.isFinite(i.extra) ? i.extra : 0, manual: i.manual === true, checked: i.checked === true };
 }
 
 export function normalizeData(value) {
@@ -111,6 +151,9 @@ export function normalizeData(value) {
     favorites: Array.isArray(value.favorites) ? [...new Set(value.favorites.filter(id => recipesById.has(id)))] : [],
     sessions,
     history: Array.isArray(value.history) ? value.history.map(cleanHistory).filter(Boolean).slice(0, MAX_HISTORY) : [],
+    pantry: Array.isArray(value.pantry) ? value.pantry.map(cleanPantryItem).filter(Boolean).slice(0, 500) : [],
+    shopping: Array.isArray(value.shopping) ? value.shopping.map(cleanShoppingItem).filter(Boolean).slice(0, 300) : [],
+    custom: cleanCustom(value.custom),
   };
 }
 

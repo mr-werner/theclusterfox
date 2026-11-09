@@ -16,7 +16,8 @@ export const taskKey = (step, task) => `${step}:${task}`;
 
 const isObject = v => Boolean(v && typeof v === "object" && !Array.isArray(v));
 
-export function newSession(recipe, servings, now = Date.now()) {
+// `have` can pre-check ingredients (e.g. from the pantry).
+export function newSession(recipe, servings, now = Date.now(), have = []) {
   return {
     recipeId: recipe.id,
     servings: clampServings(servings),
@@ -25,7 +26,7 @@ export function newSession(recipe, servings, now = Date.now()) {
     phase: "prep", // prep | cooking
     step: 0,
     doneSteps: [],
-    have: {},
+    have: Object.fromEntries(have.map(k => [k, true])),
     prepped: {},
     used: {},
     tasks: {},

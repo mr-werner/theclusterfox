@@ -115,6 +115,52 @@ export const ingredients = [
 
   // Bread
   { id: "corn-tortillas", name: "corn tortilla", plural: "corn tortillas", unit: "each", gEach: 26, aisle: "bakery", aliases: ["tortilla"], n: [218, 5.7, 44.6, 2.9, 6.3, 0.9, 45] },
+  { id: "flour-tortillas", name: "large flour tortilla", plural: "large flour tortillas", unit: "each", gEach: 45, aisle: "bakery", allergens: ["gluten"], aliases: ["tortilla", "wheat"], n: [306, 8.2, 50, 7.8, 3.5, 3, 600] },
+  { id: "bread", name: "crusty bread", unit: "each", gEach: 50, countUnit: ["slice", "slices"], aisle: "bakery", allergens: ["gluten"], aliases: ["toast", "wheat"], n: [260, 9, 49, 3.2, 2.5, 4, 500] },
+
+  // Added with the second batch of recipes
+  { id: "cheddar", name: "shredded cheddar", unit: "g", us: "volume", gPerCup: 113, aisle: "dairy", allergens: ["milk"], animal: "dairy", aliases: ["cheese"], n: [403, 23, 3.1, 33, 0, 0.5, 650] },
+  { id: "heavy-cream", name: "heavy cream", unit: "ml", density: 1, aisle: "dairy", allergens: ["milk"], animal: "dairy", aliases: ["cream"], n: [340, 2.8, 2.7, 36, 0, 2.9, 27] },
+  { id: "shrimp", name: "large shrimp, peeled and deveined", unit: "g", us: "weight", aisle: "meat", allergens: ["shellfish"], animal: "fish", aliases: ["prawns", "seafood"], n: [85, 20, 0, 0.5, 0, 0, 119] },
+  { id: "ground-turkey", name: "93% lean ground turkey", unit: "g", us: "weight", aisle: "meat", animal: "meat", aliases: ["turkey", "poultry", "meat"], n: [150, 19, 0, 8, 0, 0, 70] },
+  { id: "chicken-breast", name: "boneless, skinless chicken breasts", unit: "g", us: "weight", aisle: "meat", animal: "meat", aliases: ["chicken", "poultry"], n: [120, 22.5, 0, 2.6, 0, 0, 45] },
+  { id: "pork-chops", name: "boneless pork chops, about 1 inch thick", unit: "g", us: "weight", aisle: "meat", animal: "meat", aliases: ["pork", "meat"], n: [143, 21, 0, 6, 0, 0, 60] },
+  { id: "cucumber", name: "cucumber", plural: "cucumbers", unit: "each", gEach: 300, aisle: "produce", n: [15, 0.7, 3.6, 0.1, 0.5, 1.7, 2] },
+  { id: "cherry-tomatoes", name: "cherry tomatoes", unit: "g", us: "volume", gPerCup: 149, aisle: "produce", aliases: ["tomato", "grape tomatoes"], n: [18, 0.9, 3.9, 0.2, 1.2, 2.6, 5] },
+  { id: "red-onion", name: "red onion", plural: "red onions", unit: "each", gEach: 150, aisle: "produce", aliases: ["onion", "onions"], n: [40, 1.1, 9.3, 0.1, 1.7, 4.2, 4] },
+  { id: "broccoli", name: "broccoli florets", unit: "g", us: "volume", gPerCup: 71, aisle: "produce", n: [34, 2.8, 6.6, 0.4, 2.6, 1.7, 33] },
+  { id: "mushrooms", name: "cremini mushrooms", unit: "g", us: "weight", aisle: "produce", aliases: ["mushroom"], n: [22, 2.5, 4.3, 0.1, 0.6, 1.7, 6] },
+  { id: "banana", name: "ripe banana", plural: "ripe bananas", unit: "each", gEach: 118, aisle: "produce", aliases: ["bananas"], n: [89, 1.1, 23, 0.3, 2.6, 12, 1] },
+  { id: "kale", name: "kale, stems removed", unit: "g", us: "volume", gPerCup: 30, aisle: "produce", n: [43, 2.9, 4.4, 1.5, 4.1, 1, 53] },
+  { id: "frozen-corn", name: "frozen corn", unit: "g", us: "volume", gPerCup: 136, aisle: "frozen", aliases: ["corn"], n: [88, 3, 21, 0.8, 2.4, 4.5, 1] },
+  { id: "red-lentils", name: "red lentils", unit: "g", us: "volume", gPerCup: 192, aisle: "pantry", aliases: ["lentils"], n: [358, 24, 63, 2.2, 11, 2, 7] },
+  { id: "vegetable-broth", name: "low-sodium vegetable broth", unit: "ml", density: 1, aisle: "pantry", aliases: ["broth", "stock"], n: [5, 0.2, 1, 0.1, 0, 0.5, 130] },
+  { id: "peanut-butter", name: "creamy peanut butter", unit: "g", us: "volume", gPerCup: 258, aisle: "pantry", allergens: ["peanut"], aliases: ["peanut"], n: [588, 25, 20, 50, 6, 9, 430] },
+  { id: "tahini", name: "tahini", unit: "g", us: "volume", gPerCup: 240, aisle: "pantry", allergens: ["sesame"], aliases: ["sesame"], n: [595, 17, 21, 54, 9, 0.5, 115] },
+  { id: "penne", name: "dried penne", unit: "g", us: "weight", aisle: "pantry", allergens: ["gluten"], aliases: ["pasta", "wheat"], n: [371, 13, 75, 1.5, 3.2, 2.7, 6] },
+  { id: "dijon", name: "Dijon mustard", unit: "g", us: "volume", gPerCup: 250, aisle: "pantry", aliases: ["mustard"], n: [66, 4, 6, 3.3, 3.3, 1, 1100] },
+  { id: "panko", name: "panko breadcrumbs", unit: "g", us: "volume", gPerCup: 50, aisle: "pantry", allergens: ["gluten"], aliases: ["breadcrumbs", "wheat"], n: [370, 12, 74, 3, 4, 4, 300] },
+  { id: "cornstarch", name: "cornstarch", unit: "g", us: "volume", gPerCup: 128, aisle: "baking", aliases: ["corn starch"], n: [381, 0.3, 91, 0.1, 0.9, 0, 9] },
+  { id: "cocoa", name: "unsweetened cocoa powder", unit: "g", us: "volume", gPerCup: 86, aisle: "baking", aliases: ["cocoa", "chocolate"], n: [228, 20, 58, 14, 37, 1.8, 21] },
+
+  // Mostly here as swaps, though recipes can use them too
+  { id: "plant-butter", name: "plant-based butter", unit: "g", us: "volume", gPerCup: 227, aisle: "dairy", aliases: ["vegan butter"], n: [717, 0, 0, 80, 0, 0, 400] },
+  { id: "oat-milk", name: "oat milk", unit: "ml", density: 1.03, aisle: "dairy", aliases: ["oatmilk"], n: [48, 1, 7, 1.5, 0.8, 4, 42], note: "Most oat milk isn't certified gluten-free. Check the label if you avoid gluten." },
+  { id: "almond-milk", name: "unsweetened almond milk", unit: "ml", density: 1.01, aisle: "dairy", allergens: ["treenut"], aliases: ["almond"], n: [15, 0.6, 0.3, 1.2, 0.3, 0, 72] },
+  { id: "coconut-yogurt", name: "plain coconut yogurt", unit: "g", us: "volume", gPerCup: 245, aisle: "dairy", aliases: ["yogurt", "coconut"], n: [90, 0.5, 8, 6, 0.5, 6, 20] },
+  { id: "nutritional-yeast", name: "nutritional yeast", unit: "g", us: "volume", gPerCup: 60, aisle: "pantry", aliases: ["nooch"], n: [400, 50, 33, 5, 20, 0, 50] },
+  { id: "flax-egg", name: "flax egg (1 tbsp ground flax + 3 tbsp water)", plural: "flax eggs (1 tbsp ground flax + 3 tbsp water each)", unit: "each", gEach: 52, whole: true, aisle: "baking", aliases: ["flax"], n: [72, 2.5, 3.9, 5.7, 3.7, 0.2, 2] },
+  { id: "firm-tofu", name: "firm tofu, pressed", unit: "g", us: "weight", aisle: "produce", allergens: ["soy"], aliases: ["tofu", "soy"], n: [144, 17, 3, 9, 2.3, 0.6, 14] },
+  { id: "gf-spaghetti", name: "gluten-free spaghetti", unit: "g", us: "weight", aisle: "pantry", aliases: ["pasta"], n: [357, 7, 79, 1.5, 2, 1, 10] },
+  { id: "gf-penne", name: "gluten-free penne", unit: "g", us: "weight", aisle: "pantry", aliases: ["pasta"], n: [357, 7, 79, 1.5, 2, 1, 10] },
+  { id: "ww-spaghetti", name: "whole wheat spaghetti", unit: "g", us: "weight", aisle: "pantry", allergens: ["gluten"], aliases: ["pasta", "wheat"], n: [348, 15, 72, 1.6, 9, 3, 8] },
+  { id: "tamari", name: "gluten-free tamari", unit: "ml", density: 1.15, aisle: "pantry", allergens: ["soy"], aliases: ["soy", "soy sauce"], n: [60, 10.5, 5.6, 0.1, 0.8, 1.7, 5600] },
+  { id: "coconut-aminos", name: "coconut aminos", unit: "ml", density: 1.1, aisle: "pantry", aliases: ["soy sauce"], n: [91, 0, 22, 0, 0, 20, 1640] },
+  { id: "gf-flour", name: "gluten-free 1-to-1 baking flour", unit: "g", us: "volume", gPerCup: 140, aisle: "baking", aliases: ["gluten-free flour"], n: [355, 6, 79, 1.5, 3, 0.5, 10], note: "Use a blend labeled 1-to-1 or cup-for-cup; it already has the binder plain rice flour lacks." },
+  { id: "light-coconut-milk", name: "canned light coconut milk", unit: "ml", density: 0.98, aisle: "pantry", aliases: ["coconut"], n: [73, 0.7, 1.5, 7, 0, 1, 20] },
+  { id: "df-chocolate-chips", name: "dairy-free chocolate chips", unit: "g", us: "volume", gPerCup: 170, aisle: "baking", aliases: ["chocolate"], n: [480, 4, 62, 30, 6, 52, 10], note: "Check the label for soy and for shared equipment with milk." },
+  { id: "brown-rice", name: "long-grain brown rice", unit: "g", us: "volume", gPerCup: 190, aisle: "pantry", aliases: ["rice"], n: [367, 7.5, 76, 3.2, 3.4, 0.7, 7] },
+  { id: "cooked-brown-rice", name: "cold cooked brown rice", unit: "g", us: "volume", gPerCup: 195, aisle: "pantry", aliases: ["rice", "brown rice"], n: [123, 2.7, 25.6, 1, 1.6, 0.2, 4] },
 ];
 
 export const ingredientsById = new Map(ingredients.map(i => [i.id, i]));

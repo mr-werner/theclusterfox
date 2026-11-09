@@ -16,44 +16,26 @@ export const PRIORITIES = {
   easy: "Easy to cook",
 };
 
-const normalize = s =>
-  String(s)
-    .toLowerCase()
-    .trim()
-    .replace(/(ies)$/, "y")
-    .replace(/(oes|ses|shes|ches)$/, m => m.slice(0, -2))
-    .replace(/([^s])s$/, "$1");
+import { ingredientMatches, parseTerms } from "./match.js";
+import { recipePantry } from "./pantry.js";
+import { applySwaps, baseRecipe, suggestFixes } from "./swaps.js";
 
-// Splits "spinach, chickpeas" into normalized terms.
-export function parseTerms(text) {
-  return String(text ?? "")
-    .split(/[,;\n]/)
-    .map(normalize)
-    .filter(t => t.length > 1);
-}
-
-// Does an ingredient match a term? Matches the name, its words and aliases,
-// so "chicken" catches chicken thighs and chicken broth alike.
-export function ingredientMatches(item, term) {
-  const t = normalize(term);
-  if (!t) return false;
-  const names = [item.name, item.plural, item.id.replace(/-/g, " "), ...(item.aliases ?? [])].filter(Boolean).map(s => s.toLowerCase());
-  return names.some(n => n.includes(t) || n.split(/[\s,]+/).map(normalize).includes(t));
-}
+export { ingredientMatches, parseTerms };
 
 export const recipeHasTerm = (recipe, term) => ingredientIds(recipe).some(id => ingredientMatches(ingredientsById.get(id), term));
 
-// Precomputed facts per recipe, so filtering stays cheap.
-const factsCache = new Map();
+// Precomputed facts per recipe, so filtering stays cheap. Keyed by the recipe
+// object itself, since a swapped recipe has different facts from the original.
+const factsCache = new WeakMap();
 export function factsOf(recipe) {
-  if (!factsCache.has(recipe.id)) {
-    factsCache.set(recipe.id, {
+  if (!factsCache.has(recipe)) {
+    factsCache.set(recipe, {
       allergens: allergensOf(recipe),
       diets: dietsOf(recipe),
       nutrition: recipeNutrition(recipe).perServing,
     });
   }
-  return factsCache.get(recipe.id);
+  return factsCache.get(recipe);
 }
 
 export function emptyFilters() {
@@ -69,6 +51,8 @@ export function emptyFilters() {
     maxCalories: 0,
     have: "",
     exclude: "",
+    maxMissing: -1, // -1 any; 0 "have everything"; 2 "missing 2 or fewer" (needs a pantry)
+    useSoon: false, // only recipes that use pantry items close to their use-by date
   };
 }
 
@@ -85,8 +69,10 @@ export function hardBlock(recipe, profile, filters) {
 }
 
 // Softer filters the cook picked on the Discover screen.
-export function passesFilters(recipe, profile, filters) {
+export function passesFilters(recipe, profile, filters, pantryInfo) {
   const facts = factsOf(recipe);
+  if (pantryInfo && filters.maxMissing >= 0 && pantryInfo.missing.length > filters.maxMissing) return false;
+  if (filters.useSoon && !pantryInfo?.useSoon.length) return false;
   if (filters.q) {
     const q = filters.q.toLowerCase().trim();
     const hay = [recipe.title, recipe.description, recipe.cuisine, ...recipe.tastes].join(" ").toLowerCase();
@@ -105,7 +91,7 @@ export function passesFilters(recipe, profile, filters) {
 }
 
 // Each criterion scores 0 to 1 and can give a reason.
-function criteria(recipe, profile, filters) {
+function criteria(recipe, profile, filters, pantryInfo) {
   const facts = factsOf(recipe);
   const n = facts.nutrition;
   const liked = new Set([...(profile.flavors ?? []), ...(filters.tastes ?? [])]);
@@ -138,10 +124,7 @@ function criteria(recipe, profile, filters) {
       score: n.kcal <= maxCalories ? 1 - (n.kcal / maxCalories) * 0.5 : Math.max(0, 1 - (n.kcal - maxCalories) / maxCalories),
       reason: n.kcal <= Math.min(maxCalories, 500) ? `About ${Math.round(n.kcal / 10) * 10} calories a serving` : null,
     },
-    ingredients: {
-      score: have.length ? haveHits.length / have.length : 0,
-      reason: haveHits.length ? `Uses your ${haveHits.slice(0, 3).join(", ")}` : null,
-    },
+    ingredients: ingredientsCriterion(have, haveHits, pantryInfo),
     easy: {
       score: DIFFICULTY_RANK[recipe.difficulty] <= skill ? 1 : 0.3,
       reason: recipe.difficulty === "beginner" ? "Beginner-friendly" : null,
@@ -149,27 +132,68 @@ function criteria(recipe, profile, filters) {
   };
 }
 
+// "Uses what I have": typed ingredients, the pantry, and use-soon items.
+function ingredientsCriterion(have, haveHits, p) {
+  const typed = have.length ? haveHits.length / have.length : 0;
+  if (!p) return { score: typed, reason: haveHits.length ? `Uses your ${haveHits.slice(0, 3).join(", ")}` : null };
+  const covered = p.total ? (p.total - p.missing.length) / p.total : 0;
+  const score = Math.min(1, Math.max(typed, covered) + (p.useSoon.length ? 0.25 : 0));
+  const n = p.missing.length;
+  const reason = p.useSoon.length
+    ? `Uses your ${p.useSoon.slice(0, 2).join(" and ")} before ${p.useSoon.length > 1 ? "they expire" : "it expires"}`
+    : haveHits.length
+      ? `Uses your ${haveHits.slice(0, 3).join(", ")}`
+      : n === 0
+        ? "You have everything"
+        : n <= 2
+          ? `Only ${n} missing ingredient${n > 1 ? "s" : ""}`
+          : null;
+  return { score: p.useSoon.length || haveHits.length || n <= 2 ? Math.max(score, 0.5) : score, reason };
+}
+
 export const DEFAULT_PRIORITIES = ["taste", "time", "protein", "ingredients"];
 
 // Ranks recipes by the cook's priorities. The first priority weighs most.
-export function discover(recipes, profile = {}, filters = emptyFilters()) {
+// context.pantry (optional) makes ranking and filters pantry-aware.
+export function discover(recipes, profile = {}, filters = emptyFilters(), context = {}) {
+  const usePantry = Array.isArray(context.pantry) && context.pantry.length > 0;
   const priorities = (profile.priorities?.length ? profile.priorities : DEFAULT_PRIORITIES).filter(p => PRIORITIES[p]);
   const hidden = { allergy: 0, diet: 0, excluded: 0 };
+  const limits = { allergies: profile.allergies ?? [], diets: [...new Set([...(profile.diets ?? []), ...(filters.diets ?? [])])] };
   const results = [];
-  for (const recipe of recipes) {
-    const block = hardBlock(recipe, profile, filters);
+  for (const original of recipes) {
+    let recipe = original;
+    let fix = null;
+    let block = hardBlock(recipe, profile, filters);
+    // A recipe that only clashes because of a swappable ingredient is still
+    // shown, flagged with the swaps that make it fit.
+    if (block === "allergy" || block === "diet") {
+      const base = baseRecipe(recipe.id) ?? recipe;
+      fix = suggestFixes(base, limits, recipe.swaps);
+      if (fix) {
+        recipe = applySwaps(base, { ...recipe.swaps, ...fix });
+        block = hardBlock(recipe, profile, filters);
+        if (block) fix = null;
+      }
+    }
     if (block) {
       hidden[block] += 1;
       continue;
     }
-    if (!passesFilters(recipe, profile, filters)) continue;
-    const c = criteria(recipe, profile, filters);
+    const pantryInfo = usePantry ? recipePantry(recipe, context.pantry, context.today) : null;
+    if (!passesFilters(recipe, profile, filters, pantryInfo)) continue;
+    const c = criteria(recipe, profile, filters, pantryInfo);
     let score = 0;
     priorities.forEach((p, i) => {
       score += c[p].score * (priorities.length - i);
     });
-    const reasons = priorities.map(p => c[p]).filter(x => x.reason && x.score >= 0.5).map(x => x.reason).slice(0, 3);
-    results.push({ recipe, score, reasons });
+    let reasons = priorities.map(p => c[p]).filter(x => x.reason && x.score >= 0.5).map(x => x.reason).slice(0, 3);
+    if (fix) {
+      const n = Object.keys(fix).length;
+      reasons = [`Fits your needs with ${n} swap${n > 1 ? "s" : ""}`, ...reasons].slice(0, 3);
+      score -= 0.5; // a recipe that fits as written ranks a little higher
+    }
+    results.push({ recipe, score, reasons, pantry: pantryInfo, fix });
   }
   results.sort((a, b) => b.score - a.score || a.recipe.title.localeCompare(b.recipe.title));
   return { results, hidden };

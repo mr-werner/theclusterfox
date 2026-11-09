@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AArrowDown, AArrowUp, Bell, Check, ChevronLeft, ChevronRight, ListChecks, Lightbulb, Pause, Play, Plus, RotateCcw, Store, Sun, Timer, X } from "lucide-react";
+import { AArrowDown, AArrowUp, ArrowLeftRight, Bell, Check, ChevronLeft, ChevronRight, ListChecks, Lightbulb, Pause, Play, Plus, RotateCcw, Store, Sun, Timer, X } from "lucide-react";
 import { Segmented } from "./ui";
 import { clockText } from "./format";
 import { IngredientLine } from "./RecipeDetail";
@@ -112,6 +112,15 @@ export default function CookMode({ recipe, session, prefs, setPrefs, update, now
           {step.title}
         </h2>
         <p className="ck-cook-text">{renderTemps(step.text, prefs.temp)}</p>
+        {step.swapNotes?.length > 0 && (
+          <div className="ck-swap-notes-cook">
+            {step.swapNotes.map(n => (
+              <p key={n}>
+                <ArrowLeftRight size={16} aria-hidden="true" /> {renderTemps(n, prefs.temp)}
+              </p>
+            ))}
+          </div>
+        )}
 
         {uses.length > 0 && (
           <section className="ck-cook-section" aria-labelledby="ck-uses-h">

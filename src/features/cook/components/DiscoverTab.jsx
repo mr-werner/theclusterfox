@@ -17,9 +17,10 @@ const TIMES = [
 
 const QUICK_DIETS = ["vegetarian", "vegan", "gluten-free", "dairy-free"];
 
-export default function DiscoverTab({ data, filters, setFilters, onOpen, onToggleFavorite, onEditProfile }) {
+export default function DiscoverTab({ data, today, filters, setFilters, onOpen, onToggleFavorite, onEditProfile }) {
   const [more, setMore] = useState(false);
-  const { results, hidden } = useMemo(() => discover(recipes, data.profile, filters), [data.profile, filters]);
+  const { results, hidden } = useMemo(() => discover(recipes, data.profile, filters, { pantry: data.pantry, today }), [data.profile, data.pantry, filters, today]);
+  const hasPantry = data.pantry.length > 0;
   const set = patch => setFilters(f => ({ ...f, ...patch }));
   const active = JSON.stringify(filters) !== JSON.stringify(emptyFilters());
   const advancedCount = [filters.tastes.length, filters.tags.length, filters.maxDifficulty, filters.minProtein, filters.maxCalories, filters.have, filters.exclude].filter(Boolean).length;
@@ -53,6 +54,19 @@ export default function DiscoverTab({ data, filters, setFilters, onOpen, onToggl
             </button>
           ))}
         </div>
+        {hasPantry && (
+          <div className="ck-chips" role="group" aria-label="From my pantry">
+            <button type="button" className="ck-chip" aria-pressed={filters.maxMissing === 0} onClick={() => set({ maxMissing: filters.maxMissing === 0 ? -1 : 0 })}>
+              I have everything
+            </button>
+            <button type="button" className="ck-chip" aria-pressed={filters.maxMissing === 2} onClick={() => set({ maxMissing: filters.maxMissing === 2 ? -1 : 2 })}>
+              Missing 2 or fewer
+            </button>
+            <button type="button" className="ck-chip" aria-pressed={filters.useSoon} onClick={() => set({ useSoon: !filters.useSoon })}>
+              Uses food expiring soon
+            </button>
+          </div>
+        )}
         <div className="ck-filter-line">
           <Chips
             label="Diet"
@@ -143,11 +157,12 @@ export default function DiscoverTab({ data, filters, setFilters, onOpen, onToggl
         </div>
       ) : (
         <div className="ck-grid">
-          {results.map(({ recipe, reasons }) => (
+          {results.map(({ recipe, reasons, pantry }) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
               reasons={reasons}
+              pantry={pantry}
               favorite={data.favorites.includes(recipe.id)}
               inProgress={Boolean(data.sessions[recipe.id])}
               onOpen={onOpen}

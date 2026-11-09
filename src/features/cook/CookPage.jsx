@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ChefHat, Compass, BookHeart, UserRound, Timer, Play } from "lucide-react";
+import { ChefHat, Compass, BookHeart, UserRound, Timer, Play, Refrigerator, ShoppingCart } from "lucide-react";
 
 import SiteHeader from "../../components/SiteHeader";
 import DiscoverTab from "./components/DiscoverTab";
@@ -11,10 +11,13 @@ import Feedback from "./components/Feedback";
 import PlanB from "./components/PlanB";
 import MyRecipesTab from "./components/MyRecipesTab";
 import ProfileTab from "./components/ProfileTab";
+import PantryTab from "./components/PantryTab";
+import ShoppingTab from "./components/ShoppingTab";
 import { clockText } from "./components/format";
 import { recipesById } from "./data/recipes";
 import { emptyFilters } from "./model/discover";
 import * as S from "./model/session";
+import * as P from "./model/pantry";
 import { useCookData } from "./state/useCookData";
 import { ringAlarm, useNow } from "./state/device";
 import "./cook.css";
@@ -22,7 +25,9 @@ import "./cook.css";
 const TABS = [
   { id: "discover", name: "Discover", icon: Compass },
   { id: "mine", name: "My Recipes", icon: BookHeart },
-  { id: "profile", name: "My Kitchen", icon: UserRound },
+  { id: "pantry", name: "Pantry", icon: Refrigerator },
+  { id: "shopping", name: "Shopping", icon: ShoppingCart },
+  { id: "profile", name: "Profile", icon: UserRound },
 ];
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -34,6 +39,7 @@ export default function CookPage() {
   const [filters, setFilters] = useState(emptyFilters);
   const [planB, setPlanB] = useState(false);
   const [finished, setFinished] = useState(null); // { recipeId, minutes, servings }
+  const [today] = useState(() => P.toIsoDay(Date.now()));
 
   const recipe = recipesById.get(params.get("r")) ?? null;
   const session = recipe ? data.sessions[recipe.id] ?? null : null;
@@ -65,8 +71,16 @@ export default function CookPage() {
   const update = useCallback(fn => recipe && updateSession(recipe.id, s => (s ? fn(s) : s)), [recipe, updateSession]);
 
   const startPrep = servings => {
-    updateSession(recipe.id, S.newSession(recipe, servings));
+    updateSession(recipe.id, S.newSession(recipe, servings, Date.now(), P.recipePantry(recipe, data.pantry, today).have));
     go({ r: recipe.id, view: "prep" });
+  };
+
+  // Adds a recipe's ingredients to the shopping list, minus what's in the pantry.
+  // Returns how many lines it contributes.
+  const addToList = (r, servings, have = data.pantry) => {
+    const next = P.addRecipeToList(data.shopping, r, servings, { pantry: have });
+    store.setShopping(() => next);
+    return next.filter(i => i.sources?.some(s => s.recipeId === r.id)).length;
   };
 
   const resume = id => {
@@ -129,6 +143,7 @@ export default function CookPage() {
   const runningTimer = resumeTarget?.timers.find(t => t.endsAt);
 
   const fullScreen = view === "cook" || view === "done";
+  const shoppingCount = data.shopping.filter(i => !i.checked).length;
 
   return (
     <main className="cook-page ck" data-theme={data.prefs.theme}>
@@ -195,6 +210,7 @@ export default function CookPage() {
                     <button key={t.id} type="button" aria-current={tab === t.id ? "page" : undefined} onClick={() => go({ tab: t.id === "discover" ? undefined : t.id }, { replace: true })}>
                       <Icon size={17} aria-hidden="true" />
                       {t.name}
+                      {t.id === "shopping" && shoppingCount > 0 && <span className="ck-tab-count">{shoppingCount}</span>}
                     </button>
                   );
                 })}
@@ -203,6 +219,7 @@ export default function CookPage() {
               {tab === "discover" && (
                 <DiscoverTab
                   data={data}
+                  today={today}
                   filters={filters}
                   setFilters={setFilters}
                   onOpen={id => go({ r: id })}
@@ -223,6 +240,18 @@ export default function CookPage() {
                   onClearHistory={store.clearHistory}
                 />
               )}
+              {tab === "pantry" && (
+                <PantryTab
+                  pantry={data.pantry}
+                  today={today}
+                  setPantry={store.setPantry}
+                  onShowRecipes={() => {
+                    setFilters({ ...emptyFilters(), useSoon: true });
+                    go({});
+                  }}
+                />
+              )}
+              {tab === "shopping" && <ShoppingTab data={data} today={today} setShopping={store.setShopping} patchData={store.patchData} onOpen={id => go({ r: id })} />}
               {tab === "profile" && <ProfileTab data={data} setPrefs={setPrefs} setProfile={store.setProfile} resetProfile={store.resetProfile} />}
             </>
           )}
@@ -232,7 +261,9 @@ export default function CookPage() {
               key={`${recipe.id}-${params.get("servings") ?? ""}`}
               recipe={recipe}
               data={data}
+              today={today}
               setPrefs={setPrefs}
+              onAddToList={addToList}
               initialServings={params.get("servings") ? Number(params.get("servings")) : undefined}
               favorite={data.favorites.includes(recipe.id)}
               onToggleFavorite={store.toggleFavorite}
@@ -251,6 +282,7 @@ export default function CookPage() {
               prefs={data.prefs}
               setPrefs={setPrefs}
               update={update}
+              onAddToList={addToList}
               onBack={() => go({ r: recipe.id })}
               onCook={() => {
                 update(S.startCooking);

@@ -59,5 +59,10 @@ export function useCookData() {
   const removeHistory = useCallback(id => setData(d => ({ ...d, history: d.history.filter(h => h.id !== id) })), []);
   const clearHistory = useCallback(() => setData(d => ({ ...d, history: [] })), []);
 
-  return { data, setPrefs, setProfile, resetProfile, toggleFavorite, updateSession, addHistory, updateHistory, removeHistory, clearHistory };
+  // fn: (pantry) => pantry, (shopping) => shopping, or (data) => partial data
+  const setPantry = useCallback(fn => setData(d => ({ ...d, pantry: fn(d.pantry) })), []);
+  const setShopping = useCallback(fn => setData(d => ({ ...d, shopping: fn(d.shopping) })), []);
+  const patchData = useCallback(fn => setData(d => ({ ...d, ...fn(d) })), []);
+
+  return { data, setPantry, setShopping, patchData, setPrefs, setProfile, resetProfile, toggleFavorite, updateSession, addHistory, updateHistory, removeHistory, clearHistory };
 }

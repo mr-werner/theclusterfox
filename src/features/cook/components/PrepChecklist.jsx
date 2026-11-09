@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Check, ClipboardCopy, Play, Store, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Check, ClipboardCopy, Play, ShoppingCart, Store, TriangleAlert } from "lucide-react";
 import { Stepper, UnitToggles } from "./ui";
 import { IngredientLine } from "./RecipeDetail";
 import { AISLES } from "../data/ingredients";
@@ -7,9 +7,10 @@ import { scaledLines, scaleNotes, servingWord } from "../model/recipe";
 import { amountText } from "../model/units";
 import * as S from "../model/session";
 
-export default function PrepChecklist({ recipe, session, prefs, setPrefs, update, onBack, onCook, onPlanB }) {
+export default function PrepChecklist({ recipe, session, prefs, setPrefs, update, onAddToList, onBack, onCook, onPlanB }) {
   const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [listed, setListed] = useState(false);
   const lines = scaledLines(recipe, session.servings);
   const summary = S.prepSummary(recipe, session);
   const missing = lines.filter(l => !session.have[l.key]);
@@ -110,7 +111,19 @@ export default function PrepChecklist({ recipe, session, prefs, setPrefs, update
           <h3>Still need ({missing.length})</h3>
           <p className="ck-muted ck-small">{missing.map(l => amountText(l.item, l.amount, prefs.measure).name).join(", ")}</p>
           <div className="ck-row">
-            <button type="button" className="ck-btn" onClick={copyList}>
+            <button
+              type="button"
+              className="ck-btn"
+              onClick={() => {
+                // Only what's unchecked here, at this session's servings.
+                const pantryLike = lines.filter(l => session.have[l.key]).map(l => ({ id: l.key, ing: l.ing, name: null }));
+                onAddToList(recipe, session.servings, pantryLike);
+                setListed(true);
+              }}
+            >
+              <ShoppingCart size={16} aria-hidden="true" /> {listed ? "On your list" : "Add to shopping list"}
+            </button>
+            <button type="button" className="ck-btn ck-btn--quiet" onClick={copyList}>
               <ClipboardCopy size={16} aria-hidden="true" /> {copied ? "Copied!" : "Copy shopping list"}
             </button>
             <button type="button" className="ck-btn ck-btn--quiet" onClick={onPlanB}>

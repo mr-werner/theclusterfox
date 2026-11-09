@@ -8,6 +8,7 @@ import { discover, emptyFilters, ingredientMatches, parseTerms } from "../model/
 import * as S from "../model/session.js";
 import { planBSearches } from "../model/planb.js";
 import { emptyData, normalizeData } from "../state/cookStore.js";
+import * as P from "../model/pantry.js";
 
 const close = (a, b, eps = 1e-6) => Math.abs(a - b) < eps;
 
@@ -353,6 +354,117 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert.deepEqual(d.favorites, ["shakshuka"]);
   assert.deepEqual(Object.keys(d.sessions), ["shakshuka"]);
   assert.equal(d.history.length, 1);
+}
+
+// --- Pantry ------------------------------------------------------------------
+{
+  const today = "2026-11-09";
+  assert.equal(P.findIngredient("Baby Spinach").id, "spinach");
+  assert.equal(P.findIngredient("eggs").id, "egg");
+  assert.equal(P.findIngredient("oil"), null, "ambiguous names stay custom");
+  assert.equal(P.findIngredient("dragonfruit"), null);
+
+  let pantry = [];
+  pantry = P.addToPantry(pantry, P.makePantryItem("spinach", { expires: "2026-11-10", today }));
+  pantry = P.addToPantry(pantry, P.makePantryItem("chickpeas", { today }));
+  pantry = P.addToPantry(pantry, P.makePantryItem("chickpeas", { today }));
+  assert.equal(pantry.length, 2, "no duplicates");
+  pantry = P.addToPantry(pantry, P.makePantryItem("my mystery sauce", { today }));
+  assert.equal(pantry[0].ing, null);
+  assert.equal(pantry[0].name, "my mystery sauce");
+
+  assert.equal(P.expiryState({ expires: "2026-11-10" }, today).state, "soon");
+  assert.equal(P.expiryState({ expires: "2026-11-08" }, today).state, "expired");
+  assert.equal(P.expiryState({ expires: "2026-12-30" }, today).state, "ok");
+  assert.equal(P.expiryState({ expires: null }, today), null);
+  assert.equal(P.expiryText({ expires: "2026-11-10" }, today), "Use by tomorrow");
+
+  const curry = recipesById.get("chickpea-spinach-curry");
+  const info = P.recipePantry(curry, pantry, today);
+  assert(info.have.includes("spinach") && info.have.includes("chickpeas"));
+  assert.deepEqual(info.useSoon, ["baby spinach"]);
+  assert.equal(info.missing.length, info.total - 2);
+
+  // A custom pantry name still covers matching ingredients.
+  const custom = [{ id: "x", ing: null, name: "cumin seeds ground", expires: null, low: false }];
+  assert(!P.pantryMatch(custom, "cumin"), "custom names must match the catalog, not the other way around");
+  assert(P.pantryMatch([{ id: "y", ing: null, name: "paprika" }], "smoked-paprika"));
+
+  // Discovery uses the pantry.
+  const ranked = discover(recipes, { ...emptyData().profile, priorities: ["ingredients"] }, emptyFilters(), { pantry, today });
+  assert.equal(ranked.results[0].recipe.id, "chickpea-spinach-curry");
+  assert(ranked.results[0].reasons[0].includes("before it expires"));
+  const everything = P.STAPLES.map(id => ({ id, ing: id, name: null, expires: null, low: false }));
+  const full = [...everything, ...["spaghetti", "crushed-tomatoes", "red-pepper-flakes", "basil", "parmesan"].map(id => ({ id, ing: id, name: null }))];
+  const canMake = discover(recipes, emptyData().profile, { ...emptyFilters(), maxMissing: 0 }, { pantry: full, today });
+  assert(canMake.results.some(r => r.recipe.id === "tomato-basil-spaghetti"));
+  assert(canMake.results.every(r => r.pantry.missing.length === 0));
+  const nearly = discover(recipes, emptyData().profile, { ...emptyFilters(), maxMissing: 2 }, { pantry: full, today });
+  assert(nearly.results.length > canMake.results.length);
+  assert(nearly.results.every(r => r.pantry.missing.length <= 2));
+  const soonOnly = discover(recipes, emptyData().profile, { ...emptyFilters(), useSoon: true }, { pantry, today });
+  assert(soonOnly.results.length > 0 && soonOnly.results.every(r => r.pantry.useSoon.length > 0));
+  // Without a pantry, the pantry filter does nothing.
+  assert.equal(discover(recipes, emptyData().profile, { ...emptyFilters(), maxMissing: 0 }).results.length, recipes.length);
+
+  // Starting a cook pre-checks what you have.
+  const s = S.newSession(curry, 4, 1000, info.have);
+  assert(s.have.spinach && s.have.chickpeas && !s.have.onion);
+}
+
+// --- Shopping list -----------------------------------------------------------
+{
+  const soup = recipesById.get("chicken-rice-soup");
+  const chili = recipesById.get("beef-bean-chili");
+  let list = P.addRecipeToList([], soup, 6, { onlyMissing: false });
+  list = P.addRecipeToList(list, chili, 6, { onlyMissing: false });
+  // Both use onions, garlic, broth and salt: one line each, amounts combined.
+  const onion = list.filter(i => i.ing === "onion");
+  assert.equal(onion.length, 1);
+  assert.equal(P.shoppingAmount(onion[0]), 2);
+  assert.equal(P.shoppingAmount(list.find(i => i.ing === "chicken-broth")), 1900 + 240);
+  assert.equal(P.shoppingAmount(list.find(i => i.ing === "garlic")), 7);
+  assert.equal(amountText(ingredientsById.get("chicken-broth"), 2140, "volume").text, "9 cups");
+  // Re-adding a recipe at new servings replaces its share instead of doubling.
+  list = P.addRecipeToList(list, chili, 12, { onlyMissing: false });
+  assert.equal(P.shoppingAmount(list.find(i => i.ing === "onion")), 3);
+  assert.deepEqual(P.listRecipes(list).sort(), [chili.id, soup.id].sort());
+  // Duplicate lines in one recipe (pasta salt + sauce salt) combine.
+  const pasta = P.addRecipeToList([], recipesById.get("tomato-basil-spaghetti"), 4, { onlyMissing: false });
+  assert.equal(P.shoppingAmount(pasta.find(i => i.ing === "salt")), 21);
+  // Pantry items are left off.
+  const withPantry = P.addRecipeToList([], soup, 6, { pantry: [{ id: "a", ing: "onion" }, { id: "b", ing: null, name: "chicken broth" }] });
+  assert(!withPantry.some(i => i.ing === "onion" || i.ing === "chicken-broth"));
+  assert(withPantry.some(i => i.ing === "rice"));
+  // Removing a recipe drops what only it needed.
+  list = P.removeRecipeFromList(list, chili.id);
+  assert(!list.some(i => i.ing === "ground-beef"));
+  assert.equal(P.shoppingAmount(list.find(i => i.ing === "onion")), 1);
+  // Manual items, adjustments, checking off, moving to the pantry.
+  list = P.addManualItem(list, "paper towels");
+  list = P.addManualItem(list, "Paper towels");
+  assert.equal(list.filter(i => i.name === "paper towels").length, 1);
+  list = P.addManualItem(list, "rice");
+  assert.equal(list.filter(i => i.ing === "rice").length, 1, "known ingredient merges with the recipe line");
+  list = P.addManualItem(list, "lemon");
+  list = P.removeRecipeFromList(list, soup.id);
+  assert(list.some(i => i.ing === "lemon" && i.manual), "items you added yourself stay when a recipe is removed");
+  list = P.addRecipeToList(list, soup, 6, { onlyMissing: false });
+  const rice = list.find(i => i.ing === "rice");
+  list = P.adjustItem(list, rice.id, 2);
+  assert(close(P.shoppingAmount(list.find(i => i.ing === "rice")), 300));
+  list = P.toggleItem(list, rice.id);
+  const moved = P.checkedToPantry(list, [], "2026-11-09");
+  assert(!moved.list.some(i => i.ing === "rice"));
+  assert(moved.pantry.some(p => p.ing === "rice"));
+  const groups = P.groupByAisle(moved.list, AISLES);
+  assert.equal(groups.at(-1)[0], "other", "custom items go last");
+
+  // Stored lists survive bad data.
+  const d = normalizeData({ pantry: [{ id: "1", ing: "spinach", expires: "nope" }, { id: "2" }], shopping: [{ id: "3", ing: "onion", sources: [{ recipeId: "ghost", amount: 1 }, { recipeId: soup.id, amount: 1 }] }] });
+  assert.equal(d.pantry.length, 1);
+  assert.equal(d.pantry[0].expires, null);
+  assert.equal(d.shopping[0].sources.length, 1);
 }
 
 console.log(`CookFox: ${recipes.length} recipes, ${ingredients.length} ingredients, all checks passed.`);

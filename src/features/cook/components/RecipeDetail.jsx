@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, Store, TriangleAlert, Users, ChefHat, Info } from "lucide-react";
+import { ArrowLeft, Check, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, ShoppingCart, Store, TriangleAlert, Users, ChefHat, Info } from "lucide-react";
 import { Cover, Segmented, Stepper, UnitToggles } from "./ui";
 import { minutesText } from "./format";
 import { ingredientsById, ALLERGENS } from "../data/ingredients";
@@ -8,6 +8,7 @@ import { safetyNotes, SAFETY_SOURCE } from "../data/safety";
 import { allergensOf, dietsOf, DIETS, recipeNutrition, roundNutrient, scaledLines, scaleNotes, servingWord, clampServings, scaleFactor } from "../model/recipe";
 import { amountText, renderTemps } from "../model/units";
 import { progressPercent } from "../model/session";
+import { pantryMatch, recipePantry } from "../model/pantry";
 
 const NUTRITION_ROWS = [
   ["kcal", "Calories", ""],
@@ -34,11 +35,14 @@ export function IngredientLine({ line, amount, mode, showHint }) {
   );
 }
 
-export default function RecipeDetail({ recipe, data, setPrefs, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
+export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToList, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
   const session = data.sessions[recipe.id];
   const prefs = data.prefs;
   const [servings, setServings] = useState(() => clampServings(initialServings ?? session?.servings ?? recipe.servings));
   const [whole, setWhole] = useState(false);
+  const [added, setAdded] = useState(null);
+  const hasPantry = data.pantry.length > 0;
+  const pantryInfo = hasPantry ? recipePantry(recipe, data.pantry, today) : null;
   const lines = scaledLines(recipe, servings);
   const nutrition = recipeNutrition(recipe);
   const f = scaleFactor(recipe, servings);
@@ -133,12 +137,46 @@ export default function RecipeDetail({ recipe, data, setPrefs, initialServings, 
             <p className="ck-note">Your cooking session is set to {session.servings}. Change servings from the prep checklist while cooking.</p>
           )}
           <ul className="ck-ing-list">
-            {lines.map(l => (
-              <li key={l.key}>
-                <IngredientLine line={l} amount={l.amount} mode={prefs.measure} showHint={f === 1} />
-              </li>
-            ))}
+            {lines.map(l => {
+              const inPantry = hasPantry && pantryMatch(data.pantry, l.ing);
+              return (
+                <li key={l.key} className={inPantry ? "is-have" : ""}>
+                  <span>
+                    <IngredientLine line={l} amount={l.amount} mode={prefs.measure} showHint={f === 1} />
+                  </span>
+                  {inPantry && (
+                    <span className="ck-have-tag">
+                      <Check size={13} aria-hidden="true" /> In pantry
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
+          <div className="ck-list-row">
+            {pantryInfo && (
+              <span className="ck-muted ck-small-inline">
+                {pantryInfo.missing.length === 0 ? "You have everything." : `You need ${pantryInfo.missing.length} of ${pantryInfo.total} ingredients.`}
+              </span>
+            )}
+            {!(pantryInfo && pantryInfo.missing.length === 0) && (
+              <button
+                type="button"
+                className="ck-btn"
+                onClick={() => {
+                  const n = onAddToList(recipe, servings);
+                  setAdded(n);
+                }}
+              >
+                <ShoppingCart size={16} aria-hidden="true" /> {hasPantry ? "Add what I need to my list" : "Add to shopping list"}
+              </button>
+            )}
+            {added !== null && (
+              <span className="ck-added" role="status">
+                <Check size={14} aria-hidden="true" /> {added} {added === 1 ? "item" : "items"} on your list for {servings} {servingWord(recipe, servings)}
+              </span>
+            )}
+          </div>
           {notes.length > 0 && (
             <div className="ck-callout" role="note">
               <TriangleAlert size={18} aria-hidden="true" />

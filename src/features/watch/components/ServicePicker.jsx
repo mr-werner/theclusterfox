@@ -8,7 +8,9 @@ import { toggleIn, toggleService } from "../state/watchStore";
 
 const TOP_COUNT = 30;
 
-export default function ServicePicker({ data, update }) {
+// WatchFox shows the streaming list only. ScoreFox adds live TV services,
+// which carry the channels games are on.
+export default function ServicePicker({ data, update, live = false }) {
   const { region } = data;
   const [state, setState] = useState({ region: null, providers: [], error: "", code: "" });
   const [filter, setFilter] = useState("");
@@ -42,7 +44,11 @@ export default function ServicePicker({ data, update }) {
         <div className="wf-panel-head">
           <div>
             <h2>Streaming services</h2>
-            <p className="wf-muted">Pick the ones you pay for or use. Shows and games on them get highlighted.</p>
+            <p className="wf-muted">
+              {live
+                ? "Pick the ones you pay for or use. Games on them get highlighted."
+                : "Pick the ones you pay for or use. Movies and shows on them get highlighted."}
+            </p>
           </div>
           <label className="wf-region">
             <span>Region</span>
@@ -75,7 +81,9 @@ export default function ServicePicker({ data, update }) {
         {!loading && state.error && (
           <p className="wf-alert">
             {state.code === "no-key"
-              ? "The streaming service list isn't switched on yet. Live TV services below still work for sports."
+              ? live
+                ? "The streaming service list isn't switched on yet. Live TV services below still work."
+                : "The streaming service list isn't switched on yet."
               : state.error}
           </p>
         )}
@@ -111,27 +119,29 @@ export default function ServicePicker({ data, update }) {
         )}
       </section>
 
-      <section className="wf-panel">
-        <h2>
-          <Radio size={18} aria-hidden="true" /> Live TV and sports
-        </h2>
-        <p className="wf-muted">These carry live channels, so they decide which games you can watch.</p>
-        <ul className="wf-chip-row">
-          {LIVE_SERVICES.map(service => (
-            <li key={service.key}>
-              <button
-                type="button"
-                className="wf-chip"
-                aria-pressed={data.live.includes(service.label)}
-                onClick={() => update(current => ({ ...current, live: toggleIn(current.live, service.label) }))}
-              >
-                {service.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className="wf-note">Channel line-ups vary by plan and area, so sports matches are a close guide.</p>
-      </section>
+      {live && (
+        <section className="wf-panel">
+          <h2>
+            <Radio size={18} aria-hidden="true" /> Live TV and sports
+          </h2>
+          <p className="wf-muted">These carry live channels, so they decide which games you can watch.</p>
+          <ul className="wf-chip-row">
+            {LIVE_SERVICES.map(service => (
+              <li key={service.key}>
+                <button
+                  type="button"
+                  className="wf-chip"
+                  aria-pressed={data.live.includes(service.label)}
+                  onClick={() => update(current => ({ ...current, live: toggleIn(current.live, service.label) }))}
+                >
+                  {service.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="wf-note">Channel line-ups vary by plan and area, so sports matches are a close guide.</p>
+        </section>
+      )}
     </div>
   );
 }

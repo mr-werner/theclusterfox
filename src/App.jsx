@@ -5,6 +5,7 @@ import HomePage from "./features/home/HomePage";
 import F4TPage from "./features/f4t/F4TPage";
 import ClocastPage from "./features/clocast/ClocastPage";
 import WatchPage from "./features/watch/WatchPage";
+import SportsPage from "./features/sports/SportsPage";
 import PlanPage from "./features/plan/PlanPage";
 import LiftPage from "./features/lift/LiftPage";
 import LoginPage from "./features/auth/LoginPage";
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/f4t" element={<F4TPage />} />
             <Route path="/clocast" element={<ClocastPage />} />
             <Route path="/watch" element={<WatchPage />} />
+            <Route path="/sports" element={<SportsPage />} />
             <Route path="/plan" element={<PlanPage />} />
             <Route path="/lift" element={<LiftPage />} />
             <Route

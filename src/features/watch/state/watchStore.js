@@ -91,9 +91,6 @@ export function toggleService(data, provider) {
 
 export const toggleIn = (list, value) => (list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
 
-// Every service name the viewer picked, for matching sports networks.
-export const pickedNames = data => [...data.services.map(s => s.name), ...data.live];
-
 // The viewer's own lists of titles.
 export const TITLE_LISTS = ["favorites", "watchlist", "watched"];
 

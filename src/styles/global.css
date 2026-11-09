@@ -24,6 +24,7 @@
   --f4t: #92d46f;
   --clocast: #6cc6f2;
   --watchfox: #c79bff;
+  --scorefox: #d7f34a;
   --planfox: #f5c451;
   --liftfox: #ff7a6b;
   --toolfox: #4fd8c4;
@@ -295,6 +296,17 @@ select {
       145deg,
       #e3ccff,
       #a874f0
+    );
+}
+
+.app-icon--scorefox {
+  color: #1b2400;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f1ffa0,
+      #c6e83a
     );
 }
 

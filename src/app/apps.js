@@ -1,4 +1,4 @@
-import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Wrench } from "lucide-react";
+import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Trophy, Wrench } from "lucide-react";
 
 export const apps = [
   {
@@ -23,10 +23,19 @@ export const apps = [
     id: "watchfox",
     name: "Watch",
     subtitle: "WatchFox",
-    description: "Shows • Sports • Streaming",
+    description: "Movies • Shows • Streaming",
     path: "/watch",
     icon: MonitorPlay,
     accent: "watchfox",
+  },
+  {
+    id: "scorefox",
+    name: "Score",
+    subtitle: "ScoreFox",
+    description: "Games • Scores • Channels",
+    path: "/sports",
+    icon: Trophy,
+    accent: "scorefox",
   },
   {
     id: "planfox",

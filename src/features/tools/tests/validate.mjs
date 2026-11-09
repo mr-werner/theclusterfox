@@ -242,4 +242,4 @@ for (const t of TABLES) {
   if (t.chart) assert(t.columns.some((c) => c.id === t.chart.x) && t.columns.some((c) => c.id === t.chart.y), `${t.id}: chart columns`);
 }
 
-console.log(`Engineering ToolFox: ${CALCS.length} calculators and ${TABLES.length} tables check out.`);
+console.log(`Engineer ToolFox: ${CALCS.length} calculators and ${TABLES.length} tables check out.`);

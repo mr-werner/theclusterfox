@@ -16,7 +16,7 @@ export default function ConverterView({ dim: dimParam, prefsApi }) {
 
   useEffect(() => {
     touch("convert");
-    document.title = `${d.label} converter · Engineering ToolFox`;
+    document.title = `${d.label} converter · Engineer ToolFox`;
     return () => {
       document.title = "The ClusterFOX";
     };
@@ -36,7 +36,7 @@ export default function ConverterView({ dim: dimParam, prefsApi }) {
     <article className="tf-convert">
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          Engineering ToolFox
+          Engineer ToolFox
         </Link>
         <h1>Unit converter</h1>
         <p className="tf-lede">Type once, see every unit at the same time. Click a result to copy it.</p>

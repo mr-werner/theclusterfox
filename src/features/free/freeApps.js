@@ -434,6 +434,7 @@ const categories = [
       { name: "ORF ON", alt: "Netflix", url: "https://on.orf.at/", mark: "OR", color: "#cc0000", description: "Austrian public TV on demand, with live channels, series and documentaries." },
       { name: "ServusTV On", alt: "Netflix / sports streaming", url: "https://www.servustv.com/", mark: "ST", color: "#0a2a4a", description: "Free Austrian TV with nature docs, outdoor sports and live events." },
       { name: "RTP Play", alt: "Netflix", url: "https://www.rtp.pt/play/", mark: "RT", color: "#004b8d", description: "Portuguese public TV and radio on demand, with series, films and live channels." },
+      { name: "iVysílání", alt: "Netflix", url: "https://www.ceskatelevize.cz/ivysilani/", mark: "ČT", color: "#0053a0", description: "Czech public TV on demand, with films, series, fairy tales and live channels." },
     ],
   },
   {
@@ -522,6 +523,7 @@ const categories = [
       { name: "VRT radio", alt: "SiriusXM", url: "https://www.vrt.be/vrtmax/radio/", mark: "VR", color: "#5d2e8c", description: "Flemish public radio, including Radio 1, Studio Brussel and Klara." },
       { name: "ORF Sound", alt: "SiriusXM / Spotify", url: "https://sound.orf.at/", mark: "OR", color: "#cc0000", description: "Austrian public radio, including Ö1 and FM4, plus podcasts." },
       { name: "RTP Antena", alt: "SiriusXM", url: "https://www.rtp.pt/play/direto/antena1", mark: "A1", color: "#004b8d", description: "Portuguese public radio: Antena 1, Antena 2 classical and Antena 3, live." },
+      { name: "mujRozhlas", alt: "Spotify / Audible", url: "https://www.mujrozhlas.cz/", mark: "ČR", color: "#ed2e38", description: "Czech Radio stations, podcasts, radio plays and audiobook readings." },
     ],
   },
   {
@@ -554,6 +556,7 @@ const categories = [
       { name: "ANNO", alt: "Newspapers.com", url: "https://anno.onb.ac.at/", mark: "AN", color: "#9b1b30", description: "Austrian National Library archive of historical newspapers and magazines." },
       { name: "Biblioteca Nacional Digital", alt: "Kindle Unlimited / archives", url: "https://bndigital.bnportugal.gov.pt/", mark: "BN", color: "#6a1b2d", description: "National Library of Portugal digital collection of books, maps and manuscripts." },
       { name: "Arquivo.pt", alt: "paid web archives", url: "https://arquivo.pt/", mark: "Aq", color: "#1f5f8b", description: "Public web archive with billions of saved pages since 1996, searchable by text." },
+      { name: "Národní digitální knihovna", alt: "Kindle Unlimited / archives", url: "https://www.ndk.cz/", mark: "NK", color: "#7a1f2b", description: "National Library of the Czech Republic digitized books, papers and maps." },
     ],
   },
   {
@@ -671,6 +674,7 @@ const categories = [
       { name: "Truecaller", alt: "paid caller ID", url: "https://www.truecaller.com/", mark: "Tc", color: "#0087ff", description: "Caller ID and spam call blocking." },
       { name: "Yr", alt: "paid weather apps", url: "https://www.yr.no/en", logo: siYr, description: "Ad-free weather forecasts for anywhere in the world." },
       { name: "Too Good To Go", alt: "full-price takeout", url: "https://www.toogoodtogo.com/", mark: "TG", color: "#00615f", description: "Buy surplus food from local shops and restaurants at a discount." },
+      { name: "Mapy.com", alt: "Google Maps", url: "https://mapy.com/", mark: "Ma", color: "#2a9d3d", description: "Detailed maps with hiking and cycling trails and offline downloads." },
     ],
   },
   {

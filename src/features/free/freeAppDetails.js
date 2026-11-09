@@ -442,6 +442,10 @@ export const freeAppDetails = {
   "RTP Antena": { note: "Live public radio, available worldwide." },
   "Biblioteca Nacional Digital": { note: "Free public archive from the National Library of Portugal." },
   "Arquivo.pt": { note: "Free public service run by Portugal's FCT research foundation." },
+  "iVysílání": { limits: ["region"], note: "Public and ad-free; many films and series are Czech Republic only." },
+  mujRozhlas: { note: "Public radio, podcasts and audiobooks with no ads, mostly available worldwide." },
+  "Národní digitální knihovna": { note: "Free archive; newer works are viewable only in libraries or with a library login." },
+  "Mapy.com": { limits: ["freeTier", "tracking"], note: "Free app from Seznam with ads; premium adds extra offline features." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -724,4 +728,8 @@ export const freeAppCountries = {
   "RTP Antena": "Portugal",
   "Biblioteca Nacional Digital": "Portugal",
   "Arquivo.pt": "Portugal",
+  "iVysílání": "Czech Republic",
+  mujRozhlas: "Czech Republic",
+  "Národní digitální knihovna": "Czech Republic",
+  "Mapy.com": "Czech Republic",
 };

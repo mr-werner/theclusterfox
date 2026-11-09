@@ -5,7 +5,7 @@ import { patterns } from "../data/breathing";
 import { buildTimeline, spokenCount } from "../model/schedule";
 import { breathAt } from "../model/breath";
 import { clock } from "../model/stats";
-import { isSpeaking, speak, speechSupported, stopSpeaking } from "../audio/voice";
+import { isSpeaking, preloadLines, recordedSeconds, speak, stopSpeaking, voiceSupported } from "../audio/voice";
 import { audio, bell, breathTone, startAmbient } from "../audio/sound";
 
 const MOOD_OPTIONS = [
@@ -24,8 +24,15 @@ export default function Player({ session, config, onComplete, onMood, onClose })
   const pattern = patterns[session.pattern];
   const isBreath = session.kind === "breath";
   const timeline = useMemo(
-    () => buildTimeline(session, { seconds, interval: config.interval, rate: config.rate, seed: config.seed }),
-    [session, seconds, config.interval, config.rate, config.seed]
+    () =>
+      buildTimeline(session, {
+        seconds,
+        interval: config.interval,
+        rate: config.rate,
+        seed: config.seed,
+        lengthOf: text => recordedSeconds(config.voice, text),
+      }),
+    [session, seconds, config.interval, config.rate, config.seed, config.voice]
   );
   // Voice cues for the first rounds after the opening has finished, in "voice, then tones" mode.
   const voiceCueUntil = useMemo(() => {
@@ -37,7 +44,7 @@ export default function Player({ session, config, onComplete, onMood, onClose })
   const [elapsed, setElapsed] = useState(0);
   const [caption, setCaption] = useState("");
   const [phase, setPhase] = useState({ label: "", count: 0 });
-  const [voiceOn, setVoiceOn] = useState(speechSupported);
+  const [voiceOn, setVoiceOn] = useState(voiceSupported);
   const [soundOn, setSoundOn] = useState(config.ambient !== "none");
   const [result, setResult] = useState(null); // { id, minutes }
   const [mood, setMoodState] = useState(null);
@@ -86,6 +93,7 @@ export default function Player({ session, config, onComplete, onMood, onClose })
   useEffect(() => {
     startedAt.current = performance.now();
     audio();
+    preloadLines(config.voice, [...timeline.map(i => i.text), ...pattern.phases.map(p => p.cue)]);
     if (config.bells) bell({ volume: 0.55 });
     if (config.ambient !== "none") ambient.current = startAmbient(config.ambient, config.ambientVolume);
     const html = document.documentElement;
@@ -318,7 +326,7 @@ export default function Player({ session, config, onComplete, onMood, onClose })
       </p>
 
       <div className="cm-controls">
-        {(session.kind !== "timer" || session.voiceTimer) && speechSupported && (
+        {(session.kind !== "timer" || session.voiceTimer) && voiceSupported && (
           <button type="button" className="cm-icon-btn" onClick={toggleVoice} aria-pressed={voiceOn} aria-label={voiceOn ? "Mute voice" : "Unmute voice"}>
             {voiceOn ? <Mic size={20} /> : <MicOff size={20} />}
           </button>

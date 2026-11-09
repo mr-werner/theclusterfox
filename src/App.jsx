@@ -18,6 +18,8 @@ const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
 const ToolsPage = lazy(() => import("./features/tools/ToolsPage"));
 // CalmFox carries its scripts and audio engine, so it loads on demand as well.
 const CalmPage = lazy(() => import("./features/calm/CalmPage"));
+// MathFox brings its own solver and KaTeX, so it loads on demand too.
+const MathPage = lazy(() => import("./features/math/MathPage"));
 // CookFox carries its recipe library, so it loads on demand too.
 const CookPage = lazy(() => import("./features/cook/CookPage"));
 
@@ -43,6 +45,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <CookPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/math"
+                element={
+                    <Suspense fallback={null}>
+                        <MathPage />
                     </Suspense>
                 }
             />

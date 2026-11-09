@@ -26,12 +26,13 @@ export function shuffle(list, seed = 1) {
 
 /**
  * @param session  a session from data/sessions.js
- * @param options  { seconds, interval (seconds, 0 = start and end only), rate, seed }
+ * @param options  { seconds, interval (seconds, 0 = start and end only), rate, seed, lengthOf }
+ *                 lengthOf(text) may return a line's real length in seconds (from a recording), or null to estimate
  * @returns [{ at, kind: "open" | "guide" | "close" | "bell", text?, end }] sorted by `at`
  */
-export function buildTimeline(session, { seconds, interval = 60, rate = 1, seed = 1 }) {
+export function buildTimeline(session, { seconds, interval = 60, rate = 1, seed = 1, lengthOf }) {
   const total = Math.max(30, seconds);
-  const len = text => speakSeconds(text, rate);
+  const len = text => lengthOf?.(text) ?? speakSeconds(text, rate);
   const closeGap = session.closingGap ?? GAP;
   const out = [];
   const say = (at, kind, text) => {

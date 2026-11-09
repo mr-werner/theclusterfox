@@ -1,7 +1,21 @@
 import { useEffect, useState } from "react";
+import manifest from "../data/voiceManifest.json";
+import { lineKey } from "../data/voiceLines";
+import { audio } from "./sound";
 
-// Spoken guidance uses the browser's built-in speech (Web Speech API). It's free,
-// works offline on most devices, and nothing is sent anywhere by CalmFox.
+// Two kinds of voice:
+// - Natural voices: every line was recorded ahead of time with Kokoro, a free
+//   open-source neural voice (see scripts/calm-voices). They play as small mp3s.
+// - Device voices: the browser's built-in speech (Web Speech API), used if the
+//   listener picks one, or as a fallback if a recording can't load.
+// Nothing is sent anywhere by CalmFox.
+
+export const NATURAL_VOICES = [
+  { id: "willow", name: "Willow", note: "warm and gentle" },
+  { id: "rowan", name: "Rowan", note: "calm and low" },
+]
+  .filter(v => manifest[v.id])
+  .map(v => ({ ...v, natural: true, voiceURI: `calm:${v.id}` }));
 
 export const speechSupported = typeof window !== "undefined" && "speechSynthesis" in window;
 
@@ -44,8 +58,15 @@ export function rankVoices(voices) {
     .sort((a, b) => score(b) - score(a) || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name));
 }
 
+/** The chosen voice. Natural voices come first and are the default. */
 export function pickVoice(voices, uri) {
-  return voices.find(v => v.voiceURI === uri) || voices[0] || null;
+  return [...NATURAL_VOICES, ...voices].find(v => v.voiceURI === uri) || NATURAL_VOICES[0] || voices[0] || null;
+}
+
+/** Seconds a natural voice takes to say a line, or null if it has no recording. */
+export function recordedSeconds(voice, text) {
+  if (!voice?.natural) return null;
+  return manifest[voice.id]?.[lineKey(text)] ?? null;
 }
 
 export function useVoices() {
@@ -66,14 +87,40 @@ export function useVoices() {
 }
 
 let current = null; // kept so the browser doesn't garbage-collect it mid-sentence
+let playing = null; // { source, token } for a natural-voice line
+let token = 0;
+const buffers = new Map(); // "voice/key" -> Promise<AudioBuffer | null>
 
-/** Speak a line, replacing anything already being said. */
-export function speak(text, { voice, rate = 0.85, pitch = 1, volume = 1, onEnd } = {}) {
-  if (!speechSupported || !text) return null;
+function loadLine(voice, text) {
+  const key = `${voice.id}/${lineKey(text)}`;
+  if (!buffers.has(key)) {
+    const ac = audio();
+    const promise = !ac || !recordedSeconds(voice, text)
+      ? Promise.resolve(null)
+      : fetch(`/calm-voice/${key}.mp3`)
+          .then(r => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.statusText))))
+          .then(data => new Promise((resolve, reject) => ac.decodeAudioData(data, resolve, reject)))
+          .catch(() => {
+            buffers.delete(key); // try again next time
+            return null;
+          });
+    buffers.set(key, promise);
+  }
+  return buffers.get(key);
+}
+
+/** Fetch a session's recordings up front so each line plays the moment it's due. */
+export function preloadLines(voice, texts) {
+  if (!voice?.natural) return;
+  for (const text of new Set(texts)) if (text) loadLine(voice, text);
+}
+
+function speakDevice(text, { voice, rate, pitch, volume, onEnd }) {
+  if (!speechSupported) return null;
   const synth = window.speechSynthesis;
   synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  if (voice) {
+  if (voice && !voice.natural) {
     u.voice = voice;
     u.lang = voice.lang;
   }
@@ -89,19 +136,56 @@ export function speak(text, { voice, rate = 0.85, pitch = 1, volume = 1, onEnd }
   return u;
 }
 
+/** Speak a line, replacing anything already being said. */
+export function speak(text, { voice, rate = 0.85, pitch = 1, volume = 1, onEnd } = {}) {
+  if (!text) return;
+  stopSpeaking();
+  const mine = ++token;
+  if (!voice?.natural || !recordedSeconds(voice, text)) {
+    speakDevice(text, { voice, rate, pitch, volume, onEnd });
+    return;
+  }
+  // Natural voice. The recording is usually preloaded; if not, it's fetched now.
+  playing = { source: null, token: mine };
+  loadLine(voice, text).then(buffer => {
+    if (mine !== token) return; // something newer was said, or speech was stopped
+    if (!buffer) {
+      playing = null;
+      speakDevice(text, { voice: null, rate, pitch, volume, onEnd });
+      return;
+    }
+    const ac = audio();
+    const source = ac.createBufferSource();
+    const gain = ac.createGain();
+    source.buffer = buffer;
+    gain.gain.value = volume;
+    source.connect(gain).connect(ac.destination);
+    source.onended = () => {
+      if (playing?.source === source) playing = null;
+      onEnd?.();
+    };
+    playing = { source, token: mine };
+    source.start();
+  });
+}
+
 export function isSpeaking() {
-  return speechSupported && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
+  return Boolean(playing) || (speechSupported && (window.speechSynthesis.speaking || window.speechSynthesis.pending));
 }
 
 export function stopSpeaking() {
+  token++;
+  if (playing?.source) {
+    try {
+      playing.source.stop();
+    } catch {
+      // already finished
+    }
+  }
+  playing = null;
   if (speechSupported) window.speechSynthesis.cancel();
   current = null;
 }
 
-/** iOS only lets a page speak after a tap. Call this from the tap that starts a session. */
-export function primeSpeech() {
-  if (!speechSupported) return;
-  const u = new SpeechSynthesisUtterance(" ");
-  u.volume = 0;
-  window.speechSynthesis.speak(u);
-}
+/** True if this browser can play guidance at all. */
+export const voiceSupported = speechSupported || NATURAL_VOICES.length > 0;

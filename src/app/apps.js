@@ -1,4 +1,4 @@
-import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Wrench } from "lucide-react";
+import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Wrench } from "lucide-react";
 
 export const apps = [
   {
@@ -63,6 +63,15 @@ export const apps = [
     path: "/calm",
     icon: Flower2,
     accent: "calmfox",
+  },
+  {
+    id: "mathfox",
+    name: "Math",
+    subtitle: "MathFox",
+    description: "Solve • Steps • Graph",
+    path: "/math",
+    icon: Sigma,
+    accent: "mathfox",
   },
   {
     id: "cookfox",

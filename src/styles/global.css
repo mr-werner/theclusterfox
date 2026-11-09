@@ -28,6 +28,7 @@
   --liftfox: #ff7a6b;
   --toolfox: #4fd8c4;
   --calmfox: #9aa8ff;
+  --mathfox: #ff8ac2;
   --cookfox: #a8c69a;
 
   --max-width: 1180px;
@@ -338,6 +339,17 @@ select {
       145deg,
       #dbe1ff,
       #7488f0
+    );
+}
+
+.app-icon--mathfox {
+  color: #330a1f;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd6ea,
+      #f0609f
     );
 }
 

@@ -907,31 +907,115 @@
   margin: 2px 4px 8px;
 }
 
-.tf-beam {
-  display: grid;
-  gap: 2px;
+.tf-bp {
+  margin-top: 16px;
+  padding: 14px 16px 10px;
 }
 
-.tf-beam svg {
+.tf-bp svg {
   display: block;
   width: 100%;
   height: auto;
+  touch-action: pan-y;
 }
 
-.tf-beam-row {
-  display: grid;
-  grid-template-columns: 82px 1fr;
+.tf-bp-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
   align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  margin-bottom: 2px;
 }
 
-.tf-beam-label {
+.tf-bp-head .tf-visual-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.tf-bp-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
   color: var(--tf-muted);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.tf-beam-sketch {
-  margin-left: 82px;
-  width: calc(100% - 82px) !important;
+.tf-bp-readout strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.tf-bp-readout i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border-radius: 3px;
+}
+
+.tf-bp-row + .tf-bp-row {
+  border-top: 1px solid var(--tf-line);
+}
+
+.tf-bp-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tf-bp-unit {
+  fill: var(--tf-muted);
+  font-size: 13px;
+}
+
+.tf-bp-grid {
+  stroke: rgba(255, 255, 255, 0.09);
+  stroke-dasharray: 3 4;
+}
+
+.tf-bp-zero {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 1.3;
+}
+
+.tf-bp-peak text {
+  fill: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: #161a19;
+  stroke-width: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tf-bp-cross {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.tf-bp-udl {
+  fill: rgba(255, 138, 76, 0.2);
+  stroke: #ff8a4c;
+  stroke-width: 1.5;
+}
+
+.tf-bp-moment path {
+  stroke: #ffc764;
+  stroke-width: 2.5;
+}
+
+.tf-bp-moment path + path {
+  fill: #ffc764;
+  stroke: none;
+}
+
+.tf-centroid {
+  fill: #fff;
+  stroke: #161a19;
+  stroke-width: 2;
 }
 
 .tf-beam-body {
@@ -1425,13 +1509,8 @@
     margin-left: auto;
   }
 
-  .tf-beam-row {
-    grid-template-columns: 1fr;
-  }
-
-  .tf-beam-sketch {
-    margin-left: 0;
-    width: 100% !important;
+  .tf-bp {
+    padding: 10px 6px 6px;
   }
 
   .tf-title-row {
@@ -1703,7 +1782,8 @@ g:focus-visible > .dg-handle,
   fill: #ff8a4c;
 }
 
-.dg-udl {
+.dg-udl,
+.dg-load path.dg-udl {
   fill: rgba(255, 138, 76, 0.18);
   stroke: #ff8a4c;
 }
@@ -1839,9 +1919,7 @@ g:focus-visible > .dg-handle,
   stroke-width: 4;
 }
 
-.dg-section path,
-.dg-section rect,
-.dg-section circle {
+.dg-section-path {
   fill: color-mix(in srgb, var(--tf-cat) 30%, transparent);
   stroke: var(--tf-cat);
   stroke-width: 2;
@@ -1876,8 +1954,409 @@ g:focus-visible > .dg-handle,
   stroke-width: 1.5;
 }
 
+/* Beam builder */
+
+.dg-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dg-add button {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 6px 11px;
+  border: 1px solid color-mix(in srgb, var(--tf-cat) 45%, transparent);
+  border-radius: 999px;
+  background: rgba(13, 17, 16, 0.9);
+  color: #e8ece9;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.dg-add button:hover {
+  border-color: var(--tf-cat);
+  background: color-mix(in srgb, var(--tf-cat) 18%, rgba(13, 17, 16, 0.9));
+}
+
+.dg-bitem.is-sel .dg-support,
+.dg-bitem.is-sel .dg-moment-arc {
+  stroke: var(--tf-cat);
+}
+
+.dg-bitem.is-sel.dg-load line,
+.dg-bitem.is-sel .dg-udl {
+  stroke: #ffd2b8;
+}
+
+.dg-bitem > g:focus-visible {
+  outline: none;
+}
+
+.dg-bitem > g:focus-visible .dg-support,
+.dg-bitem > g:focus-visible .dg-udl {
+  stroke: #fff;
+}
+
+.dg-load-text,
+.dg-reaction-text {
+  fill: #ffb894;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: #161a19;
+  stroke-width: 4px;
+}
+
+.dg-reaction-text {
+  fill: #9ad1ff;
+}
+
+.dg-moment-arc {
+  fill: none;
+  stroke: #ffc764;
+  stroke-width: 3;
+}
+
+.dg-moment-head {
+  fill: #ffc764;
+}
+
+.dg-moment .dg-load-text {
+  fill: #ffd98f;
+}
+
+.dg-items {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dg-item {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--tf-line);
+  border-radius: 12px;
+  background: var(--tf-surface-2);
+}
+
+.dg-item.is-sel {
+  border-color: color-mix(in srgb, var(--tf-cat) 60%, transparent);
+}
+
+.dg-item-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.dg-item-name.is-point,
+.dg-item-name.is-udl {
+  color: #ffb894;
+}
+
+.dg-item-name.is-moment {
+  color: #ffd98f;
+}
+
+.dg-item-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dg-item-fields .dg-num,
+.dg-item-fields .dg-pick {
+  box-shadow: none;
+}
+
+.dg-item-del {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--tf-line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tf-muted);
+}
+
+.dg-item-del:hover {
+  border-color: #ff7f6b;
+  color: #ff7f6b;
+}
+
 @media (max-width: 560px) {
   .tf-diagram {
     padding: 6px;
+  }
+
+  .dg-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dg-item-fields {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+.tf-diagram .tf-section-axis {
+  stroke: rgba(255, 255, 255, 0.35);
+}
+
+.tf-diagram .tf-tick {
+  font-size: 14px;
+}
+
+/* Mechanics diagrams */
+
+.dg-ghost {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+}
+
+.dg-rod {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1.5;
+  transition: fill 200ms;
+}
+
+.dg-stretch {
+  stroke: #fff;
+  stroke-width: 2;
+  marker-end: none;
+}
+
+.dg-ss-bg {
+  fill: rgba(13, 17, 16, 0.85);
+  stroke: var(--tf-line-strong);
+}
+
+.dg-ss-title {
+  fill: #d8ddda;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dg-ss-axis {
+  stroke: rgba(255, 255, 255, 0.4);
+}
+
+.dg-ss-curve {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 2.5;
+}
+
+.dg-ss-label {
+  fill: var(--tf-muted);
+  font-size: 11px;
+}
+
+.dg-column {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 16;
+  stroke-linecap: butt;
+  stroke-opacity: 0.85;
+}
+
+.dg-motor {
+  fill: #2c3431;
+  stroke: #a9b3af;
+  stroke-width: 1.5;
+}
+
+.dg-fin {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 6;
+}
+
+.dg-shaft {
+  fill: #8d9894;
+  stroke: #c5ccc8;
+  stroke-width: 1.5;
+}
+
+.dg-shaft-stripes {
+  stroke: rgba(15, 19, 18, 0.55);
+  stroke-width: 34;
+  stroke-dasharray: 6 18;
+  animation: dg-flow linear infinite;
+}
+
+.dg-turn {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dg-turn.is-out {
+  stroke: #ffc764;
+}
+
+.dg-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dg-spin linear infinite;
+}
+
+.dg-spin.is-reverse {
+  animation-direction: reverse;
+}
+
+.dg-spin > line {
+  transform: none;
+}
+
+@keyframes dg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dg-gear {
+  fill: color-mix(in srgb, #ffc764 22%, #1c2120);
+  stroke: #ffc764;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.dg-gear.is-driver {
+  fill: color-mix(in srgb, var(--tf-cat) 22%, #1c2120);
+  stroke: var(--tf-cat);
+}
+
+.dg-gear-hub {
+  fill: #0f1312;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 2;
+}
+
+.dg-gear-mark {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.dg-plate rect {
+  fill: #3a4341;
+  stroke: #a9b3af;
+  stroke-width: 1.5;
+}
+
+.dg-bolt {
+  fill: #8d9894;
+  stroke: #d8ddda;
+  stroke-width: 1.5;
+}
+
+.dg-bolt.is-nut {
+  fill: #74807c;
+}
+
+.dg-bolt.is-washer {
+  fill: #a7b1ad;
+}
+
+.dg-thread {
+  stroke: rgba(15, 19, 18, 0.6);
+  stroke-width: 1.5;
+}
+
+.dg-clamp line {
+  stroke: var(--tf-cat);
+  stroke-width: 3;
+}
+
+.dg-clamp path {
+  fill: var(--tf-cat);
+}
+
+.dg-wrench {
+  fill: #5d6965;
+  stroke: #c5ccc8;
+  stroke-width: 1.5;
+}
+
+.dg-coil {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dg-coil.is-free {
+  stroke: rgba(255, 255, 255, 0.45);
+}
+
+.dg-coil.is-solid {
+  stroke: #ff7f6b;
+}
+
+.dg-chip.is-warn {
+  color: var(--tf-warn);
+}
+
+.dg-velocity line {
+  stroke: #ffc764;
+  stroke-width: 3;
+}
+
+.dg-velocity path {
+  fill: #ffc764;
+}
+
+.dg-mass {
+  fill: color-mix(in srgb, var(--tf-cat) 30%, #1c2120);
+  stroke: var(--tf-cat);
+  stroke-width: 2;
+  cursor: grab;
+}
+
+g:focus-visible > .dg-mass {
+  stroke: #fff;
+}
+
+.dg-mass-glyph {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.dg-stack.is-nowrap {
+  flex-wrap: nowrap;
+}
+
+.dg-bar-bg {
+  fill: rgba(255, 255, 255, 0.06);
+}
+
+.dg-bar {
+  transition: width 200ms;
+}
+
+.dg-bar.is-ke {
+  fill: #ffc764;
+}
+
+.dg-bar.is-pe {
+  fill: var(--tf-cat);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-spin,
+  .dg-shaft-stripes {
+    animation: none;
   }
 }

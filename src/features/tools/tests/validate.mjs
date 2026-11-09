@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { DIMS, convert, toSI, fromSI, parseNumber, fmt, CONVERTER_DIMS } from "../model/units.js";
 import { frictionFactor } from "../model/math.js";
 import { standardAtmosphere, psychrometrics, satPressure } from "../model/air.js";
-import { solveBeam, section } from "../model/structures.js";
+import { solveBeam, section, solveFreeBeam, parseBeamModel, stringifyBeamModel } from "../model/structures.js";
 import { defaultsOf, run, applyPreset, matchingPreset, toParams, fromParams } from "../model/engine.js";
 import { fluids } from "../calcs/fluids.js";
 import { heat } from "../calcs/heat.js";
@@ -106,6 +106,51 @@ near(section("round", { D: 0.1 }).Ix, (Math.PI * 0.1 ** 4) / 64, 1e-12, "round I
   near(ipe.Ix, 869e-8, 0.05, "IPE 160 I");
 }
 
+// Angle 50×50×5 (sharp corners): A 475 mm², Iₓ 11.25 cm⁴, least I ≈ 4.59 cm⁴, centroid 14.3 mm (handbook with fillets: 480, 11.0, 4.59, 14.0).
+{
+  const L5 = section("angle", { b: 0.05, h: 0.05, t: 0.005 });
+  near(L5.A, 475e-6, 1e-9, "angle A");
+  near(L5.Ix, 11.2503e-8, 1e-4, "angle Ix");
+  near(L5.Imin, 4.589e-8, 1e-3, "angle least I");
+  near(L5.yc, 0.014342, 1e-4, "angle centroid");
+}
+// Tee 100×100×10: centroid 71.3 mm from the stem tip, I = 180 cm⁴.
+near(section("tee", { b: 0.1, h: 0.1, tf: 0.01, tw: 0.01 }).yc, 0.0713158, 1e-5, "tee centroid");
+near(section("tee", { b: 0.1, h: 0.1, tf: 0.01, tw: 0.01 }).Ix, 180.0044e-8, 1e-5, "tee I");
+// Channel: symmetric about x, so Iₓ is the I-beam formula with the flanges moved to one side.
+near(section("channel", { b: 0.05, h: 0.1, tf: 0.008, tw: 0.006 }).Ix, section("ibeam", { b: 0.05, h: 0.1, tf: 0.008, tw: 0.006 }).Ix, 1e-9, "channel Ix = I-beam Ix");
+near(section("triangle", { b: 0.1, h: 0.1 }).Ix, (0.1 * 0.1 ** 3) / 36, 1e-12, "triangle I");
+near(section("hex", { s: 0.02 }).A, (Math.sqrt(3) / 2) * 0.02 ** 2, 1e-12, "hex area");
+
+// Beam builder (stiffness method) against closed-form beams.
+{
+  const fb = (items, Lb = L) => solveFreeBeam({ L: Lb, E, I, items });
+  const ss = fb([{ kind: "pin", x: 0 }, { kind: "roller", x: L }, { kind: "point", P, x: 1.3 }]);
+  const ssRef = solveBeam({ support: "ss", load: "point", L, P, a: 1.3, E, I });
+  near(ss.maxY, ssRef.maxY, 1e-4, "builder SS point δ");
+  near(ss.maxM, ssRef.maxM, 1e-6, "builder SS point M");
+  near(fb([{ kind: "fixed", x: 0 }, { kind: "udl", w1: w, w2: w, x1: 0, x2: L }]).maxY, (w * L ** 4) / (8 * E * I), 1e-5, "builder cantilever udl δ");
+  const ff = fb([{ kind: "fixed", x: 0 }, { kind: "fixed", x: L }, { kind: "point", P, x: 1 }]);
+  near(ff.minM, -(P * 1 * 3 * 3) / 16, 1e-6, "builder fixed-end moment P a b² / L²");
+  // Two equal spans, uniform load: outer reactions 3/8 wL, middle 5/4 wL, support moment −wL²/8.
+  const two = fb([{ kind: "pin", x: 0 }, { kind: "roller", x: 4 }, { kind: "roller", x: 8 }, { kind: "udl", w1: w, w2: w, x1: 0, x2: 8 }], 8);
+  near(two.reactions[0].R, (3 / 8) * w * 4, 1e-6, "two-span end reaction");
+  near(two.reactions[1].R, (5 / 4) * w * 4, 1e-6, "two-span middle reaction");
+  near(two.minM, (-w * 16) / 8, 1e-6, "two-span support moment");
+  // Triangular load on a simple span: reactions wL/6 and wL/3, M max = wL²/(9√3).
+  const tri = fb([{ kind: "pin", x: 0 }, { kind: "roller", x: L }, { kind: "udl", w1: 0, w2: w, x1: 0, x2: L }]);
+  near(tri.reactions[1].R, (w * L) / 3, 1e-6, "triangular load reaction");
+  near(tri.maxM, (w * L * L) / (9 * Math.sqrt(3)), 1e-4, "triangular load moment");
+  // A clockwise couple on a simple span: reactions ±M/L.
+  near(fb([{ kind: "pin", x: 0 }, { kind: "roller", x: L }, { kind: "moment", M: 1000, x: 1 }]).reactions[0].R, -1000 / L, 1e-6, "couple reaction");
+  // Equilibrium: reactions balance the load.
+  const odd = fb([{ kind: "pin", x: 0.5 }, { kind: "roller", x: 3 }, { kind: "fixed", x: 4 }, { kind: "point", P: 7000, x: 0 }, { kind: "udl", w1: 2000, w2: 9000, x1: 1, x2: 3.7 }]);
+  near(odd.reactions.reduce((s, r) => s + r.R, 0), odd.totalLoad, 1e-6, "builder equilibrium");
+  assert(fb([{ kind: "pin", x: 0 }, { kind: "point", P, x: 2 }]).error, "one pin is a mechanism");
+  const text = "pin@0;roller@4;roller@8;w6000@0-8;P15000@6;M2000@3;w0:3000@1-2";
+  assert.equal(stringifyBeamModel(parseBeamModel(text)), text, "beam model round trip");
+}
+
 // Wire gauge.
 near(awgDiameter("12") * 1000, 2.053, 1e-3, "12 AWG");
 near(awgDiameter("4/0") * 1000, 11.684, 1e-3, "4/0 AWG");
@@ -125,6 +170,7 @@ near(result("standard-atmosphere", "p", { z: 0 }), 101325, 1e-9, "ISA calc");
 near(result("ohms-law", "R"), 6, 1e-12, "Ohm");
 near(result("three-phase", "P"), Math.sqrt(3) * 480 * 50 * 0.85, 1e-9, "3φ");
 near(result("ideal-gas", "rho"), 1.225, 2e-3, "air density at 15 °C");
+near(result("beam-builder", "R2"), 34200, 1e-6, "builder default: overhang reaction");
 
 // Every calculator: valid definitions, defaults compute cleanly, presets point at real inputs.
 const ids = new Set();

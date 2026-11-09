@@ -1,8 +1,22 @@
-import { num, choice, preset, out } from "./define.js";
+import { num, choice, preset, out, text } from "./define.js";
 import { G } from "../model/units.js";
-import { solveBeam, section } from "../model/structures.js";
+import { solveBeam, section, solveFreeBeam, parseBeamModel } from "../model/structures.js";
 import { MATERIALS } from "../data/materials.js";
 import { BOLT_SIZES, BOLT_GRADES, NUT_FACTORS } from "../data/electrical.js";
+
+const SECTION_SHAPES = [
+  { value: "rect", label: "Solid rectangle" },
+  { value: "round", label: "Solid round" },
+  { value: "tube", label: "Round tube" },
+  { value: "rhs", label: "Rectangular tube" },
+  { value: "ibeam", label: "I-beam" },
+  { value: "tee", label: "Tee" },
+  { value: "channel", label: "Channel" },
+  { value: "angle", label: "Angle" },
+  { value: "triangle", label: "Triangle" },
+  { value: "hex", label: "Hex bar" },
+];
+const has = (v, ...shapes) => shapes.includes(v.shape);
 
 const metalPresets = (fields) =>
   MATERIALS.filter((m) => fields.every((f) => m[f] != null)).map((m) => ({ label: m.name, set: Object.fromEntries(fields.map((f) => [f, m[f]])) }));
@@ -48,53 +62,101 @@ export const mechanics = [
     formula: ["Simply supported, center load: δ = P L³ / 48 E I,  M = P L / 4", "Simply supported, uniform: δ = 5 w L⁴ / 384 E I,  M = w L² / 8", "Cantilever, end load: δ = P L³ / 3 E I,  M = P L", "Cantilever, uniform: δ = w L⁴ / 8 E I,  M = w L² / 2", "σ = M / S"],
     about: "These are the classic Euler–Bernoulli beam results: small deflections, linear elastic material, and the beam's own weight left out (add it as a uniform load if it matters). The diagrams update as you type, so you can see where the beam is working hardest.",
     sources: "Roark's Formulas for Stress and Strain; AISC Steel Construction Manual, beam diagrams and formulas.",
-    related: ["section-properties", "stress-strain"],
+    related: ["beam-builder", "section-properties", "stress-strain"],
+  },
+  {
+    id: "beam-builder",
+    cat: "mech",
+    name: "Beam builder (any loads and supports)",
+    blurb: "Free-form beams: as many supports, point loads, moments and distributed loads as you like.",
+    keywords: "beam builder continuous beam multiple supports overhang point loads distributed load moment reactions shear moment diagram indeterminate",
+    inputs: [
+      num("L", "Beam length", "length", 8, { min: 0 }),
+      text("model", "Supports and loads", "pin@0;roller@5;w6000@0-5;P12000@8", { hidden: true }),
+      preset("mat", "Material", metalPresets(["E"])),
+      num("E", "Young's modulus", "modulus", 200e9, { min: 0 }),
+      num("I", "Moment of inertia", "inertia", 2.77e-5, { min: 0, hint: "Default is an IPE 220 steel beam. Use the section properties tool for your own shape." }),
+      num("S", "Section modulus (for stress, optional)", "sectionModulus", 2.52e-4, { min: 0 }),
+    ],
+    compute: (v) => {
+      const items = parseBeamModel(v.model);
+      const r = solveFreeBeam({ L: v.L, E: v.E, I: v.I, items });
+      if (r.error) return { results: [], warnings: [r.error], visual: { type: "beam", free: true, items, L: v.L } };
+      const Mabs = Math.max(r.maxM, -r.minM);
+      const results = [
+        out("y", "Maximum deflection", "smallLength", Math.abs(r.maxY), { primary: true }),
+        out("xY", "Max deflection at", "length", r.xMaxY),
+        out("Mpos", "Largest sagging moment (+)", "moment", r.maxM),
+        out("Mneg", "Largest hogging moment (−)", "moment", -r.minM),
+        out("V", "Maximum shear", "force", Math.abs(r.maxV)),
+      ];
+      if (v.S > 0) results.push(out("sigma", "Maximum bending stress", "stress", Mabs / v.S));
+      const seen = new Set();
+      const sorted = r.reactions.map((s, i) => ({ ...s, i })).sort((p, q) => p.x - q.x);
+      let n = 0;
+      for (const s of sorted) {
+        const key = s.x.toPrecision(9);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        n += 1;
+        results.push(out(`R${n}`, `Reaction ${n} (${s.kind})`, "force", s.R));
+        if (s.kind === "fixed") results.push(out(`MR${n}`, `Fixed-end moment ${n}`, "moment", Math.abs(s.M)));
+      }
+      results.push(out("total", "Total load", "force", r.totalLoad));
+      const warnings = [];
+      if (items.some((it) => (it.x ?? 0) > v.L || (it.x2 ?? 0) > v.L)) warnings.push("Some items sit past the end of the beam; they're treated as being at the end.");
+      return { results, warnings, visual: { type: "beam", free: true, items, ...r, L: v.L } };
+    },
+    formula: ["K u = F   (stiffness method, Euler–Bernoulli beam elements)", "V(x) = Σ forces left of x", "M(x) = Σ (force × lever arm) + Σ couples left of x", "σ = M / S"],
+    about: "Build any straight beam: continuous spans, overhangs, propped cantilevers, partial and sloped distributed loads, and applied moments. Beams with more supports than statics alone can solve (statically indeterminate) are handled by the stiffness method, the same way frame-analysis programs do it. Pins and rollers both stop the beam moving up or down; a fixed support also stops it rotating. Loads are positive downward and moments positive clockwise. Sagging moment (smile shape) is positive.",
+    sources: "Hibbeler, Structural Analysis; Przemieniecki, Theory of Matrix Structural Analysis.",
+    related: ["beam", "section-properties"],
   },
   {
     id: "section-properties",
     cat: "mech",
     name: "Section properties",
     blurb: "Area, moment of inertia, section modulus and radius of gyration of common shapes.",
-    keywords: "section properties moment of inertia second moment area section modulus radius of gyration i beam tube",
+    keywords: "section properties moment of inertia second moment area section modulus radius of gyration i beam tube tee channel angle triangle hex bar centroid principal",
     inputs: [
-      choice("shape", "Shape", [
-        { value: "rect", label: "Solid rectangle" },
-        { value: "round", label: "Solid round" },
-        { value: "tube", label: "Round tube" },
-        { value: "rhs", label: "Rectangular tube" },
-        { value: "ibeam", label: "I-beam" },
-      ]),
-      num("b", "Width b", "smallLength", 0.05, { min: 0, when: (v) => v.shape === "rect" || v.shape === "ibeam" }),
-      num("h", "Height h", "smallLength", 0.1, { min: 0, when: (v) => v.shape === "rect" || v.shape === "ibeam" }),
-      num("D", "Outside diameter", "smallLength", 0.06, { min: 0, when: (v) => v.shape === "round" || v.shape === "tube" }),
-      num("B", "Width B", "smallLength", 0.1, { min: 0, when: (v) => v.shape === "rhs" }),
-      num("H", "Height H", "smallLength", 0.15, { min: 0, when: (v) => v.shape === "rhs" }),
-      num("t", "Wall thickness", "smallLength", 0.005, { min: 0, when: (v) => v.shape === "tube" || v.shape === "rhs" }),
-      num("tf", "Flange thickness", "smallLength", 0.008, { min: 0, when: (v) => v.shape === "ibeam" }),
-      num("tw", "Web thickness", "smallLength", 0.005, { min: 0, when: (v) => v.shape === "ibeam" }),
+      choice("shape", "Shape", SECTION_SHAPES),
+      num("b", "Width b", "smallLength", 0.05, { min: 0, when: (v) => has(v, "rect", "ibeam", "tee", "channel", "angle", "triangle") }),
+      num("h", "Height h", "smallLength", 0.1, { min: 0, when: (v) => has(v, "rect", "ibeam", "tee", "channel", "angle", "triangle") }),
+      num("D", "Outside diameter", "smallLength", 0.06, { min: 0, when: (v) => has(v, "round", "tube") }),
+      num("B", "Width B", "smallLength", 0.1, { min: 0, when: (v) => has(v, "rhs") }),
+      num("H", "Height H", "smallLength", 0.15, { min: 0, when: (v) => has(v, "rhs") }),
+      num("s", "Width across flats", "smallLength", 0.03, { min: 0, when: (v) => has(v, "hex") }),
+      num("t", "Wall thickness", "smallLength", 0.005, { min: 0, when: (v) => has(v, "tube", "rhs", "angle") }),
+      num("tf", "Flange thickness", "smallLength", 0.008, { min: 0, when: (v) => has(v, "ibeam", "tee", "channel") }),
+      num("tw", "Web thickness", "smallLength", 0.005, { min: 0, when: (v) => has(v, "ibeam", "tee", "channel") }),
       preset("mat", "Material (for weight)", MATERIALS.map((m) => ({ label: m.name, set: { rho: m.rho } }))),
       num("rho", "Density", "density", 7850, { min: 0 }),
     ],
     compute: (v) => {
       const s = section(v.shape, v);
-      if (!s || !(s.A > 0)) return { results: [], warnings: ["Check the dimensions: walls must be thinner than half the outside size."] };
-      return {
-        results: [
-          out("Ix", "Moment of inertia I (x axis)", "inertia", s.Ix, { primary: true }),
-          out("Sx", "Section modulus S (x axis)", "sectionModulus", s.Sx),
-          out("A", "Area", "smallArea", s.A),
-          out("Iy", "Moment of inertia I (y axis)", "inertia", s.Iy),
-          out("Sy", "Section modulus S (y axis)", "sectionModulus", s.Sy),
-          out("rx", "Radius of gyration r (x axis)", "smallLength", s.rx),
-          out("ry", "Radius of gyration r (y axis)", "smallLength", s.ry),
-          out("J", "Torsion constant J", "inertia", s.J),
-          out("wt", "Weight per length", "linearMass", s.A * v.rho),
-        ],
-        visual: { type: "section", shape: v.shape, dims: v },
-      };
+      if (!s || !(s.A > 0)) return { results: [], warnings: ["Check the dimensions: walls and flanges must be thinner than the shape they belong to."] };
+      const results = [
+        out("Ix", "Moment of inertia I (x axis)", "inertia", s.Ix, { primary: true }),
+        out("Sx", "Section modulus S (x axis)", "sectionModulus", s.Sx),
+        out("A", "Area", "smallArea", s.A),
+        out("Iy", "Moment of inertia I (y axis)", "inertia", s.Iy),
+        out("Sy", "Section modulus S (y axis)", "sectionModulus", s.Sy),
+        out("rx", "Radius of gyration r (x axis)", "smallLength", s.rx),
+        out("ry", "Radius of gyration r (y axis)", "smallLength", s.ry),
+      ];
+      if (s.Imin < Math.min(s.Ix, s.Iy) * 0.999) {
+        results.push(out("Imin", "Least moment of inertia (principal axis)", "inertia", s.Imin));
+        results.push(out("rmin", "Least radius of gyration", "smallLength", Math.sqrt(s.Imin / s.A)));
+      }
+      if (s.yc !== undefined && v.shape !== "triangle") results.push(out("yc", "Centroid from bottom", "smallLength", s.yc));
+      if (v.shape === "triangle") results.push(out("yc", "Centroid from base", "smallLength", s.yc));
+      if (s.xc !== undefined && Math.abs(s.xc - (v.b || 0) / 2) > 1e-12) results.push(out("xc", "Centroid from left", "smallLength", s.xc));
+      results.push(out("J", "Torsion constant J", "inertia", s.J));
+      results.push(out("wt", "Weight per length", "linearMass", s.A * v.rho));
+      return { results, visual: { type: "section", shape: v.shape, dims: v, props: s } };
     },
-    formula: ["Rectangle: I = b h³ / 12", "Round: I = π D⁴ / 64,  J = π D⁴ / 32", "S = I / c   (c = distance to extreme fibre)", "r = √(I / A)"],
-    about: "The moment of inertia measures how well a shape resists bending: material far from the center counts most, which is why I-beams and tubes are efficient. The section modulus turns a bending moment into a stress. The x axis is horizontal, so Iₓ is for vertical loads.",
+    formula: ["Rectangle: I = b h³ / 12", "Round: I = π D⁴ / 64,  J = π D⁴ / 32", "Built-up shapes: I = Σ (I₀ + A d²)   (parallel axis)", "S = I / c   (c = distance to extreme fibre)", "r = √(I / A)", "I_min = (Iₓ + I_y)/2 − √(((Iₓ − I_y)/2)² + Iₓᵧ²)"],
+    about: "The moment of inertia measures how well a shape resists bending: material far from the center counts most, which is why I-beams and tubes are efficient. The section modulus turns a bending moment into a stress; for shapes that aren't symmetric (tee, channel, angle, triangle) it uses the fibre farthest from the centroid, which gives the larger stress. Angles bend most easily about a tilted principal axis, so their least moment of inertia is lower than both Iₓ and I_y; use it for buckling. Corners are taken as sharp, so rolled shapes with root fillets come out slightly lighter than the catalogue.",
     related: ["beam", "buckling"],
   },
   {

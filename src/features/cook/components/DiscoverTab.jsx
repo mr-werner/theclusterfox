@@ -3,7 +3,7 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import RecipeCard from "./RecipeCard";
 import { Chips } from "./ui";
 import { toggleIn } from "./format";
-import { recipes, MEALS, TASTES, TAGS, DIFFICULTY } from "../data/recipes";
+import { MEALS, TASTES, TAGS, DIFFICULTY } from "../data/recipes";
 import { DIETS } from "../model/recipe";
 import { discover, emptyFilters } from "../model/discover";
 
@@ -17,9 +17,9 @@ const TIMES = [
 
 const QUICK_DIETS = ["vegetarian", "vegan", "gluten-free", "dairy-free"];
 
-export default function DiscoverTab({ data, today, filters, setFilters, onOpen, onToggleFavorite, onEditProfile }) {
+export default function DiscoverTab({ data, recipes, today, filters, setFilters, onOpen, onToggleFavorite, onEditProfile }) {
   const [more, setMore] = useState(false);
-  const { results, hidden } = useMemo(() => discover(recipes, data.profile, filters, { pantry: data.pantry, today }), [data.profile, data.pantry, filters, today]);
+  const { results, hidden } = useMemo(() => discover(recipes, data.profile, filters, { pantry: data.pantry, today }), [recipes, data.profile, data.pantry, filters, today]);
   const hasPantry = data.pantry.length > 0;
   const set = patch => setFilters(f => ({ ...f, ...patch }));
   const active = JSON.stringify(filters) !== JSON.stringify(emptyFilters());
@@ -157,12 +157,13 @@ export default function DiscoverTab({ data, today, filters, setFilters, onOpen, 
         </div>
       ) : (
         <div className="ck-grid">
-          {results.map(({ recipe, reasons, pantry }) => (
+          {results.map(({ recipe, reasons, pantry, fix }) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
               reasons={reasons}
               pantry={pantry}
+              fix={fix}
               favorite={data.favorites.includes(recipe.id)}
               inProgress={Boolean(data.sessions[recipe.id])}
               onOpen={onOpen}

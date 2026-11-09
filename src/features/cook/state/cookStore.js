@@ -6,6 +6,7 @@ import { TASTES, EQUIPMENT, DIFFICULTY } from "../data/recipes.js";
 import { DIETS } from "../model/recipe.js";
 import { PRIORITIES, DEFAULT_PRIORITIES } from "../model/discover.js";
 import { normalizeSession } from "../model/session.js";
+import { cleanChoices } from "../model/swaps.js";
 
 export const STORAGE_KEY = "cookfox-data-v1";
 export const MAX_HISTORY = 200;
@@ -42,6 +43,8 @@ export function emptyData() {
     pantry: [],
     // { id, ing | null, name | null, sources: [{ recipeId, amount }], extra, manual?, checked }
     shopping: [],
+    // recipeId -> { lineKey: swapId }, the cook's saved version of a recipe
+    custom: {},
   };
 }
 
@@ -95,10 +98,22 @@ function cleanHistory(e) {
     again: typeof e.again === "boolean" ? e.again : null,
     timing: ["faster", "right", "slower"].includes(e.timing) ? e.timing : null,
     note: str(e.note, 500),
+    swaps: cleanChoices(recipesById.get(e.recipeId), e.swaps),
   };
 }
 
 const isDay = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+function cleanCustom(c) {
+  const out = {};
+  if (!isObject(c)) return out;
+  for (const [id, choices] of Object.entries(c)) {
+    if (!recipesById.has(id)) continue;
+    const clean = cleanChoices(recipesById.get(id), choices);
+    if (Object.keys(clean).length) out[id] = clean;
+  }
+  return out;
+}
 
 function cleanPantryItem(p) {
   if (!isObject(p) || !p.id) return null;
@@ -138,6 +153,7 @@ export function normalizeData(value) {
     history: Array.isArray(value.history) ? value.history.map(cleanHistory).filter(Boolean).slice(0, MAX_HISTORY) : [],
     pantry: Array.isArray(value.pantry) ? value.pantry.map(cleanPantryItem).filter(Boolean).slice(0, 500) : [],
     shopping: Array.isArray(value.shopping) ? value.shopping.map(cleanShoppingItem).filter(Boolean).slice(0, 300) : [],
+    custom: cleanCustom(value.custom),
   };
 }
 

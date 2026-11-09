@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Check, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, ShoppingCart, Store, TriangleAlert, Users, ChefHat, Info } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, Check, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, ShoppingCart, Sparkles, Store, TriangleAlert, Undo2, Users, ChefHat, Info } from "lucide-react";
 import { Cover, Segmented, Stepper, UnitToggles } from "./ui";
 import { minutesText } from "./format";
 import { ingredientsById, ALLERGENS } from "../data/ingredients";
@@ -9,6 +9,9 @@ import { allergensOf, dietsOf, DIETS, recipeNutrition, roundNutrient, scaledLine
 import { amountText, renderTemps } from "../model/units";
 import { progressPercent } from "../model/session";
 import { pantryMatch, recipePantry } from "../model/pantry";
+import { itemConflicts, suggestFixes, swappableKeys } from "../model/swaps";
+import { swapsById } from "../data/swaps";
+import SwapDialog from "./SwapDialog";
 
 const NUTRITION_ROWS = [
   ["kcal", "Calories", ""],
@@ -19,6 +22,45 @@ const NUTRITION_ROWS = [
   ["sugar", "Sugars", "g"],
   ["sodium", "Sodium", "mg"],
 ];
+
+// "Swapped from butter · Undo" under a swapped line, or a Swap button.
+export function SwapControl({ line, canSwap, onOpen, onUndo }) {
+  if (line.from) {
+    return (
+      <span className="ck-swapped">
+        <ArrowLeftRight size={12} aria-hidden="true" /> Swapped from {ingredientsById.get(line.from).name}
+        <button type="button" className="ck-link" onClick={onUndo}>
+          Undo
+        </button>
+      </span>
+    );
+  }
+  if (!canSwap) return null;
+  return (
+    <button type="button" className="ck-swap-btn" onClick={onOpen} aria-label={`Swap ${ingredientsById.get(line.ing).name}`}>
+      <ArrowLeftRight size={13} aria-hidden="true" /> Swap
+    </button>
+  );
+}
+
+// Lines the cook chose to leave out, so they can bring them back.
+export function LeftOut({ base, recipe, onUndo }) {
+  const kept = new Set(recipe.ingredients.map(l => l.key ?? l.ing));
+  const gone = base.ingredients.filter(l => !kept.has(l.key ?? l.ing));
+  if (!gone.length) return null;
+  return (
+    <ul className="ck-left-out">
+      {gone.map(l => (
+        <li key={l.key ?? l.ing}>
+          <span>Leaving out the {ingredientsById.get(l.ing).name}</span>
+          <button type="button" className="ck-link" onClick={() => onUndo(l.key ?? l.ing)}>
+            <Undo2 size={13} aria-hidden="true" /> Put it back
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function IngredientLine({ line, amount, mode, showHint }) {
   const item = line.item ?? ingredientsById.get(line.ing);
@@ -35,7 +77,7 @@ export function IngredientLine({ line, amount, mode, showHint }) {
   );
 }
 
-export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToList, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
+export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, today, setPrefs, onAddToList, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
   const session = data.sessions[recipe.id];
   const prefs = data.prefs;
   const [servings, setServings] = useState(() => clampServings(initialServings ?? session?.servings ?? recipe.servings));
@@ -52,6 +94,12 @@ export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToLis
   const household = data.profile.household;
   const ingNotes = [...new Set(lines.map(l => l.item.note).filter(Boolean))];
   const t = recipe.time;
+  const [swapping, setSwapping] = useState(null);
+  const canSwap = swappableKeys(base);
+  const limits = { allergies: data.profile.allergies, diets: data.profile.diets };
+  const conflicts = [...new Set(recipe.ingredients.flatMap(l => itemConflicts(ingredientsById.get(l.ing), limits).map(c => (c.kind === "allergy" ? `contains ${c.label.toLowerCase()}` : `not ${c.label.toLowerCase()}`))))];
+  const fix = conflicts.length ? suggestFixes(base, limits, recipe.swaps) : null;
+  const swapCount = Object.keys(recipe.swaps ?? {}).length;
 
   return (
     <article className="ck-detail">
@@ -114,6 +162,49 @@ export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToLis
         </div>
       </header>
 
+      {conflicts.length > 0 && (
+        <div className="ck-callout ck-callout--warn" role="alert">
+          <TriangleAlert size={18} aria-hidden="true" />
+          <div>
+            <p>
+              <strong>Heads up:</strong> this {swapCount ? "version" : "recipe"} doesn't fit your profile ({conflicts.join("; ")}).
+            </p>
+            {fix ? (
+              <>
+                <p>
+                  {Object.keys(fix).length === 1 ? "One swap makes" : `${Object.keys(fix).length} swaps make`} it fit:{" "}
+                  {Object.entries(fix)
+                    .map(([k, id]) => {
+                      const sw = swapsById.get(id);
+                      const from = ingredientsById.get(base.ingredients.find(l => (l.key ?? l.ing) === k).ing).name;
+                      return sw.to ? `${ingredientsById.get(sw.to).name} for the ${from}` : `leave out the ${from}`;
+                    })
+                    .join("; ")}
+                  .
+                </p>
+                <button type="button" className="ck-btn ck-btn--primary" onClick={() => onSetSwaps({ ...recipe.swaps, ...fix })}>
+                  <Sparkles size={16} aria-hidden="true" /> Apply {Object.keys(fix).length === 1 ? "this swap" : "these swaps"}
+                </button>
+              </>
+            ) : (
+              <p>There isn't a swap for everything here, so this one may be best skipped.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {swapCount > 0 && (
+        <div className="ck-custom-banner" role="status">
+          <ArrowLeftRight size={16} aria-hidden="true" />
+          <span>
+            <strong>Your version</strong> with {swapCount} {swapCount === 1 ? "swap" : "swaps"}. Amounts, steps and nutrition are updated.
+          </span>
+          <button type="button" className="ck-link" onClick={() => onSetSwaps({})}>
+            Restore original
+          </button>
+        </div>
+      )}
+
       <div className="ck-detail-grid">
         <section className="ck-panel" aria-labelledby="ck-ing-h">
           <div className="ck-panel-head">
@@ -141,8 +232,11 @@ export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToLis
               const inPantry = hasPantry && pantryMatch(data.pantry, l.ing);
               return (
                 <li key={l.key} className={inPantry ? "is-have" : ""}>
-                  <span>
-                    <IngredientLine line={l} amount={l.amount} mode={prefs.measure} showHint={f === 1} />
+                  <span className="ck-ing-main">
+                    <span>
+                      <IngredientLine line={l} amount={l.amount} mode={prefs.measure} showHint={f === 1} />
+                    </span>
+                    <SwapControl line={l} canSwap={canSwap.has(l.key)} onOpen={() => setSwapping(l.key)} onUndo={() => onSwap(l.key, null)} />
                   </span>
                   {inPantry && (
                     <span className="ck-have-tag">
@@ -153,6 +247,7 @@ export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToLis
               );
             })}
           </ul>
+          <LeftOut base={base} recipe={recipe} onUndo={k => onSwap(k, null)} />
           <div className="ck-list-row">
             {pantryInfo && (
               <span className="ck-muted ck-small-inline">
@@ -210,6 +305,11 @@ export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToLis
               <li key={i}>
                 <strong>{s.title}.</strong> {renderTemps(s.text, prefs.temp)}
                 {s.timer && <span className="ck-timer-tag"> {s.timer.minutes} min</span>}
+                {s.swapNotes?.map(n => (
+                  <span key={n} className="ck-swap-note">
+                    <ArrowLeftRight size={12} aria-hidden="true" /> {renderTemps(n, prefs.temp)}
+                  </span>
+                ))}
               </li>
             ))}
           </ol>
@@ -295,6 +395,22 @@ export default function RecipeDetail({ recipe, data, today, setPrefs, onAddToLis
           </section>
         )}
       </div>
+
+      {swapping && (
+        <SwapDialog
+          base={base}
+          recipe={recipe}
+          lineKey={swapping}
+          profile={limits}
+          prefs={prefs}
+          servings={servings}
+          onChoose={id => {
+            onSwap(swapping, id);
+            setSwapping(null);
+          }}
+          onClose={() => setSwapping(null)}
+        />
+      )}
 
       <p className="ck-credit">
         <Users size={14} aria-hidden="true" /> {recipe.source}. {recipe.license}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChefHat, Compass, BookHeart, UserRound, Timer, Play, Refrigerator, ShoppingCart } from "lucide-react";
 
@@ -18,6 +18,7 @@ import { recipesById } from "./data/recipes";
 import { emptyFilters } from "./model/discover";
 import * as S from "./model/session";
 import * as P from "./model/pantry";
+import { applySwaps, cleanChoices, customizedRecipes } from "./model/swaps";
 import { useCookData } from "./state/useCookData";
 import { ringAlarm, useNow } from "./state/device";
 import "./cook.css";
@@ -41,7 +42,43 @@ export default function CookPage() {
   const [finished, setFinished] = useState(null); // { recipeId, minutes, servings }
   const [today] = useState(() => P.toIsoDay(Date.now()));
 
-  const recipe = recipesById.get(params.get("r")) ?? null;
+  const base = recipesById.get(params.get("r")) ?? null;
+  const custom = data.custom;
+  const recipe = base ? applySwaps(base, custom[base.id]) : null;
+  const allRecipes = useMemo(() => customizedRecipes(custom), [custom]);
+  const limits = { allergies: data.profile.allergies, diets: data.profile.diets };
+
+  // Saves the cook's version of a recipe. A swapped line starts unchecked in
+  // the prep list, since having butter doesn't mean having oil.
+  const setSwaps = (id, choices) => {
+    const clean = cleanChoices(recipesById.get(id), choices);
+    const before = custom[id] ?? {};
+    const changed = new Set([...Object.keys(before), ...Object.keys(clean)].filter(k => before[k] !== clean[k]));
+    store.patchData(d => {
+      const next = { ...d.custom };
+      if (Object.keys(clean).length) next[id] = clean;
+      else delete next[id];
+      return { custom: next };
+    });
+    if (changed.size && data.sessions[id]) {
+      updateSession(id, s => {
+        if (!s) return s;
+        const have = { ...s.have };
+        const prepped = { ...s.prepped };
+        for (const k of changed) {
+          delete have[k];
+          delete prepped[k];
+        }
+        return { ...s, have, prepped };
+      });
+    }
+  };
+  const setSwap = (key, swapId) => {
+    const next = { ...(custom[base.id] ?? {}) };
+    if (swapId) next[key] = swapId;
+    else delete next[key];
+    setSwaps(base.id, next);
+  };
   const session = recipe ? data.sessions[recipe.id] ?? null : null;
   const requested = recipe ? params.get("view") : null;
   const view = finished && recipe?.id === finished.recipeId ? "done" : requested === "cook" && session ? "cook" : requested === "prep" && session ? "prep" : recipe ? "detail" : "tabs";
@@ -106,6 +143,7 @@ export default function CookPage() {
       again: answers.again ?? null,
       timing: answers.timing ?? null,
       note: answers.note ?? "",
+      swaps: recipe.swaps ?? {},
     });
     updateSession(recipe.id, null);
     setFinished(null);
@@ -127,6 +165,7 @@ export default function CookPage() {
         again: null,
         timing: null,
         note: reason ?? "",
+        swaps: recipe.swaps ?? {},
       });
       updateSession(recipe.id, null);
       go({ tab: "mine" });
@@ -219,6 +258,7 @@ export default function CookPage() {
               {tab === "discover" && (
                 <DiscoverTab
                   data={data}
+                  recipes={allRecipes}
                   today={today}
                   filters={filters}
                   setFilters={setFilters}
@@ -235,7 +275,11 @@ export default function CookPage() {
                   onResume={resume}
                   onDiscard={id => updateSession(id, null)}
                   onToggleFavorite={store.toggleFavorite}
-                  onCookAgain={h => go({ r: h.recipeId, servings: h.servings })}
+                  onCookAgain={h => {
+                    // Cook the same version as last time.
+                    setSwaps(h.recipeId, h.swaps ?? {});
+                    go({ r: h.recipeId, servings: h.servings });
+                  }}
                   onRemoveHistory={store.removeHistory}
                   onClearHistory={store.clearHistory}
                 />
@@ -259,7 +303,10 @@ export default function CookPage() {
           {view === "detail" && (
             <RecipeDetail
               key={`${recipe.id}-${params.get("servings") ?? ""}`}
+              base={base}
               recipe={recipe}
+              onSwap={setSwap}
+              onSetSwaps={choices => setSwaps(base.id, choices)}
               data={data}
               today={today}
               setPrefs={setPrefs}
@@ -277,7 +324,10 @@ export default function CookPage() {
 
           {view === "prep" && (
             <PrepChecklist
+              base={base}
               recipe={recipe}
+              profile={limits}
+              onSwap={setSwap}
               session={session}
               prefs={data.prefs}
               setPrefs={setPrefs}

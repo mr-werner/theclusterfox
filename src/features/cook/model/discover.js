@@ -18,22 +18,24 @@ export const PRIORITIES = {
 
 import { ingredientMatches, parseTerms } from "./match.js";
 import { recipePantry } from "./pantry.js";
+import { applySwaps, baseRecipe, suggestFixes } from "./swaps.js";
 
 export { ingredientMatches, parseTerms };
 
 export const recipeHasTerm = (recipe, term) => ingredientIds(recipe).some(id => ingredientMatches(ingredientsById.get(id), term));
 
-// Precomputed facts per recipe, so filtering stays cheap.
-const factsCache = new Map();
+// Precomputed facts per recipe, so filtering stays cheap. Keyed by the recipe
+// object itself, since a swapped recipe has different facts from the original.
+const factsCache = new WeakMap();
 export function factsOf(recipe) {
-  if (!factsCache.has(recipe.id)) {
-    factsCache.set(recipe.id, {
+  if (!factsCache.has(recipe)) {
+    factsCache.set(recipe, {
       allergens: allergensOf(recipe),
       diets: dietsOf(recipe),
       nutrition: recipeNutrition(recipe).perServing,
     });
   }
-  return factsCache.get(recipe.id);
+  return factsCache.get(recipe);
 }
 
 export function emptyFilters() {
@@ -157,9 +159,23 @@ export function discover(recipes, profile = {}, filters = emptyFilters(), contex
   const usePantry = Array.isArray(context.pantry) && context.pantry.length > 0;
   const priorities = (profile.priorities?.length ? profile.priorities : DEFAULT_PRIORITIES).filter(p => PRIORITIES[p]);
   const hidden = { allergy: 0, diet: 0, excluded: 0 };
+  const limits = { allergies: profile.allergies ?? [], diets: [...new Set([...(profile.diets ?? []), ...(filters.diets ?? [])])] };
   const results = [];
-  for (const recipe of recipes) {
-    const block = hardBlock(recipe, profile, filters);
+  for (const original of recipes) {
+    let recipe = original;
+    let fix = null;
+    let block = hardBlock(recipe, profile, filters);
+    // A recipe that only clashes because of a swappable ingredient is still
+    // shown, flagged with the swaps that make it fit.
+    if (block === "allergy" || block === "diet") {
+      const base = baseRecipe(recipe.id) ?? recipe;
+      fix = suggestFixes(base, limits, recipe.swaps);
+      if (fix) {
+        recipe = applySwaps(base, { ...recipe.swaps, ...fix });
+        block = hardBlock(recipe, profile, filters);
+        if (block) fix = null;
+      }
+    }
     if (block) {
       hidden[block] += 1;
       continue;
@@ -171,8 +187,13 @@ export function discover(recipes, profile = {}, filters = emptyFilters(), contex
     priorities.forEach((p, i) => {
       score += c[p].score * (priorities.length - i);
     });
-    const reasons = priorities.map(p => c[p]).filter(x => x.reason && x.score >= 0.5).map(x => x.reason).slice(0, 3);
-    results.push({ recipe, score, reasons, pantry: pantryInfo });
+    let reasons = priorities.map(p => c[p]).filter(x => x.reason && x.score >= 0.5).map(x => x.reason).slice(0, 3);
+    if (fix) {
+      const n = Object.keys(fix).length;
+      reasons = [`Fits your needs with ${n} swap${n > 1 ? "s" : ""}`, ...reasons].slice(0, 3);
+      score -= 0.5; // a recipe that fits as written ranks a little higher
+    }
+    results.push({ recipe, score, reasons, pantry: pantryInfo, fix });
   }
   results.sort((a, b) => b.score - a.score || a.recipe.title.localeCompare(b.recipe.title));
   return { results, hidden };

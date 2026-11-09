@@ -9,6 +9,16 @@ import * as S from "../model/session.js";
 import { planBSearches } from "../model/planb.js";
 import { emptyData, normalizeData } from "../state/cookStore.js";
 import * as P from "../model/pantry.js";
+import * as W from "../model/swaps.js";
+import { swaps, SWAP_REASONS } from "../data/swaps.js";
+
+import { readFileSync } from "node:fs";
+
+// Cover icons live in ui.jsx (JSX can't be imported here), so read the map from source.
+const COVER_ICON_NAMES = readFileSync(new URL("../components/ui.jsx", import.meta.url), "utf8")
+  .match(/const COVER_ICONS = \{([^}]*)\}/)[1]
+  .split(",")
+  .map(s => s.trim());
 
 const close = (a, b, eps = 1e-6) => Math.abs(a - b) < eps;
 
@@ -78,7 +88,7 @@ const close = (a, b, eps = 1e-6) => Math.abs(a - b) < eps;
     }
 
     // Recipes that need a safe internal temperature say so in a step.
-    if (r.safety.some(k => ["poultry", "fish", "ground-meat"].includes(k))) {
+    if (r.safety.some(k => ["poultry", "fish", "ground-meat", "ground-poultry", "pork", "shellfish", "slow-cooker"].includes(k))) {
       assert(r.steps.some(s => s.text.includes("{temp:")), `${r.id}: needs an internal temperature in the steps`);
     }
 
@@ -88,7 +98,8 @@ const close = (a, b, eps = 1e-6) => Math.abs(a - b) < eps;
     const fromMacros = n.protein * 4 + n.carbs * 4 + n.fat * 9;
     assert(Math.abs(fromMacros - n.kcal) / n.kcal < 0.15, `${r.id}: calories don't match macros`);
   }
-  assert(recipes.length >= 10, "a real starter library");
+  assert(recipes.length >= 30, "a real starter library");
+  for (const r of recipes) assert(COVER_ICON_NAMES.includes(r.cover.icon), `${r.id}: cover icon ${r.cover.icon} isn't imported in ui.jsx`);
 }
 
 // --- Unit conversions are ingredient-specific -----------------------------
@@ -212,7 +223,11 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert(eggFree.hidden.allergy > 0);
   // Even when every priority would favor an egg recipe.
   const eggLover = discover(recipes, { ...emptyData().profile, allergies: ["egg"], flavors: ["sweet"], priorities: ["taste"] }, emptyFilters());
-  assert(!eggLover.results.some(r => r.recipe.id === "saturday-pancakes"));
+  const pancakesForEggFree = eggLover.results.find(r => r.recipe.id === "saturday-pancakes");
+  assert(!pancakesForEggFree || (pancakesForEggFree.fix && !allergensOf(pancakesForEggFree.recipe).includes("egg")), "only ever shown with an egg-free swap");
+  // Recipes that can't be fixed with a swap stay hidden.
+  assert(!eggLover.results.some(r => r.recipe.id === "shakshuka"));
+  assert(eggLover.results.filter(r => r.fix).every(r => r.reasons[0].startsWith("Fits your needs")));
 
   // Disliked ingredients and exclusions hide recipes.
   const noChicken = discover(recipes, { ...emptyData().profile, dislikes: "chicken" }, emptyFilters());
@@ -354,6 +369,103 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert.deepEqual(d.favorites, ["shakshuka"]);
   assert.deepEqual(Object.keys(d.sessions), ["shakshuka"]);
   assert.equal(d.history.length, 1);
+}
+
+// --- Ingredient swaps ----------------------------------------------------------
+{
+  for (const s of swaps) {
+    assert(ingredientsById.has(s.from), `${s.id}: unknown from`);
+    assert(s.to === null || ingredientsById.has(s.to), `${s.id}: unknown to`);
+    for (const id of [...(s.only ?? []), ...(s.notIn ?? [])]) assert(recipesById.has(id), `${s.id}: unknown recipe ${id}`);
+    assert(recipes.some(r => W.swapApplies(s, r)), `${s.id}: applies to no recipe`);
+    assert(W.swapRatio(s) > 0, `${s.id}: ratio`);
+    assert(s.flavor && s.texture && s.cooking, `${s.id}: needs flavor, texture and cooking notes`);
+    assert(s.reasons.every(x => SWAP_REASONS[x]), `${s.id}: unknown reason`);
+  }
+
+  // Every applicable swap, in every recipe, keeps the recipe consistent.
+  let checked = 0;
+  for (const r of recipes) {
+    for (const l of r.ingredients) {
+      for (const s of swaps.filter(x => x.from === l.ing && W.swapApplies(x, r))) {
+        const sw = W.applySwaps(r, { [lineKey(l)]: s.id });
+        assert.notEqual(sw, r);
+        const keys = new Set(sw.ingredients.map(lineKey));
+        assert.equal(keys.size, sw.ingredients.length, `${r.id}/${s.id}: duplicate keys`);
+        const used = new Map();
+        for (const step of sw.steps) for (const u of step.uses) {
+          assert(keys.has(u.ing), `${r.id}/${s.id}: step uses a removed line`);
+          used.set(u.ing, (used.get(u.ing) ?? 0) + u.amount);
+        }
+        for (const x of sw.ingredients) assert(close(used.get(lineKey(x)) ?? 0, x.amount), `${r.id}/${s.id}: ${lineKey(x)} doesn't add up`);
+        assert(sw.steps.some(st => st.swapNotes?.length), `${r.id}/${s.id}: no step mentions the swap`);
+        const n = recipeNutrition(sw).perServing;
+        assert(n.kcal > 30 && n.kcal < 1300, `${r.id}/${s.id}: ${n.kcal} kcal`);
+        checked += 1;
+      }
+    }
+  }
+  assert(checked > 60, `only ${checked} recipe swaps`);
+
+  // Same choices give the same object (cheap to memoize), and bad choices are dropped.
+  const spaghetti = recipesById.get("tomato-basil-spaghetti");
+  assert.equal(W.applySwaps(spaghetti, { parmesan: "parmesan-none" }), W.applySwaps(spaghetti, { parmesan: "parmesan-none" }));
+  assert.equal(W.applySwaps(spaghetti, { parmesan: "egg-flax", nothing: "feta-none" }), spaghetti);
+  assert.deepEqual(W.cleanChoices(spaghetti, { parmesan: "parmesan-none", basil: "soy-tamari" }), { parmesan: "parmesan-none" });
+
+  // Leaving something out removes it from the list and the steps.
+  const noCheese = W.applySwaps(spaghetti, { parmesan: "parmesan-none" });
+  assert(!noCheese.ingredients.some(l => l.ing === "parmesan"));
+  assert(!allergensOf(noCheese).includes("milk"));
+  assert(dietsOf(noCheese).vegan);
+
+  // Amounts follow the ratio; volume swaps convert through each ingredient's density.
+  const nooch = W.applySwaps(spaghetti, { parmesan: "parmesan-nutritional-yeast" });
+  assert(close(nooch.ingredients.find(l => l.key === "parmesan").amount, 15));
+  const curry = recipesById.get("chickpea-spinach-curry");
+  const parsleyCurry = W.applySwaps(curry, { cilantro: "cilantro-parsley" });
+  const cil = curry.ingredients.find(l => l.ing === "cilantro").amount;
+  assert(close(parsleyCurry.ingredients.find(l => l.key === "cilantro").amount, (cil * 60) / 16), "same volume of parsley");
+  assert.equal(amountText(ingredientsById.get("parsley"), (cil * 60) / 16, "volume").text, amountText(ingredientsById.get("cilantro"), cil, "volume").text);
+
+  // Meat swaps carry their safe temperature and safety note with them.
+  const chili = recipesById.get("beef-bean-chili");
+  const turkeyChili = W.applySwaps(chili, { "ground-beef": "beef-turkey" });
+  assert(turkeyChili.steps.some(s => s.text.includes("{temp:74}")));
+  assert(!turkeyChili.steps.some(s => s.text.includes("{temp:71}")));
+  assert(turkeyChili.safety.includes("ground-poultry") && !turkeyChili.safety.includes("ground-meat"));
+
+  // Slower ingredients lengthen the timer and the total time.
+  const stirFry = recipesById.get("chicken-broccoli-stir-fry");
+  const brown = W.applySwaps(stirFry, { rice: "rice-brown" });
+  assert.equal(brown.steps[0].timer.minutes, 45);
+  assert.equal(brown.time.total, stirFry.time.total + 27);
+
+  // Options never include something the cook is allergic to.
+  const oats = recipesById.get("overnight-oats");
+  const milkOpts = W.swapsForLine(oats, "milk", { allergies: ["treenut"] });
+  assert(milkOpts.length && milkOpts.every(o => !o.to?.allergens?.includes("treenut")));
+  const oatOpt = W.swapsForLine(oats, "milk", {}).find(o => o.swap.id === "milk-oat-milk");
+  assert(oatOpt.delta.kcal < 0 && oatOpt.removes.length === 0, "the yogurt still has milk");
+  const both = W.swapsForLine(oats, "milk", {}, { "greek-yogurt": "yogurt-coconut-yogurt" }).find(o => o.swap.id === "milk-oat-milk");
+  assert(both.removes.includes("milk") && both.becomes.includes("dairy-free"), "with both swapped it's dairy-free");
+  assert(W.swapsForLine(recipesById.get("peanut-noodles"), "honey", {}).find(o => o.swap.id === "honey-maple").becomes.includes("vegan"));
+  assert(W.swappableKeys(spaghetti).has("parmesan") && !W.swappableKeys(spaghetti).has("basil"));
+
+  // Fixes: swaps that make a recipe fit, or null when it can't.
+  assert.deepEqual(W.suggestFixes(spaghetti, { allergies: ["milk"] }), { parmesan: "parmesan-nutritional-yeast" });
+  assert.equal(W.suggestFixes(recipesById.get("shakshuka"), { allergies: ["egg"] }), null);
+  assert.equal(W.suggestFixes(spaghetti, {}), null, "nothing to fix");
+  const veganNoodles = W.suggestFixes(recipesById.get("peanut-noodles"), { diets: ["vegan"] });
+  assert.deepEqual(veganNoodles, { honey: "honey-maple" });
+  // Already-chosen swaps count.
+  assert.equal(W.suggestFixes(spaghetti, { allergies: ["milk"] }, { parmesan: "parmesan-none" }), null);
+
+  // Saved swaps survive a reload and junk is dropped.
+  const d = normalizeData({ custom: { "tomato-basil-spaghetti": { parmesan: "parmesan-none", basil: "nope" }, "no-such-recipe": { x: "y" }, shakshuka: {} } });
+  assert.deepEqual(d.custom, { "tomato-basil-spaghetti": { parmesan: "parmesan-none" } });
+  const h = normalizeData({ history: [{ id: "a", recipeId: "tomato-basil-spaghetti", swaps: { parmesan: "parmesan-none", z: 1 } }] }).history[0];
+  assert.deepEqual(h.swaps, { parmesan: "parmesan-none" });
 }
 
 // --- Pantry ------------------------------------------------------------------

@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { ArrowLeft, Check, ClipboardCopy, Play, ShoppingCart, Store, TriangleAlert } from "lucide-react";
 import { Stepper, UnitToggles } from "./ui";
-import { IngredientLine } from "./RecipeDetail";
+import { IngredientLine, LeftOut, SwapControl } from "./RecipeDetail";
+import SwapDialog from "./SwapDialog";
+import { swappableKeys } from "../model/swaps";
 import { AISLES } from "../data/ingredients";
 import { scaledLines, scaleNotes, servingWord } from "../model/recipe";
 import { amountText } from "../model/units";
 import * as S from "../model/session";
 
-export default function PrepChecklist({ recipe, session, prefs, setPrefs, update, onAddToList, onBack, onCook, onPlanB }) {
+export default function PrepChecklist({ base, recipe, profile, onSwap, session, prefs, setPrefs, update, onAddToList, onBack, onCook, onPlanB }) {
   const [confirming, setConfirming] = useState(false);
+  const [swapping, setSwapping] = useState(null);
+  const canSwap = swappableKeys(base);
   const [copied, setCopied] = useState(false);
   const [listed, setListed] = useState(false);
   const lines = scaledLines(recipe, session.servings);
@@ -91,6 +95,7 @@ export default function PrepChecklist({ recipe, session, prefs, setPrefs, update
               <li key={l.key} className={prepped ? "is-prepped" : have ? "is-have" : ""}>
                 <div className="ck-prep-ing">
                   <IngredientLine line={l} amount={l.amount} mode={prefs.measure} />
+                  {(!have || l.from) && <SwapControl line={l} canSwap={canSwap.has(l.key)} onOpen={() => setSwapping(l.key)} onUndo={() => onSwap(l.key, null)} />}
                 </div>
                 <div className="ck-prep-toggles">
                   <button type="button" className="ck-toggle" aria-pressed={have} onClick={() => update(s => S.toggleHave(s, l.key))}>
@@ -104,7 +109,24 @@ export default function PrepChecklist({ recipe, session, prefs, setPrefs, update
             );
           })}
         </ul>
+        <LeftOut base={base} recipe={recipe} onUndo={k => onSwap(k, null)} />
       </div>
+
+      {swapping && (
+        <SwapDialog
+          base={base}
+          recipe={recipe}
+          lineKey={swapping}
+          profile={profile}
+          prefs={prefs}
+          servings={session.servings}
+          onChoose={id => {
+            onSwap(swapping, id);
+            setSwapping(null);
+          }}
+          onClose={() => setSwapping(null)}
+        />
+      )}
 
       {missing.length > 0 && (
         <div className="ck-panel ck-missing">

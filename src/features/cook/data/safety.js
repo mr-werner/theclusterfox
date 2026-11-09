@@ -16,6 +16,22 @@ export const safetyNotes = {
     title: "Ground meat",
     text: "Cook ground beef to {temp:71}. Grinding spreads surface bacteria all through the meat, so it needs to be cooked through.",
   },
+  "ground-poultry": {
+    title: "Ground turkey or chicken",
+    text: "Cook ground turkey and chicken to {temp:74}, higher than ground beef. Break it up and cook until no pink remains, then check with a thermometer.",
+  },
+  pork: {
+    title: "Pork",
+    text: "Cook pork chops to {temp:63} in the center, then let them rest for 3 minutes before cutting. A little blush of pink is fine at that temperature.",
+  },
+  shellfish: {
+    title: "Shrimp",
+    text: "Cook shrimp until the flesh is pearly and opaque all the way through and the shrimp curl into a loose C, about {temp:63}. Thaw frozen shrimp in the fridge or under cold running water, not on the counter.",
+  },
+  "slow-cooker": {
+    title: "Slow cooker",
+    text: "Start with thawed meat, keep the lid on, and don't fill the cooker more than two-thirds full. Check that chicken reaches {temp:74} before serving. Don't reheat leftovers in the slow cooker; use the stove or microwave.",
+  },
   fish: {
     title: "Fish",
     text: "Cook fish to {temp:63}, or until the flesh is opaque and separates easily with a fork.",

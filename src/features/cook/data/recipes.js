@@ -10,6 +10,8 @@
 // cook's preferred unit: {oven:220} for oven settings, {temp:74} for internal
 // food temperatures.
 
+import { moreRecipes } from "./recipesMore.js";
+
 const line = (ing, amount, prep, extra) => ({ ing, amount, ...(prep ? { prep } : {}), ...extra });
 const take = (ing, amount) => ({ ing, amount });
 
@@ -911,6 +913,7 @@ export const recipes = [
     ],
     ...SOURCE,
   },
+  ...moreRecipes,
 ];
 
 export const recipesById = new Map(recipes.map(r => [r.id, r]));

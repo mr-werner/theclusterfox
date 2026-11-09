@@ -2098,3 +2098,253 @@ button.ck-timer-chip {
     transform: none;
   }
 }
+
+/* --- Ingredient swaps ------------------------------------------------------ */
+
+.ck-cover-swap {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: #3a2a17;
+  background: rgba(255, 251, 244, 0.92);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.ck-ing-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ck-swap-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border: 1px solid var(--ck-line-strong);
+  border-radius: 999px;
+  color: var(--ck-muted);
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ck-swap-btn:hover,
+.ck-swap-btn:focus-visible {
+  color: var(--ck-accent-text);
+  border-color: var(--ck-accent);
+}
+
+.ck-swapped {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  color: var(--ck-accent-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ck-swapped .ck-link,
+.ck-left-out .ck-link {
+  font-size: 0.8rem;
+}
+
+.ck-prep-ing .ck-swap-btn,
+.ck-prep-ing .ck-swapped {
+  margin-top: 6px;
+}
+
+.ck-prep-ing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.ck-left-out {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ck-left-out li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+  padding: 8px 0;
+  color: var(--ck-muted);
+  font-size: 0.9rem;
+  text-decoration-color: var(--ck-line-strong);
+}
+
+.ck-left-out li > span {
+  text-decoration: line-through;
+}
+
+.ck-left-out .ck-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ck-custom-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  color: var(--ck-text);
+  background: var(--ck-accent-soft);
+  font-size: 0.92rem;
+}
+
+.ck-custom-banner svg {
+  color: var(--ck-accent-text);
+}
+
+.ck-custom-banner span {
+  flex: 1 1 220px;
+}
+
+.ck-callout--warn {
+  margin: 0 0 18px;
+}
+
+.ck-callout--warn .ck-btn {
+  margin-top: 8px;
+}
+
+.ck-swap-note {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+  color: var(--ck-accent-text);
+  font-size: 0.86rem;
+}
+
+.ck-swap-notes-cook {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ck-accent-soft);
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+
+.ck-swap-notes-cook p {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 6px;
+}
+
+.ck-swap-notes-cook p:last-child {
+  margin: 0;
+}
+
+.ck-swap-notes-cook svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--ck-accent-text);
+}
+
+.ck-swap-undo {
+  margin-bottom: 14px;
+}
+
+.ck-swap-list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.ck-swap-list > li {
+  padding: 16px;
+  border: 1px solid var(--ck-line);
+  border-radius: 18px;
+  background: var(--ck-surface);
+}
+
+.ck-swap-list > li.is-on {
+  border-color: var(--ck-accent);
+  background: var(--ck-accent-soft);
+}
+
+.ck-swap-title strong {
+  display: block;
+  font-size: 1.02rem;
+}
+
+.ck-badges--small {
+  margin-top: 8px;
+}
+
+.ck-badges--small li {
+  padding: 3px 9px;
+  font-size: 0.74rem;
+}
+
+.ck-swap-notes {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.ck-swap-notes div {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 8px;
+}
+
+.ck-swap-notes dt {
+  color: var(--ck-muted);
+  font-weight: 700;
+}
+
+.ck-swap-notes dd {
+  margin: 0;
+}
+
+.ck-swap-caution {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ck-warm-soft);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.ck-swap-caution svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ck-warm);
+}
+
+@media (max-width: 480px) {
+  .ck-swap-notes div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

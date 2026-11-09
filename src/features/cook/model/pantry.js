@@ -11,7 +11,7 @@
 // which recipe contributed what, so re-adding a recipe replaces its share
 // instead of doubling it.
 import { ingredients, ingredientsById } from "../data/ingredients.js";
-import { ingredientMatches } from "./match.js";
+import { ingredientMatches, normalize } from "./match.js";
 import { scaledLines } from "./recipe.js";
 
 export const SOON_DAYS = 3;
@@ -32,6 +32,10 @@ export function findIngredient(name) {
   const exact = ingredients.find(i => i.name.toLowerCase() === t || i.plural?.toLowerCase() === t || i.id === t.replace(/\s+/g, "-"));
   if (exact) return exact;
   const matches = ingredients.filter(i => ingredientMatches(i, t));
+  // A full alias match beats a partial one ("eggs" is the egg, not the flax egg).
+  const nt = normalize(t);
+  const whole = matches.filter(i => [i.name, i.plural, ...(i.aliases ?? [])].some(n => n && normalize(n) === nt));
+  if (whole.length === 1) return whole[0];
   // Only accept a fuzzy match when it's unambiguous ("oil" matches three oils).
   return matches.length === 1 ? matches[0] : null;
 }

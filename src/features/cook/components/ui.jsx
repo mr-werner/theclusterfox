@@ -1,6 +1,6 @@
-import { Beef, Coffee, Cookie, CookingPot, Croissant, Drumstick, Egg, EggFried, Fish, Flame, Minus, Plus, Soup, UtensilsCrossed } from "lucide-react";
+import { Banana, Bean, Beef, CakeSlice, Coffee, Cookie, CookingPot, Croissant, Drumstick, Egg, EggFried, Fish, Flame, Ham, Minus, Plus, Salad, Sandwich, Shrimp, Soup, UtensilsCrossed } from "lucide-react";
 
-const COVER_ICONS = { Beef, Coffee, Cookie, CookingPot, Croissant, Drumstick, Egg, EggFried, Fish, Flame, Soup, UtensilsCrossed };
+const COVER_ICONS = { Banana, Bean, Beef, CakeSlice, Coffee, Cookie, CookingPot, Croissant, Drumstick, Egg, EggFried, Fish, Flame, Ham, Salad, Sandwich, Shrimp, Soup, UtensilsCrossed };
 
 // Illustrated cover in place of photography (no licensed photos yet).
 export function Cover({ recipe, size = "card", children }) {

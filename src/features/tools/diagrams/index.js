@@ -15,6 +15,7 @@ import BoltDiagram from "./BoltDiagram";
 import SpringDiagram from "./SpringDiagram";
 import EnergyDiagram from "./EnergyDiagram";
 import FanSystemBuilder from "./FanSystemBuilder";
+import LoadBuilder from "./LoadBuilder";
 
 export const DIAGRAMS = {
   // The beam page has two drawings: standard cases, and the free-form builder.
@@ -35,6 +36,7 @@ export const DIAGRAMS = {
   "bolt-torque": { component: BoltDiagram, fields: ["size", "grade", "pct", "cond", "K"], hint: "Pick the bolt and how the threads are lubricated." },
   spring: { component: SpringDiagram, fields: ["d", "Dm", "Na", "F"], hint: "The spring is drawn to scale: wire, coil size and deflection are real." },
   "energy-motion": { component: EnergyDiagram, fields: ["m", "v", "h"], hint: "Drag the block up or down to change its height." },
+  "building-loads": { component: LoadBuilder, fields: ["model"], always: true, hint: "Add each room with its walls, windows, roof, people, lights and equipment. Design conditions are under More settings." },
   "fan-system": { component: FanSystemBuilder, fields: ["Q", "model", "z", "T"], always: true, hint: "List the path the air takes, from intake to the farthest outlet. Each item shows its own pressure loss." },
   slope: { component: SlopeDiagram, fields: ["rise", "run"], hint: "Drag the top corner to change the rise." },
 };

@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Plus, Ruler, Trash2 } from "lucide-react";
-import { Num } from "./kit";
+import { Num, Choice as Select } from "./kit";
 import { show } from "./helpers";
 import Chart from "../components/Chart";
 import { fmt } from "../model/units";
@@ -24,21 +24,6 @@ import {
 const KIND = { duct: "Duct run", fit: "Fitting", comp: "Component" };
 const COLORS = { duct: "#5cc8ff", fit: "#ffc764", comp: "#c6a6ff" };
 const US_LENGTHS = new Set(["in", "ft", "yd", "mi", "mil", "thou"]);
-
-function Select({ label, value, options, onChange }) {
-  return (
-    <label className="dg-pick">
-      <span className="dg-num-label">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
 
 export default function FanSystemBuilder({ values: v, set, output, unit, setUnit }) {
   const items = parseSystem(v.model);

@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { withNext } from "../lib/redirect";
 import { apps } from "../app/apps";
+import themes from "../app/appThemes.json";
 import "../styles/appbar.css";
 
 // The top bar every ClusterFox original wears instead of the site header.
@@ -34,6 +35,8 @@ export default function AppBar({ appId, children }) {
       document.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  useAppIdentity(app, title);
 
   const here = location.pathname + location.search;
   const initial = (user?.name || user?.email || "?").trim().charAt(0).toUpperCase();
@@ -126,4 +129,36 @@ export default function AppBar({ appId, children }) {
       </div>
     </header>
   );
+}
+
+// While an app is open, the browser treats it as that app: its own title,
+// theme color and Add to Home Screen details (name, icon, start page).
+function useAppIdentity(app, title) {
+  useEffect(() => {
+    if (!app) return undefined;
+    const head = document.head;
+    const changed = [];
+    const set = (selector, create, attr, value) => {
+      let el = head.querySelector(selector);
+      if (!el) {
+        el = create();
+        head.appendChild(el);
+        changed.push(() => el.remove());
+      } else {
+        const before = el.getAttribute(attr);
+        changed.push(() => (before === null ? el.removeAttribute(attr) : el.setAttribute(attr, before)));
+      }
+      el.setAttribute(attr, value);
+    };
+    const meta = name => () => Object.assign(document.createElement("meta"), { name });
+    const link = rel => () => Object.assign(document.createElement("link"), { rel });
+
+    set('link[rel="manifest"]', link("manifest"), "href", `/apps/${app.id}.webmanifest`);
+    set('link[rel="apple-touch-icon"]', link("apple-touch-icon"), "href", `/apps/${app.id}-180.png`);
+    set('meta[name="theme-color"]', meta("theme-color"), "content", themes[app.id] ?? "#111111");
+    set('meta[name="apple-mobile-web-app-title"]', meta("apple-mobile-web-app-title"), "content", title);
+    set('meta[name="apple-mobile-web-app-capable"]', meta("apple-mobile-web-app-capable"), "content", "yes");
+    set('meta[name="mobile-web-app-capable"]', meta("mobile-web-app-capable"), "content", "yes");
+    return () => changed.reverse().forEach(undo => undo());
+  }, [app, title]);
 }

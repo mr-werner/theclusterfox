@@ -1,0 +1,28 @@
+{
+  "id": "/f4t",
+  "name": "Fuel 4 Thought",
+  "short_name": "F4T",
+  "start_url": "/f4t",
+  "scope": "/f4t",
+  "display": "standalone",
+  "background_color": "#17110e",
+  "theme_color": "#17110e",
+  "icons": [
+    {
+      "src": "/apps/f4t-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/f4t-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/f4t-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

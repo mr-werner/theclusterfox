@@ -1,0 +1,28 @@
+{
+  "id": "/calm",
+  "name": "CalmFox",
+  "short_name": "CalmFox",
+  "start_url": "/calm",
+  "scope": "/calm",
+  "display": "standalone",
+  "background_color": "#1d2a26",
+  "theme_color": "#1d2a26",
+  "icons": [
+    {
+      "src": "/apps/calmfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/calmfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/calmfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

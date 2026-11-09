@@ -1,0 +1,28 @@
+{
+  "id": "/watch",
+  "name": "WatchFox",
+  "short_name": "WatchFox",
+  "start_url": "/watch",
+  "scope": "/watch",
+  "display": "standalone",
+  "background_color": "#08070a",
+  "theme_color": "#08070a",
+  "icons": [
+    {
+      "src": "/apps/watchfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/watchfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/watchfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

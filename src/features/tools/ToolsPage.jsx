@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeftRight, Calculator, ChevronRight, Clock, Search, Star, Table2, Wrench } from "lucide-react";
+import { ArrowLeftRight, Calculator, ChevronRight, Clock, Network, Search, Star, Table2, Wrench } from "lucide-react";
 import AppBar from "../../components/AppBar";
-import { CATEGORIES, CALCS, TABLES, CALC_ALIASES, calcById, tableById, categoryById, search } from "./registry";
+import { CATEGORIES, CALCS, TABLES, BUILDERS, CALC_ALIASES, calcById, tableById, builderById, categoryById, search } from "./registry";
 import { usePrefs } from "./state/usePrefs";
 import CalcView from "./components/CalcView";
 import TableView from "./components/TableView";
 import ConverterView from "./components/ConverterView";
+import FrameView from "./components/FrameView";
 import "./tools.css";
 import "./identity.css";
 
@@ -84,6 +85,7 @@ export default function ToolsPage() {
             <Route path="calc/:id" element={<CalcRoute prefsApi={prefsApi} />} />
             <Route path="data" element={<AllData />} />
             <Route path="data/:id" element={<TableRoute prefsApi={prefsApi} />} />
+            <Route path="frame" element={<FrameView prefsApi={prefsApi} />} />
             <Route path="convert" element={<ConverterRoute prefsApi={prefsApi} />} />
             <Route path="convert/:dim" element={<ConverterRoute prefsApi={prefsApi} />} />
             <Route path="*" element={<Home prefsApi={prefsApi} openSearch={() => setPaletteOpen(true)} />} />
@@ -117,6 +119,7 @@ function ConverterRoute({ prefsApi }) {
 const itemFor = (key) => {
   const [kind, id] = key.split(":");
   if (kind === "calc" && calcById[id]) return { key, kind, ...calcById[id], path: `/tools/calc/${id}` };
+  if (kind === "builder" && builderById[id]) return { key, kind, ...builderById[id] };
   if (kind === "table" && tableById[id]) return { key, kind, ...tableById[id], path: `/tools/data/${id}` };
   if (kind === "convert") return { key, kind, id: "convert", name: "Unit converter", blurb: "Every unit at once.", cat: null, path: "/tools/convert" };
   return null;
@@ -124,7 +127,7 @@ const itemFor = (key) => {
 
 function ToolCard({ item }) {
   const cat = item.cat ? categoryById[item.cat] : null;
-  const Icon = item.kind === "table" ? Table2 : item.kind === "convert" ? ArrowLeftRight : Calculator;
+  const Icon = item.kind === "table" ? Table2 : item.kind === "convert" ? ArrowLeftRight : item.kind === "builder" ? Network : Calculator;
   return (
     <Link to={item.path} className="tf-tool-card" style={cat ? { "--tf-cat": cat.hue } : undefined}>
       <span className="tf-tool-icon" aria-hidden="true">
@@ -248,6 +251,7 @@ function CategoryRoute() {
   }, [cat]);
   if (!cat) return <Home prefsApi={{ prefs: { favorites: [], recent: [] } }} openSearch={() => {}} />;
   const calcs = CALCS.filter((c) => c.cat === cat.id);
+  const builders = BUILDERS.filter((b) => b.cat === cat.id);
   const tables = TABLES.filter((t) => t.cat === cat.id);
   return (
     <div className="tf-category" style={{ "--tf-cat": cat.hue }}>
@@ -263,6 +267,16 @@ function CategoryRoute() {
         </div>
         <p className="tf-lede">{cat.blurb}</p>
       </header>
+      {builders.length > 0 && (
+        <>
+          <h2 className="tf-block-title">Builders</h2>
+          <div className="tf-tool-list">
+            {builders.map((b) => (
+              <ToolCard key={b.id} item={itemFor(`builder:${b.id}`)} />
+            ))}
+          </div>
+        </>
+      )}
       <h2 className="tf-block-title">Calculators</h2>
       <div className="tf-tool-list">
         {calcs.map((c) => (
@@ -358,11 +372,11 @@ function Palette({ onClose }) {
             return (
               <li key={`${r.kind}${r.id}`} role="option" aria-selected={i === active}>
                 <button type="button" className={i === active ? "is-active" : ""} onMouseEnter={() => setActive(i)} onClick={() => go(r)} style={{ "--tf-cat": cat?.hue }}>
-                  {r.kind === "table" ? <Table2 size={16} aria-hidden="true" /> : <Calculator size={16} aria-hidden="true" />}
+                  {r.kind === "table" ? <Table2 size={16} aria-hidden="true" /> : r.kind === "builder" ? <Network size={16} aria-hidden="true" /> : <Calculator size={16} aria-hidden="true" />}
                   <span>
                     <strong>{r.name}</strong>
                     <small>
-                      {cat?.short} · {r.kind === "table" ? "Table" : "Calculator"}
+                      {cat?.short} · {r.kind === "table" ? "Table" : r.kind === "builder" ? "Builder" : "Calculator"}
                     </small>
                   </span>
                 </button>

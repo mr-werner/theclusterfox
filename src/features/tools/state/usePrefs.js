@@ -14,12 +14,16 @@ function load() {
   }
 }
 
+// Tools that were folded into another one keep their place in favorites and recents.
+const MOVED = { "calc:beam-builder": "calc:beam" };
+const keys = (list) => [...new Set(list.filter((x) => typeof x === "string").map((x) => MOVED[x] || x))];
+
 function clean(raw) {
   if (!raw || typeof raw !== "object") return EMPTY;
   return {
     system: raw.system === "us" ? "us" : "si",
-    favorites: Array.isArray(raw.favorites) ? raw.favorites.filter((x) => typeof x === "string") : [],
-    recent: Array.isArray(raw.recent) ? raw.recent.filter((x) => typeof x === "string").slice(0, 8) : [],
+    favorites: Array.isArray(raw.favorites) ? keys(raw.favorites) : [],
+    recent: Array.isArray(raw.recent) ? keys(raw.recent).slice(0, 8) : [],
     units: raw.units && typeof raw.units === "object" ? raw.units : {},
   };
 }

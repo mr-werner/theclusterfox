@@ -170,7 +170,15 @@ near(result("standard-atmosphere", "p", { z: 0 }), 101325, 1e-9, "ISA calc");
 near(result("ohms-law", "R"), 6, 1e-12, "Ohm");
 near(result("three-phase", "P"), Math.sqrt(3) * 480 * 50 * 0.85, 1e-9, "3φ");
 near(result("ideal-gas", "rho"), 1.225, 2e-3, "air density at 15 °C");
-near(result("beam-builder", "R2"), 34200, 1e-6, "builder default: overhang reaction");
+near(result("beam", "R2", { setup: "custom", L: 8, model: "pin@0;roller@5;w6000@0-5;P12000@8", I: 2.77e-5 }), 34200, 1e-6, "builder: overhang reaction");
+{
+  // The builder seeded from a standard case gives the same answer as the formula.
+  const c = CALCS.find((x) => x.id === "beam");
+  const simple = { ...defaultsOf(c), load: "udl" };
+  const custom = c.onSet({ ...simple, setup: "custom" }, "setup", simple);
+  assert(custom.model, "switching to the builder seeds a model");
+  near(result("beam", "y", custom), result("beam", "y", simple), 1e-6, "builder matches standard case");
+}
 
 // Every calculator: valid definitions, defaults compute cleanly, presets point at real inputs.
 const ids = new Set();

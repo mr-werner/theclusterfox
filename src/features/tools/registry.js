@@ -24,6 +24,14 @@ export { TABLES };
 
 export const categoryById = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 export const calcById = Object.fromEntries(CALCS.map((c) => [c.id, c]));
+
+/**
+ * Old calculator ids that now live inside another one. `params` are the old
+ * calculator's defaults, so a saved link opens on the same beam it showed.
+ */
+export const CALC_ALIASES = {
+  "beam-builder": { to: "beam", params: { setup: "custom", L: "8", model: "pin@0;roller@5;w6000@0-5;P12000@8", I: "2.77e-5", S: "2.52e-4" } },
+};
 export const tableById = Object.fromEntries(TABLES.map((t) => [t.id, t]));
 
 /** Everything searchable, as { kind, id, name, blurb, cat, path, keywords }. */

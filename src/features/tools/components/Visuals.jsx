@@ -1,5 +1,6 @@
 import Chart from "./Chart";
 import BeamPlots from "./BeamPlots";
+import ZoomPan from "./ZoomPan";
 import { section, sectionOutline } from "../model/structures";
 import { frictionFactor } from "../model/math";
 import { fmt, defaultUnit } from "../model/units";
@@ -14,12 +15,14 @@ export default function Visual({ visual, system, unit = (dim) => defaultUnit(dim
     case "line":
       return (
         <section className="tf-card tf-visual">
-          <Chart
-            series={[{ points: visual.points }]}
-            x={{ ...visual.x, unit: defaultUnit(visual.x.dim, system) }}
-            y={{ ...visual.y, unit: defaultUnit(visual.y.dim, system) }}
-            marker={visual.marker}
-          />
+          <ZoomPan label="chart">
+            <Chart
+              series={[{ points: visual.points }]}
+              x={{ ...visual.x, unit: defaultUnit(visual.x.dim, system) }}
+              y={{ ...visual.y, unit: defaultUnit(visual.y.dim, system) }}
+              marker={visual.marker}
+            />
+          </ZoomPan>
         </section>
       );
     case "beam":
@@ -48,7 +51,9 @@ function Moody({ Re, f, rel }) {
   return (
     <section className="tf-card tf-visual">
       <h3 className="tf-visual-title">Moody chart · your pipe at ε/D = {fmt(rel, 3)}</h3>
-      <Chart series={series} x={{ label: "Reynolds number", min: 600, max: 1e8 }} y={{ label: "Friction factor f", min: 0.006, max: 0.1 }} logX logY marker={{ x: Re, y: f }} />
+      <ZoomPan label="Moody chart">
+        <Chart series={series} x={{ label: "Reynolds number", min: 600, max: 1e8 }} y={{ label: "Friction factor f", min: 0.006, max: 0.1 }} logX logY marker={{ x: Re, y: f }} />
+      </ZoomPan>
     </section>
   );
 }

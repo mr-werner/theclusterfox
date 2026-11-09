@@ -310,3 +310,52 @@ console.log(`Engineer ToolFox: ${CALCS.length} calculators and ${TABLES.length} 
   assert(csv.includes("Reynolds number,") && !csv.includes("−"), "no unicode minus or thousands commas in numbers");
   console.log("Engineer ToolFox: calc reports check out.");
 }
+
+// Fan and duct system sizer.
+{
+  const S = await import("../model/airsystem.js");
+  const cfm = (x) => toSI(x, "flow", "cfm");
+  const inch = 0.0254, ft = 0.3048;
+  const stdAir = { rho: S.STD_RHO, mu: 1.8205e-5, ratio: 1 };
+  // A 12 in galvanized duct at 1,000 cfm reads about 0.15–0.2 in. w.g. per 100 ft on a duct friction chart.
+  const d12 = { kind: "duct", shape: "round", D: 12 * inch, L: 100 * ft, mat: "g" };
+  const r12 = S.ductLoss(d12, cfm(1000), stdAir);
+  const per100 = fromSI(r12.dp, "pressure", "inH2O");
+  assert(per100 > 0.15 && per100 < 0.2, `12 in at 1000 cfm: ${per100} in/100 ft`);
+  near(fromSI(r12.v, "velocity", "fpm"), 1273.2, 1e-3, "12 in duct velocity");
+  // Velocity pressure of 1,000 fpm standard air is about 0.0623 in. w.g. (V/4005)².
+  const pv = S.solveSystem([{ ...d12, L: 0 }, { kind: "fit", type: "exit", n: 1 }], cfm(Math.PI / 4 * 1000), stdAir);
+  near(fromSI(pv.fit, "pressure", "inH2O"), (1000 / 4005) ** 2, 4e-3, "velocity pressure");
+  // Branch takeoffs use the downstream duct's velocity; elbows the upstream one.
+  const path = [d12, { kind: "fit", type: "teeB", n: 1 }, { kind: "duct", shape: "round", D: 8 * inch, L: 1, mat: "g", Q: cfm(300) }];
+  const sol = S.solveSystem(path, cfm(1000), stdAir);
+  near(sol.rows[1].v, sol.rows[2].v, 1e-12, "branch fitting on branch velocity");
+  // Model text round-trips.
+  const text = "d,r,0.3048,30.48,g;f,el90r,2;f,custom,1,0.7;d,x,0.5,0.3,10,l,0.4;c,ccoil,150";
+  assert.equal(S.stringifySystem(S.parseSystem(text)), text);
+  // Components scale with flow squared; the system curve starts at zero and rises.
+  const comp = [{ kind: "comp", type: "filt", dp: 100 }];
+  near(S.solveSystem(comp, 1, stdAir, 2).total, 400, 1e-12, "component ∝ Q²");
+  // Denver air is about 83% of standard density, and the standard-air pressure is higher by that ratio.
+  const den = S.siteAir(1609, 294.26, 0);
+  assert(den.ratio > 0.81 && den.ratio < 0.85, `Denver density ratio ${den.ratio}`);
+  const calc = air.find((c) => c.id === "fan-system");
+  const base = run(calc, defaultsOf(calc));
+  const high = run(calc, { ...defaultsOf(calc), z: 1609 });
+  const val = (o, id) => o.results.find((r) => r.id === id).value;
+  assert(val(high, "sys") < val(base, "sys"), "thinner air, less duct loss");
+  near(val(high, "Pstd"), val(high, "P") / val(high, "ratio"), 1e-12, "standard-air pressure");
+  near(val(base, "bhp"), (val(base, "P") * defaultsOf(calc).Q) / defaultsOf(calc).fanEff, 1e-12, "brake power");
+  // The fan's operating point sits on both curves.
+  const withFan = run(calc, { ...defaultsOf(calc), fan: "curve" });
+  const op = withFan.visual.fan.op;
+  assert(op, "fan operating point found");
+  const sysAtOp = S.solveSystem(S.parseSystem(defaultsOf(calc).model), defaultsOf(calc).Q, withFan.visual.air, op.Q).total;
+  near(op.P, sysAtOp, 1e-6, "operating point on the system curve");
+  assert(op.Q >= defaultsOf(calc).Q, "example fan meets the design airflow");
+  // Auto-size picks the smallest standard size meeting 0.1 in/100 ft: 1,000 cfm → 14 in.
+  const D = S.sizeRound(cfm(1000), stdAir, "g", toSI(0.1, "pressureGradient", "inH2O/100ft"), 0, S.roundSizes("us"));
+  near(D / inch, 14, 1e-9, "auto-size 1000 cfm");
+  assert.equal(S.standardMotor(700).label, "1 hp (0.75 kW)");
+  console.log("Engineer ToolFox: fan and duct system checks out.");
+}

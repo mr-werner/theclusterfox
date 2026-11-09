@@ -15,6 +15,7 @@ import BoltDiagram from "./BoltDiagram";
 import SpringDiagram from "./SpringDiagram";
 import EnergyDiagram from "./EnergyDiagram";
 import PumpSystemDiagram from "./PumpSystemDiagram";
+import FanSystemBuilder from "./FanSystemBuilder";
 
 export const DIAGRAMS = {
   // The beam page has two drawings: standard cases, and the free-form builder.
@@ -36,5 +37,6 @@ export const DIAGRAMS = {
   spring: { component: SpringDiagram, fields: ["d", "Dm", "Na", "F"], hint: "The spring is drawn to scale: wire, coil size and deflection are real." },
   "energy-motion": { component: EnergyDiagram, fields: ["m", "v", "h"], hint: "Drag the block up or down to change its height." },
   "pump-system": { component: PumpSystemDiagram, fields: ["Q", "fluid", "model", "src", "srcP", "zs", "dst", "zd", "dstP"], always: true, hint: "Build the system in flow order: supply, suction runs, pump, discharge runs, destination. Tap a pipe in the sketch to jump to it. Pinch, use the buttons or ctrl+scroll to zoom, and tap Fit to see it all." },
+  "fan-system": { component: FanSystemBuilder, fields: ["Q", "model", "z", "T"], always: true, hint: "List the path the air takes, from intake to the farthest outlet. Each item shows its own pressure loss." },
   slope: { component: SlopeDiagram, fields: ["rise", "run"], hint: "Drag the top corner to change the rise." },
 };

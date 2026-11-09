@@ -1,32 +1,9 @@
-/* CookFox identity: a warm kitchen. Builds on CookFox's cream and sage
-   with linen texture, recipe-card edges and a top bar that matches. */
-
-.ck {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M0 0h6M0 3h6' stroke='%23a07b4a' stroke-opacity='0.05'/%3E%3Cpath d='M0 0v6M3 0v6' stroke='%23a07b4a' stroke-opacity='0.035'/%3E%3C/svg%3E");
-}
-
-.ck[data-theme="dark"] {
-  background-image: none;
-}
+/* CookFox keeps its own design. This only lets the shared ClusterFox
+   app bar match CookFox's cream and sage. */
 
 .ck-topbar {
   background: transparent;
   color: inherit;
-}
-
-.ck-shell {
-  animation: ck-serve 520ms cubic-bezier(0.25, 0.8, 0.3, 1) both;
-}
-
-@keyframes ck-serve {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .appbar[data-app="cookfox"] {
@@ -46,10 +23,4 @@
   --ab-bg: rgba(28, 26, 23, 0.9);
   --ab-fg: #f1ebe0;
   --ab-line: rgba(255, 255, 255, 0.08);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ck-shell {
-    animation: none;
-  }
 }

@@ -4,6 +4,7 @@ import { Trash2, X } from "lucide-react";
 import { activities } from "../../clocast/data/activities";
 import { ITEM_KINDS, REPEATS } from "../state/planStore";
 import PlaceSearch from "./PlaceSearch";
+import { CHECKABLE, PRIORITIES } from "../model/tasks";
 
 const PLACEHOLDERS = {
   event: "Dinner with friends, concert, appointment",
@@ -50,6 +51,7 @@ export default function ItemEditor({ item, onSave, onDelete, onClose }) {
       minutes: draft.kind === "training" ? Number(draft.minutes) : null,
       place: draft.kind === "event" || draft.kind === "training" ? draft.place : null,
       outdoor: draft.kind === "event" && draft.outdoor,
+      priority: CHECKABLE.includes(draft.kind) ? draft.priority ?? "normal" : "normal",
     });
   }
 
@@ -105,6 +107,19 @@ export default function ItemEditor({ item, onSave, onDelete, onClose }) {
             </label>
           )}
         </div>
+
+        {CHECKABLE.includes(draft.kind) && (
+          <div className="pf-field">
+            <span id="pf-priority-label">Priority</span>
+            <div className="pf-segment pf-priority" role="group" aria-labelledby="pf-priority-label">
+              {PRIORITIES.map(p => (
+                <button key={p.id} type="button" className={`is-${p.id}`} aria-pressed={(draft.priority ?? "normal") === p.id} onClick={() => set({ priority: p.id })}>
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {draft.kind === "bill" && (
           <label className="pf-field">

@@ -459,7 +459,7 @@ export default function PlanPage() {
         <footer className="pf-credits">
           <p>
             Weather from <a href="https://open-meteo.com" target="_blank" rel="noreferrer">Open-Meteo</a>, clothing advice from{" "}
-            <Link to="/clocast">CloCast</Link>, game schedules from ESPN, movie dates from <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a>
+            <Link to="/clocast">SkyFox</Link>, game schedules from ESPN, movie dates from <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a>
             {data.layers.games && (
               <>
                 , game releases from <a href="https://rawg.io" target="_blank" rel="noreferrer">RAWG</a>

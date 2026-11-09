@@ -1,10 +1,14 @@
-import { Droplet, Droplets, Gauge, Leaf, Sun, Sunrise, Sunset, Thermometer, Wind } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Droplet, Droplets, Gauge, Leaf, Radar, Sun, Sunrise, Sunset, Thermometer, Wind } from "lucide-react";
 
 import { aqiCategory, describeWeather } from "../../../services/weather/openMeteo";
 import { formatTemp, formatWind } from "../units";
 import { dayName } from "../when";
 import WeatherIcon from "./WeatherIcon";
 import HourlyGraph from "./HourlyGraph";
+import AttireBadge from "./AttireBadge";
+import RadarMap from "./RadarMap";
+import { feelsLike } from "../model/feels";
 
 function clockTime(time) {
   if (!time) return "–";
@@ -20,22 +24,61 @@ function uvLabel(uv) {
   return "Extreme";
 }
 
-/**
- * A traditional forecast: conditions for the chosen day, hour by hour, and
- * the week ahead. The hours you're planning for are highlighted.
- */
 function formatPressure(hpa, units) {
   return units === "metric" ? `${Math.round(hpa)} hPa` : `${(hpa * 0.02953).toFixed(2)} inHg`;
 }
 
 const WEEK_DAYS = 10;
 
-export default function WeatherReport({ forecast, units, place, dayIndex, highlight, next24, airNow, onPickDay }) {
+// Feels like in the sun and in the shade: right now, or at the warmest hour
+// of another day.
+function FeelsLine({ forecast, place, units, isToday, next24, day }) {
   const { current, hours } = forecast;
+  let feels;
+  if (isToday) {
+    const hour = next24[0] ?? {};
+    feels = feelsLike({ ...hour, temp: current.temp, rh: current.rh ?? hour.rh, wind: current.wind }, place);
+  } else {
+    const dayHours = hours.filter(h => h.localDay === day.day);
+    if (!dayHours.length) return null;
+    feels = feelsLike(dayHours.reduce((a, b) => (b.temp > a.temp ? b : a)), place);
+  }
+  const sun = formatTemp(feels.sun, units);
+  const shade = formatTemp(feels.shade, units);
+  const prefix = isToday ? "Feels like" : "Feels up to";
+  if (sun === shade) return <span className="cc-feels">{prefix} {shade}</span>;
+  return (
+    <span className="cc-feels">
+      {prefix} {sun} in the sun
+      <strong>{shade} in the shade</strong>
+    </span>
+  );
+}
+
+/**
+ * The forecast in one pane: now (with what to wear), hour by hour, radar,
+ * and the days ahead.
+ */
+export default function WeatherReport({
+  forecast,
+  units,
+  place,
+  dayIndex,
+  next24,
+  airNow,
+  onPickDay,
+  plan,
+  attire,
+  attireWhen,
+  onAttire,
+  layers,
+  onLayers,
+}) {
+  const { current, hours } = forecast;
+  const [radarOpen, setRadarOpen] = useState(false);
   const days = forecast.days.slice(0, Math.max(WEEK_DAYS, dayIndex + 1));
   const day = days[dayIndex] ?? days[0];
   const isToday = dayIndex === 0 && current;
-  const highlighted = new Set(highlight.map(hour => hour.time.getTime()));
 
   // Today shows the next 24 hours; other days show their own daytime hours.
   const strip = isToday
@@ -67,6 +110,7 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
             <p className="cc-report-desc">{describeWeather(isToday ? current.code : day.code)}</p>
           </div>
         </div>
+        {plan && <AttireBadge plan={plan} mode={attire} when={attireWhen} onSwitch={onAttire} />}
         <div className="cc-report-hilo">
           <span>
             H <strong>{formatTemp(day.high, units, { unit: false })}</strong>
@@ -74,7 +118,7 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
           <span>
             L <strong>{formatTemp(day.low, units, { unit: false })}</strong>
           </span>
-          {isToday && <span className="cc-muted">Feels like {formatTemp(current.apparent, units)}</span>}
+          <FeelsLine forecast={forecast} place={place} units={units} isToday={Boolean(isToday)} next24={next24} day={day} />
         </div>
       </div>
 
@@ -90,7 +134,7 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
         {isToday && current.rh != null && (
           <div>
             <dt><Droplet size={15} aria-hidden="true" /> Humidity</dt>
-            <dd>{current.rh}%</dd>
+            <dd>{Math.round(current.rh)}%</dd>
           </div>
         )}
         <div>
@@ -130,7 +174,27 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
       </dl>
 
       <h3 className="cc-subhead">Hourly</h3>
-      <HourlyGraph key={`${day.day}-${strip.length}`} hours={strip} units={units} highlighted={highlighted} firstIsNow={Boolean(isToday)} />
+      <HourlyGraph
+        key={`${day.day}-${strip.length}`}
+        hours={strip}
+        units={units}
+        place={place}
+        firstIsNow={Boolean(isToday)}
+        layers={layers}
+        onLayers={onLayers}
+      />
+
+      <button
+        type="button"
+        className="cc-radar-toggle"
+        aria-expanded={radarOpen}
+        onClick={() => setRadarOpen(open => !open)}
+      >
+        <Radar size={16} aria-hidden="true" />
+        Radar
+        <ChevronDown size={16} className={radarOpen ? "is-flipped" : ""} aria-hidden="true" />
+      </button>
+      {radarOpen && <RadarMap place={place} />}
 
       <h3 className="cc-subhead">{days.length}-day forecast</h3>
       <ul className="cc-week">

@@ -12,9 +12,9 @@ export const apps = [
   },
   {
     id: "clocast",
-    name: "Clo",
-    subtitle: "CloCast",
-    description: "Weather • Layers • Science",
+    name: "Sky",
+    subtitle: "SkyFox",
+    description: "Weather • Radar • What to wear",
     path: "/clocast",
     icon: CloudSun,
     accent: "clocast",

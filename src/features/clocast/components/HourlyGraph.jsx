@@ -1,21 +1,84 @@
-import { useState } from "react";
-import { Droplet, Droplets, Sun, Thermometer, Wind } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowUp, Cloud, Droplet, Droplets, Leaf, Sun, Thermometer, TreePine, Wind } from "lucide-react";
 
-import { describeWeather } from "../../../services/weather/openMeteo";
-import { formatHour, formatTemp, formatWind } from "../units";
+import { aqiCategory, describeWeather } from "../../../services/weather/openMeteo";
+import { feelsLike } from "../model/feels";
+import { formatHour, formatTemp } from "../units";
 import WeatherIcon from "./WeatherIcon";
 
 const CELL = 62;
 const BAND = 92; // height of the temperature band
 const PAD = 20;
 
+const windNumber = (ms, units) => Math.round(units === "metric" ? ms * 3.6 : ms * 2.23694);
+
+// Extra rows that can be switched on under the graph. Rain is drawn as bars
+// inside the graph itself; the rest are a line of values each.
+const LAYERS = [
+  { id: "rain", name: "Precip", icon: Droplets },
+  { id: "feels", name: "Feels like", icon: Thermometer },
+  { id: "shade", name: "In the shade", icon: TreePine },
+  { id: "wind", name: "Wind", icon: Wind },
+  { id: "humidity", name: "Humidity", icon: Droplet },
+  { id: "dew", name: "Dew point", icon: Droplet },
+  { id: "aqi", name: "Air quality", icon: Leaf },
+  { id: "uv", name: "UV", icon: Sun },
+  { id: "cloud", name: "Clouds", icon: Cloud },
+];
+
+function layerCaption(id, units) {
+  if (id === "wind") return units === "metric" ? "Wind · km/h" : "Wind · mph";
+  if (id === "humidity") return "Humidity · %";
+  if (id === "cloud") return "Cloud cover · %";
+  if (id === "aqi") return "Air quality · US AQI";
+  if (id === "uv") return "UV index";
+  return LAYERS.find(layer => layer.id === id).name;
+}
+
+function LayerValue({ id, hour, units }) {
+  switch (id) {
+    case "feels":
+      return formatTemp(hour.feels.sun, units, { unit: false });
+    case "shade":
+      return formatTemp(hour.feels.shade, units, { unit: false });
+    case "wind":
+      return (
+        <span className="cc-layer-wind">
+          {Number.isFinite(hour.windDir) && (
+            // Wind is reported by where it comes from; the arrow shows where it's going.
+            <ArrowUp size={12} style={{ transform: `rotate(${hour.windDir + 180}deg)` }} aria-hidden="true" />
+          )}
+          {windNumber(hour.wind, units)}
+          {hour.gust > hour.wind + 3 && <small>g{windNumber(hour.gust, units)}</small>}
+        </span>
+      );
+    case "humidity":
+      return Math.round(hour.rh);
+    case "dew":
+      return formatTemp(hour.dewPoint, units, { unit: false });
+    case "aqi": {
+      const air = aqiCategory(hour.aqi);
+      return air ? <span className={`cc-aqi is-${air.tone}`}>{Math.round(hour.aqi)}</span> : "–";
+    }
+    case "uv":
+      return Math.round(hour.uv);
+    case "cloud":
+      return Number.isFinite(hour.cloud) ? Math.round(hour.cloud) : "–";
+    default:
+      return null;
+  }
+}
+
 /**
  * Hour by hour as a scrollable graph: the temperature curve with each
- * hour's reading, rain chance as bars underneath, and a tap for details.
+ * hour's reading, then whichever extra rows are switched on.
  */
-export default function HourlyGraph({ hours, units, highlighted, firstIsNow }) {
-  const [picked, setPicked] = useState(0);
+export default function HourlyGraph({ hours: rawHours, units, place, firstIsNow, layers, onLayers }) {
+  const hours = useMemo(() => rawHours.map(hour => ({ ...hour, feels: feelsLike(hour, place) })), [rawHours, place]);
   if (!hours.length) return null;
+  const on = new Set(layers);
+  const rows = LAYERS.filter(layer => layer.id !== "rain" && on.has(layer.id));
+
   const temps = hours.map(h => h.temp);
   const lo = Math.min(...temps);
   const hi = Math.max(...temps);
@@ -36,11 +99,23 @@ export default function HourlyGraph({ hours, units, highlighted, firstIsNow }) {
     })
     .join(" ");
   const width = hours.length * CELL;
-  const hour = hours[Math.min(picked, hours.length - 1)];
   const label = i => (firstIsNow && i === 0 ? "Now" : formatHour(hours[i].localHour));
+  const toggle = id => onLayers(on.has(id) ? layers.filter(layer => layer !== id) : [...layers, id]);
 
   return (
     <div className="cc-graph">
+      <div className="cc-layer-chips" role="group" aria-label="Show in the hourly forecast">
+        {LAYERS.map(layer => {
+          const Icon = layer.icon;
+          return (
+            <button key={layer.id} type="button" aria-pressed={on.has(layer.id)} onClick={() => toggle(layer.id)}>
+              <Icon size={14} aria-hidden="true" />
+              {layer.name}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="cc-graph-scroll">
         <div className="cc-graph-track" style={{ width }}>
           <svg className="cc-graph-svg" width={width} height={BAND} viewBox={`0 0 ${width} ${BAND}`} aria-hidden="true">
@@ -54,63 +129,47 @@ export default function HourlyGraph({ hours, units, highlighted, firstIsNow }) {
             <path d={path} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
             {points.map(([px, py], i) => (
               <g key={i}>
-                <circle cx={px} cy={py} r={i === picked ? 5 : 3} className={i === picked ? "is-picked" : ""} />
+                <circle cx={px} cy={py} r={i === 0 && firstIsNow ? 5 : 3} className={i === 0 && firstIsNow ? "is-picked" : ""} />
                 <text x={px} y={py - 10} textAnchor="middle">
                   {formatTemp(hours[i].temp, units, { unit: false })}
                 </text>
               </g>
             ))}
           </svg>
-          <div className="cc-graph-cells" role="listbox" aria-label="Hourly forecast">
+          <ol className={`cc-graph-cells ${on.has("rain") ? "" : "no-rain"}`} aria-label="Hourly forecast">
             {hours.map((h, i) => (
-              <button
+              <li
                 key={h.time.getTime()}
-                type="button"
-                role="option"
-                aria-selected={i === picked}
-                className={`cc-graph-cell ${highlighted.has(h.time.getTime()) ? "is-window" : ""}`}
-                onClick={() => setPicked(i)}
+                className="cc-graph-cell"
                 aria-label={`${label(i)}: ${formatTemp(h.temp, units)}, ${describeWeather(h.code)}, ${h.precipProb}% chance of rain`}
               >
                 <span className="cc-graph-time">{label(i)}</span>
                 <WeatherIcon code={h.code} isDay={h.isDay} size={20} />
                 <span className="cc-graph-gap" />
-                <span className="cc-graph-rain" style={{ "--p": h.precipProb / 100 }}>
-                  <span className="cc-graph-rain-bar" />
-                  <span className={h.precipProb >= 30 ? "is-likely" : ""}>{h.precipProb}%</span>
-                </span>
-              </button>
+                {on.has("rain") && (
+                  <span className="cc-graph-rain" style={{ "--p": h.precipProb / 100 }}>
+                    <span className="cc-graph-rain-bar" />
+                    <span className={h.precipProb >= 30 ? "is-likely" : ""}>{h.precipProb}%</span>
+                  </span>
+                )}
+              </li>
             ))}
-          </div>
+          </ol>
+
+          {rows.map(layer => (
+            <div key={layer.id} className="cc-layer-row">
+              <span className="cc-layer-name">{layerCaption(layer.id, units)}</span>
+              <div className="cc-layer-values">
+                {hours.map(h => (
+                  <span key={h.time.getTime()}>
+                    <LayerValue id={layer.id} hour={h} units={units} />
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-
-      <dl className="cc-graph-detail" aria-live="polite">
-        <div className="cc-graph-detail-head">
-          <dt>{label(Math.min(picked, hours.length - 1))}</dt>
-          <dd>{describeWeather(hour.code)}</dd>
-        </div>
-        <div>
-          <dt><Thermometer size={14} aria-hidden="true" /> Feels like</dt>
-          <dd>{formatTemp(hour.apparent, units)}</dd>
-        </div>
-        <div>
-          <dt><Wind size={14} aria-hidden="true" /> Wind</dt>
-          <dd>{formatWind(hour.wind, units)}{hour.gust > hour.wind + 3 ? `, gusts ${formatWind(hour.gust, units)}` : ""}</dd>
-        </div>
-        <div>
-          <dt><Droplets size={14} aria-hidden="true" /> Humidity</dt>
-          <dd>{Math.round(hour.rh)}%</dd>
-        </div>
-        <div>
-          <dt><Droplet size={14} aria-hidden="true" /> Rain</dt>
-          <dd>{hour.precipProb}%{hour.precip > 0 ? ` · ${units === "metric" ? `${hour.precip.toFixed(1)} mm` : `${(hour.precip / 25.4).toFixed(2)} in`}` : ""}</dd>
-        </div>
-        <div>
-          <dt><Sun size={14} aria-hidden="true" /> UV</dt>
-          <dd>{Math.round(hour.uv)}</dd>
-        </div>
-      </dl>
     </div>
   );
 }

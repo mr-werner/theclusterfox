@@ -1,26 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CalendarDays, Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, Sun, Target, TreePine } from "lucide-react";
+import { CalendarDays, Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, Sun, Target } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import LocationPicker from "./components/LocationPicker";
 import Coach from "./components/Coach";
-import OutfitCard from "./components/OutfitCard";
 import Planner from "./components/Planner";
-import TodayBriefing from "./components/TodayBriefing";
 import ProfilePanel from "./components/ProfilePanel";
 import WeatherReport from "./components/WeatherReport";
-import WhenPicker from "./components/WhenPicker";
 import WhyPanel from "./components/WhyPanel";
 import SkyLayer from "./components/SkyLayer";
 import AlertBanner from "./components/AlertBanner";
 import { skyFor } from "./model/sky";
 import { activities, activitiesById } from "./data/activities";
+import { attireById } from "./data/attire";
 import { planOutfit } from "./model/plan";
 import { useClocastData } from "./state/useClocastData";
 import { fetchAirQuality, fetchForecast, withAirQuality } from "../../services/weather/openMeteo";
 import { formatTemp } from "./units";
-import { dayName, describeWindow, DURATIONS, PARTS, partAvailable, windowHours } from "./when";
+import { windowHours } from "./when";
 import "./clocast.css";
 import "./identity.css";
 
@@ -71,7 +69,7 @@ export default function ClocastPage() {
   const activity = activitiesById.get(data.activityId) ?? activities[0];
 
   const [forecast, setForecast] = useState({ key: null, status: "idle", data: EMPTY_FORECAST, air: null, error: "", at: 0 });
-  const [choice, setChoice] = useState({ day: 0, part: "now" });
+  const [dayIndex, setDayIndex] = useState(0);
   const [reloads, setReloads] = useState(0);
   const placeKey = place ? `${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}` : null;
 
@@ -101,22 +99,15 @@ export default function ClocastPage() {
   );
   const now = forecast.at;
   const scoreOptions = useMemo(() => ({ profile, tolerance }), [profile, tolerance]);
-  const todayOptions = useMemo(() => ({ profile, tolerance, shaded: data.shaded }), [profile, tolerance, data.shaded]);
   const dayKeys = useMemo(() => weather.days.map(d => d.day), [weather.days]);
-  const weekKeys = useMemo(() => dayKeys.slice(0, 7), [dayKeys]);
-  const duration = DURATIONS.includes(data.hours) ? data.hours : 2;
+  const attire = attireById.get(data.attire) ?? attireById.get("casual");
 
-  // Fall back to the first part of the day that hasn't passed yet.
-  let part = choice.part;
-  if (weather.hours.length && !partAvailable(weather.hours, dayKeys, choice.day, part)) {
-    part = PARTS.find(p => partAvailable(weather.hours, dayKeys, choice.day, p.id))?.id ?? "now";
-  }
-  const when = { day: choice.day, part, duration };
-
-  const picked = useMemo(
-    () => windowHours(weather.hours, dayKeys, { day: choice.day, part, duration }),
-    [weather.hours, dayKeys, choice.day, part, duration]
-  );
+  // Today the outfit covers the next two hours; another day, its daytime.
+  const picked = useMemo(() => {
+    if (dayIndex === 0) return windowHours(weather.hours, dayKeys, { day: 0, part: "now", duration: 2 });
+    return weather.hours.filter(h => h.localDay === dayKeys[dayIndex] && h.localHour >= 9 && h.localHour < 18);
+  }, [weather.hours, dayKeys, dayIndex]);
+  const attireWhen = dayIndex === 0 ? "next 2 hrs" : "9 AM–6 PM";
 
   const next24 = useMemo(
     () => windowHours(weather.hours, dayKeys, { day: 0, part: "now", duration: 24 }),
@@ -125,27 +116,14 @@ export default function ClocastPage() {
 
   const plan = useMemo(() => {
     if (!place || !picked.length) return null;
-    return planOutfit(picked, place, activity, {
+    return planOutfit(picked, place, attire.activity, {
       profile,
       tolerance,
-      shaded: data.shaded,
       formatTemp: celsius => formatTemp(celsius, units),
     });
-  }, [picked, data.shaded, place, activity, profile, tolerance, units]);
-
-  function changeWhen(next) {
-    setChoice({ day: next.day, part: next.part });
-    if (next.duration !== duration) update({ hours: next.duration });
-  }
+  }, [picked, place, attire, profile, tolerance, units]);
 
   const profileUsed = Boolean(profile.heightCm || profile.weightKg || profile.sex || profile.ageYears);
-  const partName = PARTS.find(p => p.id === part)?.name.toLowerCase();
-  const windowLabel =
-    part === "now"
-      ? `Next ${duration === 1 ? "hour" : `${duration} hours`}`
-      : choice.day === 0
-        ? `This ${partName}`
-        : `${dayName(dayKeys[choice.day], choice.day)} ${partName}`;
   const ready = place && !loading && forecast.status === "ready" && weather.days.length > 0;
   // The sky follows the weather right now; before a forecast loads, a calm daytime sky.
   const sky = ready && weather.current ? skyFor(weather.current.code, weather.current.isDay) : "partly-day";
@@ -164,7 +142,7 @@ export default function ClocastPage() {
             <CloudSun size={26} />
           </div>
           <div>
-            <p className="cc-eyebrow">CLOCAST</p>
+            <p className="cc-eyebrow">SKYFOX</p>
             <h1>Plan your day around the weather.</h1>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
@@ -176,11 +154,16 @@ export default function ClocastPage() {
             forecast={weather}
             units={units}
             place={place}
-            dayIndex={choice.day}
-            highlight={picked}
+            dayIndex={dayIndex}
             next24={next24}
             airNow={forecast.air?.current}
-            onPickDay={day => setChoice(current => ({ ...current, day }))}
+            onPickDay={setDayIndex}
+            plan={plan}
+            attire={attire}
+            attireWhen={attireWhen}
+            onAttire={id => update({ attire: id })}
+            layers={data.hourlyLayers}
+            onLayers={hourlyLayers => update({ hourlyLayers })}
           />
         )}
 
@@ -200,11 +183,10 @@ export default function ClocastPage() {
               </span>
             }
           />
-          {ready && tab === "today" && <WhenPicker hours={weather.hours} days={weekKeys} when={when} onChange={changeWhen} />}
         </section>
 
         {ready && (
-          <nav className="cc-tabs" aria-label="CloCast">
+          <nav className="cc-tabs" aria-label="SkyFox">
             {TABS.map(item => {
               const Icon = item.icon;
               return (
@@ -273,67 +255,6 @@ export default function ClocastPage() {
 
         {ready && tab === "today" && (
           <>
-            <TodayBriefing
-              hours={weather.hours}
-              days={dayKeys}
-              place={place}
-              activity={activity}
-              options={todayOptions}
-              units={units}
-              plans={data.plans}
-              now={now}
-              onOpenPlanner={() => openTab("plan")}
-            />
-
-            <section className="cc-panel cc-wear" aria-labelledby="cc-wear-title">
-              <div className="cc-wear-head">
-                <div>
-                  <p className="cc-eyebrow">WHAT TO WEAR</p>
-                  <h2 id="cc-wear-title">What are you doing?</h2>
-                </div>
-                <label className="cc-switch">
-                  <input
-                    type="checkbox"
-                    checked={data.shaded}
-                    onChange={event => update({ shaded: event.target.checked })}
-                  />
-                  <span className="cc-switch-track" aria-hidden="true" />
-                  <TreePine size={15} aria-hidden="true" />
-                  <span>In the shade</span>
-                </label>
-              </div>
-
-              <div className="cc-activities" role="radiogroup" aria-label="Activity">
-                {activities.map(item => {
-                  const Icon = item.icon;
-                  const selected = item.id === activity.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      className={`cc-activity ${selected ? "is-active" : ""}`}
-                      onClick={() => update({ activityId: item.id })}
-                      title={item.hint}
-                    >
-                      <Icon size={18} aria-hidden="true" />
-                      <span>{item.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {plan ? (
-                <OutfitCard
-                  plan={plan}
-                  summary={[activity.name, windowLabel, describeWindow(picked), data.shaded && "In the shade"].filter(Boolean).join(" · ")}
-                />
-              ) : (
-                <p className="cc-note">That part of the day has already passed. Pick another time above.</p>
-              )}
-            </section>
-
             <ProfilePanel
               profile={profile}
               units={units}

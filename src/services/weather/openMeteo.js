@@ -19,6 +19,9 @@ const HOURLY = [
   "shortwave_radiation",
   "direct_normal_irradiance",
   "diffuse_radiation",
+  "wind_direction_10m",
+  "dew_point_2m",
+  "cloud_cover",
 ];
 
 const CURRENT = [
@@ -64,7 +67,7 @@ export async function searchPlaces(query, { signal } = {}) {
  * Current conditions, fourteen days, and an hourly forecast. Each hour has:
  * time (Date), localHour, localDay, temp °C, apparent °C, rh %, wind m/s,
  * gust m/s, precipProb %, precip mm, code (WMO), uv, isDay, global,
- * directNormal, diffuse (W/m²).
+ * directNormal, diffuse (W/m²), windDir (degrees, from), dewPoint °C, cloud %.
  */
 export async function fetchForecast({ latitude, longitude }, { signal } = {}) {
   const params = new URLSearchParams({
@@ -105,6 +108,9 @@ export function parseForecast(body) {
       global: h.shortwave_radiation?.[i] ?? 0,
       directNormal: h.direct_normal_irradiance?.[i] ?? 0,
       diffuse: h.diffuse_radiation?.[i] ?? 0,
+      windDir: h.wind_direction_10m?.[i] ?? null,
+      dewPoint: h.dew_point_2m?.[i] ?? null,
+      cloud: h.cloud_cover?.[i] ?? null,
     };
   }).filter(hour => Number.isFinite(hour.temp));
 

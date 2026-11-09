@@ -99,10 +99,11 @@ export default function SiteHeader() {
                 aria-label="Site navigation"
             >
                 <Link
-                    to="/free"
+                    to="/alternatives"
                     className="header-link"
+                    title="3rd Party Alternatives"
                 >
-                    Free Apps
+                    Alternatives
                 </Link>
 
                 {!loading && (

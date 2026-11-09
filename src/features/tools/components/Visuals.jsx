@@ -1,5 +1,6 @@
 import Chart from "./Chart";
 import BeamPlots from "./BeamPlots";
+import PumpPlots from "./PumpPlots";
 import { section, sectionOutline } from "../model/structures";
 import { frictionFactor } from "../model/math";
 import { fmt, defaultUnit } from "../model/units";
@@ -24,6 +25,8 @@ export default function Visual({ visual, system, unit = (dim) => defaultUnit(dim
       );
     case "beam":
       return <BeamPlots v={visual} unit={unit} />;
+    case "pump":
+      return <PumpPlots v={visual} unit={unit} />;
     case "section":
       return <Section v={visual} />;
     case "tank":

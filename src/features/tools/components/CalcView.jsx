@@ -76,7 +76,7 @@ export default function CalcView({ id, prefsApi }) {
   const restInputs = calc.inputs.filter((i) => isVisible(i, values) && !onDiagram(i));
   const pick = (presetId, label) => setValues((cur) => applyPreset(calc, cur, presetId, label));
   const presetValue = (presetId) => matchingPreset(calc.inputs.find((i) => i.id === presetId), values);
-  const wideVisual = output.visual?.type === "beam";
+  const wideVisual = ["beam", "pump"].includes(output.visual?.type);
   const showVisual = !wideVisual && (!useDiagram || ["moody", "line"].includes(output.visual?.type));
   const primary = output.results.find((r) => r.primary);
   const others = output.results.filter((r) => !r.primary);

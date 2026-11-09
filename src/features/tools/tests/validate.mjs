@@ -242,6 +242,46 @@ for (const t of TABLES) {
   if (t.chart) assert(t.columns.some((c) => c.id === t.chart.x) && t.columns.some((c) => c.id === t.chart.y), `${t.id}: chart columns`);
 }
 
+// Pump system builder: NPSH, TDH and the operating point against hand calculations.
+{
+  const ps = await import("../model/pumpSystem.js");
+  const rt = ps.parseModel(ps.stringifyModel(ps.parseModel(ps.DEFAULT_MODEL)));
+  assert.deepEqual(rt, ps.parseModel(ps.DEFAULT_MODEL), "pump model round trip");
+  const custom = ps.parseModel("s,custom,0.1~0.000045,10,0,,0,A|d,custom,0.1~0.000045,50,20,,0,B");
+  near(custom[0].D, 0.1, 1e-12, "custom ID");
+  // Crane: 4-inch Sch 40, fT ≈ 0.017, standard elbow 30 fT ≈ 0.51.
+  near(ps.fittingK({ el90: 1 }, ps.sizesFor("s40").find((x) => x.size === "4").ID), 0.51, 0.04, "4in elbow K");
+  near(ps.fittingK({ exit: 2 }, 0.1), 2, 1e-12, "plain K");
+  const rho = 998.2, mu = 1.002e-3, pv = 2339, Q = 0.01, patm = 101325;
+  const v = Q / (Math.PI * 0.01 / 4);
+  const hv = (v * v) / (2 * 9.80665);
+  const f = frictionFactor((rho * v * 0.1) / mu, 0.045e-3 / 0.1);
+  const p = { rho, mu, pv, patm, srcP: 0, zs: 2, dst: "tank", zd: 25, dstP: 0 };
+  const sol = ps.solveSystem(custom, Q, p);
+  near(sol.NPSHa, patm / (rho * 9.80665) + 2 - f * (10 / 0.1) * hv - pv / (rho * 9.80665), 1e-9, "NPSHa flooded");
+  near(sol.TDH, 25 - 2 + f * (60 / 0.1) * hv, 1e-9, "TDH");
+  near(ps.solveSystem(custom, 1e-12, p).TDH, 23, 1e-6, "TDH at no flow is the static lift");
+  // Pipe ends above the tank level: it has to lift to its own outlet.
+  near(ps.solveSystem(custom, 1e-12, { ...p, zd: 5 }).staticHead, 20 - 2, 1e-9, "spilling outlet");
+  // Suction lift and a closed vacuum tank both cut NPSH one-for-one.
+  near(sol.NPSHa - ps.solveSystem(custom, Q, { ...p, zs: -3 }).NPSHa, 5, 1e-9, "suction lift");
+  near(sol.NPSHa - ps.solveSystem(custom, Q, { ...p, srcP: -20000 }).NPSHa, 20000 / (rho * 9.80665), 1e-9, "vacuum supply");
+  // Operating point sits on both curves.
+  const curve = ps.pumpCurve({ H0: 40, Qr: 0.012, Hr: 32, Qm: 0.02, Hm: 18 });
+  near(curve(0.012), 32, 1e-9, "pump curve rated");
+  near(curve(0.02), 18, 1e-9, "pump curve run-out");
+  const op = ps.operatingPoint(custom, p, curve, 0.012);
+  near(op.H, ps.solveSystem(custom, op.Q, p).TDH, 1e-6, "operating point");
+  assert.equal(ps.operatingPoint(custom, { ...p, zd: 80 }, curve, 0.012), null, "pump too weak");
+  // Altitude: 1,500 m loses about 16.5 kPa of atmosphere, so NPSHa falls about 1.7 m.
+  const calc = fluids.find((c) => c.id === "pump-system");
+  const hi = result("pump-system", "NPSHa", { site: 1500 });
+  const lo = result("pump-system", "NPSHa");
+  near(lo - hi, (101325 - standardAtmosphere(1500).p) / (calc.inputs.find((i) => i.id === "rho").value * 9.80665), 1e-6, "altitude NPSH");
+  assert.equal(result("pump-system", "npshCheck", { NPSHr: 20 }), "Fails: the pump will cavitate");
+  console.log("Engineer ToolFox: pump system builder checks out.");
+}
+
 console.log(`Engineer ToolFox: ${CALCS.length} calculators and ${TABLES.length} tables check out.`);
 
 // Calc reports: inputs and results in the units on screen, CSV safe for Excel.

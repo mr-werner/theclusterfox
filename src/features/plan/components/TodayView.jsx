@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, CornerDownLeft, Flag, GripVertical, Plus } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, CornerDownLeft, Flag, GripVertical, Plus } from "lucide-react";
 
 import WeatherIcon from "../../clocast/components/WeatherIcon";
 import { formatTemp } from "../../clocast/units";
@@ -33,7 +33,8 @@ function QuickAdd({ today, onAdd }) {
         <input
           value={text}
           onChange={event => setText(event.target.value)}
-          placeholder="Add a task, like “Pay rent friday !”"
+          placeholder="Add a task"
+          title="Say when: today, tomorrow or a weekday. Add ! for high priority or ~ for low."
           maxLength={140}
           autoComplete="off"
         />
@@ -50,14 +51,14 @@ function QuickAdd({ today, onAdd }) {
           <CornerDownLeft size={16} aria-hidden="true" />
         </button>
       </label>
-      <p className="pf-quick-hint" aria-live="polite">
+      <p className={`pf-quick-hint${parsed.title ? " is-live" : ""}`} aria-live="polite">
         {parsed.title ? (
           <>
             Adds <b>{parsed.title}</b> for <b>{relativeDay(parsed.day, today)}</b>
             {shownPriority !== "normal" && <>, {shownPriority} priority</>}
           </>
         ) : (
-          <>Say when: today, tomorrow or a weekday. Add ! for high priority or ~ for low.</>
+          <>Try “Pay rent friday !”. Say when: today, tomorrow or a weekday. Add ! for high priority or ~ for low.</>
         )}
       </p>
     </form>
@@ -177,15 +178,18 @@ export default function TodayView({ today, selected, items, entriesByDay, foreca
       <header className="pf-today-head">
         <p className="pf-today-kicker">Today</p>
         <h2>{longDate(today)}</h2>
-        <p className="pf-muted">
-          {open.length === 0 ? "Nothing left to do today." : `${open.length} thing${open.length === 1 ? "" : "s"} to do`}
-          {weather && (
-            <>
-              {" · "}
-              <WeatherIcon code={weather.code} size={15} /> {formatTemp(weather.high, units)} / {formatTemp(weather.low, units)}
-            </>
-          )}
-        </p>
+        <div className="pf-today-sub">
+          <span className="pf-muted">{open.length === 0 ? "Nothing left to do." : `${open.length} thing${open.length === 1 ? "" : "s"} to do`}</span>
+          <button type="button" className="pf-today-details" onClick={() => onSelect(today)}>
+            {weather && (
+              <>
+                <WeatherIcon code={weather.code} size={15} /> {formatTemp(weather.high, units)} / {formatTemp(weather.low, units)}
+                <span aria-hidden="true">·</span>
+              </>
+            )}
+            Day details <ChevronRight size={14} aria-hidden="true" />
+          </button>
+        </div>
       </header>
 
       <QuickAdd today={today} onAdd={onAdd} />

@@ -146,7 +146,9 @@ export function AgendaView({ days, today, entriesByDay, forecastByDay, tipsByDay
             <button type="button" className="pf-agenda-day" onClick={() => onSelect(day)}>
               <span className="pf-agenda-date">
                 <strong>{relativeDay(day, today)}</strong>
-                <span className="pf-muted">{parseDay(day).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                {relativeDay(day, today) !== parseDay(day).toLocaleDateString("en-US", { month: "short", day: "numeric" }) && (
+                  <span className="pf-muted">{parseDay(day).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                )}
               </span>
               {weather && (
                 <span className="pf-cell-weather">

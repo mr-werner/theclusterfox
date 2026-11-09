@@ -2,7 +2,8 @@ import { CalendarPlus, Sparkles, X } from "lucide-react";
 
 import { LAYERS, PRESETS } from "../state/planStore";
 
-// Every layer as a one-tap toggle, always on screen above the calendar.
+// Every layer as a one-tap toggle. It lives in the Layers sheet so the
+// calendar itself stays quiet.
 export function LayerBar({ layers, onToggle, onLinkCalendar }) {
   return (
     <ul className="pf-layer-bar" aria-label="Show on calendar">
@@ -14,11 +15,13 @@ export function LayerBar({ layers, onToggle, onLinkCalendar }) {
           </button>
         </li>
       ))}
-      <li>
-        <button type="button" className="pf-layer-chip pf-link-chip" onClick={onLinkCalendar}>
-          <CalendarPlus size={13} aria-hidden="true" /> Link a calendar
-        </button>
-      </li>
+      {onLinkCalendar && (
+        <li>
+          <button type="button" className="pf-layer-chip pf-link-chip" onClick={onLinkCalendar}>
+            <CalendarPlus size={13} aria-hidden="true" /> Link a calendar
+          </button>
+        </li>
+      )}
     </ul>
   );
 }
@@ -34,7 +37,7 @@ export function SetupCard({ layers, onPick, onDismiss, hasPlan, onOpenPlanner, o
             <Sparkles size={12} aria-hidden="true" /> QUICK SETUP
           </p>
           <h2>What do you want to plan around?</h2>
-          <p className="pf-muted">Pick one or more. You can switch any layer on or off later from the colored bar above the calendar.</p>
+          <p className="pf-muted">Pick one or more. You can switch any layer on or off later from the Layers button.</p>
         </div>
         <button type="button" className="pf-icon-btn" onClick={onDismiss} aria-label="Close quick setup">
           <X size={18} />

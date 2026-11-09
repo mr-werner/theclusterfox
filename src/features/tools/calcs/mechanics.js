@@ -1,6 +1,6 @@
 import { num, choice, preset, out, text } from "./define.js";
 import { G } from "../model/units.js";
-import { solveBeam, section, solveFreeBeam, parseBeamModel } from "../model/structures.js";
+import { solveBeam, section, solveFreeBeam, parseBeamModel, stringifyBeamModel, simpleBeamItems } from "../model/structures.js";
 import { MATERIALS } from "../data/materials.js";
 import { BOLT_SIZES, BOLT_GRADES, NUT_FACTORS } from "../data/electrical.js";
 
@@ -21,96 +21,93 @@ const has = (v, ...shapes) => shapes.includes(v.shape);
 const metalPresets = (fields) =>
   MATERIALS.filter((m) => fields.every((f) => m[f] != null)).map((m) => ({ label: m.name, set: Object.fromEntries(fields.map((f) => [f, m[f]])) }));
 
+function computeSimpleBeam(v) {
+  if (v.load === "point" && v.a > v.L) return { results: [], warnings: ["The load must sit on the beam: its distance has to be less than the span."] };
+  const r = solveBeam(v);
+  const results = [
+    out("y", "Maximum deflection", "smallLength", Math.abs(r.maxY), { primary: true }),
+    out("ratio", "Span / deflection", "none", v.L / Math.abs(r.maxY)),
+    out("M", "Maximum bending moment", "moment", Math.abs(r.maxM)),
+    out("V", "Maximum shear", "force", Math.abs(r.maxV)),
+    out("RA", "Left reaction", "force", r.RA),
+    out("RB", "Right reaction", "force", r.RB),
+  ];
+  if (r.MA) results.push(out("MA", "Fixed-end moment (left)", "moment", Math.abs(r.MA)));
+  if (v.S > 0) results.push(out("sigma", "Maximum bending stress", "stress", Math.abs(r.maxM) / v.S));
+  results.push(out("xY", "Max deflection at", "length", r.xMaxY));
+  const warnings = [];
+  const ratio = v.L / Math.abs(r.maxY);
+  if (ratio < 360 && v.support !== "cant") warnings.push(`Deflection is L/${Math.round(ratio)}. Floors are usually limited to L/360 for live load and L/240 for total load.`);
+  return { results, warnings, visual: { type: "beam", ...r, support: v.support, load: v.load, L: v.L, a: v.a } };
+}
+
+function computeFreeBeam(v) {
+  const items = parseBeamModel(v.model || stringifyBeamModel(simpleBeamItems(v)));
+  const r = solveFreeBeam({ L: v.L, E: v.E, I: v.I, items });
+  if (r.error) return { results: [], warnings: [r.error], visual: { type: "beam", free: true, items, L: v.L } };
+  const Mabs = Math.max(r.maxM, -r.minM);
+  const results = [
+    out("y", "Maximum deflection", "smallLength", Math.abs(r.maxY), { primary: true }),
+    out("xY", "Max deflection at", "length", r.xMaxY),
+    out("Mpos", "Largest sagging moment (+)", "moment", r.maxM),
+    out("Mneg", "Largest hogging moment (−)", "moment", -r.minM),
+    out("V", "Maximum shear", "force", Math.abs(r.maxV)),
+  ];
+  if (v.S > 0) results.push(out("sigma", "Maximum bending stress", "stress", Mabs / v.S));
+  const seen = new Set();
+  const sorted = r.reactions.map((s, i) => ({ ...s, i })).sort((p, q) => p.x - q.x);
+  let n = 0;
+  for (const s of sorted) {
+    const key = s.x.toPrecision(9);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    n += 1;
+    results.push(out(`R${n}`, `Reaction ${n} (${s.kind})`, "force", s.R));
+    if (s.kind === "fixed") results.push(out(`MR${n}`, `Fixed-end moment ${n}`, "moment", Math.abs(s.M)));
+  }
+  results.push(out("total", "Total load", "force", r.totalLoad));
+  const warnings = [];
+  if (items.some((it) => (it.x ?? 0) > v.L || (it.x2 ?? 0) > v.L)) warnings.push("Some items sit past the end of the beam; they're treated as being at the end.");
+  return { results, warnings, visual: { type: "beam", free: true, items, ...r, L: v.L } };
+}
+
 export const mechanics = [
   {
     id: "beam",
     cat: "mech",
     name: "Beam deflection, shear and moment",
-    blurb: "Simply supported, cantilever and fixed beams with live diagrams.",
-    keywords: "beam deflection bending moment shear diagram cantilever simply supported fixed point load uniform load",
+    blurb: "Standard beam cases, or build your own with any supports and loads, with live shear, moment and deflection diagrams.",
+    keywords: "beam deflection bending moment shear diagram cantilever simply supported fixed point load uniform load beam builder continuous beam multiple supports overhang distributed load moment reactions indeterminate",
     inputs: [
-      choice("support", "Supports", [{ value: "ss", label: "Simply supported" }, { value: "cant", label: "Cantilever" }, { value: "fixed", label: "Fixed both ends" }]),
-      choice("load", "Load", [{ value: "point", label: "Point load" }, { value: "udl", label: "Uniform load" }]),
+      choice("setup", "Beam setup", [{ value: "simple", label: "Standard cases" }, { value: "custom", label: "Beam builder (any supports and loads)" }]),
+      choice("support", "Supports", [{ value: "ss", label: "Simply supported" }, { value: "cant", label: "Cantilever" }, { value: "fixed", label: "Fixed both ends" }], undefined, { when: (v) => v.setup !== "custom" }),
+      choice("load", "Load", [{ value: "point", label: "Point load" }, { value: "udl", label: "Uniform load" }], undefined, { when: (v) => v.setup !== "custom" }),
       num("L", "Span", "length", 4, { min: 0 }),
-      num("P", "Point load", "force", 10000, { when: (v) => v.load === "point" }),
-      num("a", "Load distance from left end", "length", 2, { min: 0, when: (v) => v.load === "point" }),
-      num("w", "Uniform load", "linearLoad", 5000, { when: (v) => v.load === "udl" }),
+      num("P", "Point load", "force", 10000, { when: (v) => v.setup !== "custom" && v.load === "point" }),
+      num("a", "Load distance from left end", "length", 2, { min: 0, when: (v) => v.setup !== "custom" && v.load === "point" }),
+      num("w", "Uniform load", "linearLoad", 5000, { when: (v) => v.setup !== "custom" && v.load === "udl" }),
+      text("model", "Supports and loads", "", { hidden: true }),
       preset("mat", "Material", metalPresets(["E"])),
       num("E", "Young's modulus", "modulus", 200e9, { min: 0 }),
       num("I", "Moment of inertia", "inertia", 8.69e-6, { min: 0, hint: "Defaults are an IPE 160 steel beam. Use the section properties tool for your own shape." }),
       num("S", "Section modulus (for stress, optional)", "sectionModulus", 1.09e-4, { min: 0 }),
     ],
-    compute: (v) => {
-      if (v.load === "point" && v.a > v.L) return { results: [], warnings: ["The load must sit on the beam: its distance has to be less than the span."] };
-      const r = solveBeam(v);
-      const results = [
-        out("y", "Maximum deflection", "smallLength", Math.abs(r.maxY), { primary: true }),
-        out("ratio", "Span / deflection", "none", v.L / Math.abs(r.maxY)),
-        out("M", "Maximum bending moment", "moment", Math.abs(r.maxM)),
-        out("V", "Maximum shear", "force", Math.abs(r.maxV)),
-        out("RA", "Left reaction", "force", r.RA),
-        out("RB", "Right reaction", "force", r.RB),
-      ];
-      if (r.MA) results.push(out("MA", "Fixed-end moment (left)", "moment", Math.abs(r.MA)));
-      if (v.S > 0) results.push(out("sigma", "Maximum bending stress", "stress", Math.abs(r.maxM) / v.S));
-      results.push(out("xY", "Max deflection at", "length", r.xMaxY));
-      const warnings = [];
-      const ratio = v.L / Math.abs(r.maxY);
-      if (ratio < 360 && v.support !== "cant") warnings.push(`Deflection is L/${Math.round(ratio)}. Floors are usually limited to L/360 for live load and L/240 for total load.`);
-      return { results, warnings, visual: { type: "beam", ...r, support: v.support, load: v.load, L: v.L, a: v.a } };
-    },
-    formula: ["Simply supported, center load: δ = P L³ / 48 E I,  M = P L / 4", "Simply supported, uniform: δ = 5 w L⁴ / 384 E I,  M = w L² / 8", "Cantilever, end load: δ = P L³ / 3 E I,  M = P L", "Cantilever, uniform: δ = w L⁴ / 8 E I,  M = w L² / 2", "σ = M / S"],
-    about: "These are the classic Euler–Bernoulli beam results: small deflections, linear elastic material, and the beam's own weight left out (add it as a uniform load if it matters). The diagrams update as you type, so you can see where the beam is working hardest.",
-    sources: "Roark's Formulas for Stress and Strain; AISC Steel Construction Manual, beam diagrams and formulas.",
-    related: ["beam-builder", "section-properties", "stress-strain"],
-  },
-  {
-    id: "beam-builder",
-    cat: "mech",
-    name: "Beam builder (any loads and supports)",
-    blurb: "Free-form beams: as many supports, point loads, moments and distributed loads as you like.",
-    keywords: "beam builder continuous beam multiple supports overhang point loads distributed load moment reactions shear moment diagram indeterminate",
-    inputs: [
-      num("L", "Beam length", "length", 8, { min: 0 }),
-      text("model", "Supports and loads", "pin@0;roller@5;w6000@0-5;P12000@8", { hidden: true }),
-      preset("mat", "Material", metalPresets(["E"])),
-      num("E", "Young's modulus", "modulus", 200e9, { min: 0 }),
-      num("I", "Moment of inertia", "inertia", 2.77e-5, { min: 0, hint: "Default is an IPE 220 steel beam. Use the section properties tool for your own shape." }),
-      num("S", "Section modulus (for stress, optional)", "sectionModulus", 2.52e-4, { min: 0 }),
+    /** Switching to the builder starts it from the standard case on screen. */
+    onSet: (next, key) => (key === "setup" && next.setup === "custom" && !next.model ? { ...next, model: stringifyBeamModel(simpleBeamItems(next)) } : next),
+    compute: (v) => (v.setup === "custom" ? computeFreeBeam(v) : computeSimpleBeam(v)),
+    formula: [
+      "Simply supported, center load: δ = P L³ / 48 E I,  M = P L / 4",
+      "Simply supported, uniform: δ = 5 w L⁴ / 384 E I,  M = w L² / 8",
+      "Cantilever, end load: δ = P L³ / 3 E I,  M = P L",
+      "Cantilever, uniform: δ = w L⁴ / 8 E I,  M = w L² / 2",
+      "Beam builder: K u = F   (stiffness method, Euler–Bernoulli beam elements)",
+      "V(x) = Σ forces left of x,  M(x) = Σ (force × lever arm) + Σ couples left of x",
+      "σ = M / S",
     ],
-    compute: (v) => {
-      const items = parseBeamModel(v.model);
-      const r = solveFreeBeam({ L: v.L, E: v.E, I: v.I, items });
-      if (r.error) return { results: [], warnings: [r.error], visual: { type: "beam", free: true, items, L: v.L } };
-      const Mabs = Math.max(r.maxM, -r.minM);
-      const results = [
-        out("y", "Maximum deflection", "smallLength", Math.abs(r.maxY), { primary: true }),
-        out("xY", "Max deflection at", "length", r.xMaxY),
-        out("Mpos", "Largest sagging moment (+)", "moment", r.maxM),
-        out("Mneg", "Largest hogging moment (−)", "moment", -r.minM),
-        out("V", "Maximum shear", "force", Math.abs(r.maxV)),
-      ];
-      if (v.S > 0) results.push(out("sigma", "Maximum bending stress", "stress", Mabs / v.S));
-      const seen = new Set();
-      const sorted = r.reactions.map((s, i) => ({ ...s, i })).sort((p, q) => p.x - q.x);
-      let n = 0;
-      for (const s of sorted) {
-        const key = s.x.toPrecision(9);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        n += 1;
-        results.push(out(`R${n}`, `Reaction ${n} (${s.kind})`, "force", s.R));
-        if (s.kind === "fixed") results.push(out(`MR${n}`, `Fixed-end moment ${n}`, "moment", Math.abs(s.M)));
-      }
-      results.push(out("total", "Total load", "force", r.totalLoad));
-      const warnings = [];
-      if (items.some((it) => (it.x ?? 0) > v.L || (it.x2 ?? 0) > v.L)) warnings.push("Some items sit past the end of the beam; they're treated as being at the end.");
-      return { results, warnings, visual: { type: "beam", free: true, items, ...r, L: v.L } };
-    },
-    formula: ["K u = F   (stiffness method, Euler–Bernoulli beam elements)", "V(x) = Σ forces left of x", "M(x) = Σ (force × lever arm) + Σ couples left of x", "σ = M / S"],
-    about: "Build any straight beam: continuous spans, overhangs, propped cantilevers, partial and sloped distributed loads, and applied moments. Beams with more supports than statics alone can solve (statically indeterminate) are handled by the stiffness method, the same way frame-analysis programs do it. Pins and rollers both stop the beam moving up or down; a fixed support also stops it rotating. Loads are positive downward and moments positive clockwise. Sagging moment (smile shape) is positive.",
-    sources: "Hibbeler, Structural Analysis; Przemieniecki, Theory of Matrix Structural Analysis.",
-    related: ["beam", "section-properties"],
+    about:
+      "These are Euler–Bernoulli beam results: small deflections, linear elastic material, and the beam's own weight left out (add it as a uniform load if it matters). Standard cases use the classic closed-form formulas. Switch to the beam builder for continuous spans, overhangs, propped cantilevers, partial and sloped distributed loads, and applied moments; beams with more supports than statics alone can solve (statically indeterminate) are handled by the stiffness method, the same way frame-analysis programs do it. Pins and rollers both stop the beam moving up or down; a fixed support also stops it rotating. Loads are positive downward and moments positive clockwise. Sagging moment (smile shape) is positive.",
+    sources: "Roark's Formulas for Stress and Strain; AISC Steel Construction Manual, beam diagrams and formulas; Hibbeler, Structural Analysis; Przemieniecki, Theory of Matrix Structural Analysis.",
+    related: ["section-properties", "stress-strain", "buckling"],
   },
   {
     id: "section-properties",

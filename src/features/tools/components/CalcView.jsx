@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Check, Copy, Link2, RotateCcw, Star, TriangleAlert } from "lucide-react";
+import { Check, ClipboardList, Copy, Download, Link2, Printer, RotateCcw, Star, TriangleAlert } from "lucide-react";
 import { calcById, categoryById } from "../registry";
 import { defaultsOf, run, toParams, fromParams, applyPreset, matchingPreset, isVisible } from "../model/engine";
 import { defaultUnit, fromSI, unitLabel, fmt } from "../model/units";
 import { NumField, ChoiceField, PresetField, TextField, UnitSelect } from "./Fields";
 import Visual from "./Visuals";
 import { DIAGRAMS } from "../diagrams";
+import { inputRows, reportCsv, reportText, resultRows } from "../model/report";
 
 const MODE_KEY = "toolfox-mode";
 const readMode = () => {
@@ -88,6 +89,21 @@ export default function CalcView({ id, prefsApi }) {
       },
       () => {}
     );
+  }
+
+  function report() {
+    const inputs = inputRows(calc, values, unitFor);
+    const results = resultRows(output.results, outUnitFor);
+    return { calc, inputs, results, warnings: output.warnings, url: window.location.href };
+  }
+
+  function download() {
+    const blob = new Blob([reportCsv(report())], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${calc.id}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
   const resultText = (r) => (r.text !== undefined ? r.text : `${fmt(fromSI(r.value, r.dim, outUnitFor(r)))} ${unitLabel(r.dim, outUnitFor(r))}`.trim());
@@ -220,6 +236,18 @@ export default function CalcView({ id, prefsApi }) {
               </p>
             ))}
           </section>
+          <div className="tf-export" role="group" aria-label="Export this calculation">
+            <button type="button" className="tf-export-btn" onClick={() => copy(reportText(report()), "report")}>
+              {copied === "report" ? <Check size={15} aria-hidden="true" /> : <ClipboardList size={15} aria-hidden="true" />}
+              {copied === "report" ? "Copied" : "Copy calc"}
+            </button>
+            <button type="button" className="tf-export-btn" onClick={download} disabled={!output.results.length}>
+              <Download size={15} aria-hidden="true" /> CSV
+            </button>
+            <button type="button" className="tf-export-btn" onClick={() => window.print()}>
+              <Printer size={15} aria-hidden="true" /> Print sheet
+            </button>
+          </div>
           {showVisual && <Visual visual={output.visual} system={prefs.system} unit={unitFor} />}
         </div>
       </div>
@@ -227,14 +255,24 @@ export default function CalcView({ id, prefsApi }) {
       {wideVisual && <Visual visual={output.visual} system={prefs.system} unit={unitFor} />}
 
       <section className="tf-card tf-about">
-        <h2>How it works</h2>
-        <div className="tf-formulas">
-          {calc.formula.map((f) => (
-            <code key={f}>{f}</code>
-          ))}
+        <div className="tf-about-block">
+          <h2>Equations</h2>
+          <div className="tf-formulas">
+            {calc.formula.map((f) => (
+              <code key={f}>{f}</code>
+            ))}
+          </div>
         </div>
-        <p>{calc.about}</p>
-        {calc.sources && <p className="tf-source">Sources: {calc.sources}</p>}
+        <div className="tf-about-block">
+          <h2>Assumptions and limits</h2>
+          <p>{calc.about}</p>
+        </div>
+        {calc.sources && (
+          <div className="tf-about-block">
+            <h2>References</h2>
+            <p className="tf-source">{calc.sources}</p>
+          </div>
+        )}
         {calc.related?.length > 0 && (
           <div className="tf-related">
             <span>Related</span>
@@ -246,6 +284,26 @@ export default function CalcView({ id, prefsApi }) {
           </div>
         )}
       </section>
+
+      <footer className="tf-titleblock" aria-label="Calculation sheet details">
+        <div>
+          <span>Calculation</span>
+          <strong>{calc.name}</strong>
+        </div>
+        <div>
+          <span>Discipline</span>
+          <strong>{cat.name}</strong>
+        </div>
+        <div>
+          <span>Units</span>
+          <strong>{prefs.system === "us" ? "US customary" : "Metric (SI)"}</strong>
+        </div>
+        <div>
+          <span>Date</span>
+          <strong>{new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</strong>
+        </div>
+        <p>Engineer ToolFox. Check results before relying on them for design.</p>
+      </footer>
     </article>
   );
 }

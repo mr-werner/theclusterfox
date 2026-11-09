@@ -117,6 +117,260 @@
   --ab-radius: 2px;
 }
 
+/* Inputs are drafted boxes, not black wells. */
+.tf-input-row,
+.tf-select,
+.tf .tf-field select {
+  border-radius: 2px;
+  background: rgba(4, 22, 42, 0.75);
+}
+
+.tf-input-row:focus-within {
+  border-color: var(--tf-accent);
+  box-shadow: 0 0 0 1px var(--tf-accent), 0 0 18px rgba(92, 214, 255, 0.18);
+}
+
+/* The primary result reads like an instrument readout. */
+.tf-primary {
+  border-radius: 2px !important;
+  background:
+    repeating-linear-gradient(0deg, rgba(92, 214, 255, 0.05) 0 1px, transparent 1px 4px),
+    linear-gradient(135deg, rgba(92, 214, 255, 0.16), rgba(13, 40, 70, 0.4)) !important;
+  box-shadow: inset 0 0 0 1px rgba(92, 214, 255, 0.35);
+}
+
+.tf-primary-value output {
+  color: #e9fbff;
+  text-shadow: 0 0 18px rgba(92, 214, 255, 0.4);
+}
+
+/* Export: copy the calc, save it as CSV, or print a sheet. */
+.tf-export {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tf-export-btn {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px dashed var(--tf-line-strong);
+  border-radius: 2px;
+  color: var(--tf-accent);
+  background: rgba(10, 34, 64, 0.7);
+  font: 600 0.82rem var(--tf-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tf-export-btn:hover:not(:disabled) {
+  border-style: solid;
+  border-color: var(--tf-accent);
+}
+
+.tf-export-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tf-export-btn:focus-visible {
+  outline: 2px solid var(--tf-accent);
+  outline-offset: 2px;
+}
+
+/* Equations, assumptions, references: three ruled boxes. */
+.tf-about {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 0;
+  padding: 0 !important;
+}
+
+.tf-about-block {
+  min-width: 0;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--tf-line);
+}
+
+.tf-about-block:first-child {
+  grid-row: span 2;
+  border-right: 1px solid var(--tf-line);
+}
+
+.tf-about-block h2 {
+  margin: 0 0 12px;
+  color: var(--tf-accent);
+  font-family: var(--tf-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tf-about-block p {
+  margin: 0;
+}
+
+.tf-about .tf-related {
+  grid-column: 1 / -1;
+  padding: 16px 22px;
+}
+
+.tf-formulas code {
+  border-radius: 2px;
+  background: rgba(4, 22, 42, 0.8);
+  font-family: var(--tf-mono);
+  white-space: pre-wrap;
+}
+
+/* The drawing title block at the foot of every calc. */
+.tf-titleblock {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr 1fr;
+  margin-top: 16px;
+  border: 1px solid var(--tf-line-strong);
+  background: rgba(10, 34, 64, 0.85);
+  font-family: var(--tf-mono);
+}
+
+.tf-titleblock div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-right: 1px solid var(--tf-line);
+}
+
+.tf-titleblock div:nth-child(4) {
+  border-right: 0;
+}
+
+.tf-titleblock span {
+  color: var(--tf-muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tf-titleblock strong {
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-titleblock p {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 8px 14px;
+  border-top: 1px solid var(--tf-line);
+  color: var(--tf-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 760px) {
+  .tf-about {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-about-block:first-child {
+    grid-row: auto;
+    border-right: 0;
+  }
+
+  .tf-titleblock {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .tf-titleblock div:first-child {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-bottom: 1px solid var(--tf-line);
+  }
+
+  .tf-titleblock div:nth-child(3) {
+    border-right: 1px solid var(--tf-line);
+    border-top: 1px solid var(--tf-line);
+  }
+
+  .tf-titleblock div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .tf-titleblock div:nth-child(3),
+  .tf-titleblock div:nth-child(4) {
+    border-top: 1px solid var(--tf-line);
+  }
+}
+
+/* Print: a clean black-on-white calculation sheet. */
+@media print {
+  .appbar,
+  .tf-side,
+  .tf-mode-row,
+  .tf-actions,
+  .tf-export,
+  .tf-copy,
+  .tf-related,
+  .tf-tip,
+  .tf-crumb {
+    display: none !important;
+  }
+
+  .tf,
+  .tf * {
+    color: #000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  .tf {
+    background: #fff !important;
+  }
+
+  .tf-shell {
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .tf-main {
+    animation: none;
+  }
+
+  .tf-card,
+  .tf-primary,
+  .tf-titleblock,
+  .tf-input-row,
+  .tf-formulas code {
+    border-color: #000 !important;
+    background: #fff !important;
+    backdrop-filter: none;
+  }
+
+  .tf-results {
+    position: static;
+  }
+
+  .tf-unit {
+    appearance: none;
+    border: 0;
+    background: none;
+  }
+
+  .tf-card,
+  .tf-titleblock {
+    break-inside: avoid;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tf-main {
     animation: none;

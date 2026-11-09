@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { DIMS, convert, toSI, fromSI, parseNumber, fmt, CONVERTER_DIMS } from "../model/units.js";
+import { DIMS, convert, toSI, fromSI, parseNumber, fmt, CONVERTER_DIMS, defaultUnit } from "../model/units.js";
 import { frictionFactor } from "../model/math.js";
 import { standardAtmosphere, psychrometrics, satPressure } from "../model/air.js";
 import { solveBeam, section, solveFreeBeam, parseBeamModel, stringifyBeamModel } from "../model/structures.js";
@@ -243,3 +243,22 @@ for (const t of TABLES) {
 }
 
 console.log(`Engineer ToolFox: ${CALCS.length} calculators and ${TABLES.length} tables check out.`);
+
+// Calc reports: inputs and results in the units on screen, CSV safe for Excel.
+{
+  const { inputRows, resultRows, reportText, reportCsv } = await import("../model/report.js");
+  const calc = fluids.find((c) => c.id === "pressure-drop");
+  const values = defaultsOf(calc);
+  const out = run(calc, values);
+  const metric = (dim) => defaultUnit(dim, "si");
+  const inputs = inputRows(calc, values, metric);
+  const results = resultRows(out.results, (r) => r.unit || metric(r.dim));
+  assert(inputs.some((r) => r.label === "Pipe length" && r.value === "100" && r.unit === "m"), "length input in metres");
+  assert(results.length === out.results.length && results[0].value !== "—", "every result written out");
+  const text = reportText({ calc, inputs, results, date: new Date("2026-01-02") });
+  assert(text.includes("2026-01-02") && text.includes("Equations") && text.includes("Sources"));
+  const csv = reportCsv({ inputs, results });
+  assert(csv.startsWith("﻿Section,Quantity,Value,Unit"));
+  assert(csv.includes("Reynolds number,") && !csv.includes("−"), "no unicode minus or thousands commas in numbers");
+  console.log("Engineer ToolFox: calc reports check out.");
+}

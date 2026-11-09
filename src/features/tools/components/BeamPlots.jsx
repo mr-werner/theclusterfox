@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { fromSI, unitLabel, fmt } from "../model/units";
 import { simpleBeamItems } from "../model/structures";
+import ZoomPan from "./ZoomPan";
 
 // Shear, moment and deflection plotted under a sketch of the beam, all on the
 // same x scale, with a crosshair that reads all three at once.
@@ -73,15 +74,17 @@ export default function BeamPlots({ v, unit }) {
       <div ref={box} className="tf-bp-measure" />
       <div className="tf-bp-head">
         <h3 className="tf-visual-title">Shear, moment and deflection</h3>
-        {readout || <span className="tf-muted tf-small">Point at a diagram to read values anywhere along the beam.</span>}
+        {readout || <span className="tf-muted tf-small">Point at or tap a diagram to read values anywhere along the beam.</span>}
       </div>
-      <svg viewBox={`0 0 ${W} 92`} className="tf-bp-sketch" role="img" aria-label="Beam, supports and loads">
-        <BeamSketch items={items} L={L} sx={sx} />
-        {hoverX !== null && <line x1={sx(hoverX)} x2={sx(hoverX)} y1="0" y2="92" className="tf-bp-cross" />}
-      </svg>
-      {PLOTS.map((p) => (
-        <Plot key={p.key} W={W} padL={PAD_L} narrow={narrow} p={p} pts={pts} sx={sx} marks={marks} unit={unit(p.dim)} hoverX={hoverX} at={at} onMove={onMove} onLeave={() => setHoverX(null)} />
-      ))}
+      <ZoomPan label="shear, moment and deflection diagrams">
+        <svg viewBox={`0 0 ${W} 92`} className="tf-bp-sketch" role="img" aria-label="Beam, supports and loads">
+          <BeamSketch items={items} L={L} sx={sx} />
+          {hoverX !== null && <line x1={sx(hoverX)} x2={sx(hoverX)} y1="0" y2="92" className="tf-bp-cross" />}
+        </svg>
+        {PLOTS.map((p) => (
+          <Plot key={p.key} W={W} padL={PAD_L} narrow={narrow} p={p} pts={pts} sx={sx} marks={marks} unit={unit(p.dim)} hoverX={hoverX} at={at} onMove={onMove} onLeave={() => setHoverX(null)} />
+        ))}
+      </ZoomPan>
     </section>
   );
 }
@@ -114,7 +117,7 @@ function Plot({ W, padL, narrow, p, pts, sx, marks, unit, hoverX, at, onMove, on
   const id = `bp-${p.key}`;
   return (
     <div className="tf-bp-row">
-      <svg viewBox={`0 0 ${W} ${PLOT_H}`} role="img" aria-label={`${p.label} diagram`} onPointerMove={onMove} onPointerLeave={onLeave}>
+      <svg viewBox={`0 0 ${W} ${PLOT_H}`} role="img" aria-label={`${p.label} diagram`} onPointerDown={onMove} onPointerMove={onMove} onPointerLeave={(e) => e.pointerType === "mouse" && onLeave()}>
         <defs>
           <clipPath id={`${id}-pos`}>
             <rect x="0" y="0" width={W} height={y0} />

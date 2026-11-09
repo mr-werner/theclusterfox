@@ -6,6 +6,7 @@ import { defaultUnit, fromSI, toSI, unitLabel, fmt, fmtInput, parseNumber } from
 import { interp } from "../model/math";
 import { UnitSelect } from "./Fields";
 import Chart from "./Chart";
+import ZoomPan from "./ZoomPan";
 
 export default function TableView({ id, prefsApi }) {
   const table = tableById[id];
@@ -159,6 +160,7 @@ export default function TableView({ id, prefsApi }) {
                 ))}
             </div>
           </div>
+          <ZoomPan label="chart">
           <Chart
             series={[{ points: table.rows.filter((r) => r[yCol.id] != null).map((r) => ({ x: r[xCol.id], y: r[yCol.id] })) }]}
             x={{ label: xCol.label, dim: xCol.dim, unit: unitOfCol(xCol) }}
@@ -166,6 +168,7 @@ export default function TableView({ id, prefsApi }) {
             marker={lookupRow?.inRange ? { x: lookupRow.row[xCol.id], y: lookupRow.row[yCol.id] } : undefined}
             legend={false}
           />
+          </ZoomPan>
         </section>
       )}
 

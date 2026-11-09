@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeftRight, Calculator, ChevronRight, Clock, Search, Star, Table2, Wrench } from "lucide-react";
 import AppBar from "../../components/AppBar";
-import { CATEGORIES, CALCS, TABLES, calcById, tableById, categoryById, search } from "./registry";
+import { CATEGORIES, CALCS, TABLES, CALC_ALIASES, calcById, tableById, categoryById, search } from "./registry";
 import { usePrefs } from "./state/usePrefs";
 import CalcView from "./components/CalcView";
 import TableView from "./components/TableView";
@@ -97,6 +97,12 @@ export default function ToolsPage() {
 
 function CalcRoute({ prefsApi }) {
   const { id } = useParams();
+  const [params] = useSearchParams();
+  const alias = CALC_ALIASES[id];
+  if (alias) {
+    const next = new URLSearchParams({ ...alias.params, ...Object.fromEntries(params) });
+    return <Navigate to={`/tools/calc/${alias.to}?${next}`} replace />;
+  }
   return <CalcView key={id} id={id} prefsApi={prefsApi} />;
 }
 function TableRoute({ prefsApi }) {

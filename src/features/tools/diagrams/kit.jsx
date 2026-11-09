@@ -1,23 +1,28 @@
 import { createContext, useContext, useState } from "react";
 import { DIMS, fromSI, toSI, fmtInput, parseNumber } from "../model/units";
+import ZoomPan from "../components/ZoomPan";
 
 // Building blocks for diagram-first calculators: an SVG drawing with live HTML
 // inputs placed on top of it, and handles you can drag.
 
 const Size = createContext({ w: 800, h: 400 });
 
-/** A drawing w×h (viewBox units). `svg` is drawn; `children` are overlays placed with <At>. */
+/**
+ * A drawing w×h (viewBox units). `svg` is drawn; `children` are overlays placed with <At>.
+ * It's laid out at least `minWidth` px wide so the overlays have room, then scaled
+ * to fit the screen, with pinch and buttons to zoom in on the details.
+ */
 export function Canvas({ w, h, svg, children, svgRef, label, minWidth = 560 }) {
   return (
     <Size.Provider value={{ w, h }}>
-      <div className="dg-scroll">
-        <div className="dg" style={{ aspectRatio: `${w} / ${h}`, minWidth }}>
+      <ZoomPan width={minWidth} label={label}>
+        <div className="dg" style={{ aspectRatio: `${w} / ${h}` }}>
           <svg ref={svgRef} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label}>
             {svg}
           </svg>
           {children}
         </div>
-      </div>
+      </ZoomPan>
     </Size.Provider>
   );
 }

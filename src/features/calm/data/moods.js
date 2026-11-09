@@ -1,4 +1,4 @@
-import { goalsById } from "./sessions.js";
+import { goalsById, STYLES } from "./sessions.js";
 
 // The first thing CalmFox asks. Each choice is one tap to a short list,
 // or straight to the breathing rhythm.
@@ -15,6 +15,15 @@ export const MOODS = [
   { id: "timer", name: "Silence", blurb: "Sit quietly with soft bells." },
 ];
 
-export const moodName = id => MOODS.find(m => m.id === id)?.name ?? goalsById.get(id)?.name ?? "Favorites";
-export const moodBlurb = id => MOODS.find(m => m.id === id)?.blurb ?? goalsById.get(id)?.blurb ?? "";
+// The second way in: by how you want to practice, not by how you feel.
+// Only breathing techniques give you a rhythm to follow.
+export const PRACTICES = [
+  { id: "techniques", style: "technique", name: STYLES.technique.plural, blurb: STYLES.technique.blurb },
+  { id: "awareness", style: "awareness", name: STYLES.awareness.plural, blurb: STYLES.awareness.blurb },
+  { id: "bodyscan", style: "bodyscan", name: STYLES.bodyscan.plural, blurb: STYLES.bodyscan.blurb },
+];
+
+const find = id => MOODS.find(m => m.id === id) ?? PRACTICES.find(p => p.id === id);
+export const moodName = id => find(id)?.name ?? goalsById.get(id)?.name ?? "Favorites";
+export const moodBlurb = id => find(id)?.blurb ?? goalsById.get(id)?.blurb ?? "";
 

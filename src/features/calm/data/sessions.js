@@ -10,6 +10,9 @@ import { customPattern } from "./breathing.js";
 // closing:  spoken in order so the last line lands just before the end
 // closingGap: seconds of quiet after each closing line (default 3)
 // sleep:    no end bell, and sound fades out softly so it doesn't wake anyone
+// style:    how the session asks you to practice (see STYLES). Breathing sessions are
+//           always "technique"; meditations say whether they are breath awareness,
+//           a body scan, or another kind of guided practice.
 
 export const goals = [
   { id: "start", name: "Start here", blurb: "New to this? Begin with a few easy minutes." },
@@ -28,10 +31,30 @@ export const KINDS = {
   timer: "Timer",
 };
 
+// Ways to practice. Only breathing techniques ask you to breathe to a pattern.
+export const STYLES = {
+  technique: { name: "Breathing technique", plural: "Breathing techniques", blurb: "Breathe to a set rhythm: in, hold, out. Follow the light." },
+  awareness: { name: "Breath awareness", plural: "Breath awareness", blurb: "Just notice your breath, and count it if you like. No pattern to follow." },
+  bodyscan: { name: "Body scan", plural: "Body scans", blurb: "Move your attention slowly through the body, noticing what's there." },
+  guided: { name: "Guided meditation", plural: "Guided meditations", blurb: "Imagery, kindness, grounding and more." },
+  timer: { name: "Timer", plural: "Timers", blurb: "Sit in silence with soft bells." },
+};
+
+/** How a session asks you to practice. */
+export function styleOf(session) {
+  if (session.kind === "breath") return "technique";
+  if (session.kind === "timer") return "timer";
+  return session.style ?? "guided";
+}
+
+/** True when the session never asks you to breathe a certain way. */
+export const breathIsFree = session => session.kind !== "breath";
+
 export const sessions = [
   // Start here
   {
     id: "arrive",
+    style: "awareness",
     goal: "start",
     kind: "meditation",
     title: "Arriving",
@@ -62,6 +85,87 @@ export const sessions = [
       "Begin to let go of any focus, and just rest for a moment.",
       "Notice how you feel now, compared to when you started.",
       "When you're ready, gently open your eyes, and carry a little of this calm with you.",
+    ],
+  },
+
+  {
+    id: "aware-breath",
+    kind: "meditation",
+    goal: "start",
+    style: "awareness",
+    title: "Noticing the Breath",
+    summary: "No counting in and out to a pattern. Just watch your breath as it is, and come back when you drift.",
+    minutes: 10,
+    pattern: "natural",
+    opening: [
+      "Settle into a comfortable position, upright but at ease.",
+      "In this practice, you won't be asked to breathe in any particular way.",
+      "Let your breath do whatever it's already doing. Your only job is to notice it.",
+      "Find the place where you feel it most clearly. The nose, the chest, or the belly.",
+    ],
+    prompts: [
+      "Notice whether this breath is long or short. Either is fine.",
+      "There's no need to deepen or slow the breath. Just let it be.",
+      "Notice the very beginning of a breath in, and the very end of a breath out.",
+      "If you catch yourself controlling the breath, that's okay. Let go of the controls again.",
+      "When your mind wanders, notice where it went, and gently come back.",
+      "Notice the small pause that can happen after a breath out.",
+      "Some breaths are smooth, some are uneven. Just notice, without fixing.",
+      "Feel the temperature of the air at the tip of your nose.",
+      "Let each breath be new, as if you'd never noticed one before.",
+      "You might silently note, in, as you breathe in, and out, as you breathe out.",
+      "If thinking takes over, label it, thinking, and return to the next breath.",
+      "Rest your attention on the breath the way a hand rests on a table. Lightly.",
+    ],
+    closing: [
+      "Let go of watching the breath, and let your attention open up to the whole room.",
+      "Notice how you feel right now.",
+      "When you're ready, open your eyes and carry this simple attention with you.",
+    ],
+  },
+  {
+    id: "scan-mindful",
+    kind: "meditation",
+    goal: "start",
+    style: "bodyscan",
+    title: "Mindful Body Scan",
+    summary: "Move your attention slowly from your feet to the top of your head, noticing each area without changing it.",
+    minutes: 12,
+    pattern: "natural",
+    ordered: true,
+    opening: [
+      "Sit or lie down, somewhere you can be still for a while.",
+      "Let your breath move on its own. We won't be working with the breath in this practice.",
+      "Instead, we'll move our attention through the body, one area at a time, just noticing what's there.",
+      "You might notice warmth, coolness, tingling, pressure, or nothing at all. All of it counts.",
+    ],
+    prompts: [
+      "Bring your attention to your feet. Notice your toes, the soles, the heels.",
+      "Move your attention up to your ankles and lower legs. What do you notice here?",
+      "Now your knees, and the backs of your knees.",
+      "Notice your thighs, front and back, and where they meet the chair or the floor.",
+      "Bring your attention to your hips and your seat. Notice the feeling of being supported.",
+      "Move to your lower back. If there's tightness, just notice it, without needing it to change.",
+      "Notice your belly. Feel whatever sensations are here right now.",
+      "Bring your attention to your chest and your upper back.",
+      "Notice your hands. Your palms, the backs of the hands, each finger.",
+      "Move up through your wrists, your forearms, your elbows and upper arms.",
+      "Notice your shoulders. Just feel how they are right now.",
+      "Bring your attention to your neck and throat.",
+      "Notice your face. Your jaw, your mouth, your cheeks, your eyes.",
+      "Now your forehead, and the top of your head.",
+      "Finally, feel your whole body at once, from your feet to the top of your head.",
+    ],
+    fillers: [
+      "If your attention has wandered, come back to the part of the body you were exploring.",
+      "Notice any area that feels comfortable, and rest your attention there for a moment.",
+      "If you notice discomfort, you can be curious about it. Where exactly is it? Does it change?",
+      "Let the whole body be just as it is.",
+    ],
+    closing: [
+      "Let go of the scan, and simply rest in the feeling of your body sitting here.",
+      "Gently move your fingers and toes.",
+      "When you're ready, open your eyes.",
     ],
   },
 
@@ -102,6 +206,7 @@ export const sessions = [
   },
   {
     id: "sleep-scan",
+    style: "bodyscan",
     goal: "sleep",
     kind: "meditation",
     title: "Body Scan for Sleep",
@@ -322,6 +427,7 @@ export const sessions = [
   },
   {
     id: "focus-count",
+    style: "awareness",
     goal: "focus",
     kind: "meditation",
     title: "Count to Ten",
@@ -446,6 +552,39 @@ export const sessions = [
     closing: [
       "Take one more slow breath.",
       "You're grounded, and you're here. Use this anytime your mind starts to race.",
+    ],
+  },
+  {
+    id: "scan-checkin",
+    kind: "meditation",
+    goal: "anxiety",
+    style: "bodyscan",
+    title: "Body Check-in",
+    summary: "A short scan from head to feet. Notice where you're holding on, without needing to fix anything.",
+    minutes: 5,
+    pattern: "natural",
+    ordered: true,
+    opening: [
+      "Pause where you are. Your eyes can be open or closed.",
+      "Breathe however you're breathing. We'll just check in with the body.",
+    ],
+    prompts: [
+      "Start at the top of your head. Notice your forehead and your eyes.",
+      "Move down to your jaw. Is it clenched, or loose? Just notice.",
+      "Notice your neck and shoulders. Are they raised, or resting?",
+      "Bring your attention to your chest. Notice any tightness, or openness.",
+      "Notice your stomach. Is it held, or soft?",
+      "Notice your hands. Are they gripping anything, or resting?",
+      "Move down through your legs, to where your feet meet the floor.",
+    ],
+    fillers: [
+      "Notice the place in your body that feels the most at ease.",
+      "If a part of you feels tense, simply notice it. You don't have to do anything about it.",
+      "Feel your whole body, here, right now.",
+    ],
+    closing: [
+      "That's your check-in.",
+      "You can come back to it any time you want to know how you're really doing.",
     ],
   },
   {

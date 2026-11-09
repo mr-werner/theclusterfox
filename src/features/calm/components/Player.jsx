@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Mic, MicOff, Music, Pause, Play, X } from "lucide-react";
+import { Check, Mic, MicOff, Minus, Music, Pause, Play, Plus, SlidersHorizontal, X } from "lucide-react";
 
 import { patternOf } from "../data/breathing";
 import { buildTimeline, spokenCount } from "../model/schedule";
 import { breathAt } from "../model/breath";
 import { clock } from "../model/stats";
-import { isSpeaking, preloadLines, recordedSeconds, speak, stopSpeaking, voiceSupported } from "../audio/voice";
+import { isSpeaking, preloadLines, recordedSeconds, setSpeakingVolume, speak, stopSpeaking, voiceSupported } from "../audio/voice";
 import { audio, bell, breathTone, startAmbient } from "../audio/sound";
+import { AMBIENT_OPTIONS } from "./icons";
 
 const MOOD_OPTIONS = [
   { id: "calmer", name: "Calmer" },
@@ -15,12 +16,26 @@ const MOOD_OPTIONS = [
 ];
 const MIN_LOGGED = 60; // sessions shorter than this aren't saved to history
 const RING = 2 * Math.PI * 47;
+const MAX_MINUTES = 120;
 
 /**
  * Full-screen session. `config`: { minutes, interval, cueMode, pace, voice, rate, pitch, voiceVolume, ambient, ambientVolume, bells, seed }
  */
-export default function Player({ session, config, onComplete, onMood, onClose }) {
-  const seconds = config.minutes * 60;
+export default function Player({ session, config, onComplete, onMood, onPrefs, onClose }) {
+  // Settings the listener can change mid-session. Sound and volume changes are also remembered for next time.
+  const [live, setLive] = useState(() => ({
+    minutes: config.minutes,
+    ambient: config.ambient,
+    ambientVolume: config.ambientVolume,
+    voiceVolume: config.voiceVolume,
+  }));
+  const liveRef = useRef(live);
+  const update = patch => {
+    liveRef.current = { ...liveRef.current, ...patch };
+    setLive(liveRef.current);
+  };
+  const [adjusting, setAdjusting] = useState(false);
+  const seconds = live.minutes * 60;
   const pattern = patternOf(session);
   const isBreath = session.kind === "breath";
   const timeline = useMemo(
@@ -57,17 +72,28 @@ export default function Player({ session, config, onComplete, onMood, onClose })
   const ambient = useRef(null);
   const orb = useRef(null);
   const voiceOnRef = useRef(voiceOn);
+  const said = useRef(new Set()); // lines already spoken, so a length change doesn't repeat steps
+  const firstTimeline = useRef(timeline);
 
   const now = useCallback(
     () => acc.current + (running.current ? (performance.now() - startedAt.current) / 1000 : 0),
     []
   );
 
+  // When the length changes, the timeline is rebuilt. Pick up from now in the new one.
+  useEffect(() => {
+    if (firstTimeline.current === timeline) return;
+    const t = now();
+    let i = 0;
+    while (i < timeline.length && timeline[i].at <= t) i++;
+    nextItem.current = i;
+  }, [timeline, now]);
+
   const say = useCallback(
     text => {
       setCaption(text);
       if (voiceOnRef.current) {
-        speak(text, { voice: config.voice, rate: config.rate, pitch: config.pitch, volume: config.voiceVolume });
+        speak(text, { voice: config.voice, rate: config.rate, pitch: config.pitch, volume: liveRef.current.voiceVolume });
       }
     },
     [config]
@@ -83,7 +109,7 @@ export default function Player({ session, config, onComplete, onMood, onClose })
       if (config.bells && !(session.sleep && !early)) bell({ volume: 0.55 });
       ambient.current?.stop(session.sleep && !early ? 45 : 5);
       ambient.current = null;
-      if (t >= MIN_LOGGED) setResult(onComplete(t));
+      if (t >= MIN_LOGGED) setResult(onComplete(t, liveRef.current.minutes));
       else setResult({ id: null, minutes: t / 60 });
     },
     [now, seconds, config.bells, session.sleep, onComplete]
@@ -146,7 +172,10 @@ export default function Player({ session, config, onComplete, onMood, onClose })
         if (t - item.at > 8) continue; // stale (the tab was asleep); skip rather than pile up
         if (item.kind === "bell") {
           if (config.bells) bell({ volume: 0.4 });
-        } else say(item.text);
+        } else if (!(said.current.has(item.text) && (item.kind === "open" || (session.ordered && session.prompts.includes(item.text))))) {
+          said.current.add(item.text);
+          say(item.text);
+        }
       }
       if (isBreath) {
         const b = breathAt(pattern, t, config.pace);
@@ -156,8 +185,9 @@ export default function Player({ session, config, onComplete, onMood, onClose })
           lastPhase.current = key;
           const mode = config.cueMode;
           const useVoice = voiceOnRef.current && (mode === "voice" || (mode === "voiceThenTone" && t < voiceCueUntil));
-          if (useVoice && !isSpeaking()) speak(b.phase.cue, { voice: config.voice, rate: config.rate, pitch: config.pitch, volume: config.voiceVolume });
-          else if (mode !== "off" && !useVoice && !first) breathTone(b.phase.type, { volume: config.voiceVolume });
+          const volume = liveRef.current.voiceVolume;
+          if (useVoice && !isSpeaking()) speak(b.phase.cue, { voice: config.voice, rate: config.rate, pitch: config.pitch, volume });
+          else if (mode !== "off" && !useVoice && !first) breathTone(b.phase.type, { volume });
         }
         const count = Math.ceil(b.remaining);
         setPhase(p => (p.label === b.phase.label && p.count === count ? p : { label: b.phase.label, count }));
@@ -167,24 +197,34 @@ export default function Player({ session, config, onComplete, onMood, onClose })
     tick();
     const id = setInterval(tick, 200);
     return () => clearInterval(id);
-  }, [status, now, seconds, timeline, say, finish, isBreath, pattern, config, voiceCueUntil]);
+  }, [status, now, seconds, timeline, say, finish, isBreath, pattern, config, voiceCueUntil, session]);
 
-  // The breathing light, drawn every frame.
+  // The light, drawn every frame. Breathing techniques grow and shrink it with the pattern.
+  // Meditations only let it drift very slowly, far slower than any breath, so there's nothing to follow.
   useEffect(() => {
     if (status === "done") return undefined;
     let frame;
     const draw = () => {
-      const b = breathAt(pattern, now(), config.pace);
-      if (orb.current && b) {
-        const scale = 0.52 + 0.48 * b.level;
+      const t = now();
+      if (orb.current) {
+        let scale, opacity;
+        if (isBreath) {
+          const b = breathAt(pattern, t, config.pace);
+          scale = 0.52 + 0.48 * b.level;
+          opacity = 0.55 + 0.45 * b.level;
+        } else {
+          const k = 0.5 + 0.5 * Math.sin((t * 2 * Math.PI) / 40);
+          scale = 0.74 + 0.06 * k;
+          opacity = 0.72 + 0.12 * k;
+        }
         orb.current.style.transform = `scale(${scale.toFixed(4)})`;
-        orb.current.style.opacity = String(0.55 + 0.45 * b.level);
+        orb.current.style.opacity = String(opacity);
       }
       frame = requestAnimationFrame(draw);
     };
     draw();
     return () => cancelAnimationFrame(frame);
-  }, [status, now, pattern, config.pace]);
+  }, [status, now, pattern, config.pace, isBreath]);
 
   const togglePause = useCallback(() => {
     if (status === "done") return;
@@ -192,16 +232,16 @@ export default function Player({ session, config, onComplete, onMood, onClose })
       acc.current = now();
       running.current = false;
       stopSpeaking();
-      ambient.current?.setVolume(config.ambientVolume * 0.3);
+      ambient.current?.setVolume(live.ambientVolume * 0.3);
       setStatus("paused");
     } else {
       audio();
       startedAt.current = performance.now();
       running.current = true;
-      ambient.current?.setVolume(soundOn ? config.ambientVolume : 0);
+      ambient.current?.setVolume(soundOn ? live.ambientVolume : 0);
       setStatus("running");
     }
-  }, [status, now, config.ambientVolume, soundOn]);
+  }, [status, now, live.ambientVolume, soundOn]);
 
   useEffect(() => {
     const onKey = e => {
@@ -209,12 +249,13 @@ export default function Player({ session, config, onComplete, onMood, onClose })
         e.preventDefault();
         togglePause();
       } else if (e.key === "Escape" && status !== "done") {
-        if (running.current) togglePause();
+        if (adjusting) setAdjusting(false);
+        else if (running.current) togglePause();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [togglePause, status]);
+  }, [togglePause, status, adjusting]);
 
   function toggleVoice() {
     voiceOnRef.current = !voiceOn;
@@ -225,11 +266,44 @@ export default function Player({ session, config, onComplete, onMood, onClose })
   function toggleSound() {
     const next = !soundOn;
     setSoundOn(next);
-    if (next && !ambient.current && config.ambient !== "none") {
-      ambient.current = startAmbient(config.ambient, config.ambientVolume);
+    if (next && !ambient.current && live.ambient !== "none") {
+      ambient.current = startAmbient(live.ambient, live.ambientVolume);
     } else {
-      ambient.current?.setVolume(next ? config.ambientVolume : 0);
+      ambient.current?.setVolume(next ? live.ambientVolume : 0);
     }
+  }
+
+  // ---- Changes made while the session is playing ----
+  const heard = v => (status === "paused" ? v * 0.3 : v);
+
+  function pickAmbient(id) {
+    if (id === live.ambient) return;
+    ambient.current?.stop(1.5);
+    ambient.current = null;
+    if (id !== "none") {
+      ambient.current = startAmbient(id, heard(live.ambientVolume));
+      setSoundOn(true);
+    }
+    update({ ambient: id });
+    onPrefs?.({ ambient: id });
+  }
+
+  function changeAmbientVolume(v) {
+    if (soundOn) ambient.current?.setVolume(heard(v));
+    update({ ambientVolume: v });
+    onPrefs?.({ ambientVolume: v });
+  }
+
+  function changeVoiceVolume(v) {
+    setSpeakingVolume(v);
+    update({ voiceVolume: v });
+    onPrefs?.({ voiceVolume: v });
+  }
+
+  // The shortest the session can become: at least a minute left, so the closing still has room.
+  const minMinutes = Math.min(MAX_MINUTES, Math.ceil((elapsed + 60) / 60));
+  function changeMinutes(delta) {
+    update({ minutes: Math.min(MAX_MINUTES, Math.max(minMinutes, liveRef.current.minutes + delta)) });
   }
 
   function end() {
@@ -287,7 +361,7 @@ export default function Player({ session, config, onComplete, onMood, onClose })
         <div>
           <p className="cm-eyebrow">{session.title.toUpperCase()}</p>
           <p className="cm-muted cm-small">
-            {session.kind === "timer" ? "Silent timer" : `${lines} spoken lines`} · {config.minutes} min
+            {session.kind === "timer" ? "Silent timer" : `${lines} spoken lines`} · {live.minutes} min
           </p>
         </div>
         <button type="button" className="cm-icon-btn" onClick={end} aria-label="End session">
@@ -334,15 +408,77 @@ export default function Player({ session, config, onComplete, onMood, onClose })
         <button type="button" className="cm-play" onClick={togglePause} aria-label={status === "running" ? "Pause" : "Resume"}>
           {status === "running" ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
         </button>
-        {config.ambient !== "none" && (
+        {live.ambient !== "none" && (
           <button type="button" className="cm-icon-btn" onClick={toggleSound} aria-pressed={soundOn} aria-label={soundOn ? "Mute background sound" : "Play background sound"}>
             <Music size={20} className={soundOn ? "" : "is-off"} />
           </button>
         )}
       </div>
-      <button type="button" className="cm-end" onClick={end}>
-        End session
-      </button>
+      <div className="cm-player-foot">
+        <button type="button" className="cm-adjust-btn" aria-expanded={adjusting} aria-controls="cm-adjust" onClick={() => setAdjusting(a => !a)}>
+          <SlidersHorizontal size={16} aria-hidden="true" /> Adjust
+        </button>
+        <button type="button" className="cm-end" onClick={end}>
+          End session
+        </button>
+      </div>
+
+      {adjusting && (
+        <>
+          <button type="button" className="cm-adjust-scrim" aria-label="Close adjustments" onClick={() => setAdjusting(false)} />
+          <section id="cm-adjust" className="cm-adjust" aria-label="Adjust this session">
+            <header>
+              <h3>Adjust while you sit</h3>
+              <button type="button" className="cm-icon-btn cm-icon-btn--sm" onClick={() => setAdjusting(false)} aria-label="Close adjustments">
+                <X size={18} />
+              </button>
+            </header>
+
+            <div className="cm-adjust-row">
+              <span className="cm-adjust-label">Length</span>
+              <div className="cm-stepper">
+                <button type="button" onClick={() => changeMinutes(-1)} disabled={live.minutes <= minMinutes} aria-label="One minute shorter">
+                  <Minus size={16} />
+                </button>
+                <output aria-live="polite">{live.minutes} min</output>
+                <button type="button" onClick={() => changeMinutes(1)} disabled={live.minutes >= MAX_MINUTES} aria-label="One minute longer">
+                  <Plus size={16} />
+                </button>
+                <button type="button" className="cm-stepper-five" onClick={() => changeMinutes(5)} disabled={live.minutes >= MAX_MINUTES}>
+                  +5
+                </button>
+              </div>
+              <span className="cm-adjust-note">{clock(remaining)} left</span>
+            </div>
+
+            <div className="cm-adjust-row cm-adjust-row--stack">
+              <span className="cm-adjust-label">Background sound</span>
+              <div className="cm-chips" role="group" aria-label="Background sound">
+                {AMBIENT_OPTIONS.map(a => (
+                  <button key={a.id} type="button" aria-pressed={live.ambient === a.id} onClick={() => pickAmbient(a.id)}>
+                    {a.name}
+                  </button>
+                ))}
+              </div>
+              {live.ambient !== "none" && (
+                <label className="cm-field">
+                  <span>Background volume</span>
+                  <input type="range" min="0" max="1" step="0.05" value={live.ambientVolume} onChange={e => changeAmbientVolume(Number(e.target.value))} />
+                </label>
+              )}
+            </div>
+
+            {(session.kind !== "timer" || session.voiceTimer) && voiceSupported && (
+              <div className="cm-adjust-row cm-adjust-row--stack">
+                <label className="cm-field">
+                  <span>{isBreath ? "Voice and tone volume" : "Voice volume"}</span>
+                  <input type="range" min="0" max="1" step="0.05" value={live.voiceVolume} onChange={e => changeVoiceVolume(Number(e.target.value))} />
+                </label>
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import { Star } from "lucide-react";
-import { KINDS } from "../data/sessions";
-import { KIND_ICONS } from "./icons";
+import { STYLES, styleOf } from "../data/sessions";
+import { STYLE_ICONS } from "./icons";
 
 export default function SessionCard({ session, favorite, onOpen, onToggleFavorite }) {
-  const Icon = KIND_ICONS[session.kind];
+  const style = styleOf(session);
+  const Icon = STYLE_ICONS[style];
   return (
     <article className={`cm-card cm-card--${session.kind}`}>
       <button type="button" className="cm-card-main" onClick={() => onOpen(session.id)}>
@@ -11,7 +12,7 @@ export default function SessionCard({ session, favorite, onOpen, onToggleFavorit
           <Icon size={20} />
         </span>
         <span className="cm-card-meta">
-          {KINDS[session.kind]} · {session.minutes} min
+          {STYLES[style].name} · {session.minutes} min
         </span>
         <h3>{session.title}</h3>
         <p>{session.summary}</p>

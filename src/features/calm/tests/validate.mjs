@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { customBreathSession, goals, goalsById, sessions } from "../data/sessions.js";
+import { customBreathSession, goals, goalsById, sessions, STYLES, styleOf } from "../data/sessions.js";
+import { PRACTICES } from "../data/moods.js";
 import { patterns, PHASE_TYPES, describePattern, customPattern, patternOf } from "../data/breathing.js";
 import { buildTimeline, speakSeconds, GAP } from "../model/schedule.js";
 import { breathAt, cycleSeconds } from "../model/breath.js";
@@ -30,6 +31,17 @@ for (const s of sessions) {
   }
 }
 for (const g of goals) assert(sessions.some(s => s.goal === g.id), `${g.id}: no sessions`);
+
+// Ways to practice: only breathing techniques give a rhythm to follow.
+for (const s of sessions) {
+  const style = styleOf(s);
+  assert(STYLES[style], `${s.id}: unknown style ${style}`);
+  if (s.style) assert(s.kind === "meditation", `${s.id}: only meditations set a style`);
+  if (style !== "technique") assert.equal(s.pattern, "natural", `${s.id}: no breathing pattern outside techniques`);
+}
+for (const p of PRACTICES) {
+  assert(sessions.filter(s => styleOf(s) === p.style).length >= 3, `${p.id}: needs at least 3 sessions`);
+}
 
 // Every pattern breathes in and out, and each phase is well formed.
 for (const p of Object.values(patterns)) {

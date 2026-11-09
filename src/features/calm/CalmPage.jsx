@@ -8,10 +8,10 @@ import SessionSetup from "./components/SessionSetup";
 import Player from "./components/Player";
 import JourneyTab from "./components/JourneyTab";
 import MoodHome from "./components/MoodHome";
-import { moodBlurb, moodName } from "./data/moods";
+import { moodBlurb, moodName, PRACTICES } from "./data/moods";
 import BreathBuilder from "./components/BreathBuilder";
 import { GOAL_ICONS } from "./components/icons";
-import { customBreathSession, goalsById, sessions, sessionsById } from "./data/sessions";
+import { customBreathSession, goalsById, sessions, sessionsById, styleOf } from "./data/sessions";
 import { toIsoDay, summarize } from "./model/stats";
 import { useCalmData } from "./state/useCalmData";
 import { useVoices } from "./audio/voice";
@@ -23,7 +23,7 @@ const TABS = [
   { id: "journey", name: "Journey", icon: ChartLine },
 ];
 
-const VIRTUAL = new Set(["breathe", "quick", "favorites"]);
+const VIRTUAL = new Set(["breathe", "quick", "favorites", ...PRACTICES.map(p => p.id)]);
 
 export default function CalmPage() {
   const { data, setPrefs, toggleFavorite, addHistory, setMood, clearHistory } = useCalmData();
@@ -66,7 +66,7 @@ export default function CalmPage() {
   };
 
   const onComplete = useCallback(
-    seconds => {
+    (seconds, planned) => {
       const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       const s = run.session;
       addHistory({
@@ -77,7 +77,7 @@ export default function CalmPage() {
         title: s.title,
         goal: s.goal,
         minutes: Math.round((seconds / 60) * 10) / 10,
-        planned: run.config.minutes,
+        planned,
         mood: null,
       });
       return { id, minutes: seconds / 60 };
@@ -87,10 +87,13 @@ export default function CalmPage() {
 
   const stats = summarize(data.history, toIsoDay(new Date()));
   const favorites = sessions.filter(s => data.favorites.includes(s.id));
+  const practice = PRACTICES.find(p => p.id === goal);
   const items =
     goal === "favorites"
       ? favorites
-      : goal === "quick"
+      : practice
+        ? sessions.filter(s => styleOf(s) === practice.style)
+        : goal === "quick"
         ? sessions.filter(s => s.minutes <= 5).sort((a, b) => a.minutes - b.minutes)
         : sessions.filter(s => s.goal === goal);
 
@@ -137,6 +140,15 @@ export default function CalmPage() {
             <p className="cm-muted">{moodBlurb(goal)}</p>
           </div>
         </header>
+        {goal === "techniques" && (
+          <button type="button" className="cm-own-rhythm" onClick={() => go({ goal: "breathe" })}>
+            <strong>Set your own rhythm</strong>
+            <span>Choose your own seconds for in, hold and out.</span>
+          </button>
+        )}
+        {(goal === "awareness" || goal === "bodyscan") && (
+          <p className="cm-free-note">There's no breathing pattern to follow here. Let your breath move however it wants.</p>
+        )}
         {items.length === 0 ? (
           <p className="cm-muted cm-small">Tap the star on any session to keep it here.</p>
         ) : (
@@ -206,6 +218,7 @@ export default function CalmPage() {
           config={run.config}
           onComplete={onComplete}
           onMood={setMood}
+          onPrefs={setPrefs}
           onClose={() => setRun(null)}
         />
       )}

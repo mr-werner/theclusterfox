@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import { GOAL_ICONS } from "./icons";
-import { MOODS, moodBlurb } from "../data/moods";
+import { MOODS, PRACTICES, moodBlurb } from "../data/moods";
 
 export default function MoodHome({ favorites, onPick, onOpenSession }) {
   return (
@@ -28,6 +28,24 @@ export default function MoodHome({ favorites, onPick, onOpenSession }) {
             </button>
           );
         })}
+      </div>
+
+      <div className="cm-practices">
+        <h2>Or choose how to practice</h2>
+        <div className="cm-practice-row">
+          {PRACTICES.map(p => {
+            const Icon = GOAL_ICONS[p.id];
+            return (
+              <button key={p.id} type="button" className={`cm-practice cm-practice--${p.id}`} onClick={() => onPick(p.id)}>
+                <span className="cm-mood-icon" aria-hidden="true">
+                  <Icon size={20} strokeWidth={1.6} />
+                </span>
+                <span className="cm-mood-name">{p.name}</span>
+                <span className="cm-mood-blurb">{p.blurb}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {favorites.length > 0 && (

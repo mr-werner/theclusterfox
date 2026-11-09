@@ -1,4 +1,4 @@
-import { CalendarRange, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Wrench } from "lucide-react";
+import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Wrench } from "lucide-react";
 
 export const apps = [
   {
@@ -72,5 +72,14 @@ export const apps = [
     path: "/math",
     icon: Sigma,
     accent: "mathfox",
+  },
+  {
+    id: "cookfox",
+    name: "Cook",
+    subtitle: "CookFox",
+    description: "Recipes • Prep • Cook",
+    path: "/cook",
+    icon: ChefHat,
+    accent: "cookfox",
   },
 ];

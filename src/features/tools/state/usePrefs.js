@@ -1,22 +1,27 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { useAccountSync } from "../../../lib/useAccountSync";
+
 // Engineer ToolFox remembers the unit system, favorites and recently used tools in this browser.
 const KEY = "toolfox-prefs-v1";
 const EMPTY = { system: "si", favorites: [], recent: [], units: {} };
 
 function load() {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || "null");
-    if (!raw || typeof raw !== "object") return EMPTY;
-    return {
-      system: raw.system === "us" ? "us" : "si",
-      favorites: Array.isArray(raw.favorites) ? raw.favorites.filter((x) => typeof x === "string") : [],
-      recent: Array.isArray(raw.recent) ? raw.recent.filter((x) => typeof x === "string").slice(0, 8) : [],
-      units: raw.units && typeof raw.units === "object" ? raw.units : {},
-    };
+    return clean(JSON.parse(localStorage.getItem(KEY) || "null"));
   } catch {
     return EMPTY;
   }
+}
+
+function clean(raw) {
+  if (!raw || typeof raw !== "object") return EMPTY;
+  return {
+    system: raw.system === "us" ? "us" : "si",
+    favorites: Array.isArray(raw.favorites) ? raw.favorites.filter((x) => typeof x === "string") : [],
+    recent: Array.isArray(raw.recent) ? raw.recent.filter((x) => typeof x === "string").slice(0, 8) : [],
+    units: raw.units && typeof raw.units === "object" ? raw.units : {},
+  };
 }
 
 export function usePrefs() {
@@ -39,5 +44,7 @@ export function usePrefs() {
   /** Remember a unit someone picked for a dimension, so it sticks across tools. */
   const setUnit = useCallback((dim, unit) => setPrefs((p) => ({ ...p, units: { ...p.units, [dim]: unit } })), []);
 
-  return { prefs, setSystem, toggleFavorite, touch, setUnit };
+  const syncStatus = useAccountSync("tools_user_data", prefs, (doc) => setPrefs(clean(doc)), EMPTY);
+
+  return { prefs, syncStatus, setSystem, toggleFavorite, touch, setUnit };
 }

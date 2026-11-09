@@ -9,7 +9,8 @@ import Graph from "./components/Graph";
 import { BoxPlot, FactTable, NumberLine } from "./components/Visuals";
 import { previewTex, solve } from "./solve";
 import { syntax, topics } from "./data/examples";
-import { loadHistory, pushHistory, saveHistory } from "./state/history";
+import { cleanHistory, loadHistory, pushHistory, saveHistory } from "./state/history";
+import { useAccountSync } from "../../lib/useAccountSync";
 import "./math.css";
 import "./identity.css";
 
@@ -72,6 +73,8 @@ export default function MathPage() {
   const preview = useMemo(() => previewTex(draft), [draft]);
 
   useEffect(() => saveHistory(history), [history]);
+  const historyDoc = useMemo(() => ({ history }), [history]);
+  useAccountSync("math_user_data", historyDoc, doc => setHistory(cleanHistory(doc?.history)), { history: [] });
 
   const submit = text => {
     const clean = (text ?? draft).trim();

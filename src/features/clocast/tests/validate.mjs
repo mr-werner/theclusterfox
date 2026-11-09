@@ -249,3 +249,15 @@ assert.deepEqual(mergeData(a, b).savedPlaces.map(p => p.id), ['2'], 'newer copy 
 }
 
 console.log(`PASS: CloCast model, ${activities.length} activities, ${Object.values(outfitLadders).flat().length} outfits.`);
+
+// The sky behind the forecast matches the weather.
+{
+  const { skyFor, SKIES } = await import('../model/sky.js');
+  const cases = [[0, true, 'clear-day'], [0, false, 'clear-night'], [2, true, 'partly-day'], [3, true, 'cloudy'], [45, true, 'fog'],
+    [61, false, 'rain'], [80, true, 'rain'], [73, true, 'snow'], [86, true, 'snow'], [95, true, 'storm'], [undefined, false, 'partly-night']];
+  for (const [code, day, sky] of cases) {
+    if (skyFor(code, day) !== sky) throw new Error(`sky for ${code}/${day} should be ${sky}, got ${skyFor(code, day)}`);
+    if (!SKIES.includes(sky)) throw new Error(`unknown sky ${sky}`);
+  }
+  console.log('CloCast skies check out.');
+}

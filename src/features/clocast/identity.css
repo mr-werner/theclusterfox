@@ -1,46 +1,33 @@
-/* CloCast identity: the sky. A dusk gradient overhead, drifting clouds and
-   frosted-glass panels, like looking up before you get dressed. */
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap");
+/* CloCast identity: a window on the sky. The background follows the real
+   weather (clear, cloud, fog, rain, snow, storm, night), with frosted-glass
+   panels on top that stay readable in every sky. */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;500;600;700;800&display=swap");
 
 .cc {
-  --cc-accent: #8ad4ff;
+  --cc-accent: #9ad8ff;
   --cc-accent-ink: #062033;
-  --cc-accent-soft: rgba(138, 212, 255, 0.14);
-  --cc-surface: rgba(255, 255, 255, 0.06);
-  --cc-surface-2: rgba(255, 255, 255, 0.09);
-  --cc-line: rgba(255, 255, 255, 0.1);
-  --cc-line-strong: rgba(255, 255, 255, 0.18);
-  --cc-muted: #b4c3cf;
-  --cc-radius: 24px;
+  --cc-accent-soft: rgba(154, 216, 255, 0.16);
+  --cc-surface: rgba(8, 22, 38, 0.42);
+  --cc-surface-2: rgba(255, 255, 255, 0.08);
+  --cc-line: rgba(255, 255, 255, 0.12);
+  --cc-line-strong: rgba(255, 255, 255, 0.2);
+  --cc-muted: #c3d0da;
+  --cc-radius: 26px;
 
   position: relative;
   min-height: 100vh;
   font-family: "Manrope", "DM Sans", sans-serif;
-  background: linear-gradient(180deg, #2c5d8f 0px, #1d3f63 360px, #13253a 820px, #0f1823 1300px);
+  background: transparent;
   isolation: isolate;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
-.cc::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 700px;
-  z-index: -1;
-  background:
-    radial-gradient(18% 9% at 18% 12%, rgba(255, 255, 255, 0.13), transparent 70%),
-    radial-gradient(24% 10% at 70% 8%, rgba(255, 255, 255, 0.1), transparent 70%),
-    radial-gradient(20% 8% at 45% 30%, rgba(255, 255, 255, 0.07), transparent 70%);
-  filter: blur(8px);
-  animation: cc-clouds 60s linear infinite alternate;
-}
-
-@keyframes cc-clouds {
-  from {
-    transform: translateX(-4%);
-  }
-  to {
-    transform: translateX(4%);
-  }
+.cc h1,
+.cc h2,
+.cc h3 {
+  font-family: "Manrope", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .cc-shell {
@@ -58,36 +45,492 @@
   }
 }
 
-.cc h1,
-.cc h2,
-.cc h3 {
-  font-family: "Manrope", sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
+/* Frosted glass, tinted dark enough for white text on the brightest sky. */
 .cc-panel,
 .cc-profile,
 .cc-sync,
-.cc-empty {
-  backdrop-filter: blur(18px) saturate(1.3);
-  -webkit-backdrop-filter: blur(18px) saturate(1.3);
-  box-shadow: 0 10px 40px rgba(4, 16, 30, 0.25);
+.cc-empty,
+.cc-tabs {
+  border-color: var(--cc-line);
+  background: var(--cc-surface);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  box-shadow: 0 10px 40px rgba(4, 16, 30, 0.22);
+}
+
+/* ---- The sky ---- */
+.cc-sky {
+  --sky-top: #3f7fbf;
+  --sky-mid: #6aa6d8;
+  --sky-low: #a9cbe6;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-mid) 55%, var(--sky-low));
+  transition: background 1.2s ease;
+}
+
+.cc-sky > div {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.cc-sky--clear-day {
+  --sky-top: #2f74c4;
+  --sky-mid: #5ea2e0;
+  --sky-low: #a8d2f2;
+}
+
+.cc-sky--partly-day {
+  --sky-top: #3c76b5;
+  --sky-mid: #6c9fcf;
+  --sky-low: #b5cde2;
+}
+
+.cc-sky--cloudy {
+  --sky-top: #55687c;
+  --sky-mid: #7c8d9e;
+  --sky-low: #a9b5c0;
+}
+
+.cc-sky--fog {
+  --sky-top: #77838e;
+  --sky-mid: #9aa4ad;
+  --sky-low: #c1c7cc;
+}
+
+.cc-sky--rain {
+  --sky-top: #2e4257;
+  --sky-mid: #4b6178;
+  --sky-low: #6f8396;
+}
+
+.cc-sky--snow {
+  --sky-top: #6b8299;
+  --sky-mid: #9fb3c6;
+  --sky-low: #dce6ee;
+}
+
+.cc-sky--storm {
+  --sky-top: #161d2b;
+  --sky-mid: #2a3446;
+  --sky-low: #445063;
+}
+
+.cc-sky--clear-night,
+.cc-sky--partly-night {
+  --sky-top: #070d1f;
+  --sky-mid: #111c3a;
+  --sky-low: #243358;
+}
+
+/* Sun or moon glow */
+.cc-sky-glow {
+  background: radial-gradient(circle at 82% 8%, rgba(255, 236, 170, 0.75), rgba(255, 220, 140, 0.2) 14%, transparent 34%);
+}
+
+.cc-sky--clear-day .cc-sky-glow,
+.cc-sky--partly-day .cc-sky-glow {
+  opacity: 1;
+}
+
+.cc-sky--clear-night .cc-sky-glow,
+.cc-sky--partly-night .cc-sky-glow {
+  opacity: 1;
+  background: radial-gradient(circle at 80% 10%, rgba(230, 236, 255, 0.55), rgba(200, 210, 255, 0.12) 7%, transparent 20%);
+}
+
+/* Drifting clouds */
+.cc-sky-clouds {
+  inset: -10% -30% 30% -30%;
+  background:
+    radial-gradient(14% 7% at 15% 18%, rgba(255, 255, 255, 0.5), transparent 70%),
+    radial-gradient(20% 8% at 40% 10%, rgba(255, 255, 255, 0.4), transparent 70%),
+    radial-gradient(18% 7% at 70% 24%, rgba(255, 255, 255, 0.45), transparent 70%),
+    radial-gradient(24% 9% at 90% 12%, rgba(255, 255, 255, 0.35), transparent 70%);
+  filter: blur(10px);
+  animation: cc-clouds 90s linear infinite alternate;
+}
+
+.cc-sky--partly-day .cc-sky-clouds,
+.cc-sky--partly-night .cc-sky-clouds {
+  opacity: 0.7;
+}
+
+.cc-sky--cloudy .cc-sky-clouds,
+.cc-sky--rain .cc-sky-clouds,
+.cc-sky--snow .cc-sky-clouds,
+.cc-sky--storm .cc-sky-clouds {
+  opacity: 0.55;
+  filter: blur(18px) brightness(0.85);
+}
+
+.cc-sky--fog .cc-sky-clouds {
+  inset: 20% -30% -10% -30%;
+  opacity: 0.8;
+  filter: blur(30px);
+}
+
+@keyframes cc-clouds {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
+}
+
+/* Rain and snow, drawn with repeating gradients */
+.cc-sky--rain .cc-sky-fall,
+.cc-sky--storm .cc-sky-fall {
+  opacity: 0.45;
+  background-image:
+    repeating-linear-gradient(105deg, transparent 0 22px, rgba(200, 225, 255, 0.5) 22px 23px, transparent 23px 46px);
+  background-size: 120px 120px;
+  animation: cc-rain 0.7s linear infinite;
+}
+
+.cc-sky--snow .cc-sky-fall {
+  opacity: 0.9;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+    radial-gradient(3px 3px at 80px 70px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(2px 2px at 140px 20px, #fff, transparent),
+    radial-gradient(2.5px 2.5px at 170px 120px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(2px 2px at 50px 160px, #fff, transparent);
+  background-size: 200px 200px;
+  animation: cc-snow 12s linear infinite;
+}
+
+@keyframes cc-rain {
+  to {
+    background-position: -30px 120px;
+  }
+}
+
+@keyframes cc-snow {
+  to {
+    background-position: 40px 200px;
+  }
+}
+
+/* Stars at night */
+.cc-sky--clear-night .cc-sky-stars,
+.cc-sky--partly-night .cc-sky-stars {
+  opacity: 0.8;
+  background-image:
+    radial-gradient(1px 1px at 30px 40px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 120px 90px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 200px 20px, #fff, transparent),
+    radial-gradient(1px 1px at 260px 140px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 80px 200px, #fff, transparent);
+  background-size: 300px 260px;
+  mask-image: linear-gradient(180deg, #000, transparent 70%);
+  animation: cc-twinkle 6s ease-in-out infinite alternate;
+}
+
+@keyframes cc-twinkle {
+  to {
+    opacity: 0.45;
+  }
+}
+
+/* An occasional lightning flash */
+.cc-sky--storm .cc-sky-flash {
+  background: rgba(220, 230, 255, 0.5);
+  animation: cc-flash 11s linear infinite;
+}
+
+@keyframes cc-flash {
+  0%,
+  92%,
+  94%,
+  100% {
+    opacity: 0;
+  }
+  93%,
+  95% {
+    opacity: 0.6;
+  }
+}
+
+/* ---- Now: the big number ---- */
+.cc-report {
+  background: var(--cc-surface);
+}
+
+.cc-report-top {
+  padding: 6px 0 14px;
+}
+
+.cc-report-temp {
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(4.4rem, 16vw, 7rem);
+  font-weight: 300;
+  letter-spacing: -0.06em;
+}
+
+.cc-report-icon {
+  width: 80px;
+  height: 80px;
+  color: #fff;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.2));
+}
+
+.cc-report-desc {
+  font-size: 1.25rem;
+}
+
+.cc-stats > div {
+  border-color: var(--cc-line);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Hourly graph ---- */
+.cc-graph {
+  display: grid;
+  gap: 12px;
+}
+
+.cc-graph-scroll {
+  overflow-x: auto;
+  margin: 0 -6px;
+  padding: 0 6px 6px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.cc-graph-track {
+  position: relative;
+}
+
+.cc-graph-svg {
+  position: absolute;
+  top: 54px;
+  left: 0;
+  color: var(--cc-accent);
+  pointer-events: none;
+  overflow: visible;
+}
+
+.cc-graph-svg circle {
+  fill: #fff;
+}
+
+.cc-graph-svg circle.is-picked {
+  fill: var(--cc-accent);
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.cc-graph-svg text {
+  fill: #fff;
+  font: 700 13px "Manrope", sans-serif;
+}
+
+.cc-graph-cells {
+  display: flex;
+}
+
+.cc-graph-cell {
+  display: grid;
+  justify-items: center;
+  grid-template-rows: 20px 24px 92px 46px;
+  gap: 4px;
+  flex: 0 0 62px;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 16px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+
+.cc-graph-cell:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cc-graph-cell[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cc-graph-cell.is-window {
+  box-shadow: inset 0 -3px 0 var(--cc-accent);
+}
+
+.cc-graph-time {
+  color: var(--cc-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cc-graph-rain {
+  --p: 0;
+  display: grid;
+  grid-template-rows: 28px auto;
+  align-items: end;
+  justify-items: center;
+  gap: 2px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cc-muted);
+}
+
+.cc-graph-rain-bar {
+  width: 14px;
+  height: calc(var(--p) * 28px + 2px);
+  border-radius: 3px 3px 0 0;
+  background: rgba(154, 216, 255, 0.85);
+}
+
+.cc-graph-rain .is-likely {
+  color: var(--cc-accent);
+}
+
+.cc-graph-detail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--cc-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cc-graph-detail div {
+  display: grid;
+  gap: 2px;
+}
+
+.cc-graph-detail dt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cc-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.cc-graph-detail dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.cc-graph-detail-head dt {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.cc-graph-detail-head dd {
+  color: var(--cc-muted);
+  font-weight: 600;
+}
+
+/* ---- Alerts ---- */
+.cc-alerts {
+  display: grid;
+  gap: 8px;
+}
+
+.cc-alert {
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(40, 20, 10, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.cc-alert.is-warn {
+  border-left: 5px solid #ff6b5b;
+}
+
+.cc-alert.is-caution {
+  border-left: 5px solid #ffc44d;
+}
+
+.cc-alert.is-info {
+  border-left: 5px solid #9ad8ff;
+}
+
+.cc-alert > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cc-alert > button span {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.cc-alert small {
+  color: #e3d6cf;
+}
+
+.cc-alert .is-flipped {
+  transform: rotate(180deg);
+}
+
+.cc-alert-body {
+  padding: 0 16px 14px 46px;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .appbar[data-app="clocast"] {
-  --ab-bg: rgba(44, 93, 143, 0.55);
+  --ab-bg: rgba(8, 22, 38, 0.25);
   --ab-line: rgba(255, 255, 255, 0.12);
-  --ab-accent: #8ad4ff;
-  --ab-accent-ink: #062033;
+  --ab-accent: #fff;
+  --ab-accent-ink: #1d4f7a;
   --ab-font: "Manrope", sans-serif;
   --ab-name-weight: 800;
   --ab-radius: 50%;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cc::before,
+  .cc-sky > div,
   .cc-shell {
-    animation: none;
+    animation: none !important;
   }
+
+  .cc-sky--storm .cc-sky-flash {
+    opacity: 0;
+  }
+}
+
+/* Small print sits right on the sky, so it gets its own glass strip. */
+.cc-credit {
+  display: block;
+  width: fit-content;
+  margin-inline: auto;
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #e6eef4;
+  background: rgba(8, 22, 38, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.cc-credit a {
+  color: #fff;
+}
+
+.cc input::placeholder {
+  color: rgba(230, 238, 244, 0.7);
 }

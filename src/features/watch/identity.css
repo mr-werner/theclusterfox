@@ -1,22 +1,26 @@
-/* WatchFox identity: the cinema. Near-black room, a spotlight from above,
-   marquee type and posters that glow when you point at them. */
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+/* WatchFox identity: a movie theater after the lights go down. Velvet
+   curtain red at the edges, marquee gold for the things you press, tall
+   condensed marquee type, and posters lit like they're on screen. */
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter+Tight:wght@500;600;700&display=swap");
 
 .wf {
-  --wf-accent: #c79bff;
-  --wf-accent-ink: #1d0b33;
-  --wf-surface: #121016;
-  --wf-surface-2: #1a1720;
+  --wf-accent: #f5c451;
+  --wf-accent-ink: #261600;
+  --wf-accent-soft: rgba(245, 196, 81, 0.12);
+  --wf-velvet: #8e1b2e;
+  --wf-surface: #121014;
+  --wf-surface-2: #1b181e;
   --wf-line: rgba(255, 255, 255, 0.07);
   --wf-line-strong: rgba(255, 255, 255, 0.14);
-  --wf-muted: #a49cad;
-  --wf-radius: 12px;
+  --wf-muted: #a9a1a6;
+  --wf-radius: 14px;
 
   min-height: 100vh;
+  font-family: "Inter Tight", var(--font-sans, system-ui), sans-serif;
   background:
-    radial-gradient(ellipse 700px 520px at 50% -160px, rgba(199, 155, 255, 0.22), transparent 70%),
-    radial-gradient(ellipse 1400px 900px at 50% 120%, rgba(110, 20, 60, 0.18), transparent 70%),
-    #070609;
+    radial-gradient(ellipse 620px 440px at 50% -140px, rgba(245, 196, 81, 0.16), transparent 70%),
+    linear-gradient(90deg, rgba(142, 27, 46, 0.32), transparent 14%, transparent 86%, rgba(142, 27, 46, 0.32)),
+    #08070a;
 }
 
 .wf-shell {
@@ -44,38 +48,283 @@
 }
 
 .wf h1 {
-  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-size: clamp(2.6rem, 6vw, 3.8rem);
   line-height: 0.95;
-  text-shadow: 0 0 28px rgba(199, 155, 255, 0.35);
+  color: #fff4dc;
+  text-shadow: 0 0 24px rgba(245, 196, 81, 0.35);
 }
 
 .wf h2 {
-  font-size: 1.6rem;
+  font-size: 1.7rem;
 }
 
-.wf-poster,
-.wf-poster-btn,
-.wf-tile {
-  transition: transform 220ms ease, box-shadow 220ms ease;
+.wf-eyebrow {
+  color: var(--wf-accent);
 }
 
-.wf-poster:hover,
-.wf-poster-btn:hover,
-.wf-tile:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(199, 155, 255, 0.45), 0 0 34px rgba(199, 155, 255, 0.2);
+/* The mark is a marquee sign with bulbs around it. */
+.wf-mark {
+  color: var(--wf-accent-ink);
+  background: var(--wf-accent);
+  box-shadow:
+    0 0 0 3px #08070a,
+    0 0 0 5px rgba(245, 196, 81, 0.7),
+    0 0 26px rgba(245, 196, 81, 0.45);
+}
+
+/* Tabs: ticket stubs. */
+.wf-tabs {
+  border-style: dashed;
+  background: rgba(18, 16, 20, 0.92);
+}
+
+.wf-tabs button[aria-current="page"] {
+  box-shadow: 0 0 18px rgba(245, 196, 81, 0.3);
+}
+
+.wf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .wf-panel {
-  background: linear-gradient(180deg, #141118, #0e0c11);
+  background: linear-gradient(180deg, #131016, #0c0a0e);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
+/* Posters light up like the screen when you point at them. */
+.wf-poster,
+.wf-poster-btn,
+.wf-tile img,
+.wf-tile-blank {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.wf-poster-btn:hover,
+.wf-tile:hover img,
+.wf-tile:focus-visible img,
+.wf-tile:hover .wf-tile-blank {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(245, 196, 81, 0.5), 0 0 34px rgba(245, 196, 81, 0.18);
+}
+
+.wf-tile:focus-visible {
+  outline: none;
+}
+
+.wf-tile:focus-visible img,
+.wf-tile:focus-visible .wf-tile-blank {
+  outline: 2px solid var(--wf-accent);
+  outline-offset: 3px;
+}
+
+.wf-tile {
+  position: relative;
+}
+
+.wf-tile.is-seen img {
+  filter: saturate(0.45) brightness(0.7);
+}
+
+/* Small labels on posters: seen, on your watchlist. */
+.wf-badge {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(6px);
+}
+
+.wf-badge.is-seen {
+  color: #062314;
+  background: rgba(79, 209, 139, 0.92);
+}
+
+.wf-badge.is-later {
+  color: var(--wf-accent-ink);
+  background: rgba(245, 196, 81, 0.95);
+}
+
+/* The marquee: one featured title, its poster glowing behind it. */
+.wf-feature {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 26px;
+  align-items: center;
+  margin: 18px 0 8px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 196, 81, 0.22);
+  border-radius: 20px;
+  background: #0d0b0f;
+  animation: wf-feature-in 600ms ease-out both;
+}
+
+@keyframes wf-feature-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.wf-feature-glow {
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  width: 180%;
+  height: 180%;
+  object-fit: cover;
+  opacity: 0.35;
+  filter: blur(60px) saturate(1.5);
+}
+
+.wf-feature::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(8, 7, 10, 0.35), rgba(8, 7, 10, 0.8));
+}
+
+.wf-feature-poster {
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+}
+
+.wf-feature-poster img,
+.wf-feature-poster .wf-tile-blank {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--wf-surface-2);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
+}
+
+.wf-feature-kicker {
+  margin: 0 0 4px;
+  color: var(--wf-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.wf-feature h2 {
+  margin: 0 0 8px;
+  color: #fff4dc;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 0.95;
+}
+
+.wf-feature-overview {
+  display: -webkit-box;
+  max-width: 62ch;
+  margin: 0 0 16px;
+  overflow: hidden;
+  color: #d7cfd2;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.wf-feature-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wf-feature-actions .wf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wf-pick {
+  border-color: rgba(245, 196, 81, 0.5);
+  color: var(--wf-accent);
+}
+
+/* Shelves of posters that scroll sideways. */
+.wf-row {
+  margin: 4px 0 18px;
+}
+
+.wf-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.wf-row-head h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.wf-row-list {
+  display: grid;
+  grid-auto-columns: 118px;
+  grid-auto-flow: column;
+  gap: 12px;
+  margin: 10px -4px 0;
+  padding: 4px 4px 12px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.wf-row-list li {
+  scroll-snap-align: start;
+}
+
+/* In the detail sheet. */
+.wf-detail-lists {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.wf-detail-lists .wf-fav-chip {
+  margin: 0;
+}
+
+.wf-verdict {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #062314;
+  background: var(--wf-mine);
+}
+
 .appbar[data-app="watchfox"] {
-  --ab-bg: rgba(7, 6, 9, 0.9);
-  --ab-line: rgba(255, 255, 255, 0.06);
-  --ab-accent: #c79bff;
-  --ab-accent-ink: #1d0b33;
+  --ab-bg: rgba(8, 7, 10, 0.92);
+  --ab-line: rgba(245, 196, 81, 0.18);
+  --ab-accent: #f5c451;
+  --ab-accent-ink: #261600;
   --ab-font: "Bebas Neue", sans-serif;
   --ab-name-size: 1.5rem;
   --ab-name-weight: 400;
@@ -83,8 +332,76 @@
   --ab-radius: 6px;
 }
 
+@media (max-width: 640px) {
+  .wf-feature {
+    grid-template-columns: 108px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    padding: 16px;
+  }
+
+  .wf-feature-overview {
+    -webkit-line-clamp: 4;
+    grid-column: 1 / -1;
+  }
+
+  .wf-feature-text {
+    display: contents;
+  }
+
+  .wf-feature-text > :not(.wf-feature-overview, .wf-feature-actions) {
+    grid-column: 2;
+  }
+
+  .wf-feature-poster {
+    grid-row: 1 / span 3;
+  }
+
+  .wf-feature-actions {
+    grid-column: 1 / -1;
+  }
+
+  .wf-feature-kicker {
+    align-self: end;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .wf-shell {
+  .wf-shell,
+  .wf-feature {
     animation: none;
   }
+
+  .wf-poster-btn:hover,
+  .wf-tile:hover img,
+  .wf-tile:hover .wf-tile-blank {
+    transform: none;
+  }
+}
+
+/* Long chip rows scroll sideways on phones instead of stacking. */
+@media (max-width: 640px) {
+  .wf-browse .wf-chip-row {
+    flex-wrap: nowrap;
+    margin-right: -24px;
+    padding-right: 24px;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .wf-browse .wf-chip-row li {
+    flex: 0 0 auto;
+  }
+
+  .wf-browse .wf-chip-row::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* The detail sheet is the screen, not the room: no curtains. */
+.wf.wf-detail {
+  min-height: 0;
+  background: #0e0c10;
+  box-shadow: 0 0 0 1px rgba(245, 196, 81, 0.12), 0 40px 120px rgba(0, 0, 0, 0.8);
 }

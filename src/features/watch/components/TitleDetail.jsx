@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Film, Heart, LoaderCircle, Play, Star, Tv, X } from "lucide-react";
+import { Bookmark, Check, Film, Heart, LoaderCircle, Play, Star, Tv, X } from "lucide-react";
 
 import WhereToWatch from "./WhereToWatch";
 import { fetchDirectLinks, fetchTitle } from "../../../services/watch/watchApi";
-import { isFavorite, toggleFavorite } from "../state/watchStore";
+import { isFavorite, isIn, toggleFavorite, toggleTitle } from "../state/watchStore";
 
 // A movie or show opened from browse or search: poster, synopsis, trailer
 // and where to watch it.
@@ -99,14 +99,32 @@ export default function TitleDetail({ item, data, update, onOpen, onClose }) {
               )}
             </p>
             {title.genres?.length > 0 && <p className="wf-genres">{title.genres.join(", ")}</p>}
-            <button
-              type="button"
-              className="wf-chip wf-chip--small wf-fav-chip"
-              aria-pressed={isFavorite(data, title)}
-              onClick={() => update(current => toggleFavorite(current, title))}
-            >
-              <Heart size={13} aria-hidden="true" /> {isFavorite(data, title) ? "Favorited" : "Favorite"}
-            </button>
+            <div className="wf-detail-lists">
+              <button
+                type="button"
+                className="wf-chip wf-chip--small"
+                aria-pressed={isIn(data, "watchlist", title)}
+                onClick={() => update(current => toggleTitle(current, "watchlist", title))}
+              >
+                <Bookmark size={13} aria-hidden="true" /> {isIn(data, "watchlist", title) ? "On watchlist" : "Watchlist"}
+              </button>
+              <button
+                type="button"
+                className="wf-chip wf-chip--small"
+                aria-pressed={isIn(data, "watched", title)}
+                onClick={() => update(current => toggleTitle(current, "watched", title))}
+              >
+                <Check size={13} aria-hidden="true" /> {isIn(data, "watched", title) ? "Seen" : "Seen it"}
+              </button>
+              <button
+                type="button"
+                className="wf-chip wf-chip--small wf-fav-chip"
+                aria-pressed={isFavorite(data, title)}
+                onClick={() => update(current => toggleFavorite(current, title))}
+              >
+                <Heart size={13} aria-hidden="true" /> {isFavorite(data, title) ? "Favorited" : "Favorite"}
+              </button>
+            </div>
             {title.tagline && <p className="wf-tagline">{title.tagline}</p>}
             <p className="wf-overview">{title.overview || "No synopsis yet."}</p>
           </div>

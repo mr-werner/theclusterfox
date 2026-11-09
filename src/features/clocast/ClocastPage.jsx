@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CalendarDays, Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, Sun, Target, TreePine } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import LocationPicker from "./components/LocationPicker";
 import Coach from "./components/Coach";
 import OutfitCard from "./components/OutfitCard";
@@ -19,6 +19,7 @@ import { fetchAirQuality, fetchForecast, withAirQuality } from "../../services/w
 import { formatTemp } from "./units";
 import { dayName, describeWindow, DURATIONS, PARTS, partAvailable, windowHours } from "./when";
 import "./clocast.css";
+import "./identity.css";
 
 function SyncBadge({ status, isSignedIn }) {
   if (!isSignedIn) {
@@ -146,7 +147,7 @@ export default function ClocastPage() {
 
   return (
     <main className="clocast-page cc">
-      <SiteHeader />
+      <AppBar appId="clocast" />
 
       <div className="cc-shell">
         <header className="cc-hero">

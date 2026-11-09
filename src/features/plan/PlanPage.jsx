@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BellRing, CalendarDays, Settings2, Sparkles, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, List, LoaderCircle, Plus } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import { formatTemp } from "../clocast/units";
 import { AgendaView, MonthView, YearView } from "./components/CalendarViews";
 import DayPanel, { Tip } from "./components/DayPanel";
@@ -22,6 +22,7 @@ import { togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { fareCurrency, useLayerData } from "./state/useLayerData";
 import "./plan.css";
+import "./identity.css";
 
 const VIEWS = [
   { id: "month", name: "Month", icon: CalendarDays },
@@ -207,7 +208,7 @@ export default function PlanPage() {
 
   return (
     <main className="plan-page pf">
-      <SiteHeader />
+      <AppBar appId="planfox" />
 
       <div className="pf-shell">
         <header className="pf-hero">

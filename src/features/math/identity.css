@@ -1,0 +1,118 @@
+/* MathFox identity: a chalkboard. Slate green, graph-paper grid, chalk
+   colors and handwritten headings, with typeset math left crisp. */
+@import url("https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+.mf {
+  --mf-accent: #ff9fcd;
+  --mf-accent-ink: #2b0a1b;
+  --mf-accent-soft: rgba(255, 159, 205, 0.14);
+  --mf-c1: #ff9fcd;
+  --mf-c2: #8fd6ff;
+  --mf-c3: #ffe07a;
+  --mf-c4: #9ee6b4;
+  --mf-surface: rgba(33, 52, 45, 0.92);
+  --mf-surface-2: rgba(44, 66, 58, 0.92);
+  --mf-line: rgba(240, 245, 235, 0.12);
+  --mf-line-strong: rgba(240, 245, 235, 0.24);
+  --mf-muted: #b3c2ba;
+  --mf-text: #f2f4ec;
+  --mf-radius: 10px;
+
+  min-height: 100vh;
+  color: #f2f4ec;
+  background-color: #1b2a24;
+  background-image:
+    radial-gradient(60% 40% at 30% 10%, rgba(255, 255, 255, 0.05), transparent 70%),
+    radial-gradient(40% 30% at 80% 70%, rgba(255, 255, 255, 0.035), transparent 70%),
+    linear-gradient(rgba(240, 245, 235, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240, 245, 235, 0.045) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
+}
+
+.mf-shell {
+  animation: mf-write 500ms ease-out both;
+}
+
+@keyframes mf-write {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+.mf h1,
+.mf h2,
+.mf h3 {
+  font-family: "Kalam", "Comic Sans MS", cursive;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.mf-hero h1 {
+  font-size: clamp(2rem, 5.4vw, 3rem);
+  line-height: 1.05;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* A chalk underline under the title. */
+.mf-hero h1::after {
+  content: "";
+  display: block;
+  width: 180px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: var(--mf-c3);
+  opacity: 0.7;
+  transform: rotate(-1deg);
+}
+
+.mf-eyebrow {
+  font-family: "Kalam", cursive;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.mf-input,
+.mf-chip,
+.mf-example,
+.mf-syntax {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.mf-card {
+  border: 1px solid var(--mf-line-strong);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.18);
+}
+
+/* A wooden chalk ledge under the board. */
+.mf-shell::after {
+  content: "";
+  display: block;
+  height: 10px;
+  margin-top: 28px;
+  border-radius: 3px;
+  background: linear-gradient(#8a5a35, #5d3b22);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.appbar[data-app="mathfox"] {
+  --ab-bg: rgba(20, 33, 28, 0.94);
+  --ab-line: rgba(240, 245, 235, 0.12);
+  --ab-accent: #ff9fcd;
+  --ab-accent-ink: #2b0a1b;
+  --ab-font: "Kalam", cursive;
+  --ab-name-size: 1.25rem;
+  --ab-name-weight: 700;
+  --ab-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-shell {
+    animation: none;
+  }
+}

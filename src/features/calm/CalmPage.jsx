@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Flower2, ChartLine, Compass, Star } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import SessionCard from "./components/SessionCard";
 import SessionSetup from "./components/SessionSetup";
 import Player from "./components/Player";
@@ -13,6 +13,7 @@ import { toIsoDay, summarize } from "./model/stats";
 import { useCalmData } from "./state/useCalmData";
 import { useVoices } from "./audio/voice";
 import "./calm.css";
+import "./identity.css";
 
 const TABS = [
   { id: "explore", name: "Explore", icon: Compass },
@@ -66,7 +67,7 @@ export default function CalmPage() {
 
   return (
     <main className="calm-page cm">
-      <SiteHeader />
+      <AppBar appId="calmfox" />
 
       <div className="cm-shell">
         <header className="cm-hero">

@@ -1,0 +1,124 @@
+/* Engineer ToolFox identity: a drafting sheet. Blueprint grid, hairline
+   rules, square corners, monospace numbers and a title block. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap");
+
+.tf {
+  --tf-accent: #5cd6ff;
+  --tf-accent-ink: #03192a;
+  --tf-surface: #0d2846;
+  --tf-surface-2: #10304f;
+  --tf-surface-3: #143a5e;
+  --tf-line: rgba(150, 200, 255, 0.16);
+  --tf-line-strong: rgba(150, 200, 255, 0.32);
+  --tf-muted: #9db6cf;
+  --tf-radius: 3px;
+  --tf-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --tf-draft: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+
+  min-height: 100vh;
+  background-color: #0a2240;
+  background-image:
+    linear-gradient(rgba(150, 200, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150, 200, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(rgba(150, 200, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150, 200, 255, 0.04) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-position: -1px -1px;
+}
+
+.tf-main {
+  animation: tf-plot 520ms ease-out both;
+}
+
+@keyframes tf-plot {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.tf h1,
+.tf h2,
+.tf h3 {
+  font-family: var(--tf-draft);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.tf-eyebrow,
+.tf-chip,
+.tf-unit,
+.tf-primary-value,
+.tf-result,
+.tf-table,
+.tf-bp-readout,
+.tf input,
+.tf select {
+  font-family: var(--tf-mono);
+}
+
+.tf-eyebrow {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* The hero reads like the title block on a drawing. */
+.tf-hero {
+  position: relative;
+  border: 1px solid var(--tf-line-strong) !important;
+  border-radius: 2px !important;
+  background: rgba(10, 34, 64, 0.82) !important;
+  box-shadow: inset 0 0 0 4px rgba(10, 34, 64, 0.9), inset 0 0 0 5px var(--tf-line);
+}
+
+.tf-hero::after {
+  content: "SHEET 1 OF 1 · REV A · SCALE NTS";
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  color: var(--tf-muted);
+  font: 500 0.62rem var(--tf-mono);
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+.tf-card,
+.tf-cat-card,
+.tf-tool-card,
+.tf-table-card {
+  border-style: solid;
+  border-radius: 2px !important;
+  background: rgba(13, 40, 70, 0.88) !important;
+  backdrop-filter: blur(2px);
+}
+
+.tf-cat-card:hover,
+.tf-tool-card:hover {
+  border-color: var(--tf-accent) !important;
+  box-shadow: 0 0 0 1px var(--tf-accent), 0 0 24px rgba(92, 214, 255, 0.18);
+}
+
+.tf-side {
+  top: 16px;
+}
+
+.appbar[data-app="toolfox"] {
+  --ab-bg: rgba(8, 28, 52, 0.92);
+  --ab-line: rgba(150, 200, 255, 0.22);
+  --ab-accent: #5cd6ff;
+  --ab-accent-ink: #03192a;
+  --ab-font: "IBM Plex Sans Condensed", sans-serif;
+  --ab-name-case: uppercase;
+  --ab-name-spacing: 0.08em;
+  --ab-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tf-main {
+    animation: none;
+  }
+}

@@ -1,0 +1,55 @@
+/* CookFox identity: a warm kitchen. Builds on CookFox's cream and sage
+   with linen texture, recipe-card edges and a top bar that matches. */
+
+.ck {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M0 0h6M0 3h6' stroke='%23a07b4a' stroke-opacity='0.05'/%3E%3Cpath d='M0 0v6M3 0v6' stroke='%23a07b4a' stroke-opacity='0.035'/%3E%3C/svg%3E");
+}
+
+.ck[data-theme="dark"] {
+  background-image: none;
+}
+
+.ck-topbar {
+  background: transparent;
+  color: inherit;
+}
+
+.ck-shell {
+  animation: ck-serve 520ms cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+
+@keyframes ck-serve {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.appbar[data-app="cookfox"] {
+  --ab-bg: rgba(247, 241, 230, 0.88);
+  --ab-fg: #2b2925;
+  --ab-muted: #6c6457;
+  --ab-line: rgba(70, 52, 28, 0.14);
+  --ab-accent: #557a4b;
+  --ab-accent-ink: #fff;
+  --ab-font: "Fraunces", Georgia, serif;
+  --ab-name-size: 1.3rem;
+  --ab-name-weight: 700;
+  --ab-radius: 50%;
+}
+
+.ck[data-theme="dark"] .appbar[data-app="cookfox"] {
+  --ab-bg: rgba(28, 26, 23, 0.9);
+  --ab-fg: #f1ebe0;
+  --ab-line: rgba(255, 255, 255, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ck-shell {
+    animation: none;
+  }
+}

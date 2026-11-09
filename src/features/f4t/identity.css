@@ -1,0 +1,91 @@
+/* F4T identity: fuel meets lab. Energetic lime-to-flame gradient, molecule
+   pattern, clean geometric type and readouts in mono. */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+
+.ff {
+  --ff-accent: #a6e35a;
+  --ff-accent-ink: #0f1a05;
+  --ff-accent-soft: rgba(166, 227, 90, 0.13);
+  --ff-flame: #ff8a3d;
+  --ff-surface: #141914;
+  --ff-surface-2: #1b211b;
+  --ff-line: rgba(255, 255, 255, 0.08);
+  --ff-line-strong: rgba(255, 255, 255, 0.15);
+  --ff-radius: 16px;
+
+  min-height: 100vh;
+  background-color: #0d110d;
+  background-image:
+    radial-gradient(ellipse 800px 420px at 85% -120px, rgba(255, 138, 61, 0.16), transparent 70%),
+    radial-gradient(ellipse 800px 420px at 10% -120px, rgba(166, 227, 90, 0.14), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='48' viewBox='0 0 84 48'%3E%3Cpath d='M0 24 L14 0 H42 L56 24 L42 48 H14 Z M56 24 H84' fill='none' stroke='%23ffffff' stroke-opacity='0.035' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+.ff-shell {
+  animation: ff-ignite 500ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes ff-ignite {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ff h1,
+.ff h2,
+.ff h3 {
+  font-family: "Sora", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.ff-hero h1 {
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--ff-accent), #e9e35a 45%, var(--ff-flame));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ff-total,
+.ff-total *,
+.ff-manual-cal,
+.ff-card-time {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.ff-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.ff-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ff-accent), var(--ff-flame));
+  opacity: 0.8;
+}
+
+.appbar[data-app="f4t"] {
+  --ab-bg: rgba(13, 17, 13, 0.9);
+  --ab-accent: #a6e35a;
+  --ab-accent-ink: #0f1a05;
+  --ab-font: "Sora", sans-serif;
+  --ab-name-weight: 800;
+  --ab-name-spacing: -0.02em;
+  border-image: linear-gradient(90deg, #a6e35a, #ff8a3d) 1;
+  border-bottom-width: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-shell {
+    animation: none;
+  }
+}

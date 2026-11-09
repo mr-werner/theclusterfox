@@ -1,7 +1,7 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { CalendarRange, Cloud, CloudOff, Dumbbell, HardDrive, History, LoaderCircle } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import WorkoutBuilder from "./components/WorkoutBuilder";
 import WorkoutView from "./components/WorkoutView";
 import PlansTab from "./components/PlansTab";
@@ -11,6 +11,7 @@ import { PLAN_GOALS, toIsoDay } from "./model/program";
 import { useLiftData } from "./state/useLiftData";
 import { withNext } from "../../lib/redirect";
 import "./lift.css";
+import "./identity.css";
 
 function SyncBadge({ status, isSignedIn }) {
   if (!isSignedIn) {
@@ -85,7 +86,7 @@ export default function LiftPage() {
 
   return (
     <main className="lift-page lf">
-      <SiteHeader />
+      <AppBar appId="liftfox" />
 
       <div className="lf-shell">
         <header className="lf-hero">

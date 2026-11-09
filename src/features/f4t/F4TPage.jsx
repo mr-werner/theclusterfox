@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Bookmark, Cloud, CloudOff, Flame, History, HardDrive, LoaderCircle, Plus, RotateCcw } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import ActivityExplorer from "./components/ActivityExplorer";
 import FoodSearch from "./components/FoodSearch";
 import MealItem from "./components/MealItem";
@@ -14,6 +14,7 @@ import { foodKey, formatCalories, LBS_PER_KG, mealCalories } from "./mealMath";
 import { loadDraft, saveDraft } from "./state/f4tStore";
 import { useF4TData } from "./state/useF4TData";
 import "./f4t.css";
+import "./identity.css";
 
 const groupsByKey = new Map(activityGroups.map(group => [group.key, group]));
 const starterPicks = starterSelections(activityGroups);
@@ -165,7 +166,7 @@ export default function F4TPage() {
 
   return (
     <main className="f4t-page ff">
-      <SiteHeader />
+      <AppBar appId="f4t" />
 
       <div className="ff-shell">
         <header className="ff-hero">

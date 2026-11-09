@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeftRight, Calculator, ChevronRight, Clock, Search, Star, Table2, Wrench } from "lucide-react";
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import { CATEGORIES, CALCS, TABLES, calcById, tableById, categoryById, search } from "./registry";
 import { usePrefs } from "./state/usePrefs";
 import CalcView from "./components/CalcView";
 import TableView from "./components/TableView";
 import ConverterView from "./components/ConverterView";
 import "./tools.css";
+import "./identity.css";
 
 const POPULAR = ["pressure-drop", "beam", "psychrometrics", "voltage-drop", "tank-volume", "section-properties"];
 
@@ -29,7 +30,7 @@ export default function ToolsPage() {
 
   return (
     <main className="tools-page tf">
-      <SiteHeader />
+      <AppBar appId="toolfox" />
       <div className="tf-shell">
         <aside className="tf-side" aria-label="Engineer ToolFox sections">
           <Link to="/tools" className="tf-brand">

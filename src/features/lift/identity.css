@@ -1,0 +1,159 @@
+/* LiftFox identity: iron, chalk and heat. Wide heavy type, hard corners,
+   diamond-plate floor and quick, punchy motion. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,800;125,900&display=swap");
+
+.lf {
+  --lf-accent: #ff4a2b;
+  --lf-accent-ink: #ffffff;
+  --lf-accent-soft: rgba(255, 74, 43, 0.15);
+  --lf-surface: #171717;
+  --lf-surface-2: #202020;
+  --lf-line: rgba(255, 255, 255, 0.09);
+  --lf-line-strong: rgba(255, 255, 255, 0.18);
+  --lf-muted: #a3a09d;
+  --lf-radius: 6px;
+  --lf-heavy: "Archivo", "Arial Black", sans-serif;
+
+  min-height: 100vh;
+  background-color: #0c0c0c;
+  background-image:
+    radial-gradient(ellipse 900px 420px at 50% -120px, rgba(255, 74, 43, 0.16), transparent 70%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.022) 0 2px, transparent 2px 14px);
+}
+
+.lf *,
+.lf *::before,
+.lf *::after {
+  transition-duration: 90ms !important;
+}
+
+.lf-shell {
+  animation: lf-slam 360ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes lf-slam {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lf h1,
+.lf h2,
+.lf h3 {
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.lf-hero h1 {
+  font-size: clamp(1.7rem, 5vw, 2.8rem);
+  font-weight: 900;
+  line-height: 0.98;
+}
+
+/* A strip of hazard tape under the title. */
+.lf-hero {
+  position: relative;
+  padding-bottom: 22px;
+}
+
+.lf-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  border-radius: 1px;
+  background: repeating-linear-gradient(-45deg, #f5c400 0 12px, #121212 12px 24px);
+  opacity: 0.85;
+}
+
+.lf-logo {
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px #0c0c0c, 0 0 0 5px var(--lf-accent);
+}
+
+.lf-eyebrow {
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+}
+
+.lf-tabs {
+  border-radius: 8px;
+  background: rgba(18, 18, 18, 0.94);
+}
+
+.lf-tabs button {
+  border-radius: 4px;
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lf-tabs button[aria-current="page"] {
+  box-shadow: 0 6px 22px rgba(255, 74, 43, 0.35);
+}
+
+.lf-panel,
+.lf-exercise,
+.lf-week {
+  border-top: 3px solid var(--lf-line-strong);
+}
+
+.lf-btn,
+.lf-chip {
+  border-radius: 4px;
+}
+
+.lf-btn {
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lf-btn:active,
+.lf-chip:active {
+  transform: scale(0.96);
+}
+
+.appbar[data-app="liftfox"] {
+  --ab-bg: rgba(12, 12, 12, 0.9);
+  --ab-accent: #ff4a2b;
+  --ab-accent-ink: #fff;
+  --ab-font: "Archivo", "Arial Black", sans-serif;
+  --ab-name-weight: 900;
+  --ab-name-case: uppercase;
+  --ab-name-spacing: 0.04em;
+  --ab-radius: 4px;
+  border-bottom: 3px solid #ff4a2b;
+}
+
+.appbar[data-app="liftfox"] .appbar-name {
+  font-stretch: 125%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-shell {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .lf-hero h1 {
+    font-size: 1.4rem;
+  }
+}

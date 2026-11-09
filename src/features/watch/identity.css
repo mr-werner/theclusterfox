@@ -1,0 +1,90 @@
+/* WatchFox identity: the cinema. Near-black room, a spotlight from above,
+   marquee type and posters that glow when you point at them. */
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+
+.wf {
+  --wf-accent: #c79bff;
+  --wf-accent-ink: #1d0b33;
+  --wf-surface: #121016;
+  --wf-surface-2: #1a1720;
+  --wf-line: rgba(255, 255, 255, 0.07);
+  --wf-line-strong: rgba(255, 255, 255, 0.14);
+  --wf-muted: #a49cad;
+  --wf-radius: 12px;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 700px 520px at 50% -160px, rgba(199, 155, 255, 0.22), transparent 70%),
+    radial-gradient(ellipse 1400px 900px at 50% 120%, rgba(110, 20, 60, 0.18), transparent 70%),
+    #070609;
+}
+
+.wf-shell {
+  animation: wf-lights 900ms ease-out both;
+}
+
+@keyframes wf-lights {
+  from {
+    opacity: 0;
+    filter: brightness(0.3);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    filter: none;
+  }
+}
+
+.wf h1,
+.wf h2 {
+  font-family: "Bebas Neue", "Oswald", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.wf h1 {
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  line-height: 0.95;
+  text-shadow: 0 0 28px rgba(199, 155, 255, 0.35);
+}
+
+.wf h2 {
+  font-size: 1.6rem;
+}
+
+.wf-poster,
+.wf-poster-btn,
+.wf-tile {
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.wf-poster:hover,
+.wf-poster-btn:hover,
+.wf-tile:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(199, 155, 255, 0.45), 0 0 34px rgba(199, 155, 255, 0.2);
+}
+
+.wf-panel {
+  background: linear-gradient(180deg, #141118, #0e0c11);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.appbar[data-app="watchfox"] {
+  --ab-bg: rgba(7, 6, 9, 0.9);
+  --ab-line: rgba(255, 255, 255, 0.06);
+  --ab-accent: #c79bff;
+  --ab-accent-ink: #1d0b33;
+  --ab-font: "Bebas Neue", sans-serif;
+  --ab-name-size: 1.5rem;
+  --ab-name-weight: 400;
+  --ab-name-spacing: 0.06em;
+  --ab-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wf-shell {
+    animation: none;
+  }
+}

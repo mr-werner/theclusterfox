@@ -1,0 +1,128 @@
+/* CalmFox identity: twilight. Soft gradients that drift, round shapes,
+   gentle type and slow easing everywhere. */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap");
+
+.cm {
+  --cm-accent: #a9b4ff;
+  --cm-accent-ink: #12163a;
+  --cm-accent-soft: rgba(169, 180, 255, 0.14);
+  --cm-surface: rgba(255, 255, 255, 0.045);
+  --cm-surface-2: rgba(255, 255, 255, 0.07);
+  --cm-line: rgba(255, 255, 255, 0.07);
+  --cm-line-strong: rgba(255, 255, 255, 0.13);
+  --cm-muted: #a7acc4;
+  --cm-radius: 28px;
+
+  position: relative;
+  min-height: 100vh;
+  font-family: "Nunito", "DM Sans", sans-serif;
+  background: #0c0f22;
+  isolation: isolate;
+}
+
+.cm::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(40% 35% at 20% 20%, rgba(124, 140, 255, 0.28), transparent 70%),
+    radial-gradient(35% 30% at 80% 30%, rgba(127, 216, 201, 0.18), transparent 70%),
+    radial-gradient(45% 40% at 60% 90%, rgba(196, 140, 255, 0.2), transparent 70%);
+  filter: blur(30px);
+  animation: cm-drift 28s ease-in-out infinite alternate;
+}
+
+@keyframes cm-drift {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) scale(1.08);
+  }
+}
+
+.cm *,
+.cm *::before,
+.cm *::after {
+  transition-duration: 450ms;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.cm-shell {
+  animation: cm-arrive 1100ms cubic-bezier(0.25, 0.1, 0.25, 1) both;
+}
+
+@keyframes cm-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cm h1,
+.cm h2,
+.cm h3 {
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.cm-hero h1 {
+  font-weight: 600;
+}
+
+.cm-logo {
+  border-radius: 50% !important;
+  animation: cm-breathe 8s ease-in-out infinite;
+}
+
+@keyframes cm-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(169, 180, 255, 0.25);
+  }
+  50% {
+    transform: scale(1.07);
+    box-shadow: 0 0 0 14px rgba(169, 180, 255, 0);
+  }
+}
+
+.cm-card,
+.cm-panel,
+.cm-tile,
+.cm-pill {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.cm-tabs {
+  border-radius: 999px !important;
+}
+
+.cm-tabs button {
+  border-radius: 999px !important;
+}
+
+.appbar[data-app="calmfox"] {
+  --ab-bg: rgba(12, 15, 34, 0.55);
+  --ab-line: rgba(255, 255, 255, 0.05);
+  --ab-accent: #a9b4ff;
+  --ab-accent-ink: #12163a;
+  --ab-font: "Nunito", sans-serif;
+  --ab-name-weight: 700;
+  --ab-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm::before,
+  .cm-logo,
+  .cm-shell {
+    animation: none;
+  }
+}

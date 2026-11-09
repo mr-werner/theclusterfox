@@ -1,12 +1,13 @@
 import { useSearchParams } from "react-router-dom";
 import { Clapperboard, MonitorPlay, Trophy, Tv } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import ServicePicker from "./components/ServicePicker";
 import ShowSearch from "./components/ShowSearch";
 import SportsSchedule from "./components/SportsSchedule";
 import { useWatchData } from "./state/useWatchData";
 import "./watch.css";
+import "./identity.css";
 
 const TABS = [
   { id: "shows", name: "Shows", icon: Clapperboard },
@@ -23,7 +24,7 @@ export default function WatchPage() {
 
   return (
     <main className="watch-page wf">
-      <SiteHeader />
+      <AppBar appId="watchfox" />
 
       <div className="wf-shell">
         <header className="wf-hero">

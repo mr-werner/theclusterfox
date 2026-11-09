@@ -1,0 +1,98 @@
+/* PlanFox identity: a well-kept paper planner in a leather cover. Serif
+   headings, ruled pages, a highlighter accent and tabbed sections. */
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Caveat:wght@600&display=swap");
+
+.pf {
+  --pf-accent: #f7c948;
+  --pf-accent-ink: #2b1c02;
+  --pf-accent-soft: rgba(247, 201, 72, 0.14);
+  --pf-surface: #1f1b16;
+  --pf-surface-2: #29241d;
+  --pf-line: rgba(255, 240, 210, 0.09);
+  --pf-line-strong: rgba(255, 240, 210, 0.17);
+  --pf-muted: #b0a690;
+  --pf-radius: 10px;
+
+  min-height: 100vh;
+  background-color: #17130f;
+  background-image:
+    radial-gradient(ellipse 1100px 500px at 50% -200px, rgba(247, 201, 72, 0.09), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.pf > *:not(.appbar) {
+  animation: pf-open 460ms cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  transform-origin: left center;
+}
+
+@keyframes pf-open {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) rotateY(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pf h1,
+.pf h2 {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.pf h3 {
+  letter-spacing: -0.01em;
+}
+
+.pf-eyebrow {
+  font-family: "Caveat", cursive;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* Ruled paper inside the big panels, with a margin line. */
+.pf-panel {
+  position: relative;
+  background-image:
+    linear-gradient(90deg, transparent 38px, rgba(242, 122, 108, 0.22) 38px, rgba(242, 122, 108, 0.22) 39px, transparent 39px),
+    repeating-linear-gradient(transparent 0 27px, rgba(255, 240, 210, 0.045) 27px 28px);
+  box-shadow: 0 1px 0 rgba(255, 240, 210, 0.04) inset, 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* A highlighter swipe behind the hero title. */
+.pf-hero h1 {
+  display: inline;
+  background: linear-gradient(transparent 62%, rgba(247, 201, 72, 0.32) 62%, rgba(247, 201, 72, 0.32) 92%, transparent 92%);
+}
+
+.pf-segment button[aria-pressed="true"],
+.pf-segment button[aria-current="page"] {
+  box-shadow: 0 -3px 0 var(--pf-accent) inset;
+}
+
+.appbar[data-app="planfox"] {
+  --ab-bg: rgba(33, 24, 16, 0.94);
+  --ab-line: rgba(255, 240, 210, 0.12);
+  --ab-accent: #f7c948;
+  --ab-accent-ink: #2b1c02;
+  --ab-font: "DM Serif Display", Georgia, serif;
+  --ab-name-size: 1.25rem;
+  --ab-name-weight: 400;
+  --ab-radius: 6px;
+  /* stitched leather edge */
+  box-shadow: inset 0 -6px 0 -4px rgba(255, 240, 210, 0.08);
+  background-image: linear-gradient(90deg, rgba(255, 240, 210, 0.18) 50%, transparent 50%);
+  background-size: 10px 1px;
+  background-repeat: repeat-x;
+  background-position: 0 calc(100% - 5px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf > *:not(.appbar) {
+    animation: none;
+  }
+}

@@ -2,15 +2,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ArrowRight, Clock, Delete, Keyboard, Lightbulb, Sigma, X } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import { Tex, RichText } from "./components/Tex";
 import Steps from "./components/Steps";
 import Graph from "./components/Graph";
 import { BoxPlot, FactTable, NumberLine } from "./components/Visuals";
 import { previewTex, solve } from "./solve";
 import { syntax, topics } from "./data/examples";
-import { loadHistory, pushHistory, saveHistory } from "./state/history";
+import { cleanHistory, loadHistory, pushHistory, saveHistory } from "./state/history";
+import { useAccountSync } from "../../lib/useAccountSync";
 import "./math.css";
+import "./identity.css";
 
 const KEYS = [
   ["x", "x"],
@@ -71,6 +73,8 @@ export default function MathPage() {
   const preview = useMemo(() => previewTex(draft), [draft]);
 
   useEffect(() => saveHistory(history), [history]);
+  const historyDoc = useMemo(() => ({ history }), [history]);
+  useAccountSync("math_user_data", historyDoc, doc => setHistory(cleanHistory(doc?.history)), { history: [] });
 
   const submit = text => {
     const clean = (text ?? draft).trim();
@@ -113,7 +117,7 @@ export default function MathPage() {
 
   return (
     <main className="math-page mf">
-      <SiteHeader />
+      <AppBar appId="mathfox" />
       <div className="mf-shell">
         <header className="mf-hero">
           <div className="mf-logo" aria-hidden="true">

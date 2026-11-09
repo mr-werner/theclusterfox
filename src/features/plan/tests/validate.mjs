@@ -410,3 +410,41 @@ assert.equal(flightData.nearby.radius, 25);
 assert.deepEqual(flightData.nearby.kinds, ['music']);
 
 console.log('PlanFox checks passed.');
+
+// Today view: quick add, what's due, and moving one-offs.
+{
+  const { parseQuickAdd, dueToday, moveItem, canMove } = await import("../model/tasks.js");
+  const { normalizeData: norm } = await import("../state/planStore.js");
+  const today = "2026-11-09"; // a Monday
+  assert.deepEqual(parseQuickAdd("Call the dentist tomorrow !", today), { title: "Call the dentist", day: "2026-11-10", priority: "high" });
+  assert.deepEqual(parseQuickAdd("Pay rent friday", today), { title: "Pay rent", day: "2026-11-13", priority: "normal" });
+  assert.equal(parseQuickAdd("Gym on mon", today).day, "2026-11-16", "a weekday means the next one, not today");
+  assert.equal(parseQuickAdd("Water plants ~", today).priority, "low");
+  assert.deepEqual(parseQuickAdd("Read Moby Dick", today), { title: "Read Moby Dick", day: today, priority: "normal" });
+  assert.equal(parseQuickAdd("Wow!", today).priority, "normal", "punctuation inside a word stays in the title");
+
+  const item = (id, extra) => ({ id, kind: "task", title: id, day: today, time: null, repeat: "none", done: [], priority: "normal", ...extra });
+  const items = [
+    item("later", { priority: "low" }),
+    item("urgent", { priority: "high" }),
+    item("old", { day: "2026-11-05" }),
+    item("old-done", { day: "2026-11-05", done: ["2026-11-05"] }),
+    item("daily", { day: "2026-11-01", repeat: "daily" }),
+    item("tomorrow", { day: "2026-11-10" }),
+    item("party", { kind: "event" }),
+  ];
+  const due = dueToday(items, today);
+  assert.deepEqual(due.map(t => t.itemId), ["old", "urgent", "daily", "later"], "overdue first, then by priority; missed repeats and events skipped");
+  assert(due[0].overdue && !due[1].overdue);
+
+  assert(canMove(items[1]) && !canMove(items[4]), "repeating items keep their day");
+  const moved = moveItem({ ...items[1], done: [today] }, "2026-11-12");
+  assert.equal(moved.day, "2026-11-12");
+  assert.deepEqual(moved.done, [], "moving clears the old day's check");
+  assert.equal(moveItem(items[4], "2026-11-12"), items[4]);
+
+  const saved = norm({ items: [{ ...items[1] }, { ...items[0], priority: "urgent!!" }] });
+  assert.equal(saved.items.find(i => i.id === "urgent").priority, "high");
+  assert.equal(saved.items.find(i => i.id === "later").priority, "normal", "unknown priorities fall back to normal");
+  console.log("PlanFox: Today view checks out.");
+}

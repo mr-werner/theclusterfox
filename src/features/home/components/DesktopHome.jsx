@@ -7,6 +7,7 @@ import SiteFooter from "../../../components/SiteFooter";
 import FreeAppIcon from "../../free/FreeAppIcon";
 import { isOriginalKey, keyId } from "../state/homeStore";
 import { useTileGestures } from "../useTileGestures";
+import AppLink from "./AppLink";
 import OriginalIcon from "./OriginalIcon";
 import SyncNote from "./SyncNote";
 import HomeSearch from "./HomeSearch";
@@ -110,13 +111,13 @@ export default function DesktopHome({ home, alts, originalsById, onWantAlts, onA
             const app = originalsById.get(keyId(key));
             return (
               <div key={key} className={tileClass(key)} {...tileProps(key)}>
-                <Link to={app.path} className="app-tile" draggable={false} aria-label={`Open ${app.fullName ?? app.subtitle}`}>
+                <AppLink app={app} className="app-tile" draggable={false} aria-label={`Open ${app.fullName ?? app.subtitle}`}>
                   <OriginalIcon app={app} />
                   <div className="app-info">
                     <h3>{app.fullName ?? app.subtitle}</h3>
                     <p>{app.description}</p>
                   </div>
-                </Link>
+                </AppLink>
                 {editing && <RemoveBadge label={app.subtitle} onRemove={() => home.remove(key)} />}
               </div>
             );

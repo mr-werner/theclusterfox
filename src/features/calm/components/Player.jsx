@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Mic, MicOff, Music, Pause, Play, X } from "lucide-react";
 
-import { patterns } from "../data/breathing";
+import { patternOf } from "../data/breathing";
 import { buildTimeline, spokenCount } from "../model/schedule";
 import { breathAt } from "../model/breath";
 import { clock } from "../model/stats";
@@ -21,7 +21,7 @@ const RING = 2 * Math.PI * 47;
  */
 export default function Player({ session, config, onComplete, onMood, onClose }) {
   const seconds = config.minutes * 60;
-  const pattern = patterns[session.pattern];
+  const pattern = patternOf(session);
   const isBreath = session.kind === "breath";
   const timeline = useMemo(
     () =>
@@ -37,8 +37,8 @@ export default function Player({ session, config, onComplete, onMood, onClose })
   // Voice cues for the first rounds after the opening has finished, in "voice, then tones" mode.
   const voiceCueUntil = useMemo(() => {
     const openEnd = Math.max(0, ...timeline.filter(i => i.kind === "open").map(i => i.end));
-    return openEnd + 3 * patterns[session.pattern].phases.reduce((s, p) => s + p.sec, 0) * config.pace;
-  }, [timeline, session.pattern, config.pace]);
+    return openEnd + 3 * pattern.phases.reduce((s, p) => s + p.sec, 0) * config.pace;
+  }, [timeline, pattern, config.pace]);
 
   const [status, setStatus] = useState("running"); // running | paused | done
   const [elapsed, setElapsed] = useState(0);

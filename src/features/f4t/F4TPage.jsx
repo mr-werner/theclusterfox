@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bookmark, Cloud, CloudOff, Flame, History, HardDrive, LoaderCircle, Plus, RotateCcw } from "lucide-react";
+import { Bookmark, Cloud, CloudOff, History, HardDrive, LoaderCircle, Plus, RotateCcw, Utensils } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import ActivityExplorer from "./components/ActivityExplorer";
+import CompareStrip from "./components/CompareStrip";
 import FoodSearch from "./components/FoodSearch";
+import MealBar from "./components/MealBar";
 import MealItem from "./components/MealItem";
 import SavedMeals from "./components/SavedMeals";
 import { activityGroups } from "./data/activities";
-import { formatDuration } from "../../domain/exercise/energy";
-import { migratedSelections, minutesFor, resolveFavoriteKeys, selectedOptionIndex, starterSelections } from "./activityHelpers";
+import { migratedSelections, resolveFavoriteKeys, starterSelections } from "./activityHelpers";
+import { useCountUp } from "./hooks/useCountUp";
 import { foodKey, formatCalories, LBS_PER_KG, mealCalories } from "./mealMath";
 import { loadDraft, saveDraft } from "./state/f4tStore";
 import { useF4TData } from "./state/useF4TData";
 import "./f4t.css";
+import "./identity.css";
 
 const groupsByKey = new Map(activityGroups.map(group => [group.key, group]));
 const starterPicks = starterSelections(activityGroups);
@@ -86,6 +89,7 @@ export default function F4TPage() {
   const unit = data.weightUnit;
   const weightLbs = data.weightLbs ?? 0;
   const totalCalories = useMemo(() => mealCalories(meal), [meal]);
+  const shownCalories = useCountUp(totalCalories);
   const addedKeys = useMemo(() => new Set(meal.map(foodKey)), [meal]);
   const favoriteKeys = useMemo(() => resolveFavoriteKeys(data.favorites, activityGroups, groupsByKey), [data.favorites]);
   const selections = useMemo(
@@ -160,22 +164,25 @@ export default function F4TPage() {
     setFavorites(favoriteKeys.includes(key) ? favoriteKeys.filter(k => k !== key) : [...favoriteKeys, key]);
   }
 
-  const quickLook = favoriteKeys.slice(0, 3).map(key => groupsByKey.get(key)).filter(Boolean);
+  const compareGroups = favoriteKeys.map(key => groupsByKey.get(key)).filter(Boolean).slice(0, 6);
   const recentToShow = data.recentFoods.filter(food => !addedKeys.has(foodKey(food))).slice(0, 8);
 
   return (
     <main className="f4t-page ff">
-      <SiteHeader />
+      <AppBar appId="f4t" />
 
       <div className="ff-shell">
         <header className="ff-hero">
           <div className="ff-logo" aria-hidden="true">
-            <Flame size={28} />
+            <Utensils size={26} />
           </div>
           <div>
             <p className="ff-eyebrow">FUEL 4 THOUGHT</p>
-            <h1>Is it worth it?</h1>
-            <p className="ff-hero-sub">See what your food costs in walking, running, dancing, and 1,100 other activities.</p>
+            <h1>What does this meal look like in activity?</h1>
+            <p className="ff-hero-sub">
+              Build a plate, then see it as minutes of walking, cycling, dancing, or 1,100 other activities.
+              Food doesn’t have to be earned. This is just a different way to picture energy.
+            </p>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
         </header>
@@ -184,8 +191,7 @@ export default function F4TPage() {
           <section className="ff-panel" id="ff-meal" aria-labelledby="ff-meal-title">
             <div className="ff-panel-head">
               <div>
-                <p className="ff-eyebrow">STEP 1</p>
-                <h2 id="ff-meal-title">What are you eating?</h2>
+                <h2 id="ff-meal-title">On the plate</h2>
               </div>
               {activeMeal && <span className="ff-tag"><Bookmark size={13} /> {activeMeal.name}</span>}
             </div>
@@ -276,12 +282,12 @@ export default function F4TPage() {
           </section>
 
           <aside className="ff-panel ff-summary" aria-label="Meal summary">
-            <p className="ff-eyebrow">STEP 2</p>
-            <div className="ff-total">
+            <div className="ff-total" aria-live="polite">
               <span>Total</span>
-              <strong>{formatCalories(totalCalories)}</strong>
+              <strong>{formatCalories(shownCalories)}</strong>
               <small>calories</small>
             </div>
+            <MealBar meal={meal} total={totalCalories} />
 
             <div className="ff-weight">
               <label htmlFor="ff-weight">Your weight</label>
@@ -312,41 +318,31 @@ export default function F4TPage() {
               <small>Remembered for next time.</small>
             </div>
 
-            {quickLook.length > 0 && (
-              <div className="ff-quicklook">
-                <span className="ff-quick-label">Your favorites</span>
-                <ul>
-                  {quickLook.map(group => {
-                    const option = group.options[selectedOptionIndex(group, selections)];
-                    const minutes = minutesFor(totalCalories, option.met, weightLbs);
-                    return (
-                      <li key={group.key}>
-                        <span>
-                          {group.title}
-                          {group.options.length > 1 && <small>{option.adjustmentValue}</small>}
-                        </span>
-                        <strong>{minutes == null ? "—" : formatDuration(minutes)}</strong>
-                      </li>
-                    );
-                  })}
-                </ul>
-                {!(totalCalories > 0 && weightLbs > 0) && (
-                  <small>{totalCalories > 0 ? "Add your weight to see times." : "Add food to see times."}</small>
-                )}
-              </div>
-            )}
           </aside>
         </div>
 
-        <ActivityExplorer
-          groups={activityGroups}
-          favoriteKeys={favoriteKeys}
-          selections={selections}
-          calories={totalCalories}
-          weightLbs={weightLbs}
-          onToggleFavorite={toggleFavorite}
-          onSelect={setSelection}
-        />
+        {compareGroups.length > 0 && (
+          <CompareStrip
+            groups={compareGroups}
+            selections={selections}
+            calories={totalCalories}
+            weightLbs={weightLbs}
+            onSelect={setSelection}
+            onBrowse={() => document.getElementById("ff-activities")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          />
+        )}
+
+        <div id="ff-activities" className="ff-anchor">
+          <ActivityExplorer
+            groups={activityGroups}
+            favoriteKeys={favoriteKeys}
+            selections={selections}
+            calories={totalCalories}
+            weightLbs={weightLbs}
+            onToggleFavorite={toggleFavorite}
+            onSelect={setSelection}
+          />
+        </div>
 
         <SavedMeals
           meals={data.meals}

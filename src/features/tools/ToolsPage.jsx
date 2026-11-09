@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeftRight, Calculator, ChevronRight, Clock, Search, Star, Table2, Wrench } from "lucide-react";
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import { CATEGORIES, CALCS, TABLES, calcById, tableById, categoryById, search } from "./registry";
 import { usePrefs } from "./state/usePrefs";
 import CalcView from "./components/CalcView";
 import TableView from "./components/TableView";
 import ConverterView from "./components/ConverterView";
 import "./tools.css";
+import "./identity.css";
 
 const POPULAR = ["pressure-drop", "beam", "psychrometrics", "voltage-drop", "tank-volume", "section-properties"];
 
@@ -29,16 +30,16 @@ export default function ToolsPage() {
 
   return (
     <main className="tools-page tf">
-      <SiteHeader />
+      <AppBar appId="toolfox" />
       <div className="tf-shell">
-        <aside className="tf-side" aria-label="Engineering ToolFox sections">
+        <aside className="tf-side" aria-label="Engineer ToolFox sections">
           <Link to="/tools" className="tf-brand">
             <span className="tf-brand-mark" aria-hidden="true">
               <Wrench size={18} />
             </span>
             <span>
               <span className="tf-brand-text">
-                <small>Engineering</small>
+                <small>Engineer</small>
                 <span>Tool<strong>Fox</strong></span>
               </span>
             </span>
@@ -138,7 +139,7 @@ function Home({ prefsApi, openSearch }) {
   const recent = prefs.recent.map(itemFor).filter(Boolean).filter((r) => !prefs.favorites.includes(r.key)).slice(0, 4);
 
   useEffect(() => {
-    document.title = "Engineering ToolFox · Engineering calculators and data";
+    document.title = "Engineer ToolFox · Engineering calculators and data";
     return () => {
       document.title = "The ClusterFOX";
     };
@@ -147,7 +148,7 @@ function Home({ prefsApi, openSearch }) {
   return (
     <div className="tf-home">
       <section className="tf-hero">
-        <p className="tf-eyebrow">Engineering ToolFox</p>
+        <p className="tf-eyebrow">Engineer ToolFox</p>
         <h1>Engineering answers, without the clutter.</h1>
         <p className="tf-lede">
           {CALCS.length} live calculators and {TABLES.length} reference tables for fluids, heat, air, structures and electrical work. Every number works in any unit.
@@ -234,7 +235,7 @@ function CategoryRoute() {
   const { cat: catId } = useParams();
   const cat = categoryById[catId];
   useEffect(() => {
-    if (cat) document.title = `${cat.name} · Engineering ToolFox`;
+    if (cat) document.title = `${cat.name} · Engineer ToolFox`;
     return () => {
       document.title = "The ClusterFOX";
     };
@@ -246,7 +247,7 @@ function CategoryRoute() {
     <div className="tf-category" style={{ "--tf-cat": cat.hue }}>
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          Engineering ToolFox
+          Engineer ToolFox
         </Link>
         <div className="tf-title-row">
           <span className="tf-cat-icon is-big" aria-hidden="true">
@@ -281,7 +282,7 @@ function AllData() {
     <div className="tf-category">
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          Engineering ToolFox
+          Engineer ToolFox
         </Link>
         <h1>Reference data</h1>
         <p className="tf-lede">Sortable, filterable tables. Pick any unit in a column header; download what you see as CSV.</p>
@@ -323,7 +324,7 @@ function Palette({ onClose }) {
 
   return (
     <div className="tf-palette-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="tf-palette" role="dialog" aria-modal="true" aria-label="Search Engineering ToolFox">
+      <div className="tf-palette" role="dialog" aria-modal="true" aria-label="Search Engineer ToolFox">
         <div className="tf-palette-input">
           <Search size={18} aria-hidden="true" />
           <input

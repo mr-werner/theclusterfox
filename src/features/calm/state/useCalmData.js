@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { loadData, MAX_HISTORY, saveData } from "./calmStore";
+import { useAccountSync } from "../../../lib/useAccountSync";
+import { emptyData, loadData, MAX_HISTORY, normalizeData, saveData } from "./calmStore";
 
 export function useCalmData() {
   const [data, setData] = useState(loadData);
@@ -29,5 +30,7 @@ export function useCalmData() {
 
   const clearHistory = useCallback(() => setData(d => ({ ...d, history: [] })), []);
 
-  return { data, setPrefs, toggleFavorite, addHistory, setMood, clearHistory };
+  const syncStatus = useAccountSync("calm_user_data", data, doc => setData(normalizeData(doc)), emptyData());
+
+  return { data, syncStatus, setPrefs, toggleFavorite, addHistory, setMood, clearHistory };
 }

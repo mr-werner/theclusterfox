@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CalendarDays, Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, Sun, Target, TreePine } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import LocationPicker from "./components/LocationPicker";
 import Coach from "./components/Coach";
 import OutfitCard from "./components/OutfitCard";
@@ -12,6 +12,9 @@ import ProfilePanel from "./components/ProfilePanel";
 import WeatherReport from "./components/WeatherReport";
 import WhenPicker from "./components/WhenPicker";
 import WhyPanel from "./components/WhyPanel";
+import SkyLayer from "./components/SkyLayer";
+import AlertBanner from "./components/AlertBanner";
+import { skyFor } from "./model/sky";
 import { activities, activitiesById } from "./data/activities";
 import { planOutfit } from "./model/plan";
 import { useClocastData } from "./state/useClocastData";
@@ -19,6 +22,7 @@ import { fetchAirQuality, fetchForecast, withAirQuality } from "../../services/w
 import { formatTemp } from "./units";
 import { dayName, describeWindow, DURATIONS, PARTS, partAvailable, windowHours } from "./when";
 import "./clocast.css";
+import "./identity.css";
 
 function SyncBadge({ status, isSignedIn }) {
   if (!isSignedIn) {
@@ -83,7 +87,7 @@ export default function ClocastPage() {
       )
       .catch(error => {
         if (error.name !== "AbortError") {
-          setForecast({ key: placeKey, status: "error", data: EMPTY_FORECAST, air: null, error: error.message || "Couldn't load the weather.", at: 0 });
+          setForecast({ key: placeKey, status: "error", data: EMPTY_FORECAST, air: null, error: error instanceof TypeError ? "Couldn't reach the weather service. Check your connection and try again." : error.message || "Couldn't load the weather.", at: 0 });
         }
       });
     return () => controller.abort();
@@ -143,12 +147,18 @@ export default function ClocastPage() {
         ? `This ${partName}`
         : `${dayName(dayKeys[choice.day], choice.day)} ${partName}`;
   const ready = place && !loading && forecast.status === "ready" && weather.days.length > 0;
+  // The sky follows the weather right now; before a forecast loads, a calm daytime sky.
+  const sky = ready && weather.current ? skyFor(weather.current.code, weather.current.isDay) : "partly-day";
 
   return (
-    <main className="clocast-page cc">
-      <SiteHeader />
+    <main className="clocast-page cc" data-sky={sky}>
+      <SkyLayer sky={sky} />
+      <AppBar appId="clocast" />
 
       <div className="cc-shell">
+        {ready && <AlertBanner place={place} />}
+
+        {!ready && (
         <header className="cc-hero">
           <div className="cc-logo" aria-hidden="true">
             <CloudSun size={26} />
@@ -159,6 +169,20 @@ export default function ClocastPage() {
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
         </header>
+        )}
+
+        {ready && tab === "today" && (
+          <WeatherReport
+            forecast={weather}
+            units={units}
+            place={place}
+            dayIndex={choice.day}
+            highlight={picked}
+            next24={next24}
+            airNow={forecast.air?.current}
+            onPickDay={day => setChoice(current => ({ ...current, day }))}
+          />
+        )}
 
         <section className="cc-panel cc-controls" aria-label="Place and time">
           <LocationPicker
@@ -249,17 +273,6 @@ export default function ClocastPage() {
 
         {ready && tab === "today" && (
           <>
-            <WeatherReport
-              forecast={weather}
-              units={units}
-              place={place}
-              dayIndex={choice.day}
-              highlight={picked}
-              next24={next24}
-              airNow={forecast.air?.current}
-              onPickDay={day => setChoice(current => ({ ...current, day }))}
-            />
-
             <TodayBriefing
               hours={weather.hours}
               days={dayKeys}
@@ -332,6 +345,8 @@ export default function ClocastPage() {
             {plan && <WhyPanel plan={plan} units={units} profileUsed={profileUsed} />}
           </>
         )}
+
+        {ready && <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />}
 
         <p className="cc-credit">
           Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo.com</a> (CC BY 4.0).

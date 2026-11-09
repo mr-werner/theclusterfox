@@ -148,7 +148,9 @@ export const BROWSE_LISTS = [
   { id: "movies", name: "Popular movies" },
   { id: "shows", name: "Popular shows" },
   { id: "mine", name: "On my services" },
+  { id: "watchlist", name: "Watchlist" },
   { id: "favorites", name: "Favorites" },
+  { id: "watched", name: "Seen" },
 ];
 
 // Categories. TMDB numbers genres differently for movies and shows, and

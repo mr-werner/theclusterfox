@@ -6,6 +6,7 @@ import { apps } from "../../../app/apps";
 import FreeAppIcon from "../../free/FreeAppIcon";
 import { altKey } from "../state/homeStore";
 import { normalize, searchAlternatives, searchOriginals } from "../search";
+import AppLink from "./AppLink";
 import OriginalIcon from "./OriginalIcon";
 
 const ALT_LIMIT = 8;
@@ -72,13 +73,13 @@ export default function HomeSearch({ home, alts, onWantAlts }) {
               <h3>ClusterFox Originals</h3>
               <div className="home-search-originals">
                 {originals.map(app => (
-                  <Link key={app.id} to={app.path} className="home-search-original">
+                  <AppLink key={app.id} app={app} className="home-search-original">
                     <OriginalIcon app={app} compact size={22} />
                     <span>
                       <strong>{app.fullName ?? app.subtitle}</strong>
                       <small>{app.description}</small>
                     </span>
-                  </Link>
+                  </AppLink>
                 ))}
               </div>
             </div>

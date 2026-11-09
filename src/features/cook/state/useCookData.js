@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useAccountSync } from "../../../lib/useAccountSync";
 import { loadData, MAX_HISTORY, saveData, emptyData, STORAGE_KEY, normalizeData } from "./cookStore";
 
 export function useCookData() {
@@ -64,5 +65,7 @@ export function useCookData() {
   const setShopping = useCallback(fn => setData(d => ({ ...d, shopping: fn(d.shopping) })), []);
   const patchData = useCallback(fn => setData(d => ({ ...d, ...fn(d) })), []);
 
-  return { data, setPantry, setShopping, patchData, setPrefs, setProfile, resetProfile, toggleFavorite, updateSession, addHistory, updateHistory, removeHistory, clearHistory };
+  const syncStatus = useAccountSync("cook_user_data", data, doc => setData(normalizeData(doc)), emptyData());
+
+  return { data, syncStatus, setPantry, setShopping, patchData, setPrefs, setProfile, resetProfile, toggleFavorite, updateSession, addHistory, updateHistory, removeHistory, clearHistory };
 }

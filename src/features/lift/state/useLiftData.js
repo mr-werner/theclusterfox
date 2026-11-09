@@ -112,9 +112,15 @@ export function useLiftData() {
       const setsTotal = w.items.reduce((n, i) => n + i.sets, 0);
       const setsDone = w.items.reduce((n, i) => n + i.done.filter(Boolean).length, 0);
       const loads = Object.fromEntries(w.items.filter(i => i.load).map(i => [i.exerciseId, i.load]));
+      // Weight and reps for every finished set that was logged.
+      const sets = {};
+      for (const i of w.items) {
+        const logged = i.done.map((d, k) => (d ? i.log?.[k] : null)).filter(s => s && (s.w || s.r));
+        if (logged.length) sets[i.exerciseId] = [...(sets[i.exerciseId] ?? []), ...logged];
+      }
       const entry = {
         id: w.id, date, title: w.title, goal: w.goal, minutes: w.minutes, muscles: w.muscles,
-        setsDone, setsTotal, loads, planId: w.planId ?? null, sessionId: w.sessionId ?? null, updatedAt: now,
+        setsDone, setsTotal, loads, sets, unit: current.prefs.unit, planId: w.planId ?? null, sessionId: w.sessionId ?? null, updatedAt: now,
       };
       const plans = w.planId
         ? current.plans.map(p => (p.id === w.planId ? { ...p, completed: { ...p.completed, [w.sessionId]: date }, updatedAt: now } : p))

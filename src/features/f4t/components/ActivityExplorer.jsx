@@ -53,13 +53,13 @@ export default function ActivityExplorer({
     <section className="ff-section" aria-labelledby="ff-activity-title">
       <div className="ff-section-head">
         <div>
-          <p className="ff-eyebrow">BURN IT OFF</p>
+          <p className="ff-eyebrow">EVERY ACTIVITY</p>
           <h2 id="ff-activity-title">
             {ready ? `What ${formatCalories(calories)} calories looks like` : "Activities"}
           </h2>
           <p className="ff-section-sub">
             {ready
-              ? "Time to burn it above your resting rate. Slide any card to change speed or effort."
+              ? "Time to use that energy above your resting rate. Slide any card to change speed or effort."
               : "Add food and your weight to see how long each activity takes. Star the ones you do."}
           </p>
         </div>

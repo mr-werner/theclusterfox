@@ -1,0 +1,234 @@
+/* The bar on top of every ClusterFox original. Each app sets these tokens
+   in its own identity file, so the bar looks like it belongs to that app. */
+
+.appbar {
+  --ab-bg: rgba(16, 18, 17, 0.72);
+  --ab-fg: #f4f1ea;
+  --ab-muted: rgba(244, 241, 234, 0.6);
+  --ab-line: rgba(255, 255, 255, 0.08);
+  --ab-accent: var(--fox);
+  --ab-accent-ink: #1a0b02;
+  --ab-font: "Space Grotesk", sans-serif;
+  --ab-name-size: 1.05rem;
+  --ab-name-weight: 700;
+  --ab-name-spacing: -0.01em;
+  --ab-name-case: none;
+  --ab-radius: 12px;
+  --ab-menu-bg: #171a18;
+
+  position: relative;
+  z-index: 60;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  min-height: 58px;
+  padding: 10px max(16px, env(safe-area-inset-left)) 10px max(16px, env(safe-area-inset-left));
+  padding-top: max(10px, env(safe-area-inset-top));
+
+  color: var(--ab-fg);
+  background: var(--ab-bg);
+  border-bottom: 1px solid var(--ab-line);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+}
+
+.appbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.appbar-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ab-radius);
+  color: var(--ab-accent-ink);
+  background: var(--ab-accent);
+}
+
+.appbar-name {
+  overflow: hidden;
+  font-family: var(--ab-font);
+  font-size: var(--ab-name-size);
+  font-weight: var(--ab-name-weight);
+  letter-spacing: var(--ab-name-spacing);
+  text-transform: var(--ab-name-case);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appbar-extra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.appbar-account {
+  position: relative;
+  margin-left: auto;
+  flex: none;
+}
+
+.appbar-chip,
+.appbar-signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px 0 8px;
+  border: 1px solid var(--ab-line);
+  border-radius: 999px;
+  color: var(--ab-fg);
+  background: transparent;
+  font: 600 0.84rem/1 "DM Sans", sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.appbar-chip:hover,
+.appbar-signin:hover {
+  border-color: var(--ab-accent);
+}
+
+.appbar-fox {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.appbar-avatar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: -4px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--fox);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.appbar-user {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appbar-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 100;
+  width: 250px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: #f4f1ea;
+  background: #171a18;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  font-family: "DM Sans", sans-serif;
+}
+
+.appbar-menu-who {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px 10px;
+}
+
+.appbar-menu-who small {
+  color: var(--fox);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.appbar-menu-who strong,
+.appbar-menu-who span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appbar-menu-who span {
+  color: #929a94;
+  font-size: 0.78rem;
+}
+
+.appbar-menu-note {
+  margin: 0 4px 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #929a94;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.appbar-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  background: none;
+  font: 600 0.84rem "DM Sans", sans-serif;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.appbar-menu-item:hover {
+  color: var(--fox);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.appbar-menu-out {
+  color: #929a94;
+}
+
+@media (max-width: 600px) {
+  .appbar-user {
+    display: none;
+  }
+
+  .appbar-chip {
+    padding: 0 8px;
+  }
+}
+
+/* ---- Launch: each app plays a short "opening" when it starts. ---- */
+
+@keyframes app-launch {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.app-launch {
+  animation: app-launch 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-launch {
+    animation: none;
+  }
+}

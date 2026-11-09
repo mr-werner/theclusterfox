@@ -1,0 +1,636 @@
+/* LiftFox identity: a training partner. Graphite and black, electric lime
+   for action, orange for records. Wide heavy type, hard corners, big
+   numbers and fast, punchy motion. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,600;125,700;125,800;125,900&display=swap");
+
+.lf {
+  --lf-accent: #c8f53c;
+  --lf-accent-ink: #0d1200;
+  --lf-accent-soft: rgba(200, 245, 60, 0.13);
+  --lf-record: #ff7a1a;
+  --lf-surface: #161616;
+  --lf-surface-2: #1f1f1f;
+  --lf-line: rgba(255, 255, 255, 0.08);
+  --lf-line-strong: rgba(255, 255, 255, 0.17);
+  --lf-muted: #a2a29c;
+  --lf-done: #c8f53c;
+  --lf-radius: 6px;
+  --lf-heavy: "Archivo", "Arial Black", sans-serif;
+
+  min-height: 100vh;
+  background-color: #0b0b0b;
+  background-image:
+    radial-gradient(ellipse 900px 420px at 50% -140px, rgba(200, 245, 60, 0.1), transparent 70%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 14px);
+}
+
+.lf button,
+.lf a {
+  transition-duration: 110ms;
+}
+
+.lf-shell {
+  animation: lf-slam 340ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes lf-slam {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lf h1,
+.lf h2,
+.lf h3 {
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.lf-hero h1 {
+  font-size: clamp(1.5rem, 4.6vw, 2.6rem);
+  font-weight: 900;
+  line-height: 0.98;
+}
+
+.lf-hero {
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.lf-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: repeating-linear-gradient(-45deg, var(--lf-accent) 0 12px, #121212 12px 24px);
+  opacity: 0.8;
+}
+
+.lf-logo {
+  border-radius: 6px;
+  box-shadow: 0 0 0 3px #0b0b0b, 0 0 0 5px var(--lf-accent);
+}
+
+.lf-eyebrow {
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.lf-tabs {
+  border-radius: 8px;
+  background: rgba(16, 16, 16, 0.94);
+}
+
+.lf-tabs button {
+  border-radius: 4px;
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lf-tabs button[aria-current="page"] {
+  box-shadow: 0 6px 22px rgba(200, 245, 60, 0.25);
+}
+
+.lf-panel,
+.lf-exercise,
+.lf-week {
+  border-top: 3px solid var(--lf-line-strong);
+}
+
+.lf-btn,
+.lf-chip,
+.lf-set {
+  border-radius: 4px;
+}
+
+.lf-btn {
+  font-family: var(--lf-heavy);
+  font-stretch: 125%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lf-btn:active,
+.lf-chip:active,
+.lf-set:active {
+  transform: scale(0.96);
+}
+
+/* The way into training mode: the biggest thing on the page. */
+.lf-btn--train {
+  width: 100%;
+  min-height: 64px;
+  margin-top: 6px;
+  font-size: 1.1rem;
+  box-shadow: 0 10px 30px rgba(200, 245, 60, 0.22);
+}
+
+/* ---- Progress: volume and records ---- */
+.lf-volume {
+  margin: 0;
+  padding: 22px;
+  border: 1px solid var(--lf-line);
+  border-top: 3px solid var(--lf-line-strong);
+  border-radius: var(--lf-radius);
+  background: var(--lf-surface);
+}
+
+.lf-volume figcaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lf-volume h2 {
+  margin: 0;
+}
+
+.lf-volume-bars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
+  height: 170px;
+  margin-top: 16px;
+}
+
+.lf-volume-col {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: end;
+  justify-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lf-volume-val {
+  color: var(--lf-muted);
+  font: 700 0.7rem var(--lf-heavy);
+  font-variant-numeric: tabular-nums;
+}
+
+.lf-volume-bar {
+  align-self: end;
+  width: 100%;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: #3a3a36;
+}
+
+.lf-volume-col.is-now .lf-volume-bar {
+  background: var(--lf-accent);
+}
+
+.lf-volume-col.is-now .lf-volume-val {
+  color: var(--lf-accent);
+}
+
+.lf-volume-week {
+  color: var(--lf-muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.lf-records h2 {
+  margin-bottom: 4px;
+}
+
+.lf-records ol {
+  display: grid;
+  gap: 2px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rec;
+}
+
+.lf-records li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--lf-line);
+  counter-increment: rec;
+}
+
+.lf-records li::before {
+  content: counter(rec);
+  color: var(--lf-record);
+  font: 900 0.9rem var(--lf-heavy);
+  font-stretch: 125%;
+}
+
+.lf-records-name {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lf-records-best {
+  color: var(--lf-muted);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.lf-records-e1rm {
+  color: var(--lf-record);
+  font: 800 1.05rem var(--lf-heavy);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Training mode: one set at a time ---- */
+.lff {
+  --lf-heavy: "Archivo", "Arial Black", sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  padding: max(14px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  color: #f4f4ef;
+  background:
+    radial-gradient(ellipse 700px 400px at 50% 0, rgba(200, 245, 60, 0.08), transparent 70%),
+    #0a0a0a;
+  font-family: "DM Sans", sans-serif;
+  animation: lf-slam 260ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.lff-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 640px);
+  margin: 0 auto;
+}
+
+.lff-icon,
+.lff-unit {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: inherit;
+  background: #161616;
+  font: 800 0.9rem var(--lf-heavy);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.lff-progress {
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #222;
+}
+
+.lff-progress span {
+  display: block;
+  height: 100%;
+  background: #c8f53c;
+  transition: width 300ms cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+.lff-set,
+.lff-rest,
+.lff-finish {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: min(100%, 640px);
+  margin: 0 auto;
+  padding: 20px 0;
+  text-align: center;
+  animation: lff-in 220ms ease-out both;
+}
+
+@keyframes lff-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lff-label {
+  margin: 0;
+  color: #a2a29c;
+  font: 800 0.75rem var(--lf-heavy);
+  font-stretch: 125%;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.lff-name {
+  margin: 0;
+  font: 900 clamp(1.7rem, 7vw, 3rem) / 1 var(--lf-heavy);
+  font-stretch: 125%;
+  text-transform: uppercase;
+}
+
+.lff-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.lff-dots button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 2px solid #333;
+  border-radius: 4px;
+  color: #a2a29c;
+  background: transparent;
+  font: 800 0.9rem var(--lf-heavy);
+  cursor: pointer;
+}
+
+.lff-dots button.is-done {
+  border-color: #c8f53c;
+  color: #0d1200;
+  background: #c8f53c;
+}
+
+.lff-dots button.is-now {
+  border-color: #f4f4ef;
+  color: #f4f4ef;
+}
+
+.lff-dots button.is-done.is-now {
+  box-shadow: 0 0 0 3px #0a0a0a, 0 0 0 5px #f4f4ef;
+}
+
+.lff-target {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-weight: 700;
+}
+
+.lff-last {
+  color: #a2a29c;
+  font-size: 0.86rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.lff-steppers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.lff-stepper {
+  display: grid;
+  gap: 8px;
+  padding: 14px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: #141414;
+}
+
+.lff-stepper-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 56px;
+  align-items: center;
+}
+
+.lff-stepper-row button {
+  display: grid;
+  place-items: center;
+  height: 56px;
+  border: 0;
+  border-radius: 6px;
+  color: #f4f4ef;
+  background: #262626;
+  cursor: pointer;
+}
+
+.lff-stepper-row button:active {
+  background: #c8f53c;
+  color: #0d1200;
+  transform: scale(0.94);
+}
+
+.lff-stepper output {
+  font: 900 clamp(2rem, 9vw, 3rem) / 1 var(--lf-heavy);
+  font-variant-numeric: tabular-nums;
+}
+
+.lff-stepper output small {
+  margin-left: 3px;
+  color: #a2a29c;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.lff-go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 84px;
+  border: 0;
+  border-radius: 6px;
+  color: #0d1200;
+  background: #c8f53c;
+  box-shadow: 0 14px 40px rgba(200, 245, 60, 0.28);
+  font: 900 1.4rem var(--lf-heavy);
+  font-stretch: 125%;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.lff-go:active {
+  transform: scale(0.97);
+}
+
+.lff-nav,
+.lff-rest-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.lff-rest-actions {
+  justify-content: center;
+}
+
+.lff-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: #f4f4ef;
+  background: transparent;
+  font: 700 0.95rem "DM Sans", sans-serif;
+  cursor: pointer;
+}
+
+.lff-rest-clock {
+  --share: 1;
+  display: grid;
+  place-items: center;
+  width: min(72vw, 320px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(#c8f53c calc(var(--share) * 360deg), #1d1d1d 0);
+  transition: --share 200ms linear;
+}
+
+.lff-rest-clock span {
+  display: grid;
+  place-items: center;
+  width: 84%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #0a0a0a;
+  font: 900 clamp(3rem, 14vw, 5rem) / 1 var(--lf-heavy);
+  font-variant-numeric: tabular-nums;
+}
+
+.lff-rest.is-done .lff-rest-clock span {
+  color: #c8f53c;
+}
+
+.lff-finish svg {
+  color: #ff7a1a;
+}
+
+.lff-finish h2 {
+  margin: 0;
+  font: 900 2.4rem var(--lf-heavy);
+  font-stretch: 125%;
+  text-transform: uppercase;
+}
+
+.lff-finish p {
+  margin: 0;
+  color: #a2a29c;
+}
+
+.lff-record {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 32px);
+  padding: 14px 20px;
+  border-radius: 6px;
+  color: #1a0a00;
+  background: #ff7a1a;
+  box-shadow: 0 14px 40px rgba(255, 122, 26, 0.4);
+  font-weight: 600;
+  transform: translateX(-50%);
+  animation: lff-record 3.2s ease both;
+}
+
+.lff-record strong {
+  font: 900 0.95rem var(--lf-heavy);
+  font-stretch: 125%;
+  text-transform: uppercase;
+}
+
+@keyframes lff-record {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20px) scale(0.9);
+  }
+  10%,
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+
+.appbar[data-app="liftfox"] {
+  --ab-bg: rgba(11, 11, 11, 0.92);
+  --ab-accent: #c8f53c;
+  --ab-accent-ink: #0d1200;
+  --ab-font: "Archivo", "Arial Black", sans-serif;
+  --ab-name-weight: 900;
+  --ab-name-case: uppercase;
+  --ab-name-spacing: 0.04em;
+  --ab-radius: 4px;
+  border-bottom: 3px solid #c8f53c;
+}
+
+.appbar[data-app="liftfox"] .appbar-name {
+  font-stretch: 125%;
+}
+
+@media (max-width: 600px) {
+  .lf-hero h1 {
+    font-size: 1.35rem;
+  }
+
+  .lff-stepper-row {
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+  }
+
+  .lff-stepper-row button {
+    height: 52px;
+  }
+
+  .lff-stepper output {
+    font-size: 1.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-shell,
+  .lff,
+  .lff-set,
+  .lff-rest,
+  .lff-finish,
+  .lff-record {
+    animation: none;
+  }
+
+  .lff-record {
+    transform: translateX(-50%);
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "/clocast",
+  "name": "CloCast",
+  "short_name": "CloCast",
+  "start_url": "/clocast",
+  "scope": "/clocast",
+  "display": "standalone",
+  "background_color": "#0b1e33",
+  "theme_color": "#0b1e33",
+  "icons": [
+    {
+      "src": "/apps/clocast-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/clocast-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/clocast-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

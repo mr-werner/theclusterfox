@@ -1,4 +1,4 @@
-// Everything Engineering ToolFox offers: categories, calculators and reference tables.
+// Everything Engineer ToolFox offers: categories, calculators and reference tables.
 
 import { Droplets, Flame, Wind, Cog, Zap, Shapes } from "lucide-react";
 import { fluids } from "./calcs/fluids.js";

@@ -6,6 +6,7 @@ import { apps } from "../../../app/apps";
 import FreeAppIcon from "../../free/FreeAppIcon";
 import { altKey, originalKey } from "../state/homeStore";
 import { normalize, searchAlternatives, searchOriginals } from "../search";
+import AppLink from "./AppLink";
 import OriginalIcon from "./OriginalIcon";
 
 const RESULT_LIMIT = 60;
@@ -50,13 +51,13 @@ function OriginalRow({ app, home }) {
   const added = home.has(key);
   return (
     <li className="add-sheet-row add-sheet-row--original">
-      <Link to={app.path} className="add-sheet-row-main">
+      <AppLink app={app} className="add-sheet-row-main">
         <OriginalIcon app={app} compact size={24} />
         <span className="add-sheet-row-text">
           <strong>{app.fullName ?? app.subtitle}</strong>
           <span>{app.description}</span>
         </span>
-      </Link>
+      </AppLink>
       <AddButton added={added} label={app.subtitle} onToggle={() => (added ? home.remove(key) : home.add(key))} />
     </li>
   );

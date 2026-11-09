@@ -1,0 +1,393 @@
+/* F4T identity: the plate meets the track. Warm food tones (tomato,
+   mustard, crust) on an espresso counter, with an electric activity blue
+   for everything about movement. Rounded friendly type, numbers in mono. */
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Mono:wght@500&display=swap");
+
+.ff {
+  --ff-tomato: #ff6b4a;
+  --ff-mustard: #ffc23d;
+  --ff-move: #4cc3ff;
+  --ff-move-2: #8be36a;
+  --ff-accent: var(--ff-mustard);
+  --ff-accent-ink: #2a1a00;
+  --ff-accent-soft: rgba(255, 194, 61, 0.13);
+  --ff-surface: #221a16;
+  --ff-surface-2: #2b211c;
+  --ff-line: rgba(255, 236, 214, 0.09);
+  --ff-line-strong: rgba(255, 236, 214, 0.17);
+  --ff-muted: #b9a89a;
+  --ff-radius: 22px;
+
+  min-height: 100vh;
+  color: #fbefe3;
+  background-color: #17110e;
+  background-image:
+    radial-gradient(ellipse 720px 380px at 0% -80px, rgba(255, 107, 74, 0.2), transparent 70%),
+    radial-gradient(ellipse 720px 380px at 100% -80px, rgba(76, 195, 255, 0.16), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(255, 236, 214, 0.05) 1px, transparent 1.5px);
+  background-size: auto, auto, 22px 22px;
+}
+
+.ff h1,
+.ff h2,
+.ff h3 {
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ff-shell {
+  animation: ff-serve 480ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@keyframes ff-serve {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hero: a plate on the left, the question in two colors. */
+
+.ff-eyebrow {
+  color: var(--ff-mustard);
+}
+
+.ff-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: #fff7ee;
+  background: radial-gradient(circle at 50% 50%, #ff8a63 0 46%, #ffe3c2 47% 52%, var(--ff-tomato) 53%);
+  box-shadow: 0 0 0 6px rgba(255, 107, 74, 0.15), 0 14px 40px rgba(255, 107, 74, 0.3);
+}
+
+.ff-hero h1 {
+  max-width: 17ch;
+  font-size: clamp(2rem, 5.4vw, 3.3rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  background: linear-gradient(95deg, var(--ff-tomato), var(--ff-mustard) 52%, var(--ff-move) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ff-hero-sub {
+  max-width: 58ch;
+}
+
+/* Panels: the plate side is warm, the activity side is cool. */
+
+.ff-panel {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+}
+
+#ff-meal::before,
+.ff-summary::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--ff-tomato), var(--ff-mustard));
+}
+
+.ff-btn-primary,
+.ff-chip:hover {
+  color: var(--ff-accent-ink);
+  background: var(--ff-mustard);
+}
+
+.ff-btn-primary:hover {
+  background: #ffd36b;
+}
+
+.ff-search-bar,
+.ff-stepper,
+.ff-unit,
+.ff-manual-cal,
+.ff-results {
+  background: #1a1310;
+}
+
+.ff-chip {
+  color: #f4e4d4;
+  border-radius: 999px;
+}
+
+/* Total: a big counter that rolls to its new number. */
+
+.ff-total strong,
+.ff-item-cal,
+.ff-result-cal,
+.ff-manual-cal,
+.ff-card-time,
+.ff-compare-time,
+.ff-mealbar-key b {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.ff-total strong {
+  color: var(--ff-mustard);
+}
+
+.ff-total span,
+.ff-total small {
+  font-family: inherit;
+}
+
+/* What the plate is made of. */
+
+.ff-mealbar {
+  margin: 6px 0 22px;
+}
+
+.ff-mealbar-track {
+  display: flex;
+  gap: 3px;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 236, 214, 0.06);
+}
+
+.ff-mealbar-track span {
+  min-width: 6px;
+  flex-basis: 0;
+  border-radius: 3px;
+  transition: flex-grow 420ms ease;
+}
+
+.ff-mealbar-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 10px;
+  color: var(--ff-muted);
+  font-size: 0.78rem;
+}
+
+.ff-mealbar-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.ff-mealbar-key i {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.ff-mealbar-key b {
+  color: #fbefe3;
+  font-weight: 500;
+}
+
+/* The answer: favorite activities side by side. */
+
+.ff-compare {
+  margin: -24px 0 48px;
+  padding: 24px;
+  border: 1px solid rgba(76, 195, 255, 0.22);
+  border-radius: var(--ff-radius);
+  background:
+    linear-gradient(160deg, rgba(76, 195, 255, 0.1), rgba(139, 227, 106, 0.05) 60%, transparent),
+    #141a1f;
+}
+
+.ff-compare-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ff-compare-head h2 {
+  margin: 0;
+  color: var(--ff-move);
+  font-size: 1.35rem;
+}
+
+.ff-compare-head .ff-btn {
+  color: #cfe9f7;
+}
+
+.ff-compare-hint {
+  margin: -6px 0 14px;
+  color: #9fb4c0;
+  font-size: 0.9rem;
+}
+
+.ff-compare-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ff-compare-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(76, 195, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(10, 16, 20, 0.6);
+  animation: ff-card-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+@keyframes ff-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ff-compare-top {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ff-compare-name {
+  color: #cfe3ee;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.ff-compare-time {
+  order: -1;
+  color: var(--ff-move-2);
+  font-size: 1.45rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ff-compare-bar {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(76, 195, 255, 0.1);
+}
+
+.ff-compare-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ff-move), var(--ff-move-2));
+  transition: width 520ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.ff-compare-pace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: #9fb4c0;
+  font-size: 0.8rem;
+}
+
+.ff-compare-pace span {
+  flex: 1;
+  text-align: center;
+}
+
+.ff-compare-pace button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(76, 195, 255, 0.22);
+  border-radius: 50%;
+  color: var(--ff-move);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ff-compare-pace button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ff-compare-pace button:focus-visible,
+.ff-compare-head .ff-btn:focus-visible {
+  outline: 2px solid var(--ff-move);
+  outline-offset: 2px;
+}
+
+/* Activity browser: cool side. */
+
+.ff-anchor {
+  scroll-margin-top: 16px;
+}
+
+.ff-anchor .ff-section h2 {
+  color: #e6f3fa;
+}
+
+/* Top bar */
+
+.appbar[data-app="f4t"] {
+  --ab-bg: rgba(23, 17, 14, 0.92);
+  --ab-accent: #ffc23d;
+  --ab-accent-ink: #2a1a00;
+  --ab-font: "Fredoka", sans-serif;
+  --ab-name-weight: 700;
+  --ab-name-spacing: 0;
+  border-image: linear-gradient(90deg, #ff6b4a, #ffc23d 50%, #4cc3ff) 1;
+  border-bottom-width: 2px;
+}
+
+@media (max-width: 760px) {
+  .ff-compare {
+    margin-top: -28px;
+    padding: 18px;
+  }
+
+  .ff-compare-list {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ff-compare-card {
+    padding: 13px;
+  }
+
+  .ff-compare-time {
+    font-size: 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ff-shell,
+  .ff-compare-card {
+    animation: none;
+  }
+
+  .ff-mealbar-track span,
+  .ff-compare-bar span {
+    transition: none;
+  }
+}

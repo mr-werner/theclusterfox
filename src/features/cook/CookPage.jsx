@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ChefHat, Compass, BookHeart, UserRound, Timer, Play, Refrigerator, ShoppingCart } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import DiscoverTab from "./components/DiscoverTab";
 import RecipeDetail from "./components/RecipeDetail";
 import PrepChecklist from "./components/PrepChecklist";
@@ -22,6 +22,7 @@ import { applySwaps, cleanChoices, customizedRecipes } from "./model/swaps";
 import { useCookData } from "./state/useCookData";
 import { ringAlarm, useNow } from "./state/device";
 import "./cook.css";
+import "./identity.css";
 
 const TABS = [
   { id: "discover", name: "Discover", icon: Compass },
@@ -188,7 +189,7 @@ export default function CookPage() {
     <main className="cook-page ck" data-theme={data.prefs.theme}>
       {!fullScreen && (
         <div className="ck-topbar">
-          <SiteHeader />
+          <AppBar appId="cookfox" />
         </div>
       )}
 

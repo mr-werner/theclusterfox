@@ -6,6 +6,7 @@ import { useAuth } from "../../../context/AuthContext";
 import FreeAppIcon from "../../free/FreeAppIcon";
 import { isOriginalKey, keyId } from "../state/homeStore";
 import { useTileGestures } from "../useTileGestures";
+import AppLink from "./AppLink";
 import OriginalIcon from "./OriginalIcon";
 import SyncNote from "./SyncNote";
 
@@ -103,10 +104,10 @@ export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }
                 onRemove={() => home.remove(key)}
                 gestureProps={tileProps(key)}
               >
-                <Link to={app.path} className="phone-tile-link" draggable={false} aria-label={`Open ${label}`}>
+                <AppLink app={app} className="phone-tile-link" draggable={false} aria-label={`Open ${label}`}>
                   <OriginalIcon app={app} compact />
                   <span className="phone-tile-label">{app.subtitle.length > 10 ? app.name : app.subtitle}</span>
-                </Link>
+                </AppLink>
               </PhoneTile>
             );
           })}

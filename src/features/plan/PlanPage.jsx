@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { BellRing, CalendarDays, Settings2, Sparkles, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, List, LoaderCircle, Plus } from "lucide-react";
+import { BellRing, CalendarDays, ListChecks, Settings2, Sparkles, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, List, LoaderCircle, Plus } from "lucide-react";
 
-import SiteHeader from "../../components/SiteHeader";
+import AppBar from "../../components/AppBar";
 import { formatTemp } from "../clocast/units";
 import { AgendaView, MonthView, YearView } from "./components/CalendarViews";
 import DayPanel, { Tip } from "./components/DayPanel";
@@ -12,18 +12,22 @@ import CalendarLinker from "./components/CalendarLinker";
 import TripPlanner from "./components/TripPlanner";
 import DetailModal from "./components/DetailModal";
 import TrainingPlanner from "./components/TrainingPlanner";
+import TodayView from "./components/TodayView";
 import { LayerBar, SetupCard } from "./components/LayerBar";
 import PlaceSearch from "./components/PlaceSearch";
 import { addDays, dayKey, dayRange, monthGrid, monthName, parseDay, todayKey } from "./model/dates";
 import { buildEntries, expandItems, money } from "./model/entries";
 import { headsUp } from "./model/insights";
+import { moveItem } from "./model/tasks";
 import { planSessions, TIMES } from "./model/training";
 import { togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { fareCurrency, useLayerData } from "./state/useLayerData";
 import "./plan.css";
+import "./identity.css";
 
 const VIEWS = [
+  { id: "today", name: "Today", icon: ListChecks },
   { id: "month", name: "Month", icon: CalendarDays },
   { id: "agenda", name: "Agenda", icon: List },
   { id: "year", name: "Year", icon: CalendarRange },
@@ -62,8 +66,8 @@ const placeKey = place => `${place.latitude.toFixed(3)},${place.longitude.toFixe
 export default function PlanPage() {
   const { data, update, saveItem, deleteItem, toggleDone, toggleLayer, syncStatus, isSignedIn } = usePlanData();
   const [params, setParams] = useSearchParams();
-  const view = VIEWS.some(v => v.id === params.get("view")) ? params.get("view") : "month";
-  const setView = id => setParams(id === "month" ? {} : { view: id });
+  const view = VIEWS.some(v => v.id === params.get("view")) ? params.get("view") : "today";
+  const setView = id => setParams(id === "today" ? {} : { view: id });
 
   const today = todayKey();
   // Hours already gone today are skipped when picking the best time outside.
@@ -107,9 +111,10 @@ export default function PlanPage() {
   const [from, to] = useMemo(() => {
     if (view === "year") return [`${year}-01-01`, `${year}-12-31`];
     if (view === "agenda") return [anchor, addDays(anchor, AGENDA_DAYS - 1)];
+    if (view === "today") return [today, addDays(today, 6)];
     const weeks = monthGrid(year, month);
     return [weeks[0][0], weeks[weeks.length - 1][6]];
-  }, [view, year, month, anchor]);
+  }, [view, year, month, anchor, today]);
 
   const layerData = useLayerData(data, from, to);
   const { forecast, awayForecasts, holidays, games, alerts } = layerData;
@@ -197,6 +202,15 @@ export default function PlanPage() {
     if (view === "month" && parseDay(day).getMonth() !== month) setAnchor(day);
   }
 
+  const moveTo = (itemId, day) => {
+    const item = data.items.find(i => i.id === itemId);
+    if (item && item.day !== day) saveItem(moveItem(item, day));
+  };
+  const quickAdd = ({ title, day, priority }) => {
+    saveItem({ kind: "task", title, day, priority, time: null, repeat: "none", until: null, place: null, outdoor: false, amount: null, activityId: null, minutes: null, notes: "" });
+    if (!data.layers.tasks) toggleLayer("tasks");
+  };
+
   const openNew = day => setEditing({ day: day ?? selected, kind: "event" });
   const openEdit = instance => setEditing(data.items.find(i => i.id === (instance.itemId ?? instance.id)) ?? null);
 
@@ -207,7 +221,7 @@ export default function PlanPage() {
 
   return (
     <main className="plan-page pf">
-      <SiteHeader />
+      <AppBar appId="planfox" />
 
       <div className="pf-shell">
         <header className="pf-hero">
@@ -267,7 +281,7 @@ export default function PlanPage() {
               );
             })}
           </div>
-          <div className="pf-nav">
+          {view !== "today" && <div className="pf-nav">
             <button type="button" className="pf-icon-btn" onClick={() => move(-1)} aria-label="Previous">
               <ChevronLeft size={18} />
             </button>
@@ -278,7 +292,7 @@ export default function PlanPage() {
             <button type="button" className="pf-btn" onClick={goToday}>
               Today
             </button>
-          </div>
+          </div>}
           <div className="pf-actions">
             <button type="button" className="pf-btn" aria-expanded={showSetup} onClick={() => (showSetup ? closeSetup() : setShowSetup(true))}>
               <Sparkles size={15} aria-hidden="true" /> Quick setup
@@ -358,8 +372,25 @@ export default function PlanPage() {
 
         <div className={`pf-main is-${view}`}>
           <div className="pf-calendar">
+            {view === "today" && (
+              <TodayView
+                today={today}
+                selected={selected}
+                items={data.items}
+                entriesByDay={entriesByDay}
+                forecastByDay={forecastByDay}
+                units={data.units}
+                showWeather={data.layers.weather}
+                onAdd={quickAdd}
+                onToggleDone={toggleDone}
+                onEdit={openEdit}
+                onMove={moveTo}
+                onSelect={setSelected}
+              />
+            )}
             {view === "month" && (
               <MonthView
+                onMove={moveTo}
                 year={year}
                 month={month}
                 today={today}

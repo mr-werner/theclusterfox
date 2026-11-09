@@ -1,9 +1,10 @@
 import { Droplet, Droplets, Gauge, Leaf, Sun, Sunrise, Sunset, Thermometer, Wind } from "lucide-react";
 
 import { aqiCategory, describeWeather } from "../../../services/weather/openMeteo";
-import { formatHour, formatTemp, formatWind } from "../units";
+import { formatTemp, formatWind } from "../units";
 import { dayName } from "../when";
 import WeatherIcon from "./WeatherIcon";
+import HourlyGraph from "./HourlyGraph";
 
 function clockTime(time) {
   if (!time) return "–";
@@ -129,24 +130,7 @@ export default function WeatherReport({ forecast, units, place, dayIndex, highli
       </dl>
 
       <h3 className="cc-subhead">Hourly</h3>
-      <div className="cc-hourly" role="list">
-        {strip.map((hour, index) => (
-          <div
-            key={hour.time.getTime()}
-            role="listitem"
-            className={`cc-hourly-cell ${highlighted.has(hour.time.getTime()) ? "is-picked" : ""}`}
-            title={describeWeather(hour.code)}
-          >
-            <span className="cc-hourly-time">{isToday && index === 0 ? "Now" : formatHour(hour.localHour)}</span>
-            <WeatherIcon code={hour.code} isDay={hour.isDay} size={22} />
-            <strong>{formatTemp(hour.temp, units, { unit: false })}</strong>
-            <span className={`cc-hourly-rain ${hour.precipProb >= 30 ? "is-likely" : ""}`}>
-              <Droplet size={11} aria-hidden="true" />
-              {hour.precipProb}%
-            </span>
-          </div>
-        ))}
-      </div>
+      <HourlyGraph key={`${day.day}-${strip.length}`} hours={strip} units={units} highlighted={highlighted} firstIsNow={Boolean(isToday)} />
 
       <h3 className="cc-subhead">{days.length}-day forecast</h3>
       <ul className="cc-week">

@@ -1,3 +1,5 @@
+import { customPattern } from "./breathing.js";
+
 // CalmFox sessions. All scripts are written for CalmFox.
 //
 // kind:     "breath" (paced breathing with cues), "meditation" (guided), "timer" (silent, bells only)
@@ -677,3 +679,23 @@ export const sessions = [
 
 export const sessionsById = new Map(sessions.map(s => [s.id, s]));
 export const goalsById = new Map(goals.map(g => [g.id, g]));
+
+// The "Breathe" experience: paced breathing to a rhythm the listener sets.
+// Every line here is shared with Box Breathing, so recorded voices cover it.
+export function customBreathSession(custom) {
+  const box = sessionsById.get("stress-box");
+  return {
+    id: "custom-breath",
+    goal: "breathe",
+    kind: "breath",
+    custom: true,
+    title: "Your Breathing Rhythm",
+    summary: "Breathe to the timing you set. Follow the light and let the rhythm carry you.",
+    minutes: 5,
+    pattern: "custom",
+    patternDef: customPattern(custom),
+    opening: [box.opening[0], box.opening[2]],
+    prompts: box.prompts.filter(line => !/box/i.test(line)),
+    closing: box.closing,
+  };
+}

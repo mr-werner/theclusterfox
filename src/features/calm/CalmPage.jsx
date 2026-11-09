@@ -1,14 +1,17 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Flower2, ChartLine, Compass, Star } from "lucide-react";
+import { ArrowLeft, ChartLine, Compass, Moon, Star, Sun } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import SessionCard from "./components/SessionCard";
 import SessionSetup from "./components/SessionSetup";
 import Player from "./components/Player";
 import JourneyTab from "./components/JourneyTab";
+import MoodHome from "./components/MoodHome";
+import { moodBlurb, moodName } from "./data/moods";
+import BreathBuilder from "./components/BreathBuilder";
 import { GOAL_ICONS } from "./components/icons";
-import { goals, goalsById, sessions, sessionsById } from "./data/sessions";
+import { customBreathSession, goalsById, sessions, sessionsById } from "./data/sessions";
 import { toIsoDay, summarize } from "./model/stats";
 import { useCalmData } from "./state/useCalmData";
 import { useVoices } from "./audio/voice";
@@ -20,21 +23,47 @@ const TABS = [
   { id: "journey", name: "Journey", icon: ChartLine },
 ];
 
+const VIRTUAL = new Set(["breathe", "quick", "favorites"]);
+
 export default function CalmPage() {
   const { data, setPrefs, toggleFavorite, addHistory, setMood, clearHistory } = useCalmData();
   const voices = useVoices();
   const [params, setParams] = useSearchParams();
   const [run, setRun] = useState(null); // { session, config }
+  const theme = useTheme(data.prefs.theme);
 
   const tab = params.get("tab") === "journey" ? "journey" : "explore";
-  const goal = goalsById.has(params.get("goal")) || params.get("goal") === "favorites" ? params.get("goal") : "all";
+  const goalParam = params.get("goal");
+  const goal = goalsById.has(goalParam) || VIRTUAL.has(goalParam) ? goalParam : null;
   const open = sessionsById.get(params.get("s"));
+  const custom = useMemo(() => customBreathSession(data.prefs.custom), [data.prefs.custom]);
 
   const go = (next, scroll = true) => {
-    setParams(Object.fromEntries(Object.entries(next).filter(([, v]) => v && v !== "all" && v !== "explore")));
+    setParams(Object.fromEntries(Object.entries(next).filter(([, v]) => v && v !== "explore")));
     if (scroll) window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  const openSession = id => go({ s: id });
+  const openSession = id => go({ s: id, from: goal || undefined });
+
+  const startRun = (session, { minutes, voice }) => {
+    const p = data.prefs;
+    setRun({
+      session,
+      config: {
+        minutes,
+        interval: p.interval,
+        cueMode: p.cueMode,
+        pace: session.custom ? 1 : p.pace,
+        voice,
+        rate: p.rate,
+        pitch: p.pitch,
+        voiceVolume: p.voiceVolume,
+        ambient: p.ambient,
+        ambientVolume: p.ambientVolume,
+        bells: p.bells,
+        seed: Math.floor(Math.random() * 1e9) + 1,
+      },
+    });
+  };
 
   const onComplete = useCallback(
     seconds => {
@@ -58,132 +87,110 @@ export default function CalmPage() {
 
   const stats = summarize(data.history, toIsoDay(new Date()));
   const favorites = sessions.filter(s => data.favorites.includes(s.id));
-  const groups =
-    goal === "all"
-      ? goals.map(g => ({ goal: g, items: sessions.filter(s => s.goal === g.id) }))
-      : goal === "favorites"
-        ? [{ goal: { id: "favorites", name: "Favorites", blurb: "The sessions you've starred." }, items: favorites }]
-        : [{ goal: goalsById.get(goal), items: sessions.filter(s => s.goal === goal) }];
+  const items =
+    goal === "favorites"
+      ? favorites
+      : goal === "quick"
+        ? sessions.filter(s => s.minutes <= 5).sort((a, b) => a.minutes - b.minutes)
+        : sessions.filter(s => s.goal === goal);
 
-  return (
-    <main className="calm-page cm">
-      <AppBar appId="calmfox" />
+  const setupProps = {
+    prefs: data.prefs,
+    setPrefs,
+    voices,
+    onToggleFavorite: toggleFavorite,
+  };
 
-      <div className="cm-shell">
-        <header className="cm-hero">
-          <div className="cm-logo" aria-hidden="true">
-            <Flower2 size={26} />
-          </div>
+  let body;
+  if (open) {
+    body = (
+      <SessionSetup
+        key={open.id}
+        session={open}
+        favorite={data.favorites.includes(open.id)}
+        onBack={() => go({ goal: params.get("from") || undefined })}
+        onStart={cfg => startRun(open, cfg)}
+        {...setupProps}
+      />
+    );
+  } else if (tab === "journey") {
+    body = <JourneyTab history={data.history} onOpen={openSession} onClear={clearHistory} />;
+  } else if (goal === "breathe") {
+    body = (
+      <div className="cm-breathe">
+        <BackLink onClick={() => go({})} />
+        <BreathBuilder value={data.prefs.custom} onChange={c => setPrefs({ custom: c })} />
+        <SessionSetup session={custom} favorite={false} hideHead onBack={() => go({})} onStart={cfg => startRun(custom, cfg)} {...setupProps} />
+      </div>
+    );
+  } else if (goal) {
+    const Icon = GOAL_ICONS[goal] ?? Star;
+    body = (
+      <section className="cm-mood-list">
+        <BackLink onClick={() => go({})} />
+        <header className="cm-mood-head">
+          <span className="cm-mood-icon" aria-hidden="true">
+            <Icon size={24} strokeWidth={1.6} />
+          </span>
           <div>
-            <p className="cm-eyebrow">CALMFOX</p>
-            <h1>Breathe in. Slow down.</h1>
-            <p className="cm-lede">
-              Guided meditations and breathing exercises with a calm voice that checks in as often as you choose.
-              Free, no account, nothing to install.
-            </p>
-            {stats.sessions > 0 && (
-              <p className="cm-pill">
-                {stats.minutes} min · {stats.sessions} {stats.sessions === 1 ? "session" : "sessions"}
-                {stats.streak > 1 ? ` · ${stats.streak}-day streak` : ""}
-              </p>
-            )}
+            <h1>{moodName(goal)}</h1>
+            <p className="cm-muted">{moodBlurb(goal)}</p>
           </div>
         </header>
-
-        {!open && (
-          <nav className="cm-tabs" aria-label="CalmFox">
-            {TABS.map(t => {
-              const Icon = t.icon;
-              return (
-                <button key={t.id} type="button" aria-current={tab === t.id ? "page" : undefined} onClick={() => go({ tab: t.id })}>
-                  <Icon size={17} aria-hidden="true" />
-                  {t.name}
-                </button>
-              );
-            })}
-          </nav>
-        )}
-
-        {open ? (
-          <SessionSetup
-            key={open.id}
-            session={open}
-            prefs={data.prefs}
-            setPrefs={setPrefs}
-            voices={voices}
-            favorite={data.favorites.includes(open.id)}
-            onToggleFavorite={toggleFavorite}
-            onBack={() => go({ goal: params.get("from") || undefined })}
-            onStart={({ minutes, voice }) => {
-              const p = data.prefs;
-              setRun({
-                session: open,
-                config: {
-                  minutes,
-                  interval: p.interval,
-                  cueMode: p.cueMode,
-                  pace: p.pace,
-                  voice,
-                  rate: p.rate,
-                  pitch: p.pitch,
-                  voiceVolume: p.voiceVolume,
-                  ambient: p.ambient,
-                  ambientVolume: p.ambientVolume,
-                  bells: p.bells,
-                  seed: Math.floor(Math.random() * 1e9) + 1,
-                },
-              });
-            }}
-          />
-        ) : tab === "journey" ? (
-          <JourneyTab history={data.history} onOpen={openSession} onClear={clearHistory} />
+        {items.length === 0 ? (
+          <p className="cm-muted cm-small">Tap the star on any session to keep it here.</p>
         ) : (
-          <section className="cm-explore">
-            <div className="cm-goals" role="group" aria-label="Goals">
-              <button type="button" aria-pressed={goal === "all"} onClick={() => go({}, false)}>
-                All
-              </button>
-              <button type="button" aria-pressed={goal === "favorites"} onClick={() => go({ goal: "favorites" }, false)}>
-                <Star size={15} aria-hidden="true" /> Favorites
-              </button>
-              {goals.map(g => {
-                const Icon = GOAL_ICONS[g.id];
-                return (
-                  <button key={g.id} type="button" aria-pressed={goal === g.id} onClick={() => go({ goal: g.id }, false)}>
-                    <Icon size={15} aria-hidden="true" /> {g.name}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="cm-cards">
+            {items.map(s => (
+              <SessionCard
+                key={s.id}
+                session={s}
+                favorite={data.favorites.includes(s.id)}
+                onOpen={openSession}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  } else {
+    body = <MoodHome favorites={favorites} onPick={id => go({ goal: id })} onOpenSession={openSession} />;
+  }
 
-            {groups.map(({ goal: g, items }) => {
-              const Icon = GOAL_ICONS[g.id] ?? Star;
-              return (
-                <div key={g.id} className="cm-group">
-                  <div className="cm-group-head">
-                    <Icon size={18} aria-hidden="true" />
-                    <h2>{g.name}</h2>
-                    <p className="cm-muted">{g.blurb}</p>
-                  </div>
-                  {items.length === 0 ? (
-                    <p className="cm-muted cm-small">Tap the star on any session to keep it here.</p>
-                  ) : (
-                    <div className="cm-cards">
-                      {items.map(s => (
-                        <SessionCard
-                          key={s.id}
-                          session={s}
-                          favorite={data.favorites.includes(s.id)}
-                          onOpen={id => go({ s: id, from: goal })}
-                          onToggleFavorite={toggleFavorite}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </section>
+  return (
+    <main className="calm-page cm" data-theme={theme}>
+      <AppBar appId="calmfox">
+        <nav className="cm-tabs" aria-label="CalmFox">
+          {TABS.map(t => {
+            const Icon = t.icon;
+            const current = !open && tab === t.id;
+            return (
+              <button key={t.id} type="button" aria-current={current ? "page" : undefined} onClick={() => go({ tab: t.id })}>
+                <Icon size={16} aria-hidden="true" />
+                <span>{t.name}</span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className="cm-theme-btn"
+            onClick={() => setPrefs({ theme: theme === "dark" ? "light" : "dark" })}
+            aria-label={theme === "dark" ? "Switch to the light environment" : "Switch to the dark environment"}
+            title={theme === "dark" ? "Daylight" : "Night"}
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </nav>
+      </AppBar>
+
+      <div className="cm-shell">
+        {body}
+
+        {stats.sessions > 0 && !open && tab === "explore" && !goal && (
+          <p className="cm-quiet-stat">
+            {stats.minutes} quiet {stats.minutes === 1 ? "minute" : "minutes"} so far.
+          </p>
         )}
 
         <p className="cm-credit">
@@ -204,4 +211,25 @@ export default function CalmPage() {
       )}
     </main>
   );
+}
+
+function BackLink({ onClick }) {
+  return (
+    <button type="button" className="cm-back" onClick={onClick}>
+      <ArrowLeft size={17} aria-hidden="true" /> What do you need?
+    </button>
+  );
+}
+
+// Light by day, dark at night, unless the listener has picked one.
+function useTheme(pref) {
+  const [dark, setDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? true);
+  useEffect(() => {
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!mq) return undefined;
+    const on = e => setDark(e.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return pref === "auto" ? (dark ? "dark" : "light") : pref;
 }

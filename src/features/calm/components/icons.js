@@ -1,4 +1,4 @@
-import { Brain, CloudRain, Feather, Heart, Hourglass, Moon, Sprout, Sunrise, Waves, Wind, Flower2, Timer } from "lucide-react";
+import { Brain, CloudRain, Feather, Heart, Hourglass, Moon, Sprout, Sunrise, Waves, Wind, Flower2, Timer, Zap } from "lucide-react";
 
 export const GOAL_ICONS = {
   start: Sprout,
@@ -9,6 +9,8 @@ export const GOAL_ICONS = {
   energy: Sunrise,
   kindness: Heart,
   timer: Hourglass,
+  breathe: Wind,
+  quick: Zap,
 };
 
 export const KIND_ICONS = {

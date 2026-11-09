@@ -1,4 +1,5 @@
 // Everything CalmFox remembers lives in this browser: settings, favorites and history.
+import { CUSTOM_DEFAULT, CUSTOM_LIMITS } from "../data/breathing.js";
 
 export const STORAGE_KEY = "calmfox-data-v1";
 export const MAX_HISTORY = 300;
@@ -22,6 +23,10 @@ export function emptyData() {
       ambient: "rain",
       ambientVolume: 0.35,
       bells: true,
+      // Seconds for the "Breathe" experience; a hold or rest of 0 is skipped.
+      custom: { ...CUSTOM_DEFAULT },
+      // "auto" follows the device; "light" and "dark" pin it.
+      theme: "auto",
     },
     favorites: [],
     // { id, date (YYYY-MM-DD), startedAt, sessionId, title, goal, minutes, planned, mood }
@@ -31,6 +36,17 @@ export function emptyData() {
 
 const isObject = v => Boolean(v && typeof v === "object" && !Array.isArray(v));
 const num = (v, min, max, fallback) => (Number.isFinite(v) && v >= min && v <= max ? v : fallback);
+
+export const THEMES = ["auto", "light", "dark"];
+
+function cleanCustom(c) {
+  const out = { ...CUSTOM_DEFAULT };
+  if (!isObject(c)) return out;
+  for (const [key, [min, max]] of Object.entries(CUSTOM_LIMITS)) {
+    if (Number.isFinite(c[key])) out[key] = Math.min(max, Math.max(min, Math.round(c[key])));
+  }
+  return out;
+}
 
 function cleanPrefs(p) {
   const base = emptyData().prefs;
@@ -46,6 +62,8 @@ function cleanPrefs(p) {
     ambient: AMBIENTS.includes(p.ambient) ? p.ambient : base.ambient,
     ambientVolume: num(p.ambientVolume, 0, 1, base.ambientVolume),
     bells: p.bells !== false,
+    custom: cleanCustom(p.custom),
+    theme: THEMES.includes(p.theme) ? p.theme : base.theme,
   };
 }
 

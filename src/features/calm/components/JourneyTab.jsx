@@ -1,4 +1,4 @@
-import { CalendarCheck, Clock, Flame, Trophy } from "lucide-react";
+import { CalendarCheck, Clock, Leaf, Sun } from "lucide-react";
 import { sessionsById } from "../data/sessions";
 import { lastDays, summarize, toIsoDay } from "../model/stats";
 import { KIND_ICONS } from "./icons";
@@ -27,8 +27,9 @@ export default function JourneyTab({ history, onOpen, onClear }) {
   const tiles = [
     { icon: Clock, value: stats.minutes, label: "minutes" },
     { icon: CalendarCheck, value: stats.sessions, label: stats.sessions === 1 ? "session" : "sessions" },
-    { icon: Flame, value: stats.streak, label: "day streak" },
-    { icon: Trophy, value: stats.best, label: "best streak" },
+    // No streaks: missing a day should never feel like failing.
+    { icon: Sun, value: new Set(history.map(h => h.date)).size, label: "quiet days" },
+    { icon: Leaf, value: calmer, label: "felt calmer after" },
   ];
 
   return (

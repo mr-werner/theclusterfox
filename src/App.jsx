@@ -14,7 +14,7 @@ import AccountPage from "./features/account/AccountPage";
 
 // Brand icons make this page heavy, so it loads on demand.
 const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
-// ToolFox carries a lot of reference data, so it loads on demand too.
+// Engineering ToolFox carries a lot of reference data, so it loads on demand too.
 const ToolsPage = lazy(() => import("./features/tools/ToolsPage"));
 // CalmFox carries its scripts and audio engine, so it loads on demand as well.
 const CalmPage = lazy(() => import("./features/calm/CalmPage"));

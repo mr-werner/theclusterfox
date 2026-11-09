@@ -1,14 +1,15 @@
 import { useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { Canvas, At, Num, DimLine } from "./kit";
 import { useDrag, keyNudge, show, clamp } from "./helpers";
 import { parseBeamModel, stringifyBeamModel, isSupport } from "../model/structures";
 
-// Free-form beam: add supports and loads, drag them along the beam, and edit
-// their values in the list under the drawing.
+// Free-form beam: add supports and loads, drag them along the beam, and type
+// their values right on the drawing. Clicking an item opens a small editor
+// under it for its position and type. A list view is there too.
 
-const W = 960, H = 380;
-const X0 = 90, X1 = 870, BY = 196;
+const W = 960, H = 580;
+const X0 = 90, X1 = 870, BY = 240;
 
 const ADD = [
   { kind: "pin", label: "Pin" },
@@ -66,8 +67,9 @@ export default function BeamBuilderDiagram({ values: v, set, output, unit, setUn
 
   const svg = (
     <>
+      <rect x="0" y="0" width={W} height={H} fill="transparent" onPointerDown={() => setSel(null)} />
       {/* Distributed loads sit behind everything else. */}
-      {items.map((it, i) => (it.kind === "udl" ? <Udl key={i} unit={unit} it={it} i={i} sel={sel === i} setSel={setSel} sx={sx} maxW={maxW} svgRef={svgRef} fromPx={fromPx} snap={snap} update={update} step={step} L={L} /> : null))}
+      {items.map((it, i) => (it.kind === "udl" ? <Udl key={i} it={it} i={i} sel={sel === i} setSel={setSel} sx={sx} maxW={maxW} svgRef={svgRef} fromPx={fromPx} snap={snap} update={update} step={step} L={L} /> : null))}
       <rect x={X0} y={BY - 8} width={X1 - X0} height="16" rx="3" className="dg-beam" />
       {shape && <path d={shape} className="dg-deflected" />}
       {items.map((it, i) =>
@@ -95,8 +97,45 @@ export default function BeamBuilderDiagram({ values: v, set, output, unit, setUn
         <At x={(X0 + X1) / 2} y={H - 34} anchor="c">
           <Num label="Beam length" dim="length" value={v.L} unit={unit("length")} onValue={(x) => set("L", x)} onUnit={(u) => setUnit("length", u)} />
         </At>
+        {/* Values typed straight onto each load. */}
+        {items.map((it, i) => {
+          const field = (key, label, dim, extra = {}) => (
+            <Num compact label={label} dim={dim} value={it[key]} unit={unit(dim)} onValue={(x) => Number.isFinite(x) && update(i, { [key]: x, ...(typeof extra === "function" ? extra(x) : {}) })} onUnit={(u) => setUnit(dim, u)} />
+          );
+          const wrap = (x, y, anchor, child) => (
+            <At key={i} x={clamp(x, 70, W - 70)} y={y} anchor={anchor} className={`dg-on ${sel === i ? "is-sel" : ""}`}>
+              <div onFocusCapture={() => setSel(i)} onPointerDownCapture={() => setSel(i)}>
+                {child}
+              </div>
+            </At>
+          );
+          if (it.kind === "point") return wrap(sx(it.x), BY - 116, "b", field("P", it.P < 0 ? "Load (up)" : "Load", "force"));
+          if (it.kind === "moment") return wrap(sx(it.x), BY - 42, "b", field("M", it.M < 0 ? "Moment ↺" : "Moment ↻", "moment"));
+          if (it.kind === "udl") {
+            const a = sx(it.x1), b = sx(it.x2);
+            const top = (x) => BY - 12 - (14 + 46 * (Math.abs(x === a ? it.w1 : it.w2) / maxW));
+            if (Math.abs(it.w1 - it.w2) < 1e-9) return wrap((a + b) / 2, Math.min(top(a), top(b)) - 12, "b", field("w1", "Load per length", "linearLoad", (x) => ({ w2: x })));
+            return wrap(
+              (a + b) / 2,
+              Math.min(top(a), top(b)) - 12,
+              "b",
+              <div className="dg-stack is-row is-nowrap">
+                {field("w1", "Start", "linearLoad")}
+                {field("w2", "End", "linearLoad")}
+              </div>
+            );
+          }
+          return null;
+        })}
+        {sel !== null && items[sel] && (
+          <At x={clamp(items[sel].kind === "udl" ? sx((items[sel].x1 + items[sel].x2) / 2) : sx(items[sel].x), 200, W - 200)} y={BY + (items[sel].kind === "fixed" ? 104 : 96)} anchor="t" className="dg-on is-sel">
+            <Editor it={items[sel]} i={sel} update={update} remove={remove} close={() => setSel(null)} unit={unit} setUnit={setUnit} />
+          </At>
+        )}
       </Canvas>
 
+      <details className="dg-list">
+        <summary>Edit as a list</summary>
       <div className="dg-items" role="list" aria-label="Supports and loads">
         {items.length === 0 && <p className="tf-muted tf-small">Nothing on the beam yet. Add a support and a load above.</p>}
         {items.map((it, i) => (
@@ -130,6 +169,57 @@ export default function BeamBuilderDiagram({ values: v, set, output, unit, setUn
             </button>
           </div>
         ))}
+      </div>
+      </details>
+    </div>
+  );
+}
+
+/** The small editor that opens under the selected item. */
+function Editor({ it, i, update, remove, close, unit, setUnit }) {
+  const len = (key, label) => <Num compact label={label} dim="length" value={it[key]} unit={unit("length")} onValue={(x) => Number.isFinite(x) && update(i, { [key]: x })} onUnit={(u) => setUnit("length", u)} />;
+  const sloped = it.kind === "udl" && Math.abs(it.w1 - it.w2) > 1e-9;
+  return (
+    <div className="dg-pop" role="group" aria-label={NAMES[it.kind]}>
+      <div className="dg-pop-head">
+        <strong className={`dg-item-name is-${it.kind}`}>{NAMES[it.kind]}</strong>
+        <button type="button" className="dg-pop-x" onClick={close} aria-label="Close" title="Close">
+          <X size={15} />
+        </button>
+      </div>
+      {isSupport(it) && (
+        <div className="dg-pills" role="radiogroup" aria-label="Support type">
+          {["pin", "roller", "fixed"].map((k) => (
+            <button key={k} type="button" role="radio" aria-checked={it.kind === k} onClick={() => update(i, { kind: k })}>
+              {k[0].toUpperCase() + k.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="dg-pop-fields">
+        {it.kind === "udl" ? (
+          <>
+            {len("x1", "From")}
+            {len("x2", "To")}
+          </>
+        ) : (
+          len("x", "Position")
+        )}
+      </div>
+      <div className="dg-pop-actions">
+        {(it.kind === "point" || it.kind === "moment") && (
+          <button type="button" onClick={() => update(i, it.kind === "point" ? { P: -it.P } : { M: -it.M })}>
+            {it.kind === "point" ? (it.P < 0 ? "Point it down" : "Point it up") : it.M < 0 ? "Make it clockwise" : "Make it counter-clockwise"}
+          </button>
+        )}
+        {it.kind === "udl" && (
+          <button type="button" onClick={() => update(i, sloped ? { w2: it.w1 } : { w2: it.w1 * 2 || 1000 })}>
+            {sloped ? "Make it uniform" : "Make it sloped"}
+          </button>
+        )}
+        <button type="button" className="is-danger" onClick={() => remove(i)}>
+          <Trash2 size={14} aria-hidden="true" /> Remove
+        </button>
       </div>
     </div>
   );
@@ -193,10 +283,6 @@ function Item({ it, i, sel, setSel, sx, svgRef, fromPx, snap, update, step, L, u
           <circle cx={x} cy={up ? BY - 100 : BY - 100} r="11" className="dg-handle" />
           <path d={`M${x - 5},${BY - 100} h10 M${x - 5},${BY - 104} l-3,4 l3,4 M${x + 5},${BY - 104} l3,4 l-3,4`} className="dg-handle-glyph" />
         </g>
-        <text x={x} y={BY - 120} textAnchor="middle" className="dg-load-text">
-          {show(Math.abs(it.P), "force", unit("force"))}
-          {up ? " ↑" : ""}
-        </text>
       </g>
     );
   }
@@ -210,15 +296,12 @@ function Item({ it, i, sel, setSel, sx, svgRef, fromPx, snap, update, step, L, u
         <path d={cw ? `M${x + 26},${BY + 16} l-9,-12 l13,-2 Z` : `M${x - 26},${BY + 16} l9,-12 l-13,-2 Z`} className="dg-moment-head" />
         <circle cx={x} cy={BY} r="6" className="dg-handle" />
       </g>
-      <text x={x} y={BY - 44} textAnchor="middle" className="dg-load-text">
-        {show(Math.abs(it.M), "moment", unit("moment"))} {cw ? "↻" : "↺"}
-      </text>
     </g>
   );
 }
 
 /** A distributed load: drag the band to move it, or its end handles to resize it. */
-function Udl({ unit, it, i, sel, setSel, sx, maxW, svgRef, fromPx, snap, update, step, L }) {
+function Udl({ it, i, sel, setSel, sx, maxW, svgRef, fromPx, snap, update, step, L }) {
   const grabAt = useRef(null);
   const span = it.x2 - it.x1;
   const body = useDrag(svgRef, ({ x }) => {
@@ -237,7 +320,6 @@ function Udl({ unit, it, i, sel, setSel, sx, maxW, svgRef, fromPx, snap, update,
   const h1 = 14 + 46 * (Math.abs(it.w1) / maxW), h2 = 14 + 46 * (Math.abs(it.w2) / maxW);
   const top = (x) => BY - 12 - (h1 + ((h2 - h1) * (x - a)) / Math.max(1, b - a));
   const n = Math.max(2, Math.round((b - a) / 40));
-  const same = Math.abs(it.w1 - it.w2) < 1e-9;
   return (
     <g className={`dg-bitem dg-load ${sel ? "is-sel" : ""}`}>
       <g
@@ -262,10 +344,6 @@ function Udl({ unit, it, i, sel, setSel, sx, maxW, svgRef, fromPx, snap, update,
       </g>
       <circle cx={a} cy={top(a)} r="8" className="dg-handle" {...left} aria-label="Distributed load start" />
       <circle cx={b} cy={top(b)} r="8" className="dg-handle" {...right} aria-label="Distributed load end" />
-      <text x={(a + b) / 2} y={Math.min(top(a), top(b)) - 14} textAnchor="middle" className="dg-load-text">
-        {show(it.w1, "linearLoad", unit("linearLoad"))}
-        {same ? "" : ` → ${show(it.w2, "linearLoad", unit("linearLoad"))}`}
-      </text>
     </g>
   );
 }

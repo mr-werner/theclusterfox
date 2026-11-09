@@ -40,7 +40,7 @@ export default function CalcView({ id, prefsApi }) {
   useEffect(() => {
     if (!calc) return;
     touch(`calc:${calc.id}`);
-    document.title = `${calc.name} · ToolFox`;
+    document.title = `${calc.name} · Engineering ToolFox`;
     return () => {
       document.title = "The ClusterFOX";
     };

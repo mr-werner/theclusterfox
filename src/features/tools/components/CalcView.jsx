@@ -70,12 +70,13 @@ export default function CalcView({ id, prefsApi }) {
   const outUnitFor = (r) => outUnits[r.id] || (r.unit && !prefs.units[r.dim] ? r.unit : unitFor(r.dim));
   const set = (key, v) => setValues((cur) => ({ ...cur, [key]: v }));
   const diagram = DIAGRAMS[calc.id];
-  const useDiagram = Boolean(diagram) && mode === "diagram";
+  const useDiagram = Boolean(diagram) && (mode === "diagram" || diagram.always);
   const onDiagram = (input) => useDiagram && diagram.fields.includes(input.id);
   const restInputs = calc.inputs.filter((i) => isVisible(i, values) && !onDiagram(i));
   const pick = (presetId, label) => setValues((cur) => applyPreset(calc, cur, presetId, label));
   const presetValue = (presetId) => matchingPreset(calc.inputs.find((i) => i.id === presetId), values);
-  const showVisual = !useDiagram || ["beam", "moody", "line"].includes(output.visual?.type);
+  const wideVisual = output.visual?.type === "beam";
+  const showVisual = !wideVisual && (!useDiagram || ["moody", "line"].includes(output.visual?.type));
   const primary = output.results.find((r) => r.primary);
   const others = output.results.filter((r) => !r.primary);
 
@@ -114,7 +115,8 @@ export default function CalcView({ id, prefsApi }) {
         <p className="tf-lede">{calc.blurb}</p>
       </header>
 
-      {diagram && (
+      {diagram?.always && <p className="tf-mode-row tf-muted tf-small">{diagram.hint}</p>}
+      {diagram && !diagram.always && (
         <div className="tf-mode-row">
           <div className="tf-segmented is-small" role="radiogroup" aria-label="Input style">
             {[
@@ -218,9 +220,11 @@ export default function CalcView({ id, prefsApi }) {
               </p>
             ))}
           </section>
-          {showVisual && <Visual visual={output.visual} system={prefs.system} />}
+          {showVisual && <Visual visual={output.visual} system={prefs.system} unit={unitFor} />}
         </div>
       </div>
+
+      {wideVisual && <Visual visual={output.visual} system={prefs.system} unit={unitFor} />}
 
       <section className="tf-card tf-about">
         <h2>How it works</h2>

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     Check,
     ChevronDown,
     ExternalLink,
+    House,
     Search,
     Star,
 } from "lucide-react";
@@ -10,6 +12,9 @@ import {
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import FreeAppIcon from "./FreeAppIcon";
+import { altKey } from "../home/state/homeStore";
+import { useHomeLayout } from "../home/state/useHomeLayout";
+import "../home/home.css";
 import { freeAppCount, freeCategories } from "./freeApps";
 import { freeLimits } from "./freeAppDetails";
 
@@ -75,7 +80,10 @@ function loadSavedList(key) {
 }
 
 export default function FreeAppsPage() {
-    const [query, setQuery] = useState("");
+    // The home screen search links here with ?q= to show every match.
+    const [searchParams] = useSearchParams();
+    const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
+    const home = useHomeLayout();
     const [activeCategory, setActiveCategory] = useState("all");
     const [hidden, setHidden] = useState(() =>
         loadSavedList(HIDDEN_KEY)
@@ -195,16 +203,17 @@ export default function FreeAppsPage() {
             <SiteHeader />
 
             <section className="free-hero">
-                <p className="eyebrow">FREE APPS</p>
+                <p className="eyebrow">3RD PARTY ALTERNATIVES</p>
 
                 <h1>
-                    Free tools that <span>rival paid ones</span>
+                    Free alternatives that <span>rival paid ones</span>
                 </h1>
 
                 <p className="hero-description">
-                    A cluster of free software, apps, and websites, with
-                    the catches spelled out. Filter to what matters to
-                    you and star your favorites.
+                    Free software, apps, and websites from other makers,
+                    with the catches spelled out. Filter to what matters to
+                    you, star your favorites, and add any of them to your
+                    ClusterFox home screen.
                 </p>
             </section>
 
@@ -219,7 +228,7 @@ export default function FreeAppsPage() {
                             setQuery(event.target.value)
                         }
                         placeholder={`Search ${freeAppCount} apps, or try "Photoshop"`}
-                        aria-label="Search free apps"
+                        aria-label="Search 3rd party alternatives"
                     />
                 </label>
 
@@ -574,6 +583,48 @@ export default function FreeAppsPage() {
                                                 }
                                             />
                                         </button>
+
+                                        <button
+                                            type="button"
+                                            className={`free-favorite free-pin ${
+                                                home.has(altKey(app.name))
+                                                    ? "active"
+                                                    : ""
+                                            }`}
+                                            aria-pressed={home.has(
+                                                altKey(app.name)
+                                            )}
+                                            aria-label={
+                                                home.has(altKey(app.name))
+                                                    ? `Remove ${app.name} from your home screen`
+                                                    : `Add ${app.name} to your home screen`
+                                            }
+                                            title={
+                                                home.has(altKey(app.name))
+                                                    ? "On your home screen"
+                                                    : "Add to home screen"
+                                            }
+                                            onClick={() =>
+                                                home.has(altKey(app.name))
+                                                    ? home.remove(
+                                                          altKey(app.name)
+                                                      )
+                                                    : home.add(
+                                                          altKey(app.name)
+                                                      )
+                                            }
+                                        >
+                                            <House
+                                                size={16}
+                                                fill={
+                                                    home.has(
+                                                        altKey(app.name)
+                                                    )
+                                                        ? "currentColor"
+                                                        : "none"
+                                                }
+                                            />
+                                        </button>
                                     </div>
                                 );
                             })}
@@ -592,7 +643,8 @@ export default function FreeAppsPage() {
                     Simple Icons
                 </a>
                 . Trademarks belong to their owners. Favorites are saved
-                in this browser.
+                in this browser. Use the house to add an app to your
+                home screen.
             </p>
 
             <SiteFooter />

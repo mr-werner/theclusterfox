@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import HomePage from "./features/home/HomePage";
 import F4TPage from "./features/f4t/F4TPage";
@@ -12,7 +12,7 @@ import SignUpPage from "./features/auth/SignUpPage";
 import ForgotPasswordPage from "./features/auth/ForgotPasswordPage";
 import AccountPage from "./features/account/AccountPage";
 
-// Brand icons make this page heavy, so it loads on demand.
+// Brand icons make the 3rd Party Alternatives directory heavy, so it loads on demand.
 const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
 // Engineer ToolFox carries a lot of reference data, so it loads on demand too.
 const ToolsPage = lazy(() => import("./features/tools/ToolsPage"));
@@ -22,6 +22,12 @@ const CalmPage = lazy(() => import("./features/calm/CalmPage"));
 const MathPage = lazy(() => import("./features/math/MathPage"));
 // CookFox carries its recipe library, so it loads on demand too.
 const CookPage = lazy(() => import("./features/cook/CookPage"));
+
+// The directory used to live at /free; old links keep working.
+function RedirectToAlternatives() {
+    const { search, hash } = useLocation();
+    return <Navigate to={`/alternatives${search}${hash}`} replace />;
+}
 
 export default function App() {
     return (
@@ -64,8 +70,9 @@ export default function App() {
                     </Suspense>
                 }
             />
+            <Route path="/free" element={<RedirectToAlternatives />} />
             <Route
-                path="/free"
+                path="/alternatives"
                 element={
                     <Suspense fallback={null}>
                         <FreeAppsPage />

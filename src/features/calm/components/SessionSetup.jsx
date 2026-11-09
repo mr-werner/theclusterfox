@@ -5,7 +5,8 @@ import { goalsById, KINDS } from "../data/sessions";
 import { describePattern as describe, patterns } from "../data/breathing";
 import { buildTimeline, spokenCount } from "../model/schedule";
 import { INTERVALS } from "../state/calmStore";
-import { pickVoice, speak, speechSupported, stopSpeaking } from "../audio/voice";
+import { NATURAL_VOICES, pickVoice, recordedSeconds, speak, stopSpeaking, voiceSupported } from "../audio/voice";
+import { PREVIEW_LINE } from "../data/voiceLines";
 import { startAmbient } from "../audio/sound";
 import { AMBIENT_OPTIONS, GOAL_ICONS, KIND_ICONS } from "./icons";
 
@@ -42,8 +43,14 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
   const voice = pickVoice(voices, prefs.voiceURI);
 
   const timeline = useMemo(
-    () => buildTimeline(session, { seconds: minutes * 60, interval: prefs.interval, rate: prefs.rate }),
-    [session, minutes, prefs.interval, prefs.rate]
+    () =>
+      buildTimeline(session, {
+        seconds: minutes * 60,
+        interval: prefs.interval,
+        rate: prefs.rate,
+        lengthOf: text => recordedSeconds(voice, text),
+      }),
+    [session, minutes, prefs.interval, prefs.rate, voice]
   );
   const lines = spokenCount(timeline);
   const bells = timeline.filter(i => i.kind === "bell").length;
@@ -51,7 +58,7 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
   useEffect(() => () => tryRef.current?.stop(0.3), []);
 
   function preview() {
-    speak("Take a slow breath in. And let it go, all the way out.", {
+    speak(PREVIEW_LINE, {
       voice,
       rate: prefs.rate,
       pitch: prefs.pitch,
@@ -198,19 +205,32 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
         {usesVoice && (
           <div className="cm-panel">
             <h3>Voice</h3>
-            {speechSupported ? (
+            {voiceSupported ? (
               <>
                 <label className="cm-field">
                   <span>Speaker</span>
                   <select value={voice?.voiceURI ?? ""} onChange={e => setPrefs({ voiceURI: e.target.value })}>
-                    {voices.length === 0 && <option value="">Default voice</option>}
-                    {voices.map(v => (
-                      <option key={v.voiceURI} value={v.voiceURI}>
-                        {v.name} ({v.lang})
-                      </option>
-                    ))}
+                    {NATURAL_VOICES.length > 0 && (
+                      <optgroup label="Natural voices">
+                        {NATURAL_VOICES.map(v => (
+                          <option key={v.voiceURI} value={v.voiceURI}>
+                            {v.name}, {v.note}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {voices.length > 0 && (
+                      <optgroup label="Your device's voices">
+                        {voices.map(v => (
+                          <option key={v.voiceURI} value={v.voiceURI}>
+                            {v.name} ({v.lang})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </label>
+                {!voice?.natural && (
                 <label className="cm-field">
                   <span>Speed</span>
                   <input
@@ -222,6 +242,7 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
                     onChange={e => setPrefs({ rate: Number(e.target.value) })}
                   />
                 </label>
+                )}
                 <label className="cm-field">
                   <span>Volume</span>
                   <input
@@ -236,7 +257,11 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
                 <button type="button" className="cm-btn cm-btn--ghost" onClick={preview}>
                   <Volume2 size={16} aria-hidden="true" /> Hear it
                 </button>
-                <p className="cm-note">Voices come from your device. Ones marked Natural, Enhanced or Premium usually sound the calmest.</p>
+                <p className="cm-note">
+                  {voice?.natural
+                    ? "Natural voices are recorded ahead of time at a slow, calm pace, so they sound the same on every device."
+                    : "Device voices vary by phone and browser. Ones marked Natural, Enhanced or Premium usually sound the best."}
+                </p>
               </>
             ) : (
               <p className="cm-muted cm-small">

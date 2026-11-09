@@ -5,6 +5,8 @@ import { buildTimeline, speakSeconds, GAP } from "../model/schedule.js";
 import { breathAt, cycleSeconds } from "../model/breath.js";
 import { clock, currentStreak, lastDays, longestStreak, summarize } from "../model/stats.js";
 import { emptyData, INTERVALS, normalizeData } from "../state/calmStore.js";
+import { allLines, lineKey } from "../data/voiceLines.js";
+import { existsSync, readFileSync } from "node:fs";
 
 // The library is consistent.
 const ids = new Set();
@@ -164,6 +166,28 @@ for (const s of sessions) {
   assert.deepEqual(d.favorites, ["arrive"]);
   assert.equal(d.history.length, 1);
   assert.equal(d.history[0].mood, "calmer");
+}
+
+// Every line has a natural-voice recording (run scripts/calm-voices/generate.py after editing a session).
+{
+  const manifest = JSON.parse(readFileSync(new URL("../data/voiceManifest.json", import.meta.url), "utf8"));
+  const lines = allLines();
+  const keys = new Set(lines.map(lineKey));
+  assert.equal(keys.size, lines.length, "line keys are unique");
+  assert.equal(lineKey("Breathe in"), lineKey("Breathe in"));
+  for (const voice of ["willow", "rowan"]) {
+    assert(manifest[voice], `${voice}: missing from the manifest`);
+    for (const line of lines) {
+      const key = lineKey(line);
+      assert(manifest[voice][key] > 0, `${voice}: no recording for "${line}". Run scripts/calm-voices/generate.py`);
+      assert(existsSync(new URL(`../../../../public/calm-voice/${voice}/${key}.mp3`, import.meta.url)), `${voice}/${key}.mp3 missing`);
+    }
+    for (const key of Object.keys(manifest[voice])) assert(keys.has(key), `${voice}: stale recording ${key}`);
+  }
+  // Real lengths keep the timeline from overlapping too.
+  const arrive = sessions.find(s => s.id === "arrive");
+  const tl = buildTimeline(arrive, { seconds: 300, interval: 20, lengthOf: t => manifest.willow[lineKey(t)] });
+  for (let i = 1; i < tl.length; i++) assert(tl[i].at >= tl[i - 1].end, "recorded lines don't overlap");
 }
 
 console.log(`CalmFox: ${sessions.length} sessions across ${goals.length} goals, all checks passed.`);

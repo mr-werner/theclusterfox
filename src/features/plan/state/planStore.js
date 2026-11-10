@@ -72,6 +72,16 @@ export function togglePreset(layers, preset) {
   return { ...layers, ...Object.fromEntries(preset.layers.filter(id => !keep.has(id)).map(id => [id, false])) };
 }
 
+// How the planner looks. Linen is the default.
+export const THEMES = [
+  { id: "linen", name: "Linen", hint: "Warm paper, light", swatch: ["#f7f3ec", "#c98f3c"] },
+  { id: "sage", name: "Sage", hint: "Soft green, light", swatch: ["#eef2ec", "#5f8a6c"] },
+  { id: "mist", name: "Mist", hint: "Cool blue-gray, light", swatch: ["#eef1f5", "#5b7fa6"] },
+  { id: "dusk", name: "Dusk", hint: "Warm dark", swatch: ["#1f1f24", "#e6c27f"] },
+  { id: "midnight", name: "Midnight", hint: "Deep blue dark", swatch: ["#141a26", "#8fb0e0"] },
+];
+const THEME_IDS = new Set(THEMES.map(t => t.id));
+
 export const ITEM_KINDS = [
   { id: "event", name: "Event", layer: "events" },
   { id: "task", name: "Task", layer: "tasks" },
@@ -98,6 +108,7 @@ export function emptyData() {
   return {
     version: 1,
     units: "us",
+    theme: "linen",
     country: "US",
     place: null,
     layers: { ...DEFAULT_LAYERS },
@@ -231,6 +242,7 @@ export function normalizeData(value) {
   return {
     ...base,
     units: value.units === "metric" ? "metric" : "us",
+    theme: THEME_IDS.has(value.theme) ? value.theme : base.theme,
     country: typeof value.country === "string" && /^[A-Z]{2}$/.test(value.country) ? value.country : base.country,
     place: cleanPlace(value.place),
     layers,

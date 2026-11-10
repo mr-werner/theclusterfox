@@ -80,7 +80,7 @@ export default async function handler(req, res) {
     url.searchParams.set("ordering", "-added");
     url.searchParams.set("page_size", "40");
 
-    const response = await fetch(url, { headers: { accept: "application/json" } });
+    const response = await fetch(url, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(9000) });
     if (!response.ok) throw new Error(`RAWG request failed with status ${response.status}`);
     const data = await response.json();
 
@@ -100,6 +100,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ from, to, games });
   } catch (error) {
     console.error("Unable to load game releases.", error);
-    return res.status(502).json({ error: "Unable to load game releases." });
+    return res.status(502).json({ error: "RAWG, the game database, isn't answering right now. Game releases come back when it does." });
   }
 }

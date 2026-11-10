@@ -111,10 +111,7 @@ export function AppLinksSettings({ hiddenApps, onChange }) {
   const linked = PLAN_LINKS.map(l => appById(l.app)).filter(Boolean);
   const toggle = id => onChange(hiddenApps.includes(id) ? hiddenApps.filter(a => a !== id) : [...hiddenApps, id]);
   return (
-    <details className="pf-layer-group pf-app-settings">
-      <summary>
-        <h3>ClusterFox apps on your calendar</h3>
-      </summary>
+    <div className="pf-app-settings">
       <p className="pf-muted">Workouts, plans and sessions from these apps show on their days, with a Start button that opens the app right there.</p>
       <ul className="pf-app-toggles">
         {linked.map(app => (
@@ -127,6 +124,6 @@ export function AppLinksSettings({ hiddenApps, onChange }) {
           </li>
         ))}
       </ul>
-    </details>
+    </div>
   );
 }

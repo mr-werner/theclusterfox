@@ -175,7 +175,7 @@ p.pf-muted {
 }
 
 .pf-btn:hover {
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: var(--pf-check, rgba(255, 255, 255, 0.24));
 }
 
 .pf-btn-primary {
@@ -208,7 +208,7 @@ p.pf-muted {
 
 .pf-icon-btn:hover {
   color: var(--text, #f4f1ea);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pf-hover, rgba(255, 255, 255, 0.05));
 }
 
 .pf-link-btn {
@@ -276,7 +276,7 @@ p.pf-muted {
 
 .pf input[type="date"],
 .pf input[type="time"] {
-  color-scheme: dark;
+  color-scheme: var(--pf-scheme, dark);
 }
 
 /* Place search */
@@ -343,7 +343,7 @@ p.pf-muted {
 }
 
 .pf-suggestions button:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pf-hover, rgba(255, 255, 255, 0.05));
 }
 
 /* Panels */
@@ -580,7 +580,7 @@ p.pf-muted {
 }
 
 .pf-cell:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--pf-hover, rgba(255, 255, 255, 0.05));
 }
 
 .pf-cell.is-other {
@@ -1057,7 +1057,7 @@ button.pf-entry-main:hover .pf-entry-title {
 }
 
 .pf-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--pf-scrim, rgba(0, 0, 0, 0.6));
 }
 
 .pf-form {
@@ -1264,7 +1264,7 @@ button.pf-entry-main:hover .pf-entry-title {
 }
 
 .pf-preset:hover {
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: var(--pf-check, rgba(255, 255, 255, 0.24));
 }
 
 .pf-preset[aria-pressed="true"] {
@@ -1380,7 +1380,7 @@ button.pf-entry-main:hover .pf-entry-title {
 }
 
 .pf-school:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--pf-hover, rgba(255, 255, 255, 0.05));
 }
 
 .pf-school svg {

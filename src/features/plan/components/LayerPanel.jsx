@@ -8,6 +8,7 @@ import { COUNTRIES } from "../model/holidays";
 import { LAYERS, NEARBY_KINDS, RADII } from "../state/planStore";
 import AirportPicker from "./AirportPicker";
 import SchoolFinder from "./SchoolFinder";
+import { AppLinksSettings } from "./AppLinks";
 
 // Layers people asked for that need a paid or keyed data source first.
 const COMING = [
@@ -78,6 +79,7 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
 
   // Each layer's own settings, folded under its row until opened.
   const extras = {
+    apps: <AppLinksSettings hiddenApps={data.hiddenApps} onChange={hiddenApps => update({ hiddenApps })} />,
     holidays: (
       <>
         <select value={data.country} onChange={e => update({ country: e.target.value })} aria-label="Country">

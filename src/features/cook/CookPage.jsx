@@ -200,7 +200,7 @@ export default function CookPage() {
     <main className="cook-page ck" data-theme={data.prefs.theme}>
       {!fullScreen && (
         <div className="ck-topbar">
-          <AppBar appId="cookfox" />
+          <AppBar appId="cookfox" planTitle={recipe ? `Cook ${recipe.title}` : undefined} planHref={recipe ? `/cook?r=${encodeURIComponent(recipe.id)}` : undefined} />
         </div>
       )}
 

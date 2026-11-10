@@ -46,7 +46,7 @@ export function expandItems(items, from, to) {
  * Map of day → entries: { id, layer, title, time, detail, ... }, sorted
  * with all-day entries first, then by time.
  */
-export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [], nearbyEvents = [], trips = [] }) {
+export function buildEntries({ layers, from, to, alerts = [], sessions = [], instances = [], holidays = [], games = [], movies = [], releases = [], feedEvents = [], teams = [], nearbyEvents = [], trips = [], appItems = [] }) {
   const byDay = new Map();
   const add = entry => {
     if (!entry.day) return;
@@ -71,7 +71,13 @@ export function buildEntries({ layers, from, to, alerts = [], sessions = [], ins
   for (const item of instances) {
     const layer = itemLayer(item.kind);
     if (!layers[layer]) continue;
-    add({ id: item.id, day: item.day, layer, title: item.title, time: item.time, item, done: item.done });
+    add({ id: item.id, day: item.day, layer, title: item.title, time: item.time, item, done: item.done, launch: item.link ?? null });
+  }
+  // Workouts, sessions and plans from the other ClusterFox apps.
+  if (layers.apps) {
+    for (const a of appItems) {
+      add({ id: `x:${a.id}`, day: a.day, layer: "apps", title: a.title, time: a.time, detail: a.detail, done: a.done, cta: a.action, launch: { app: a.app, href: a.href, label: a.title }, minor: a.done });
+    }
   }
   if (layers.feeds) {
     for (const e of feedEvents) add({ id: e.id, day: e.day, layer: "feeds", title: e.title, time: e.time, detail: [e.feedName, e.location].filter(Boolean).join(" · ") });

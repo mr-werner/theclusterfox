@@ -172,7 +172,7 @@ export default function CalmPage() {
 
   return (
     <main className="calm-page cm" data-theme={theme}>
-      <AppBar appId="calmfox">
+      <AppBar appId="calmfox" planTitle={open ? `${open.title} (CalmFox)` : undefined}>
         <nav className="cm-tabs" aria-label="CalmFox">
           {TABS.map(t => {
             const Icon = t.icon;

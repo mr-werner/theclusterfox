@@ -23,6 +23,8 @@ const CalmPage = lazy(() => import("./features/calm/CalmPage"));
 const MathPage = lazy(() => import("./features/math/MathPage"));
 // CookFox carries its recipe library, so it loads on demand too.
 const CookPage = lazy(() => import("./features/cook/CookPage"));
+// GrowFox carries its plant library, so it loads on demand too.
+const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
@@ -53,6 +55,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <CookPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/grow"
+                element={
+                    <Suspense fallback={null}>
+                        <GrowPage />
                     </Suspense>
                 }
             />

@@ -29,6 +29,7 @@ export const PLAN_LINKS = [
   { app: "watchfox", storageKey: "clusterfox:watch-v1", load: () => import("../features/watch/model/planLink.js") },
   { app: "scorefox", storageKey: "clusterfox:sports-v1", load: () => import("../features/sports/model/planLink.js") },
   { app: "toolfox", storageKey: "toolfox-prefs-v1", load: () => import("../features/tools/model/planLink.js") },
+  { app: "growfox", storageKey: "growfox-data-v1", load: () => import("../features/grow/model/planLink.js") },
 ];
 
 /** True for a link that stays on this site, like "/lift?plan=abc". */

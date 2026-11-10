@@ -1,0 +1,35 @@
+/* GrowFox identity: the shared ClusterFox app bar in seed-catalog linen,
+   fern green and a botanical serif. */
+
+.appbar[data-app="growfox"] {
+  --ab-bg: rgba(243, 239, 226, 0.9);
+  --ab-fg: #1f2b1d;
+  --ab-muted: #5f6a58;
+  --ab-line: rgba(44, 58, 30, 0.13);
+  --ab-accent: #2f6b3a;
+  --ab-accent-ink: #fffdf6;
+  --ab-font: "Young Serif", Georgia, serif;
+  --ab-name-size: 1.3rem;
+  --ab-name-weight: 400;
+  --ab-radius: 40% 60% 55% 45%;
+}
+
+.gf[data-theme="greenhouse"] .appbar[data-app="growfox"] {
+  --ab-bg: rgba(233, 240, 232, 0.9);
+  --ab-accent: #2b7a5a;
+}
+
+.gf[data-theme="terracotta"] .appbar[data-app="growfox"] {
+  --ab-bg: rgba(246, 235, 224, 0.9);
+  --ab-fg: #2e1f17;
+  --ab-accent: #b4532c;
+}
+
+.gf[data-theme="night"] .appbar[data-app="growfox"] {
+  --ab-bg: rgba(17, 26, 20, 0.9);
+  --ab-fg: #e8efe3;
+  --ab-muted: #a2b39f;
+  --ab-line: rgba(220, 240, 210, 0.1);
+  --ab-accent: #8fcb7c;
+  --ab-accent-ink: #102014;
+}

@@ -27,7 +27,7 @@ const LAYERS = [
 ];
 
 function layerCaption(id, units) {
-  if (id === "wind") return units === "metric" ? "Wind · km/h" : "Wind · mph";
+  if (id === "wind") return units === "metric" ? "Wind · km/h (dashed: gusts)" : "Wind · mph (dashed: gusts)";
   if (id === "humidity") return "Humidity · %";
   if (id === "cloud") return "Cloud cover · %";
   if (id === "aqi") return "Air quality · US AQI";
@@ -67,6 +67,68 @@ function LayerValue({ id, hour, units }) {
     default:
       return null;
   }
+}
+
+const SPARK = 34; // height of each row's small graph
+const UV_COLORS = ["#4fd18b", "#f2c14e", "#f59f4a", "#f27a6c", "#c58cf2"];
+const uvTone = uv => UV_COLORS[uv < 3 ? 0 : uv < 6 ? 1 : uv < 8 ? 2 : uv < 11 ? 3 : 4];
+const AQI_COLORS = { good: "#4fd18b", moderate: "#f2c14e", usg: "#f59f4a", unhealthy: "#f27a6c", very: "#c58cf2", hazardous: "#b0475c" };
+
+// The number each row graphs, and how: a line, or bars on a fixed scale.
+const SERIES = {
+  feels: { value: h => h.feels.sun, kind: "line" },
+  shade: { value: h => h.feels.shade, kind: "line" },
+  wind: { value: h => h.wind, extra: h => h.gust, kind: "line" },
+  humidity: { value: h => h.rh, kind: "line", range: [0, 100] },
+  dew: { value: h => h.dewPoint, kind: "line" },
+  aqi: { value: h => h.aqi, kind: "bars", range: [0, 150], color: h => AQI_COLORS[aqiCategory(h.aqi)?.tone] },
+  uv: { value: h => h.uv, kind: "bars", range: [0, 11], color: h => uvTone(h.uv) },
+  cloud: { value: h => h.cloud, kind: "bars", range: [0, 100], color: () => "rgba(220, 232, 242, 0.55)" },
+};
+
+// A small graph of one row, drawn on the same grid as the hours above it.
+function LayerSpark({ id, hours }) {
+  const series = SERIES[id];
+  const values = hours.map(series.value);
+  const extras = series.extra ? hours.map(series.extra) : [];
+  const known = [...values, ...extras].filter(Number.isFinite);
+  if (!known.length) return null;
+  let [lo, hi] = series.range ?? [Math.min(...known), Math.max(...known)];
+  if (series.range) hi = Math.max(hi, ...known);
+  if (hi - lo < 1) [lo, hi] = [lo - 1, hi + 1];
+  const width = hours.length * CELL;
+  const x = i => i * CELL + CELL / 2;
+  const y = v => 4 + (1 - (v - lo) / (hi - lo)) * (SPARK - 8);
+  const line = list =>
+    list
+      .map((v, i) => (Number.isFinite(v) ? `${i === 0 || !Number.isFinite(list[i - 1]) ? "M" : "L"}${x(i)},${y(v)}` : ""))
+      .join(" ");
+
+  return (
+    <svg className="cc-layer-spark" width={width} height={SPARK} viewBox={`0 0 ${width} ${SPARK}`} aria-hidden="true">
+      {series.kind === "bars"
+        ? values.map((v, i) =>
+            Number.isFinite(v) ? (
+              <rect
+                key={i}
+                x={x(i) - 9}
+                width="18"
+                y={y(v)}
+                height={Math.max(2, SPARK - 4 - y(v))}
+                rx="3"
+                fill={series.color(hours[i]) ?? "currentColor"}
+              />
+            ) : null
+          )
+        : (
+          <>
+            {extras.length > 0 && <path d={line(extras)} className="cc-layer-spark-extra" />}
+            <path d={`${line(values)} L${x(values.length - 1)},${SPARK} L${x(0)},${SPARK} Z`} className="cc-layer-spark-fill" />
+            <path d={line(values)} className="cc-layer-spark-line" />
+          </>
+        )}
+    </svg>
+  );
 }
 
 /**
@@ -159,6 +221,7 @@ export default function HourlyGraph({ hours: rawHours, units, place, firstIsNow,
           {rows.map(layer => (
             <div key={layer.id} className="cc-layer-row">
               <span className="cc-layer-name">{layerCaption(layer.id, units)}</span>
+              <LayerSpark id={layer.id} hours={hours} />
               <div className="cc-layer-values">
                 {hours.map(h => (
                   <span key={h.time.getTime()}>

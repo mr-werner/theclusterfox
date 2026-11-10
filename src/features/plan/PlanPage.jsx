@@ -20,7 +20,7 @@ import { buildEntries, expandItems, money } from "./model/entries";
 import { headsUp } from "./model/insights";
 import { moveItem } from "./model/tasks";
 import { planSessions, TIMES } from "./model/training";
-import { togglePreset } from "./state/planStore";
+import { THEMES, togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { fareCurrency, useLayerData } from "./state/useLayerData";
 import "./plan.css";
@@ -282,7 +282,7 @@ export default function PlanPage() {
   }, [dayOpen]);
 
   return (
-    <main className="plan-page pf">
+    <main className="plan-page pf" data-theme={data.theme}>
       <AppBar appId="planfox" />
 
       <div className={`pf-shell is-${view}`}>
@@ -434,6 +434,16 @@ export default function PlanPage() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="pf-themes" role="radiogroup" aria-label="Look">
+              {THEMES.map(t => (
+                <button key={t.id} type="button" role="radio" aria-checked={data.theme === t.id} className="pf-theme" onClick={() => update({ theme: t.id })} title={t.hint}>
+                  <span className="pf-theme-swatch" style={{ background: t.swatch[0] }} aria-hidden="true">
+                    <span style={{ background: t.swatch[1] }} />
+                  </span>
+                  {t.name}
+                </button>
+              ))}
             </div>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </section>

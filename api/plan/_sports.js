@@ -5,6 +5,60 @@ const ESPN_URL = "https://site.api.espn.com/apis/site/v2/sports";
 const MAX_DAYS = 45;
 
 const toDate = key => new Date(Date.UTC(+key.slice(0, 4), +key.slice(4, 6) - 1, +key.slice(6, 8)));
+const toKey = date => date.toISOString().slice(0, 10).replaceAll("-", "");
+
+/**
+ * What to ask ESPN for. ESPN no longer accepts a range like
+ * 20261101-20261130 (it answers 400), but a whole month (202611) works and
+ * returns every game for the pro leagues. College feeds only return 25 games
+ * per answer, so those are asked for one day at a time.
+ */
+export function scoreboardDates(from, to, { daily = false } = {}) {
+  const out = [];
+  if (daily) {
+    for (let d = toDate(from); toKey(d) <= to; d = new Date(d.getTime() + 86400000)) out.push(toKey(d));
+    return out;
+  }
+  for (let d = toDate(from.slice(0, 6) + "01"); toKey(d).slice(0, 6) <= to.slice(0, 6); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) {
+    out.push(toKey(d).slice(0, 6));
+  }
+  return out;
+}
+
+async function fetchScoreboard(league, dates) {
+  const url = new URL(`${ESPN_URL}/${league.path}/scoreboard`);
+  url.searchParams.set("dates", dates);
+  url.searchParams.set("limit", "1000");
+  if (league.groups) url.searchParams.set("groups", league.groups);
+  const response = await fetch(url, { headers: { accept: "application/json" } });
+  if (!response.ok) throw new Error(`ESPN request failed with status ${response.status}`);
+  return (await response.json()).events ?? [];
+}
+
+/** Every game in [from, to] (YYYYMMDD), one copy each. */
+async function loadEvents(league, from, to) {
+  const asks = scoreboardDates(from, to, { daily: Boolean(league.groups) });
+  const lists = [];
+  // A few at a time, so a 45-day college range doesn't fire 45 at once.
+  for (let i = 0; i < asks.length; i += 8) {
+    const batch = await Promise.allSettled(asks.slice(i, i + 8).map(d => fetchScoreboard(league, d)));
+    lists.push(...batch);
+  }
+  if (lists.every(r => r.status === "rejected")) throw lists[0].reason;
+  // Keep games that start within the range, allowing a day either side so
+  // late games still land on the right local evening.
+  const start = toDate(from).getTime() - 86400000;
+  const end = toDate(to).getTime() + 2 * 86400000;
+  const seen = new Map();
+  for (const r of lists) {
+    if (r.status !== "fulfilled") continue;
+    for (const e of r.value) {
+      const t = Date.parse(e.date);
+      if (Number.isFinite(t) && t >= start && t < end && !seen.has(e.id)) seen.set(e.id, e);
+    }
+  }
+  return [...seen.values()].sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -28,18 +82,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = new URL(`${ESPN_URL}/${league.path}/scoreboard`);
-    url.searchParams.set("dates", `${from}-${to}`);
-    url.searchParams.set("limit", "1000");
-    if (league.groups) url.searchParams.set("groups", league.groups);
-
-    const response = await fetch(url, { headers: { accept: "application/json" } });
-
-    if (!response.ok) {
-      throw new Error(`ESPN request failed with status ${response.status}`);
-    }
-
-    const games = parseScoreboard(await response.json(), league.id).map(game => ({
+    const events = await loadEvents(league, from, to);
+    const games = parseScoreboard({ events }, league.id).map(game => ({
       id: game.id,
       league: game.league,
       name: game.name,

@@ -880,3 +880,63 @@
 .cc-radar-credit a {
   color: #fff;
 }
+
+/* ---- Units beside the big temperature ---- */
+.cc-report-temp .cc-temp-units {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 6px;
+  vertical-align: top;
+}
+
+.cc-temp-units button {
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--cc-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 1em;
+  font-weight: 600;
+  line-height: 1.1;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.cc-temp-units button[aria-pressed="true"] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  opacity: 1;
+}
+
+.cc-temp-units button:hover {
+  opacity: 1;
+}
+
+/* ---- A small graph on every hourly row ---- */
+.cc-layer-spark {
+  display: block;
+  color: var(--cc-accent);
+  overflow: visible;
+}
+
+.cc-layer-spark-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cc-layer-spark-fill {
+  fill: currentColor;
+  opacity: 0.14;
+}
+
+.cc-layer-spark-extra {
+  fill: none;
+  stroke: var(--cc-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+}

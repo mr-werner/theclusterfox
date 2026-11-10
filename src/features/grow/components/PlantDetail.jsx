@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { Plus, Check, Lightbulb } from "lucide-react";
 import { TYPES, TAGS } from "../data/plants";
-import { cadence, CADENCE_WORDS, FREQ, KINDS } from "../model/care";
+import { cadence, CADENCE_WORDS, FREQ, KINDS, sunNeed } from "../model/care";
 import { ACTIONS, ANCHORS, anchorDays, nextWindows } from "../model/calendar";
 import { zoneLabel } from "../model/climate";
-import { sideReport, LIGHT } from "../model/sun";
+import { LIGHT } from "../model/sun";
+import { houseSides, plantFit } from "../model/yard";
 import { shortDate, yearOf } from "../model/dates";
 import { PlantArt, RatingBadge, Sheet, SunNeeds } from "./ui";
 import { YearStrip } from "./CalendarTab";
+import YardMap from "./YardMap";
 
 const WATER = ["", "Low: handles dry spells", "Average", "High: likes steady moisture"];
 const HEAT = ["", "Prefers cool summers", "Average", "Loves heat"];
@@ -35,7 +37,6 @@ export default function PlantDetail({ g, plant, onClose }) {
   const windows = climate ? nextWindows(plant, climate, todayNum) : [];
   const year = yearOf(todayNum);
   const inGarden = data.garden.filter(e => e.plantId === plant.id);
-  const sides = useMemo(() => (data.place ? sideReport(data.place.latitude).sides : null), [data.place]);
 
   return (
     <Sheet title={plant.name} onClose={onClose} wide>
@@ -93,8 +94,8 @@ export default function PlantDetail({ g, plant, onClose }) {
           <p className="gf-light-need">
             <SunNeeds sun={plant.sun} withText />
           </p>
-          <p>{plant.sun.map(s => LIGHT[s].hint).join(" · ")}</p>
-          {sides && <WhereOnProperty plant={plant} sides={sides} />}
+          <p>{sunNeed(plant)}.</p>
+          <WhereOnProperty g={g} plant={plant} />
           <p className="gf-hint">Soil: {plant.soil}. Spacing: {plant.spacing}. Grows {plant.size}.</p>
         </section>
 
@@ -136,7 +137,11 @@ export default function PlantDetail({ g, plant, onClose }) {
             {care.map(c => (
               <div key={c.id} className="gf-cadence-row" role="row">
                 <span role="rowheader">{c.name}</span>
-                {CADENCE_WORDS.map(w => (
+                {c.word == null ? (
+                  <span role="cell" className="gf-cadence-need">
+                    <SunNeeds sun={plant.sun} /> {c.need}
+                  </span>
+                ) : CADENCE_WORDS.map(w => (
                   <span key={w} role="cell" className={c.word === w ? "on" : ""}>
                     {c.word === w ? <Check size={14} strokeWidth={3} aria-label={w} /> : ""}
                   </span>
@@ -201,28 +206,63 @@ export default function PlantDetail({ g, plant, onClose }) {
   );
 }
 
-function WhereOnProperty({ plant, sides }) {
-  const walls = sides.filter(s => s.id !== "open");
-  const fits = walls.filter(s => plant.sun.includes(s.light));
-  const best = plant.sun[0];
-  const ideal = walls.filter(s => s.light === best);
-  const hot = walls.filter(s => s.hotAfternoon).map(s => s.name.toLowerCase());
+// The yard map with this plant's best ground highlighted, and the same in words.
+function WhereOnProperty({ g, plant }) {
+  const { yard, yardGrid, sunLat, data } = g;
+  const fit = useMemo(() => plantFit(yardGrid, plant), [yardGrid, plant]);
+  const sides = useMemo(() => houseSides(yard, sunLat).filter(s => s.hours != null), [yard, sunLat]);
+  const best = sides.filter(s => s.light === plant.sun[0]);
+  const ok = sides.filter(s => s.light !== plant.sun[0] && plant.sun.includes(s.light));
+  const share = fit.reduce((n, f) => n + (f === 2), 0) / Math.max(1, fit.length - yardGrid.hours.filter(Number.isNaN).length);
+  const spotsFit = data.spots.filter(s => plant.sun.includes(s.light));
+  const hot = plant.heat === 1 ? sides.filter(s => s.light === "full" && ["west", "southwest", "northwest"].includes(s.compass)) : [];
+  const where = s => `${s.name.toLowerCase()} (faces ${s.compass}, ${s.hours.toFixed(1)} h of sun)`;
   let text;
-  if (best === "full") text = ideal.length ? `Beds along the ${list(ideal)} side${ideal.length > 1 ? "s" : ""} of your house, or open ground away from trees.` : "Open ground away from buildings and trees.";
-  else if (best === "part") text = `${fits.length ? `The ${list(fits.filter(s => s.light === "part").length ? fits.filter(s => s.light === "part") : fits)} side of your house` : "A spot"} with morning sun and afternoon shade, or the dappled shade of a tree.`;
-  else text = `${ideal.length ? `The ${list(ideal)} side of your house` : "Under trees"}, or wherever trees and buildings block most direct sun.`;
+  if (best.length) text = `Best along the ${joinOr(best.map(where))} of the house${ok.length ? `; it also gets by on the ${joinOr(ok.map(where))}` : ""}.`;
+  else if (ok.length) text = `No wall is ideal, but the ${joinOr(ok.map(where))} of the house works.`;
+  else text = plant.sun[0] === "full" ? "Out in open ground, away from the house's shadow." : "In a tree's shade or on a shady side of the yard: no wall of the house is shady enough.";
+  if (share > 0 && share < 1) text += ` About ${Math.max(1, Math.round(share * 100))}% of your yard suits it best.`;
+
   return (
-    <p className="gf-where">
-      <strong>On your property:</strong> {text}
-      {plant.heat === 1 && hot.length > 0 && ` Avoid the hot afternoon sun on the ${hot.join(" and ")} side.`}
-    </p>
+    <div className="gf-where-block">
+      <div className="gf-where-map">
+        <YardMap yard={yard} grid={yardGrid} latitude={sunLat} fit={fit} spots={data.spots} units={data.prefs.units} label={`Map of your yard showing where ${plant.name} grows best`} />
+        <div className="gf-legend gf-legend--map" aria-label="Legend">
+          <span>
+            <i className="gf-ym-key gf-ym-key--best" aria-hidden="true" /> Best spot
+          </span>
+          <span>
+            <i className="gf-ym-key gf-ym-key--ok" aria-hidden="true" /> Works
+          </span>
+          <span>
+            <i className="gf-ym-key gf-ym-key--no" aria-hidden="true" /> Too {plant.sun.includes("full") ? "shady" : "sunny"}
+          </span>
+        </div>
+      </div>
+      <div>
+        <p className="gf-where">
+          <strong>On your property:</strong> {text}
+          {hot.length > 0 && ` It wilts in hot afternoon sun, so skip the ${joinOr(hot.map(s => s.name.toLowerCase()))} or give it shade after 2 pm.`}
+        </p>
+        {spotsFit.length > 0 && (
+          <p className="gf-where">
+            <strong>Your spots that fit:</strong> {spotsFit.map(s => `${s.name} (${LIGHT[s.light].name.toLowerCase()})`).join(", ")}.
+          </p>
+        )}
+        <p className="gf-hint">
+          Worked out from the sun's path at {Math.abs(sunLat).toFixed(1)}°{sunLat >= 0 ? "N" : "S"} through the growing season, with the shade your house{yard.objects.length ? ", trees, fences and sheds" : ""} cast.{" "}
+          {!data.yard ? "This is a typical house facing south. " : ""}
+          {!g.sunLatExact ? "Set your town for your exact latitude. " : ""}
+          <button type="button" className="gf-link" onClick={() => g.go({ tab: "yard" })}>
+            {data.yard ? "Edit your yard" : "Set up your yard"}
+          </button>
+        </p>
+      </div>
+    </div>
   );
 }
 
-const list = sides => {
-  const names = sides.map(s => s.name.toLowerCase());
-  return names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`;
-};
+const joinOr = names => (names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`);
 
 function AddToGarden({ g, plant, inGarden, windows }) {
   const [open, setOpen] = useState(false);

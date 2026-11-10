@@ -4,6 +4,7 @@
 import { plantsById } from "../data/plants.js";
 import { FACINGS } from "../model/sun.js";
 import { isDayKey } from "../model/dates.js";
+import { cleanYard, EXTENT } from "../model/yard.js";
 
 export const STORAGE_KEY = "growfox-data-v1";
 export const MAX_GARDEN = 300;
@@ -28,7 +29,8 @@ export function emptyData() {
     manualZone: null, // a zone picked by hand when there's no place
     hemisphere: "N",
     zoneShift: 0, // -1..1 in half zones: "my garden runs colder/warmer"
-    spots: [], // { id, name, facing (FACINGS id | "open"), light, soil, note }
+    yard: null, // your house, trees, fences and sheds for the sun map (model/yard.js); null until set up
+    spots: [], // { id, name, facing (FACINGS id | "open"), light, auto (light from the map), x, y (meters on the map, or null), soil, note }
     garden: [], // { id, plantId, spotId, status: "growing"|"planned", planted, name, qty, note, added }
     done: {}, // taskId -> ISO time
     updatedAt: null,
@@ -77,6 +79,7 @@ function cleanClimate(c) {
 
 function cleanSpot(s) {
   if (!isObject(s) || typeof s.id !== "string") return null;
+  const onMap = [s.x, s.y].every(v => Number.isFinite(v) && Math.abs(v) <= EXTENT);
   return {
     id: s.id.slice(0, 40),
     name: str(s.name, 60) || "Garden spot",
@@ -84,6 +87,7 @@ function cleanSpot(s) {
     light: LIGHTS.includes(s.light) ? s.light : "full",
     soil: SOILS.includes(s.soil) ? s.soil : "",
     note: str(s.note, 300),
+    ...(onMap ? { x: s.x, y: s.y, auto: s.auto !== false } : { x: null, y: null, auto: false }),
   };
 }
 
@@ -125,6 +129,7 @@ export function normalizeData(value) {
     manualZone: Number.isFinite(value.manualZone) && value.manualZone >= 1 && value.manualZone <= 13.5 ? value.manualZone : null,
     hemisphere: value.hemisphere === "S" ? "S" : "N",
     zoneShift: num(value.zoneShift, -1, 1, 0),
+    yard: isObject(value.yard) ? cleanYard(value.yard) : null,
     spots,
     garden: (Array.isArray(value.garden) ? value.garden : []).map(e => cleanEntry(e, spotIds)).filter(Boolean).slice(0, MAX_GARDEN),
     done,

@@ -250,7 +250,7 @@ export default function Coach({ forecast, place, options, goals, plans, now, onS
       {goals.length === 0 && !editing && (
         <div className="cc-coach-empty">
           <p className="cc-muted">
-            Set a goal and CloCast picks the best times in the forecast for it: cooler mornings when it's hot, cleaner air, less UV and
+            Set a goal and SkyFox picks the best times in the forecast for it: cooler mornings when it's hot, cleaner air, less UV and
             no rain, spaced through the week.
           </p>
           <div className="cc-starters">

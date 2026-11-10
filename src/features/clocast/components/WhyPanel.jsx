@@ -14,7 +14,7 @@ export default function WhyPanel({ plan, units, profileUsed }) {
 
       <div className="cc-why-body">
         <p>
-          CloCast balances the heat your body makes against the heat the weather pulls away, then finds how much
+          SkyFox balances the heat your body makes against the heat the weather pulls away, then finds how much
           clothing insulation keeps you comfortable. Insulation is measured in <em>clo</em>: 1 clo is roughly a
           business suit, enough for someone sitting still at 21 °C (70 °F).
         </p>
@@ -77,6 +77,15 @@ export default function WhyPanel({ plan, units, profileUsed }) {
           <li>
             <strong>Outfits</strong> are totalled from garment values in ISO 9920 and ASHRAE 55 with McCullough's
             equation. Hats and gloves follow wind chill, since hands and ears get cold long before your core does.
+          </li>
+          <li>
+            <strong>Casual and sports attire</strong> assume about 2.5 METs (relaxing, errands, a stroll) or about 6 METs
+            in active wear (a jog, a ride, a game).
+          </li>
+          <li>
+            <strong>Feels like in the sun and in the shade</strong> use Steadman's apparent temperature, as published by
+            the Australian Bureau of Meteorology: air temperature, humidity and wind give the shade value, and the sunshine
+            a person absorbs (from SolarCal above) is added for the sun.
           </li>
         </ul>
         <p className="cc-note">

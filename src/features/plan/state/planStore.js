@@ -16,7 +16,7 @@ const MAX_TEAMS = 30;
  */
 export const LAYERS = [
   { id: "weather", name: "Weather", group: "Outside", source: "Open-Meteo, 14 days ahead" },
-  { id: "wear", name: "What to wear", group: "Outside", source: "CloCast clothing model" },
+  { id: "wear", name: "What to wear", group: "Outside", source: "SkyFox clothing model" },
   { id: "alerts", name: "Severe weather alerts", group: "Outside", source: "National Weather Service (US only)" },
   { id: "car", name: "Car checks", group: "Outside", source: "From the forecast" },
   { id: "garden", name: "Gardening", group: "Outside", source: "From the forecast, plus monthly jobs" },
@@ -24,7 +24,7 @@ export const LAYERS = [
   { id: "tasks", name: "Tasks", group: "Mine" },
   { id: "bills", name: "Bills", group: "Mine" },
   { id: "deadlines", name: "Work & school deadlines", group: "Mine" },
-  { id: "training", name: "Training", group: "Mine", source: "Best outdoor times from CloCast" },
+  { id: "training", name: "Training", group: "Mine", source: "Best outdoor times from SkyFox" },
   { id: "feeds", name: "Linked calendars", group: "Mine", source: "School, work or team calendar links (.ics)" },
   { id: "holidays", name: "Holidays & closures", group: "World", source: "Federal holidays and observances" },
   { id: "sports", name: "Sports", group: "World", source: "ESPN schedules" },

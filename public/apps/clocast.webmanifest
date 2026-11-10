@@ -1,7 +1,7 @@
 {
   "id": "/clocast",
-  "name": "CloCast",
-  "short_name": "CloCast",
+  "name": "SkyFox",
+  "short_name": "SkyFox",
   "start_url": "/clocast",
   "scope": "/clocast",
   "display": "standalone",

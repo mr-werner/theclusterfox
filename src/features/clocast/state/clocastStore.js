@@ -1,8 +1,9 @@
-// Everything CloCast remembers lives in one document. It is kept in this
+// Everything SkyFox (once called CloCast) remembers lives in one document. It is kept in this
 // browser for everyone, and mirrored to the account when signed in.
 
 export const STORAGE_KEY = "clocast-data-v1";
 export const MAX_SAVED_PLACES = 8;
+export const HOURLY_LAYERS = ["rain", "feels", "shade", "wind", "humidity", "dew", "aqi", "uv", "cloud"];
 
 export function emptyData() {
   return {
@@ -15,6 +16,10 @@ export function emptyData() {
     profile: { heightCm: null, weightKg: null, ageYears: null, sex: null },
     tolerance: "normal",
     shaded: false,
+    // The top of the forecast dresses you for "casual" or "sports".
+    attire: "casual",
+    // Extra rows shown under the hourly graph.
+    hourlyLayers: ["rain"],
     // Planned sessions: { id, activityId, title, day, startHour, hours, updatedAt }
     plans: [],
     deletedPlanIds: [],
@@ -100,6 +105,10 @@ export function normalizeData(value) {
     },
     tolerance: ["cold", "warm"].includes(value.tolerance) ? value.tolerance : "normal",
     shaded: value.shaded === true,
+    attire: value.attire === "sports" ? "sports" : "casual",
+    hourlyLayers: Array.isArray(value.hourlyLayers)
+      ? [...new Set(value.hourlyLayers.filter(id => HOURLY_LAYERS.includes(id)))]
+      : base.hourlyLayers,
     plans: cleanList(value.plans, cleanPlan),
     deletedPlanIds: cleanTombstones(value.deletedPlanIds),
     goals: cleanList(value.goals, cleanGoal),

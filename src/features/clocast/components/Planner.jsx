@@ -112,7 +112,7 @@ function PlanForm({ initial, days, hours, place, options, now, onSave, onCancel 
           )}
         </div>
       ) : (
-        <p className="cc-note">That day is past the 14-day forecast. CloCast will score it once the forecast reaches it.</p>
+        <p className="cc-note">That day is past the 14-day forecast. SkyFox will score it once the forecast reaches it.</p>
       )}
 
       <div className="cc-form-actions">
@@ -312,7 +312,7 @@ export default function Planner({ forecast, place, units, options, plans, defaul
         ) : (
           !editing && (
             <div className="cc-day-empty">
-              <p className="cc-muted">Nothing planned. Add a run, a ride or a hike and CloCast will check the weather for it.</p>
+              <p className="cc-muted">Nothing planned. Add a run, a ride or a hike and SkyFox will check the weather for it.</p>
               <button type="button" className="cc-btn" onClick={startNew}>
                 <CalendarPlus size={15} aria-hidden="true" /> Plan something
               </button>

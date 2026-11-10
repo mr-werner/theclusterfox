@@ -261,3 +261,39 @@ console.log(`PASS: CloCast model, ${activities.length} activities, ${Object.valu
   }
   console.log('CloCast skies check out.');
 }
+
+// Feels like in the sun and in the shade (Steadman / Bureau of Meteorology).
+{
+  const { feelsLike, vapourPressure } = await import('../model/feels.js');
+  const { attireModes, attireIcons } = await import('../data/attire.js');
+  const { garments } = await import('../data/garments.js');
+  const { normalizeData: normalize } = await import('../state/clocastStore.js');
+
+  near(vapourPressure(30, 50), 21.2, 0.2, 'vapour pressure at 30 °C, 50%');
+  const place = { latitude: 33.45, longitude: -112.07 }; // Phoenix
+  const noon = { temp: 30, rh: 30, wind: 2, time: new Date('2026-06-21T19:30:00Z'), directNormal: 850, diffuse: 110, global: 950 };
+  const day = feelsLike(noon, place);
+  near(day.shade, 30 + 0.33 * vapourPressure(30, 30) - 1.4 - 4, 0.01, 'shade formula');
+  assert(day.sun - day.shade >= 3 && day.sun - day.shade <= 8, `midday sun adds a few degrees, got ${(day.sun - day.shade).toFixed(1)}`);
+  const night = feelsLike({ ...noon, time: new Date('2026-06-21T09:00:00Z'), directNormal: 0, diffuse: 0, global: 0 }, place);
+  near(night.sun, night.shade, 0.3, 'no sun at night');
+  assert(feelsLike({ ...noon, wind: 8 }, place).shade < day.shade, 'wind feels cooler');
+
+  // The outfit pictures and the attire switch.
+  const hour = { time: new Date('2026-01-10T15:00:00Z'), temp: -3, apparent: -8, rh: 70, wind: 5, gust: 9, precipProb: 0, precip: 0, code: 3, uv: 1, isDay: true, directNormal: 0, diffuse: 80, global: 80 };
+  const [casual, sports] = attireModes;
+  const casualPlan = planOutfit([hour], { latitude: 40.7, longitude: -74 }, casual.activity, {});
+  const sportsPlan = planOutfit([hour], { latitude: 40.7, longitude: -74 }, sports.activity, {});
+  const casualIcons = attireIcons(casualPlan, garments).map(i => i.kind);
+  assert(['coat', 'jacket'].includes(casualIcons[0]), `cold casual shows a coat or jacket, got ${casualIcons}`);
+  assert.equal(casualIcons[1], 'pants', 'cold casual shows trousers');
+  assert(casualIcons.includes('beanie') && casualIcons.includes('gloves'), 'cold casual adds hat and gloves');
+  assert.equal(sportsPlan.wardrobe, 'active', 'sports switches to active wear');
+  assert(sportsPlan.outfit.clo < casualPlan.outfit.clo, 'working hard needs less insulation');
+
+  assert.equal(normalize({ attire: 'sports' }).attire, 'sports');
+  assert.equal(normalize({ attire: 'nonsense' }).attire, 'casual');
+  assert.deepEqual(normalize({ hourlyLayers: ['wind', 'bogus', 'wind', 'aqi'] }).hourlyLayers, ['wind', 'aqi']);
+  assert.deepEqual(normalize({}).hourlyLayers, ['rain']);
+  console.log('SkyFox feels-like, attire and hourly layers check out.');
+}

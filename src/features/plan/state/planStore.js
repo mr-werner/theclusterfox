@@ -242,7 +242,7 @@ export function normalizeData(value) {
 }
 
 // First visit: borrow the place and units already set in CloCast, and the
-// leagues picked in WatchFox.
+// leagues picked in ScoreFox.
 function borrowed() {
   const out = {};
   try {
@@ -252,11 +252,17 @@ function borrowed() {
   } catch {
     /* nothing to borrow */
   }
-  try {
-    const watch = JSON.parse(window.localStorage.getItem("clusterfox:watch-v1"));
-    if (Array.isArray(watch?.leagues) && watch.leagues.length) out.leagues = watch.leagues;
-  } catch {
-    /* nothing to borrow */
+  // ScoreFox first; sports used to live in WatchFox, so fall back to that.
+  for (const key of ["clusterfox:sports-v1", "clusterfox:watch-v1"]) {
+    try {
+      const picks = JSON.parse(window.localStorage.getItem(key));
+      if (Array.isArray(picks?.leagues) && picks.leagues.length) {
+        out.leagues = picks.leagues;
+        break;
+      }
+    } catch {
+      /* nothing to borrow */
+    }
   }
   return out;
 }

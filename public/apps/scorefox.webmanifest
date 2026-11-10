@@ -1,0 +1,28 @@
+{
+  "id": "/sports",
+  "name": "ScoreFox",
+  "short_name": "ScoreFox",
+  "start_url": "/sports",
+  "scope": "/sports",
+  "display": "standalone",
+  "background_color": "#06100a",
+  "theme_color": "#06100a",
+  "icons": [
+    {
+      "src": "/apps/scorefox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/scorefox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/scorefox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

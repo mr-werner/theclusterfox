@@ -118,7 +118,7 @@ export default function ShowSearch({ data, update, onPickServices }) {
 
       {result.status === "error" && (
         <p className="wf-alert">
-          {result.code === "no-key" ? "Show search isn’t switched on yet. Sports schedules still work." : result.error}
+          {result.code === "no-key" ? "Movie and show search isn’t switched on yet." : result.error}
         </p>
       )}
 

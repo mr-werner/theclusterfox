@@ -5,7 +5,7 @@ import {
 } from '../../../services/watch/parse.js';
 import { directLinkFor, networkLink, parseWatchmodeSources, providerLink, serviceKey } from '../../../services/watch/links.js';
 import { firstSyncAction } from '../../../lib/syncDecision.js';
-import { isFavorite, isIn, normalizeData, toggleFavorite, toggleTitle, toggleService, pickedNames } from '../state/watchStore.js';
+import { isFavorite, isIn, normalizeData, toggleFavorite, toggleTitle, toggleService } from '../state/watchStore.js';
 
 // Provider lists merge by id and keep TMDB's display order.
 const merged = mergeProviderLists(
@@ -125,7 +125,6 @@ assert.deepEqual(data.services.map(s => s.id), [8]);
 assert.deepEqual(data.live, ['YouTube TV']);
 assert.deepEqual(data.leagues, ['nfl']);
 assert.equal(toggleService(data, { id: 8, name: 'Netflix' }).services.length, 0);
-assert.deepEqual(pickedNames(toggleService(data, { id: 15, name: 'Hulu' })), ['Netflix', 'Hulu', 'YouTube TV']);
 
 // Chips link to the service: search pages where possible, else the TMDB listing.
 assert.equal(providerLink({ name: 'Netflix Standard with Ads' }, 'The Bear'), 'https://www.netflix.com/search?q=The%20Bear');

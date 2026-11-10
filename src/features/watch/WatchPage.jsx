@@ -1,29 +1,29 @@
-import { useSearchParams } from "react-router-dom";
-import { Clapperboard, MonitorPlay, Trophy, Tv } from "lucide-react";
+import { Navigate, useSearchParams } from "react-router-dom";
+import { Clapperboard, MonitorPlay, Tv } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import ServicePicker from "./components/ServicePicker";
 import ShowSearch from "./components/ShowSearch";
-import SportsSchedule from "./components/SportsSchedule";
 import { useWatchData } from "./state/useWatchData";
 import "./watch.css";
 import "./identity.css";
 
 const TABS = [
-  { id: "shows", name: "Shows", icon: Clapperboard },
-  { id: "sports", name: "Sports", icon: Trophy },
+  { id: "shows", name: "Movies & Shows", icon: Clapperboard },
   { id: "services", name: "Services", icon: Tv },
 ];
 
 export default function WatchPage() {
   const { data, update } = useWatchData();
   const [params, setParams] = useSearchParams();
+  // Sports moved to its own app, ScoreFox. Old links land there.
+  if (params.get("tab") === "sports") return <Navigate to="/sports" replace />;
   const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : "shows";
   const openTab = id => setParams(id === "shows" ? {} : { tab: id });
-  const serviceCount = data.services.length + data.live.length;
+  const serviceCount = data.services.length;
 
   return (
-    <main className="watch-page wf">
+    <main className="watch-page wf wf-cinema">
       <AppBar appId="watchfox" />
 
       <div className="wf-shell">
@@ -37,7 +37,7 @@ export default function WatchPage() {
             <p className="wf-muted">
               {serviceCount
                 ? `Checking against your ${serviceCount} service${serviceCount === 1 ? "" : "s"}. Saved on this device.`
-                : "Search any show, movie or game and see where it's on."}
+                : "Search any movie or show and see where it's streaming."}
             </p>
           </div>
         </header>
@@ -56,12 +56,11 @@ export default function WatchPage() {
         </nav>
 
         {tab === "shows" && <ShowSearch data={data} update={update} onPickServices={() => openTab("services")} />}
-        {tab === "sports" && <SportsSchedule data={data} update={update} />}
         {tab === "services" && <ServicePicker data={data} update={update} />}
 
         <footer className="wf-credits">
           <p>
-            Show data and streaming listings from <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a> and{" "}
+            Movie and show data and streaming listings from <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a> and{" "}
             <a href="https://www.justwatch.com" target="_blank" rel="noreferrer">JustWatch</a>. This product uses the TMDB API but is not
             endorsed or certified by TMDB.
           </p>

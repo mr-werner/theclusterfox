@@ -3,7 +3,8 @@
    condensed marquee type, and posters lit like they're on screen. */
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter+Tight:wght@500;600;700&display=swap");
 
-.wf {
+.wf-cinema,
+.wf-cinema .wf {
   --wf-accent: #f5c451;
   --wf-accent-ink: #261600;
   --wf-accent-soft: rgba(245, 196, 81, 0.12);
@@ -23,7 +24,7 @@
     #08070a;
 }
 
-.wf-shell {
+.wf-cinema .wf-shell {
   animation: wf-lights 900ms ease-out both;
 }
 
@@ -40,30 +41,30 @@
   }
 }
 
-.wf h1,
-.wf h2 {
+.wf-cinema h1,
+.wf-cinema h2 {
   font-family: "Bebas Neue", "Oswald", sans-serif;
   font-weight: 400;
   letter-spacing: 0.04em;
 }
 
-.wf h1 {
+.wf-cinema h1 {
   font-size: clamp(2.6rem, 6vw, 3.8rem);
   line-height: 0.95;
   color: #fff4dc;
   text-shadow: 0 0 24px rgba(245, 196, 81, 0.35);
 }
 
-.wf h2 {
+.wf-cinema h2 {
   font-size: 1.7rem;
 }
 
-.wf-eyebrow {
+.wf-cinema .wf-eyebrow {
   color: var(--wf-accent);
 }
 
 /* The mark is a marquee sign with bulbs around it. */
-.wf-mark {
+.wf-cinema .wf-mark {
   color: var(--wf-accent-ink);
   background: var(--wf-accent);
   box-shadow:
@@ -73,62 +74,62 @@
 }
 
 /* Tabs: ticket stubs. */
-.wf-tabs {
+.wf-cinema .wf-tabs {
   border-style: dashed;
   background: rgba(18, 16, 20, 0.92);
 }
 
-.wf-tabs button[aria-current="page"] {
+.wf-cinema .wf-tabs button[aria-current="page"] {
   box-shadow: 0 0 18px rgba(245, 196, 81, 0.3);
 }
 
-.wf-chip {
+.wf-cinema .wf-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.wf-panel {
+.wf-cinema .wf-panel {
   background: linear-gradient(180deg, #131016, #0c0a0e);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 /* Posters light up like the screen when you point at them. */
-.wf-poster,
-.wf-poster-btn,
-.wf-tile img,
-.wf-tile-blank {
+.wf-cinema .wf-poster,
+.wf-cinema .wf-poster-btn,
+.wf-cinema .wf-tile img,
+.wf-cinema .wf-tile-blank {
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
-.wf-poster-btn:hover,
-.wf-tile:hover img,
-.wf-tile:focus-visible img,
-.wf-tile:hover .wf-tile-blank {
+.wf-cinema .wf-poster-btn:hover,
+.wf-cinema .wf-tile:hover img,
+.wf-cinema .wf-tile:focus-visible img,
+.wf-cinema .wf-tile:hover .wf-tile-blank {
   transform: translateY(-4px) scale(1.02);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(245, 196, 81, 0.5), 0 0 34px rgba(245, 196, 81, 0.18);
 }
 
-.wf-tile:focus-visible {
+.wf-cinema .wf-tile:focus-visible {
   outline: none;
 }
 
-.wf-tile:focus-visible img,
-.wf-tile:focus-visible .wf-tile-blank {
+.wf-cinema .wf-tile:focus-visible img,
+.wf-cinema .wf-tile:focus-visible .wf-tile-blank {
   outline: 2px solid var(--wf-accent);
   outline-offset: 3px;
 }
 
-.wf-tile {
+.wf-cinema .wf-tile {
   position: relative;
 }
 
-.wf-tile.is-seen img {
+.wf-cinema .wf-tile.is-seen img {
   filter: saturate(0.45) brightness(0.7);
 }
 
 /* Small labels on posters: seen, on your watchlist. */
-.wf-badge {
+.wf-cinema .wf-badge {
   position: absolute;
   z-index: 1;
   top: 8px;
@@ -144,18 +145,18 @@
   backdrop-filter: blur(6px);
 }
 
-.wf-badge.is-seen {
+.wf-cinema .wf-badge.is-seen {
   color: #062314;
   background: rgba(79, 209, 139, 0.92);
 }
 
-.wf-badge.is-later {
+.wf-cinema .wf-badge.is-later {
   color: var(--wf-accent-ink);
   background: rgba(245, 196, 81, 0.95);
 }
 
 /* The marquee: one featured title, its poster glowing behind it. */
-.wf-feature {
+.wf-cinema .wf-feature {
   position: relative;
   isolation: isolate;
   display: grid;
@@ -182,7 +183,7 @@
   }
 }
 
-.wf-feature-glow {
+.wf-cinema .wf-feature-glow {
   position: absolute;
   inset: -40%;
   z-index: -1;
@@ -193,7 +194,7 @@
   filter: blur(60px) saturate(1.5);
 }
 
-.wf-feature::after {
+.wf-cinema .wf-feature::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -201,7 +202,7 @@
   background: linear-gradient(90deg, rgba(8, 7, 10, 0.35), rgba(8, 7, 10, 0.8));
 }
 
-.wf-feature-poster {
+.wf-cinema .wf-feature-poster {
   padding: 0;
   border: 0;
   border-radius: 12px;
@@ -209,8 +210,8 @@
   cursor: pointer;
 }
 
-.wf-feature-poster img,
-.wf-feature-poster .wf-tile-blank {
+.wf-cinema .wf-feature-poster img,
+.wf-cinema .wf-feature-poster .wf-tile-blank {
   display: grid;
   place-items: center;
   width: 100%;
@@ -222,7 +223,7 @@
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
 }
 
-.wf-feature-kicker {
+.wf-cinema .wf-feature-kicker {
   margin: 0 0 4px;
   color: var(--wf-accent);
   font-size: 0.72rem;
@@ -231,14 +232,14 @@
   text-transform: uppercase;
 }
 
-.wf-feature h2 {
+.wf-cinema .wf-feature h2 {
   margin: 0 0 8px;
   color: #fff4dc;
   font-size: clamp(2.2rem, 5vw, 3.4rem);
   line-height: 0.95;
 }
 
-.wf-feature-overview {
+.wf-cinema .wf-feature-overview {
   display: -webkit-box;
   max-width: 62ch;
   margin: 0 0 16px;
@@ -249,41 +250,41 @@
   -webkit-line-clamp: 3;
 }
 
-.wf-feature-actions {
+.wf-cinema .wf-feature-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.wf-feature-actions .wf-btn {
+.wf-cinema .wf-feature-actions .wf-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.wf-pick {
+.wf-cinema .wf-pick {
   border-color: rgba(245, 196, 81, 0.5);
   color: var(--wf-accent);
 }
 
 /* Shelves of posters that scroll sideways. */
-.wf-row {
+.wf-cinema .wf-row {
   margin: 4px 0 18px;
 }
 
-.wf-row-head {
+.wf-cinema .wf-row-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
 }
 
-.wf-row-head h2 {
+.wf-cinema .wf-row-head h2 {
   margin: 0;
   font-size: 1.35rem;
 }
 
-.wf-row-list {
+.wf-cinema .wf-row-list {
   display: grid;
   grid-auto-columns: 118px;
   grid-auto-flow: column;
@@ -296,23 +297,23 @@
   scrollbar-width: thin;
 }
 
-.wf-row-list li {
+.wf-cinema .wf-row-list li {
   scroll-snap-align: start;
 }
 
 /* In the detail sheet. */
-.wf-detail-lists {
+.wf-cinema .wf-detail-lists {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin: 0 0 12px;
 }
 
-.wf-detail-lists .wf-fav-chip {
+.wf-cinema .wf-detail-lists .wf-fav-chip {
   margin: 0;
 }
 
-.wf-verdict {
+.wf-cinema .wf-verdict {
   display: inline-flex;
   padding: 6px 12px;
   border-radius: 999px;
@@ -333,55 +334,55 @@
 }
 
 @media (max-width: 640px) {
-  .wf-feature {
+  .wf-cinema .wf-feature {
     grid-template-columns: 108px minmax(0, 1fr);
     gap: 16px;
     align-items: start;
     padding: 16px;
   }
 
-  .wf-feature-overview {
+  .wf-cinema .wf-feature-overview {
     -webkit-line-clamp: 4;
     grid-column: 1 / -1;
   }
 
-  .wf-feature-text {
+  .wf-cinema .wf-feature-text {
     display: contents;
   }
 
-  .wf-feature-text > :not(.wf-feature-overview, .wf-feature-actions) {
+  .wf-cinema .wf-feature-text > :not(.wf-feature-overview, .wf-cinema .wf-feature-actions) {
     grid-column: 2;
   }
 
-  .wf-feature-poster {
+  .wf-cinema .wf-feature-poster {
     grid-row: 1 / span 3;
   }
 
-  .wf-feature-actions {
+  .wf-cinema .wf-feature-actions {
     grid-column: 1 / -1;
   }
 
-  .wf-feature-kicker {
+  .wf-cinema .wf-feature-kicker {
     align-self: end;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wf-shell,
-  .wf-feature {
+  .wf-cinema .wf-shell,
+  .wf-cinema .wf-feature {
     animation: none;
   }
 
-  .wf-poster-btn:hover,
-  .wf-tile:hover img,
-  .wf-tile:hover .wf-tile-blank {
+  .wf-cinema .wf-poster-btn:hover,
+  .wf-cinema .wf-tile:hover img,
+  .wf-cinema .wf-tile:hover .wf-tile-blank {
     transform: none;
   }
 }
 
 /* Long chip rows scroll sideways on phones instead of stacking. */
 @media (max-width: 640px) {
-  .wf-browse .wf-chip-row {
+  .wf-cinema .wf-browse .wf-chip-row {
     flex-wrap: nowrap;
     margin-right: -24px;
     padding-right: 24px;
@@ -390,17 +391,17 @@
     scrollbar-width: none;
   }
 
-  .wf-browse .wf-chip-row li {
+  .wf-cinema .wf-browse .wf-chip-row li {
     flex: 0 0 auto;
   }
 
-  .wf-browse .wf-chip-row::-webkit-scrollbar {
+  .wf-cinema .wf-browse .wf-chip-row::-webkit-scrollbar {
     display: none;
   }
 }
 
 /* The detail sheet is the screen, not the room: no curtains. */
-.wf.wf-detail {
+.wf-cinema .wf-detail {
   min-height: 0;
   background: #0e0c10;
   box-shadow: 0 0 0 1px rgba(245, 196, 81, 0.12), 0 40px 120px rgba(0, 0, 0, 0.8);

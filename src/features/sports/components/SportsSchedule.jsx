@@ -4,7 +4,7 @@ import { LoaderCircle, RotateCcw, Trophy } from "lucide-react";
 import { networkLink } from "../../../services/watch/links";
 import { fetchGames } from "../../../services/watch/watchApi";
 import { canWatchNetwork, isBroadcastNetwork, LEAGUES, leaguesById, networksForServices } from "../../../services/watch/parse";
-import { pickedNames, toggleIn } from "../state/watchStore";
+import { pickedNames, toggleIn } from "../state/sportsStore";
 
 const DAYS = 7;
 
@@ -74,7 +74,7 @@ function Game({ game, networkKeys }) {
   );
 }
 
-export default function SportsSchedule({ data, update }) {
+export default function SportsSchedule({ data, update, onPickServices }) {
   const [days] = useState(upcomingDays);
   const [day, setDay] = useState(days[0].key);
   const [onlyMine, setOnlyMine] = useState(false);
@@ -139,10 +139,19 @@ export default function SportsSchedule({ data, update }) {
       </div>
 
       <div className="wf-toolbar">
-        {hasServices && (
+        {hasServices ? (
           <button type="button" className="wf-chip" aria-pressed={onlyMine} onClick={() => setOnlyMine(v => !v)}>
             Only games I can watch
           </button>
+        ) : (
+          onPickServices && (
+            <p className="wf-muted">
+              <button type="button" className="wf-link-btn" onClick={onPickServices}>
+                Pick your services
+              </button>{" "}
+              to see which games you can watch.
+            </p>
+          )
         )}
         <button type="button" className="wf-link-btn" onClick={() => setReloads(n => n + 1)}>
           <RotateCcw size={14} aria-hidden="true" /> Refresh

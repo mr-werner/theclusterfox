@@ -1,0 +1,195 @@
+/* ScoreFox identity: a stadium under the lights. A mowed night field with
+   floodlight glow from the corners, condensed jersey type, scoreboard digits
+   for game times, and highlighter lime (a tennis ball under the lights) for
+   the things you press. */
+@import url("https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap");
+
+.sf,
+.sf .wf {
+  --wf-accent: #d7f34a;
+  --wf-accent-ink: #1b2400;
+  --wf-accent-soft: rgba(215, 243, 74, 0.12);
+  --wf-mine: #d7f34a;
+  --wf-mine-soft: rgba(215, 243, 74, 0.12);
+  --wf-surface: rgba(10, 22, 15, 0.9);
+  --wf-surface-2: #11241a;
+  --wf-line: rgba(220, 255, 230, 0.08);
+  --wf-line-strong: rgba(220, 255, 230, 0.16);
+  --wf-muted: #9fb3a6;
+  --wf-radius: 12px;
+  --sf-chalk: #f3f7ee;
+  --sf-led: #ffb547;
+  --sf-live: #ff5f4a;
+
+  min-height: 100vh;
+  font-family: "Barlow", var(--font-sans, system-ui), sans-serif;
+  background:
+    radial-gradient(ellipse 520px 360px at 0% -80px, rgba(255, 255, 240, 0.14), transparent 70%),
+    radial-gradient(ellipse 520px 360px at 100% -80px, rgba(255, 255, 240, 0.14), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 80px, transparent 80px 160px),
+    linear-gradient(180deg, #0a1a11, #06100a 60%, #040a07);
+}
+
+/* Floodlights come up when you arrive. */
+.sf .wf-shell {
+  animation: sf-lights 800ms ease-out both;
+}
+
+@keyframes sf-lights {
+  from {
+    opacity: 0;
+    filter: brightness(0.4);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.15);
+  }
+  to {
+    filter: none;
+  }
+}
+
+.sf h1,
+.sf h2,
+.sf h3 {
+  font-family: "Saira Condensed", "Oswald", sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.sf h1 {
+  font-size: clamp(2.3rem, 5.6vw, 3.4rem);
+  line-height: 0.95;
+  color: var(--sf-chalk);
+}
+
+.sf h2 {
+  font-size: 1.45rem;
+}
+
+/* The mark is a ball under the lights. */
+.sf .wf-mark {
+  color: var(--wf-accent-ink);
+  background: radial-gradient(circle at 35% 30%, #f1ffa0, #c6e83a 70%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #06100a, 0 0 0 5px rgba(215, 243, 74, 0.5), 0 0 30px rgba(215, 243, 74, 0.35);
+}
+
+.sf .wf-eyebrow {
+  color: var(--wf-accent);
+  font-family: "Saira Condensed", sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.24em;
+}
+
+/* Tabs and chips read like a jersey number: bold, condensed, upper case. */
+.sf .wf-tabs {
+  background: rgba(6, 16, 10, 0.92);
+}
+
+.sf .wf-tabs button,
+.sf .wf-chip,
+.sf .wf-days strong {
+  font-family: "Saira Condensed", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sf .wf-tabs button {
+  font-size: 1rem;
+}
+
+.sf .wf-panel {
+  background: linear-gradient(180deg, rgba(14, 30, 21, 0.92), rgba(7, 17, 11, 0.94));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* League headings sit on a painted line, like a yard marker. */
+.sf .wf-league h3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--sf-chalk);
+  font-size: 1.2rem;
+}
+
+.sf .wf-league h3::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(243, 247, 238, 0.35), transparent);
+}
+
+/* Each game is a small scoreboard. */
+.sf .wf-game {
+  background: linear-gradient(180deg, #0f2118, #0b1912);
+}
+
+.sf .wf-game.is-mine {
+  border-color: rgba(215, 243, 74, 0.45);
+  box-shadow: inset 3px 0 0 var(--wf-accent);
+}
+
+.sf .wf-game-time {
+  padding: 6px 4px;
+  border-radius: 6px;
+  color: var(--sf-led);
+  background: #050a07;
+  font-family: "Saira Condensed", ui-monospace, monospace;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-shadow: 0 0 8px rgba(255, 181, 71, 0.5);
+}
+
+.sf .wf-game-time.is-live {
+  color: var(--sf-live);
+  text-shadow: 0 0 8px rgba(255, 95, 74, 0.6);
+  animation: sf-live 1.6s ease-in-out infinite;
+}
+
+@keyframes sf-live {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.sf .wf-game-teams strong {
+  color: var(--sf-led);
+  font-family: "Saira Condensed", sans-serif;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sf .wf-networks li.is-mine {
+  color: var(--wf-accent);
+}
+
+.appbar[data-app="scorefox"] {
+  --ab-bg: rgba(6, 16, 10, 0.9);
+  --ab-line: rgba(215, 243, 74, 0.16);
+  --ab-accent: #d7f34a;
+  --ab-accent-ink: #1b2400;
+  --ab-font: "Saira Condensed", sans-serif;
+  --ab-name-size: 1.35rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: 0.02em;
+  --ab-name-case: uppercase;
+  --ab-radius: 50%;
+}
+
+@media (max-width: 640px) {
+  .sf .wf-game-time {
+    font-size: 0.85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf .wf-shell,
+  .sf .wf-game-time.is-live {
+    animation: none;
+  }
+}

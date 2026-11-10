@@ -164,6 +164,7 @@ export default function ClocastPage() {
             onAttire={id => update({ attire: id })}
             layers={data.hourlyLayers}
             onLayers={hourlyLayers => update({ hourlyLayers })}
+            onUnits={value => update({ units: value })}
           />
         )}
 
@@ -174,7 +175,7 @@ export default function ClocastPage() {
             onPick={setPlace}
             onToggleSaved={toggleSavedPlace}
             actions={
-              <span className="cc-segment cc-units" role="group" aria-label="Units">
+              !ready && <span className="cc-segment cc-units" role="group" aria-label="Units">
                 {[["us", "°F"], ["metric", "°C"]].map(([value, label]) => (
                   <button key={value} type="button" aria-pressed={units === value} onClick={() => update({ units: value })}>
                     {label}

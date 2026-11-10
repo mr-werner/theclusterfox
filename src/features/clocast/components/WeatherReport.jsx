@@ -73,6 +73,7 @@ export default function WeatherReport({
   onAttire,
   layers,
   onLayers,
+  onUnits,
 }) {
   const { current, hours } = forecast;
   const [radarOpen, setRadarOpen] = useState(false);
@@ -105,7 +106,13 @@ export default function WeatherReport({
             </p>
             <p className="cc-report-temp">
               {formatTemp(isToday ? current.temp : day.high, units, { unit: false })}
-              <span>{units === "metric" ? "°C" : "°F"}</span>
+              <span className="cc-temp-units" role="group" aria-label="Units">
+                {[["us", "°F"], ["metric", "°C"]].map(([value, label]) => (
+                  <button key={value} type="button" aria-pressed={units === value} onClick={() => onUnits(value)}>
+                    {label}
+                  </button>
+                ))}
+              </span>
             </p>
             <p className="cc-report-desc">{describeWeather(isToday ? current.code : day.code)}</p>
           </div>

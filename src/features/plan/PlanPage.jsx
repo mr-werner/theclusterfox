@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { BellRing, CalendarDays, ListChecks, Settings2, Sparkles, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, List, LoaderCircle, Plus } from "lucide-react";
+import { Bell, CalendarDays, CalendarPlus, ListChecks, Settings2, Sparkles, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, Layers, List, LoaderCircle, Plus, X } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import { formatTemp } from "../clocast/units";
@@ -20,7 +20,7 @@ import { buildEntries, expandItems, money } from "./model/entries";
 import { headsUp } from "./model/insights";
 import { moveItem } from "./model/tasks";
 import { planSessions, TIMES } from "./model/training";
-import { togglePreset } from "./state/planStore";
+import { LAYERS, togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { fareCurrency, useLayerData } from "./state/useLayerData";
 import "./plan.css";
@@ -61,6 +61,36 @@ function SyncBadge({ status, isSignedIn }) {
   );
 }
 
+// Heads-ups already looked at, so the bell only lights up for new ones.
+// Kept in this browser only: it is a convenience, not part of the plan.
+const SEEN_KEY = "clusterfox:plan-seen-tips";
+const tipKey = tip => `${tip.day}|${tip.title}`;
+function loadSeen() {
+  try {
+    return new Set(JSON.parse(window.localStorage.getItem(SEEN_KEY)) ?? []);
+  } catch {
+    return new Set();
+  }
+}
+function saveSeen(keys) {
+  try {
+    window.localStorage.setItem(SEEN_KEY, JSON.stringify([...keys].slice(-200)));
+  } catch {
+    // Private windows can refuse storage; the badge just shows again.
+  }
+}
+
+/** A quiet button that wears a small badge when there is something inside. */
+function BadgeButton({ icon: Icon, label, badge, tone, pressed, onClick, showLabel = false }) {
+  return (
+    <button type="button" className={`pf-tool${showLabel ? " has-label" : ""}`} aria-pressed={pressed} aria-label={badge ? `${label} (${badge})` : label} title={label} onClick={onClick}>
+      <Icon size={18} aria-hidden="true" />
+      {showLabel && <span className="pf-tool-label">{label}</span>}
+      {badge ? <span className={`pf-badge${tone ? ` is-${tone}` : ""}`}>{badge === true ? "" : badge}</span> : null}
+    </button>
+  );
+}
+
 const placeKey = place => `${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}`;
 
 export default function PlanPage() {
@@ -76,6 +106,10 @@ export default function PlanPage() {
   const [anchor, setAnchor] = useState(today);
   const [editing, setEditing] = useState(null);
   const [showLayers, setShowLayers] = useState(false);
+  // One tucked-away sheet open at a time under the toolbar: "heads" or "layers".
+  const [sheet, setSheet] = useState(null);
+  // Today shows one calm page; the full day details slide in when asked.
+  const [dayOpen, setDayOpen] = useState(false);
   const [showPlanner, setShowPlanner] = useState(false);
   const [showLinker, setShowLinker] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -103,6 +137,7 @@ export default function PlanPage() {
   };
   const applyPreset = preset => update(current => ({ layers: togglePreset(current.layers, preset) }));
   const [showAllTips, setShowAllTips] = useState(false);
+  const [seen, setSeen] = useState(loadSeen);
 
   const anchorDate = parseDay(anchor);
   const year = anchorDate.getFullYear();
@@ -218,50 +253,102 @@ export default function PlanPage() {
   const overdue = tips.filter(t => t.kind === "overdue");
   const ahead = tips.filter(t => t.kind !== "overdue");
   const shownTips = showAllTips ? ahead : ahead.slice(0, 5);
+  // Overdue things always count; the rest only until they've been seen.
+  const unseen = overdue.length + (sheet === "heads" ? 0 : ahead.filter(t => !seen.has(tipKey(t))).length);
+  const toggleSheet = id => {
+    setShowLayers(false);
+    setSheet(sheet === id ? null : id);
+    // Opening heads-up counts as reading it, so the badge settles down.
+    if (id === "heads" && sheet !== id) {
+      const next = new Set([...seen, ...tips.map(tipKey)]);
+      saveSeen(next);
+      setSeen(next);
+    }
+  };
+  const layersOn = LAYERS.filter(l => data.layers[l.id]).length;
+  const settingsNeedsYou = !data.place;
+  const openDay = day => {
+    setSelected(day);
+    setDayOpen(true);
+  };
+  useEffect(() => {
+    if (!dayOpen) return;
+    const onKey = event => event.key === "Escape" && setDayOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [dayOpen]);
 
   return (
     <main className="plan-page pf">
       <AppBar appId="planfox" />
 
-      <div className="pf-shell">
-        <header className="pf-hero">
-          <div className="pf-mark" aria-hidden="true">
-            <CalendarRange size={26} />
-          </div>
-          <div className="pf-hero-text">
-            <p className="pf-eyebrow">PLANFOX</p>
-            <h1>Plan around everything.</h1>
-            <p className="pf-muted">Weather, what to wear, car checks, games, holidays, releases and your own plans on one calendar. Turn on only what helps you decide.</p>
-          </div>
-          <div className="pf-hero-side">
-            <PlaceSearch place={data.place} onPick={place => update({ place })} />
-            <div className="pf-segment pf-units" role="group" aria-label="Units">
-              {[["us", "°F"], ["metric", "°C"]].map(([value, label]) => (
-                <button key={value} type="button" aria-pressed={data.units === value} onClick={() => update({ units: value })}>
-                  {label}
+      <div className={`pf-shell is-${view}`}>
+        <div className="pf-toolbar">
+          <div className="pf-segment pf-views" role="group" aria-label="View">
+            {VIEWS.map(v => {
+              const Icon = v.icon;
+              return (
+                <button key={v.id} type="button" aria-pressed={view === v.id} aria-label={v.name} title={v.name} onClick={() => setView(v.id)}>
+                  <Icon size={15} aria-hidden="true" /> <span className="pf-view-name">{v.name}</span>
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        </header>
+          <div className="pf-actions">
+            <BadgeButton icon={Bell} label="Heads up" badge={unseen || null} tone={overdue.length ? "warn" : null} pressed={sheet === "heads"} onClick={() => toggleSheet("heads")} />
+            <BadgeButton icon={Layers} label="Layers" badge={layersOn} tone="quiet" pressed={sheet === "layers"} onClick={() => toggleSheet("layers")} />
+            <BadgeButton
+              icon={Settings2}
+              label="Settings"
+              badge={settingsNeedsYou || null}
+              tone="dot"
+              pressed={showLayers}
+              onClick={() => {
+                setSheet(null);
+                setShowLayers(v => !v);
+              }}
+            />
+            <button type="button" className="pf-btn pf-btn-primary pf-add" onClick={() => openNew()}>
+              <Plus size={16} aria-hidden="true" /> <span>Add</span>
+            </button>
+          </div>
+        </div>
 
-        <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
+        {view !== "today" && (
+          <div className="pf-nav">
+            <button type="button" className="pf-icon-btn" onClick={() => move(-1)} aria-label="Previous">
+              <ChevronLeft size={18} />
+            </button>
+            <h2 className="pf-title">{title}</h2>
+            <button type="button" className="pf-icon-btn" onClick={() => move(1)} aria-label="Next">
+              <ChevronRight size={18} />
+            </button>
+            <button type="button" className="pf-btn pf-btn-quiet" onClick={goToday}>
+              Today
+            </button>
+          </div>
+        )}
 
-        {showSetup && <SetupCard layers={data.layers} onPick={applyPreset} onDismiss={closeSetup} hasPlan={Boolean(data.program)} onOpenPlanner={() => setShowPlanner(true)} onLinkCalendar={() => setShowLinker(true)} />}
-
-        {(ahead.length > 0 || overdue.length > 0) && (
-          <section className="pf-panel pf-heads" aria-label="Heads up">
-            <h2>
-              <BellRing size={18} aria-hidden="true" /> Heads up
-            </h2>
-            <ul className="pf-tips">
-              {overdue.map((tip, i) => (
-                <Tip key={`o${i}`} tip={tip} today={today} />
-              ))}
-              {shownTips.map((tip, i) => (
-                <Tip key={i} tip={tip} showDay today={today} />
-              ))}
-            </ul>
+        {sheet === "heads" && (
+          <section className="pf-panel pf-sheet pf-heads" aria-label="Heads up">
+            <header className="pf-sheet-head">
+              <h2>Heads up</h2>
+              <button type="button" className="pf-icon-btn" onClick={() => setSheet(null)} aria-label="Close heads up">
+                <X size={18} />
+              </button>
+            </header>
+            {ahead.length || overdue.length ? (
+              <ul className="pf-tips">
+                {overdue.map((tip, i) => (
+                  <Tip key={`o${i}`} tip={tip} today={today} />
+                ))}
+                {shownTips.map((tip, i) => (
+                  <Tip key={i} tip={tip} showDay today={today} />
+                ))}
+              </ul>
+            ) : (
+              <p className="pf-muted">Nothing needs your attention in the next two weeks.</p>
+            )}
             {ahead.length > 5 && (
               <button type="button" className="pf-link-btn" onClick={() => setShowAllTips(v => !v)}>
                 {showAllTips ? "Show fewer" : `Show all ${ahead.length}`}
@@ -270,45 +357,78 @@ export default function PlanPage() {
           </section>
         )}
 
-        <div className="pf-toolbar">
-          <div className="pf-segment" role="group" aria-label="View">
-            {VIEWS.map(v => {
-              const Icon = v.icon;
-              return (
-                <button key={v.id} type="button" aria-pressed={view === v.id} onClick={() => setView(v.id)}>
-                  <Icon size={15} aria-hidden="true" /> {v.name}
-                </button>
-              );
-            })}
-          </div>
-          {view !== "today" && <div className="pf-nav">
-            <button type="button" className="pf-icon-btn" onClick={() => move(-1)} aria-label="Previous">
-              <ChevronLeft size={18} />
-            </button>
-            <h2 className="pf-title">{title}</h2>
-            <button type="button" className="pf-icon-btn" onClick={() => move(1)} aria-label="Next">
-              <ChevronRight size={18} />
-            </button>
-            <button type="button" className="pf-btn" onClick={goToday}>
-              Today
-            </button>
-          </div>}
-          <div className="pf-actions">
-            <button type="button" className="pf-btn" aria-expanded={showSetup} onClick={() => (showSetup ? closeSetup() : setShowSetup(true))}>
-              <Sparkles size={15} aria-hidden="true" /> Quick setup
-            </button>
-            <button type="button" className="pf-btn" aria-expanded={showLayers} onClick={() => setShowLayers(v => !v)} aria-label="Layer settings">
-              <Settings2 size={15} aria-hidden="true" /> Settings
-            </button>
-            <button type="button" className="pf-btn pf-btn-primary" onClick={() => openNew()}>
-              <Plus size={15} aria-hidden="true" /> Add
-            </button>
-          </div>
-        </div>
+        {sheet === "layers" && (
+          <section className="pf-panel pf-sheet" aria-label="Layers">
+            <header className="pf-sheet-head">
+              <div>
+                <h2>What shows on your calendar</h2>
+                <p className="pf-muted">Tap to turn a layer on or off.</p>
+              </div>
+              <button type="button" className="pf-icon-btn" onClick={() => setSheet(null)} aria-label="Close layers">
+                <X size={18} />
+              </button>
+            </header>
+            <LayerBar layers={data.layers} onToggle={toggleWithSetup} />
+            <div className="pf-sheet-actions">
+              <button
+                type="button"
+                className="pf-btn pf-btn-quiet"
+                onClick={() => {
+                  setSheet(null);
+                  setShowSetup(true);
+                }}
+              >
+                <Sparkles size={15} aria-hidden="true" /> Quick setup
+              </button>
+              <button
+                type="button"
+                className="pf-btn pf-btn-quiet"
+                onClick={() => {
+                  setSheet(null);
+                  setShowLinker(true);
+                }}
+              >
+                <CalendarPlus size={15} aria-hidden="true" /> Link a calendar
+              </button>
+              <button
+                type="button"
+                className="pf-btn pf-btn-quiet"
+                onClick={() => {
+                  setSheet(null);
+                  setShowLayers(true);
+                }}
+              >
+                <Settings2 size={15} aria-hidden="true" /> Layer options
+              </button>
+            </div>
+          </section>
+        )}
 
-        <LayerBar layers={data.layers} onToggle={toggleWithSetup} onLinkCalendar={() => setShowLinker(true)} />
+        {showSetup && <SetupCard layers={data.layers} onPick={applyPreset} onDismiss={closeSetup} hasPlan={Boolean(data.program)} onOpenPlanner={() => setShowPlanner(true)} onLinkCalendar={() => setShowLinker(true)} />}
 
         {showLinker && <CalendarLinker place={data.place} feeds={data.feeds} onLink={linkFeed} onClose={() => setShowLinker(false)} />}
+
+        {showLayers && (
+          <section className="pf-panel pf-sheet pf-basics" aria-label="Place and units">
+            <header className="pf-sheet-head">
+              <h2>Settings</h2>
+              <button type="button" className="pf-icon-btn" onClick={() => setShowLayers(false)} aria-label="Close settings">
+                <X size={18} />
+              </button>
+            </header>
+            <div className="pf-basics-row">
+              <PlaceSearch place={data.place} onPick={place => update({ place })} />
+              <div className="pf-segment pf-units" role="group" aria-label="Units">
+                {[["us", "°F"], ["metric", "°C"]].map(([value, label]) => (
+                  <button key={value} type="button" aria-pressed={data.units === value} onClick={() => update({ units: value })}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
+          </section>
+        )}
 
         {showLayers && (
           <LayerPanel
@@ -385,7 +505,7 @@ export default function PlanPage() {
                 onToggleDone={toggleDone}
                 onEdit={openEdit}
                 onMove={moveTo}
-                onSelect={setSelected}
+                onSelect={openDay}
               />
             )}
             {view === "month" && (
@@ -428,7 +548,7 @@ export default function PlanPage() {
             )}
           </div>
 
-          {view !== "year" && (
+          {(view === "month" || view === "agenda") && (
             <DayPanel
               key={selected}
               day={selected}
@@ -456,7 +576,8 @@ export default function PlanPage() {
           )}
         </div>
 
-        <footer className="pf-credits">
+        <details className="pf-credits">
+          <summary>Where the data comes from</summary>
           <p>
             Weather from <a href="https://open-meteo.com" target="_blank" rel="noreferrer">Open-Meteo</a>, clothing advice from{" "}
             <Link to="/clocast">CloCast</Link>, game schedules from ESPN, movie dates from <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a>
@@ -478,8 +599,45 @@ export default function PlanPage() {
             )}
             . This product uses the TMDB API but is not endorsed or certified by TMDB.
           </p>
-        </footer>
+        </details>
       </div>
+
+      {dayOpen && view === "today" && (
+        <div className="pf-drawer" role="dialog" aria-modal="true" aria-label="Day details">
+          <button type="button" className="pf-drawer-scrim" aria-label="Close day details" onClick={() => setDayOpen(false)} />
+          <DayPanel
+                onClose={() => setDayOpen(false)}
+                key={selected}
+                day={selected}
+                onLinkCalendar={() => {
+                setDayOpen(false);
+                setShowLinker(true);
+              }}
+                onPlanTrip={code => {
+                setDayOpen(false);
+                setTripStart({ day: selected, code });
+              }}
+                onOpenDetail={setDetail}
+                today={today}
+                now={now}
+                entries={entriesByDay.get(selected) ?? []}
+                tips={(tipsByDay.get(selected) ?? []).filter(t => t.kind !== "overdue")}
+                forecast={forecast}
+                place={data.place}
+                units={data.units}
+                layers={data.layers}
+                awayForecasts={awayForecasts}
+                trainingActivityId={data.trainingActivityId}
+                onTrainingActivity={id => update({ trainingActivityId: id })}
+                onAdd={openNew}
+                onEdit={openEdit}
+                onToggleDone={toggleDone}
+                onToggleSession={toggleSession}
+                onOpenPlanner={data.program ? null : () => setShowPlanner(true)}
+                planWindow={planWindow}
+              />
+        </div>
+      )}
 
       {detail && (
         <DetailModal

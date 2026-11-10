@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Car, CircleAlert, TriangleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Plane, Sunrise, Sunset, Thermometer, TrafficCone } from "lucide-react";
+import { Car, CircleAlert, X, TriangleAlert, CloudRain, Dumbbell, Flower2, MapPin, Plus, Shirt, Star, Plane, Sunrise, Sunset, Thermometer, TrafficCone } from "lucide-react";
 
 import WeatherIcon from "../../clocast/components/WeatherIcon";
 import { activities } from "../../clocast/data/activities";
@@ -274,7 +274,7 @@ function OtherEntry({ entry, onOpen, onPlanTrip }) {
   );
 }
 
-export default function DayPanel({ onOpenDetail, onPlanTrip, onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
+export default function DayPanel({ onClose, onOpenDetail, onPlanTrip, onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
   const [showAllMinor, setShowAllMinor] = useState(false);
   const hours = forecast?.hours ?? [];
   const weather = forecast?.days.find(d => d.day === day);
@@ -297,9 +297,16 @@ export default function DayPanel({ onOpenDetail, onPlanTrip, onLinkCalendar, day
           <p className="pf-eyebrow">{relativeDay(day, today).toUpperCase()}</p>
           <h2>{longDate(day)}</h2>
         </div>
-        <button type="button" className="pf-btn pf-btn-primary" onClick={() => onAdd(day)}>
-          <Plus size={16} aria-hidden="true" /> Add
-        </button>
+        <div className="pf-day-actions">
+          <button type="button" className="pf-btn pf-btn-quiet" onClick={() => onAdd(day)}>
+            <Plus size={16} aria-hidden="true" /> Add
+          </button>
+          {onClose && (
+            <button type="button" className="pf-icon-btn" onClick={onClose} aria-label="Close day details">
+              <X size={18} />
+            </button>
+          )}
+        </div>
       </header>
 
       {layers.weather && weather && (

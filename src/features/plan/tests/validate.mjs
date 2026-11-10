@@ -5,6 +5,7 @@ import { carChecks, gardenTips, eventConflicts, gameInPlace, itemNotes, headsUp,
 import { planSessions, weekFactor, weeklyMinutes } from '../model/training.js';
 import { parseAlerts, inUnitedStates } from '../../../services/plan/alerts.js';
 import { parseSchools } from '../../../../api/plan/_schools.js';
+import { scoreboardDates } from '../../../../api/plan/_sports.js';
 import { buildEntries, expandItems, markCheapFares } from '../model/entries.js';
 import { geohash, parseEvents } from '../../../../api/plan/_events.js';
 import { parseFares, parsePlaces } from '../../../../api/plan/_flights.js';
@@ -284,14 +285,20 @@ assert.deepEqual(withPlan.programDone, ['p:2026-10-27']);
 assert.equal(normalizeData({ program: { goal: 'nonsense' } }).program, null);
 assert.deepEqual(mergeData(normalizeData({ programDone: ['a'] }), normalizeData({ programDone: ['b'] })).programDone.sort(), ['a', 'b']);
 
+// ESPN takes whole months (or single days for college feeds), not ranges
+assert.deepEqual(scoreboardDates('20261026', '20261206'), ['202610', '202611', '202612']);
+assert.deepEqual(scoreboardDates('20261230', '20270102', { daily: true }), ['20261230', '20261231', '20270101', '20270102']);
+
 // School directory
 const schools = parseSchools([
-  { ncessch: 3, school_name: 'Lincoln High', lea_name: 'District 1', school_level: 3, lowest_grade_offered: 9, highest_grade_offered: 12, city_location: 'Springfield' },
-  { ncessch: 1, school_name: 'Adams Elementary', lea_name: 'District 1', school_level: 1, lowest_grade_offered: -1, highest_grade_offered: 5 },
-  { ncessch: 2, school_name: 'Closed Middle', school_level: 2, school_status: 2 },
+  { attributes: { NCESSCH: '3', SCH_NAME: 'Lincoln High', LEA_NAME: 'District 1', SCHOOL_LEVEL: 'High', GSLO: '09', GSHI: '12', LCITY: 'Springfield', SY_STATUS_TEXT: 'Open', CHARTER_TEXT: 'No' } },
+  { attributes: { NCESSCH: '1', SCH_NAME: 'Adams Elementary', LEA_NAME: 'District 1', SCHOOL_LEVEL: 'Elementary', GSLO: 'PK', GSHI: '05', SY_STATUS_TEXT: 'Open', CHARTER_TEXT: 'Yes' } },
+  { attributes: { NCESSCH: '2', SCH_NAME: 'Closed Middle', SCHOOL_LEVEL: 'Middle', SY_STATUS_TEXT: 'Closed' } },
 ]);
 assert.deepEqual(schools.map(s => s.name), ['Adams Elementary', 'Lincoln High'], 'closed schools dropped, elementary first');
 assert.equal(schools[0].grades, 'PK–5');
+assert.equal(schools[0].charter, true);
+assert.equal(schools[1].grades, '9–12');
 assert.deepEqual(parseSchools(null), []);
 
 // Three training windows a day, each with what to wear for the activity

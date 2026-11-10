@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link2, LoaderCircle, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, Link2, LoaderCircle, Plus, Trash2, X } from "lucide-react";
 
 import { LEAGUES } from "../../../services/watch/parse";
 import { forgetFeed } from "../../../services/plan/planApi";
@@ -31,6 +31,14 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
   const [feedLink, setFeedLink] = useState("");
   const [feedMessage, setFeedMessage] = useState("");
   const groups = [...new Set(LAYERS.map(l => l.group))];
+  const [open, setOpen] = useState(() => new Set());
+  const toggleOpen = id =>
+    setOpen(current => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   function addTeam(event) {
     event.preventDefault();
@@ -68,48 +76,10 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
     update(current => ({ feeds: current.feeds.filter(f => f.id !== feed.id) }));
   }
 
-  return (
-    <section className="pf-panel pf-layers" aria-label="Layers">
-      <header className="pf-day-head">
-        <div>
-          <p className="pf-eyebrow">WHAT SHOWS ON YOUR CALENDAR</p>
-          <h2>Layer settings</h2>
-        </div>
-        <button type="button" className="pf-icon-btn" onClick={onClose} aria-label="Close layers">
-          <X size={18} />
-        </button>
-      </header>
-
-      {groups.map(group => (
-        <div key={group} className="pf-layer-group">
-          <h3>{group}</h3>
-          <ul>
-            {LAYERS.filter(l => l.group === group).map(layer => {
-              const state = data.layers[layer.id] ? status[layer.id] : null;
-              return (
-                <li key={layer.id}>
-                  <label className={`pf-layer pf-l-${layer.id}`}>
-                    <input type="checkbox" checked={data.layers[layer.id]} onChange={() => toggleLayer(layer.id)} />
-                    <span className="pf-swatch" aria-hidden="true" />
-                    <span>
-                      <strong>{layer.name}</strong>
-                      {layer.source && <span className="pf-muted"> · {layer.source}</span>}
-                      {state && STATUS_TEXT[state] && (
-                        <span className={`pf-layer-status is-${state}`} title={errors[layer.id] ?? undefined}>
-                          {state === "loading" && <LoaderCircle size={12} className="spin" aria-hidden="true" />} {STATUS_TEXT[state]}
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
-
-      <div className="pf-layer-group">
-        <h3>Holidays for</h3>
+  // Each layer's own settings, folded under its row until opened.
+  const extras = {
+    holidays: (
+      <>
         <select value={data.country} onChange={e => update({ country: e.target.value })} aria-label="Country">
           {COUNTRIES.map(c => (
             <option key={c.code} value={c.code}>
@@ -117,11 +87,11 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
             </option>
           ))}
         </select>
-      </div>
-
-      {data.layers.sports && (
-        <div className="pf-layer-group">
-          <h3>Sports</h3>
+      
+      </>
+    ),
+    sports: (
+      <>
           <ul className="pf-chips" aria-label="Leagues">
             {LEAGUES.map(league => (
               <li key={league.id}>
@@ -159,12 +129,11 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
           ) : (
             <p className="pf-note">Add your teams to see their games on the calendar. Other games stay as a count you can open.</p>
           )}
-        </div>
-      )}
-
-      {data.layers.nearby && (
-        <div className="pf-layer-group">
-          <h3>Events nearby</h3>
+        
+      </>
+    ),
+    nearby: (
+      <>
           <p className="pf-note">Concerts, games, shows and family events {data.place ? `around ${data.place.name}` : "around your town"}. They show as a count on each day; open a day to see them.</p>
           <div className="pf-segment" role="group" aria-label="Distance">
             {RADII.map(r => (
@@ -194,12 +163,11 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
               </li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {data.layers.flights && (
-        <div className="pf-layer-group">
-          <h3>Cheap flight days</h3>
+        
+      </>
+    ),
+    flights: (
+      <>
           <p className="pf-note">Pick where you fly from and up to three places you'd like to go. The cheapest days each month are marked on the calendar.</p>
           <button type="button" className="pf-btn" onClick={onPlanTrip}>
             Plan a trip: best dates, airlines, nonstop
@@ -238,11 +206,11 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
               onPick={dest => update(current => ({ flights: { ...current.flights, to: [...current.flights.to.filter(t => t.code !== dest.code), dest].slice(0, 3) } }))}
             />
           )}
-        </div>
-      )}
-
-      <div className="pf-layer-group">
-        <h3>Linked calendars</h3>
+        
+      </>
+    ),
+    feeds: (
+      <>
         <p className="pf-note">School calendars, work, your team's schedule or your city's events. Paste the iCal or "subscribe" link (it ends in .ics or starts with webcal://).</p>
         <button type="button" className="pf-btn" onClick={onOpenLinker}>
           Step-by-step for Google, Apple, Outlook and schools
@@ -274,18 +242,83 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
         {feedMessage && <p className="pf-note is-warn">{feedMessage}</p>}
         <h3 className="pf-subhead">Find a school near you (US)</h3>
         <SchoolFinder place={data.place} onLink={linkSchool} />
-      </div>
-
-      <div className="pf-layer-group">
-        <h3>Training plan</h3>
+      
+      </>
+    ),
+    training: (
+      <>
         <p className="pf-note">{data.program ? "Your plan is on the calendar under Training." : "Get a plan for strength, cardio, general fitness or a first 5K, built from published exercise guidelines."}</p>
         <button type="button" className="pf-btn" onClick={onOpenPlanner}>
           {data.program ? "Edit training plan" : "Build a training plan"}
         </button>
-      </div>
+      
+      </>
+    ),
+  };
 
-      <div className="pf-layer-group">
-        <h3>Coming later</h3>
+  return (
+    <section className="pf-panel pf-layers" aria-label="Layers">
+      <header className="pf-day-head">
+        <div>
+          <p className="pf-eyebrow">WHAT SHOWS ON YOUR CALENDAR</p>
+          <h2>Layer settings</h2>
+        </div>
+        <button type="button" className="pf-icon-btn" onClick={onClose} aria-label="Close layers">
+          <X size={18} />
+        </button>
+      </header>
+
+      {groups.map(group => (
+        <div key={group} className="pf-layer-group">
+          <h3>{group}</h3>
+          <ul>
+            {LAYERS.filter(l => l.group === group).map(layer => {
+              const state = data.layers[layer.id] ? status[layer.id] : null;
+              return (
+                <li key={layer.id} className={open.has(layer.id) ? "is-open" : undefined}>
+                  <div className="pf-layer-row">
+                    <label className={`pf-layer pf-l-${layer.id}`}>
+                      <input type="checkbox" checked={data.layers[layer.id]} onChange={() => toggleLayer(layer.id)} />
+                      <span className="pf-swatch" aria-hidden="true" />
+                      <span>
+                        <strong>{layer.name}</strong>
+                        {state && STATUS_TEXT[state] && (
+                          <span className={`pf-layer-status is-${state}`}>
+                            {state === "loading" && <LoaderCircle size={12} className="spin" aria-hidden="true" />} {STATUS_TEXT[state]}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                    {extras[layer.id] && (
+                      <button
+                        type="button"
+                        className="pf-layer-more"
+                        aria-expanded={open.has(layer.id)}
+                        aria-controls={`pf-opt-${layer.id}`}
+                        aria-label={`${layer.name} options`}
+                        title="Options"
+                        onClick={() => toggleOpen(layer.id)}
+                      >
+                        <ChevronDown size={16} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                  {state === "error" && errors[layer.id] && <p className="pf-layer-error">{errors[layer.id]}</p>}
+                  {open.has(layer.id) && extras[layer.id] && (
+                    <div className="pf-layer-options" id={`pf-opt-${layer.id}`}>
+                      {layer.source && <p className="pf-note pf-layer-source">From {layer.source.charAt(0).toLowerCase() + layer.source.slice(1)}</p>}
+                      {extras[layer.id]}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+
+      <details className="pf-fold pf-coming-fold">
+        <summary>Coming later</summary>
         <ul className="pf-coming">
           {COMING.map(c => (
             <li key={c.name}>
@@ -294,7 +327,8 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
             </li>
           ))}
         </ul>
-      </div>
+      
+      </details>
     </section>
   );
 }

@@ -23,6 +23,12 @@
   --pf-caution: #dcc189;
   --pf-warn: #dc9a8c;
   --text: var(--pf-ink);
+  --pf-press: #2d2d34;
+  --pf-press-2: #34343b;
+  --pf-check: rgba(255, 255, 255, 0.24);
+  --pf-scrim: rgba(8, 8, 10, 0.5);
+  --pf-shadow: rgba(0, 0, 0, 0.35);
+  --pf-scheme: dark;
 
   /* Muted layer colors: easy to tell apart, none of them shouting. */
   --l-weather: #9ab8cc;
@@ -44,9 +50,10 @@
   --l-garden: #afc792;
 
   min-height: 100vh;
+  color-scheme: var(--pf-scheme);
   color: var(--pf-ink);
   background:
-    radial-gradient(ellipse 900px 420px at 50% -160px, rgba(230, 194, 127, 0.06), transparent 70%),
+    radial-gradient(ellipse 900px 420px at 50% -160px, color-mix(in srgb, var(--pf-accent) 7%, transparent), transparent 70%),
     var(--pf-bg);
 }
 
@@ -96,10 +103,11 @@
 }
 
 .appbar[data-app="planfox"] {
-  --ab-bg: rgba(24, 24, 28, 0.92);
-  --ab-line: rgba(255, 255, 255, 0.06);
-  --ab-accent: #e6c27f;
-  --ab-accent-ink: #2a1f0b;
+  --ab-bg: color-mix(in srgb, var(--pf-bg) 92%, transparent);
+  --ab-line: var(--pf-line);
+  --ab-accent: var(--pf-accent);
+  --ab-accent-ink: var(--pf-accent-ink);
+  --ab-fg: var(--pf-ink);
   --ab-font: "Fraunces", Georgia, serif;
   --ab-name-size: 1.2rem;
   --ab-name-weight: 400;
@@ -129,7 +137,7 @@
 
 .pf-btn:hover {
   border-color: transparent;
-  background: #2d2d34;
+  background: var(--pf-press);
 }
 
 .pf-btn-quiet {
@@ -267,7 +275,7 @@
 
 .pf-tool:hover .pf-badge.is-quiet,
 .pf-tool[aria-pressed="true"] .pf-badge.is-quiet {
-  background: #34343b;
+  background: var(--pf-press-2);
 }
 
 .pf-badge.is-dot {
@@ -495,7 +503,7 @@
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(8, 8, 10, 0.5);
+  background: var(--pf-scrim);
   cursor: default;
   animation: pf-fade-only 200ms ease-out both;
 }
@@ -581,7 +589,7 @@
 
 .pf-today-details:hover {
   color: var(--pf-ink);
-  background: #2d2d34;
+  background: var(--pf-press);
 }
 
 .pf-quick {
@@ -778,7 +786,7 @@
   width: 24px;
   height: 24px;
   padding: 0;
-  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  border: 1.5px solid var(--pf-check);
   border-radius: 999px;
   color: var(--pf-accent-ink);
   background: transparent;
@@ -1158,7 +1166,7 @@
 }
 
 .pf-dialog::backdrop {
-  background: rgba(8, 8, 10, 0.55);
+  background: var(--pf-scrim);
 }
 
 /* Data sources, folded away at the bottom. */
@@ -1294,7 +1302,7 @@
   width: 20px;
   height: 20px;
   margin-top: 2px;
-  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  border: 1.5px solid var(--pf-check);
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
@@ -1676,4 +1684,294 @@
 
 .pf-wear-name {
   margin: 2px 0 0;
+}
+
+/* ------------------------------------------------------------------
+   Looks. Dusk is the dark base above; Linen (light) is the default.
+   ------------------------------------------------------------------ */
+
+.pf[data-theme="linen"],
+.pf[data-theme="sage"],
+.pf[data-theme="mist"] {
+  --pf-scheme: light;
+  --pf-hover: rgba(40, 30, 20, 0.045);
+  --pf-line: rgba(40, 30, 20, 0.07);
+  --pf-line-strong: rgba(40, 30, 20, 0.12);
+  --pf-check: rgba(40, 30, 20, 0.28);
+  --pf-scrim: rgba(40, 34, 28, 0.25);
+  --pf-shadow: rgba(60, 45, 30, 0.14);
+  --pf-good: #4f8a62;
+  --pf-info: #4f7f9e;
+  --pf-caution: #a87a22;
+  --pf-warn: #c0624e;
+
+  /* Deeper layer colors so dots read on paper. */
+  --l-weather: #5f8fb0;
+  --l-holidays: #c47766;
+  --l-alerts: #c0624e;
+  --l-events: #c79a3e;
+  --l-tasks: #6f9a5c;
+  --l-bills: #c08350;
+  --l-deadlines: #b86a86;
+  --l-training: #4f9a72;
+  --l-feeds: #6d82b8;
+  --l-sports: #8a74c0;
+  --l-movies: #a56fb5;
+  --l-games: #4f9a90;
+  --l-nearby: #b0699a;
+  --l-flights: #4f92ad;
+  --l-wear: #5f8fb0;
+  --l-car: #a88b4a;
+  --l-garden: #7d9a4f;
+}
+
+.pf[data-theme="linen"] {
+  --pf-bg: #f6f2ea;
+  --pf-surface: #fffdf8;
+  --pf-surface-2: #f3eee4;
+  --pf-press: #ebe4d7;
+  --pf-press-2: #e2d9c9;
+  --pf-ink: #2f2a24;
+  --pf-muted: #7d7468;
+  --pf-faint: #a39a8c;
+  --pf-accent: #c98f3c;
+  --pf-accent-ink: #ffffff;
+  --pf-accent-soft: rgba(201, 143, 60, 0.13);
+}
+
+.pf[data-theme="sage"] {
+  --pf-bg: #edf1ea;
+  --pf-surface: #fbfcf9;
+  --pf-surface-2: #e8eee5;
+  --pf-press: #dfe7db;
+  --pf-press-2: #d4dfcf;
+  --pf-ink: #283229;
+  --pf-muted: #66746a;
+  --pf-faint: #96a39a;
+  --pf-accent: #5f8a6c;
+  --pf-accent-ink: #ffffff;
+  --pf-accent-soft: rgba(95, 138, 108, 0.13);
+}
+
+.pf[data-theme="mist"] {
+  --pf-bg: #edf0f4;
+  --pf-surface: #fbfcfe;
+  --pf-surface-2: #e7ebf1;
+  --pf-press: #dde3eb;
+  --pf-press-2: #d2dae5;
+  --pf-ink: #262c35;
+  --pf-muted: #66707e;
+  --pf-faint: #98a1ad;
+  --pf-accent: #5b7fa6;
+  --pf-accent-ink: #ffffff;
+  --pf-accent-soft: rgba(91, 127, 166, 0.13);
+}
+
+.pf[data-theme="midnight"] {
+  --pf-bg: #10141d;
+  --pf-surface: #171c28;
+  --pf-surface-2: #1f2533;
+  --pf-press: #262d3d;
+  --pf-press-2: #2d3547;
+  --pf-ink: #e4e8f0;
+  --pf-muted: #8d96a8;
+  --pf-faint: #646d80;
+  --pf-accent: #8fb0e0;
+  --pf-accent-ink: #0f1626;
+  --pf-accent-soft: rgba(143, 176, 224, 0.13);
+}
+
+/* Paper themes: soft shadows instead of dark depth. */
+.pf[data-theme="linen"] .pf-panel,
+.pf[data-theme="linen"] .pf-today,
+.pf[data-theme="linen"] .pf-month,
+.pf[data-theme="sage"] .pf-panel,
+.pf[data-theme="sage"] .pf-today,
+.pf[data-theme="sage"] .pf-month,
+.pf[data-theme="mist"] .pf-panel,
+.pf[data-theme="mist"] .pf-today,
+.pf[data-theme="mist"] .pf-month {
+  box-shadow: 0 1px 2px var(--pf-shadow), 0 10px 30px -18px var(--pf-shadow);
+}
+
+.pf-drawer .pf-day {
+  box-shadow: -20px 0 50px var(--pf-shadow);
+}
+
+
+.pf .pf-segment button[aria-pressed="true"] {
+  box-shadow: 0 1px 2px var(--pf-shadow);
+}
+
+.pf .pf-dialog {
+  color: var(--pf-ink);
+  box-shadow: 0 30px 80px var(--pf-shadow);
+}
+
+.pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-chip,
+.pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-chip,
+.pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-chip,
+.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-signin {
+  border-color: var(--pf-line-strong);
+}
+
+/* Look picker */
+.pf-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.pf-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px 0 6px;
+  border: 1px solid var(--pf-line-strong);
+  border-radius: 999px;
+  color: var(--pf-ink);
+  background: transparent;
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.pf-theme[aria-checked="true"] {
+  border-color: var(--pf-accent);
+  background: var(--pf-accent-soft);
+}
+
+.pf-theme-swatch {
+  position: relative;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.35);
+}
+
+.pf-theme-swatch span {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+}
+
+/* Settings: one list of layers; each one's extras fold out below it. */
+.pf-layers {
+  display: block;
+}
+
+.pf-layers .pf-layer-group {
+  margin-top: 14px;
+}
+
+.pf-layers .pf-layer-group h3 {
+  margin: 0 0 4px;
+  color: var(--pf-muted);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pf-layers .pf-layer-group > ul {
+  display: grid;
+  gap: 0;
+}
+
+.pf-layers .pf-layer-group > ul > li + li {
+  border-top: 1px solid var(--pf-line);
+}
+
+.pf-layer-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-layer-row .pf-layer {
+  flex: 1;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 4px;
+}
+
+.pf-layer-row .pf-swatch {
+  margin-top: 0;
+  border-radius: 999px;
+}
+
+.pf-layer-more {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--pf-faint);
+  background: transparent;
+  cursor: pointer;
+  transition: transform 180ms ease, color 150ms ease, background 150ms ease;
+}
+
+.pf-layer-more:hover {
+  color: var(--pf-ink);
+  background: var(--pf-hover);
+}
+
+.pf-layer-more[aria-expanded="true"] {
+  color: var(--pf-accent);
+  transform: rotate(180deg);
+}
+
+.pf-layer-options {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px 30px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--pf-surface-2);
+  animation: pf-sheet-in 200ms ease-out both;
+}
+
+.pf-layer-options > .pf-note:first-child,
+.pf-layer-options .pf-layer-source {
+  margin: 0;
+}
+
+.pf-layer-options .pf-btn {
+  width: fit-content;
+}
+
+.pf-layer-error {
+  margin: -4px 0 8px 30px;
+  color: var(--pf-caution);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.pf-coming-fold {
+  margin-top: 16px;
+}
+
+.pf-coming-fold ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Game and release counts stay in the day itself, not on every square;
+   your own teams still show by name. */
+.pf-cell .pf-count {
+  display: none;
 }

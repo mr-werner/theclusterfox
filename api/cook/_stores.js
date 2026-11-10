@@ -7,7 +7,7 @@
 import { clean, isLat, isLon, miles, webUrl } from "./_geo.js";
 import { kroger, krogerReady, parseLocations } from "./_kroger.js";
 
-const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
+const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
 const SHOPS = "supermarket|grocery|wholesale|greengrocer|health_food";
 const KROGER_BRANDS = /kroger|ralphs|fred meyer|king soopers|smith'?s|fry'?s|qfc|harris teeter|dillons|mariano'?s|pick ?'?n ?save|metro market|foods co|city market|gerbes|baker'?s|jay ?c|pay ?less|food ?4 ?less|ruler|copps/i;
 const MAX_MILES = 25;
@@ -66,7 +66,7 @@ async function fromOsm(lat, lon, radius) {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "TheClusterFox-CookFox/1.0" },
         body,
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(9000),
       });
       if (response.ok) return parseOsm(await response.json(), { lat, lon });
       lastError = new Error(`Overpass ${response.status}`);
@@ -88,12 +88,12 @@ export default async function stores(req, res) {
     fromOsm(lat, lon, radius),
     krogerReady() ? kroger("/locations", { "filter.lat.near": lat, "filter.lon.near": lon, "filter.radiusInMiles": radius, "filter.limit": 50 }).then(parseLocations) : Promise.resolve([]),
   ]);
-  if (osm.status === "rejected" && krogerStores.status === "rejected") {
-    console.error("CookFox stores:", osm.reason, krogerStores.reason);
-    return res.status(502).json({ error: "Store search isn't responding. Try again in a moment." });
-  }
+  if (osm.status === "rejected") console.error("CookFox stores (OpenStreetMap):", osm.reason?.message ?? osm.reason);
+  if (krogerStores.status === "rejected") console.error("CookFox stores (Kroger):", krogerStores.reason?.message ?? krogerStores.reason);
   const list = mergeStores(osm.value ?? [], krogerStores.value ?? [], here).filter(s => s.distance <= radius);
-  res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
+  // With OpenStreetMap down, an empty or Kroger-only list isn't the real answer: say so and don't cache it.
+  if (osm.status === "rejected" && !list.length) return res.status(502).json({ error: "Store search isn't responding. Try again in a moment." });
+  res.setHeader("Cache-Control", osm.status === "rejected" ? "no-store" : "public, s-maxage=86400, stale-while-revalidate=604800");
   return res.status(200).json({
     stores: list.slice(0, 80),
     partial: osm.status === "rejected",

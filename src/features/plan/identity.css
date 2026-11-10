@@ -1347,3 +1347,333 @@
 .pf-basics + .pf-layers > .pf-day-head .pf-icon-btn {
   display: none;
 }
+
+/* ------------------------------------------------------------------
+   Round 2: month is home, every option is a small icon.
+   ------------------------------------------------------------------ */
+
+.pf-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.pf-toolbar .pf-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+}
+
+.pf-toolbar .pf-title {
+  min-width: 0;
+  margin: 0 6px !important;
+  font-family: var(--pf-serif);
+  font-size: 1.7rem !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.pf-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.pf-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.pf-tool {
+  width: 36px;
+  height: 36px;
+  color: var(--pf-faint);
+}
+
+.pf-tool:hover {
+  color: var(--pf-ink);
+  background: var(--pf-hover);
+}
+
+.pf-tool[aria-pressed="true"] {
+  color: var(--pf-accent);
+  background: var(--pf-accent-soft);
+}
+
+.pf-tool-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 6px;
+  background: var(--pf-line-strong);
+}
+
+.pf-tool.pf-add {
+  width: 36px;
+  height: 36px;
+  margin-left: 6px;
+  padding: 0;
+  color: var(--pf-accent-ink);
+  background: var(--pf-accent);
+}
+
+.pf-tool.pf-add:hover {
+  color: var(--pf-accent-ink);
+  background: var(--pf-accent);
+  filter: brightness(1.05);
+}
+
+.pf-badge {
+  top: 3px;
+  right: 1px;
+  min-width: 15px;
+  height: 15px;
+  font-size: 0.6rem;
+}
+
+.pf-badge.is-dot {
+  top: 8px;
+  right: 8px;
+}
+
+/* The month fills the page; the day opens on top of it. */
+.pf-main,
+.pf-main.is-month,
+.pf-main.is-agenda {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pf-main.is-agenda {
+  width: min(100%, 760px);
+  margin: 0 auto;
+}
+
+/* A quiet month: soft numbers, dots instead of boxes, nothing shouting. */
+.pf-month {
+  padding: 6px 10px 10px;
+}
+
+.pf-weekdays span {
+  padding: 12px 10px 8px;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+}
+
+.pf-cell {
+  gap: 5px;
+  min-height: 118px;
+  padding: 8px 8px 10px;
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-radius: 14px;
+  box-shadow: none !important;
+}
+
+.pf-cell.has-flag {
+  box-shadow: none !important;
+}
+
+.pf-cell-date {
+  min-width: 28px;
+  height: 28px;
+  color: var(--pf-ink);
+  font-size: 1rem;
+}
+
+.pf-cell.is-past .pf-cell-date {
+  color: var(--pf-faint);
+}
+
+.pf-cell.is-other {
+  opacity: 0.35;
+}
+
+.pf-cell-weather {
+  gap: 3px;
+  color: var(--pf-faint);
+  font-size: 0.7rem;
+}
+
+.pf-cell-weather .pf-muted,
+.pf-cell-rain {
+  display: none;
+}
+
+.pf-cell-flags {
+  color: var(--flag);
+  opacity: 0.85;
+}
+
+.pf-cell-flags span {
+  display: none;
+}
+
+.pf-pills {
+  gap: 4px;
+}
+
+.pf-pill,
+.pf-count {
+  position: relative;
+  padding: 0 0 0 11px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: var(--pf-ink);
+  background: none !important;
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.pf-pill::before {
+  content: "";
+  position: absolute;
+  top: 0.48em;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--l);
+}
+
+.pf-pill.is-high {
+  box-shadow: none;
+}
+
+.pf-pill-time {
+  color: var(--pf-faint);
+}
+
+.pf-count,
+.pf-more {
+  padding-left: 11px !important;
+  color: var(--pf-faint) !important;
+  font-size: 0.7rem;
+}
+
+/* Agenda reads as a simple list. */
+.pf-agenda > li {
+  padding: 14px 18px !important;
+}
+
+@media (max-width: 640px) {
+  .pf-toolbar {
+    gap: 8px;
+  }
+
+  .pf-toolbar .pf-nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pf-toolbar .pf-title {
+    font-size: 1.45rem !important;
+  }
+
+  .pf-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .pf-tool,
+  .pf-tool.pf-add {
+    width: 34px;
+    height: 34px;
+  }
+
+  .pf-tool-sep {
+    margin: 0 2px;
+  }
+
+  .pf-month {
+    padding: 4px 4px 8px;
+  }
+
+  .pf-cell {
+    min-height: 62px;
+    padding: 5px 3px;
+    border-radius: 10px;
+  }
+
+  .pf-cell-date {
+    min-width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+  }
+
+  .pf-cell-flags {
+    display: none;
+  }
+
+  .pf-pills li.pf-pill {
+    width: 6px;
+    height: 6px;
+    padding: 0 !important;
+    background: var(--l) !important;
+    border-radius: 999px !important;
+  }
+
+  .pf-pills li.pf-pill::before {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .pf-cell-weather {
+    display: none;
+  }
+}
+
+/* Day details fold their numbers away until you ask. */
+.pf-fold {
+  margin-top: 6px;
+}
+
+.pf-fold > summary {
+  width: fit-content;
+  color: var(--pf-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.pf-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.pf-fold > summary::after {
+  content: " +";
+  color: var(--pf-faint);
+}
+
+.pf-fold[open] > summary::after {
+  content: " –";
+}
+
+.pf-fold > summary:hover {
+  color: var(--pf-ink);
+}
+
+.pf-fold[open] > summary {
+  margin-bottom: 8px;
+}
+
+.pf-weather,
+.pf-wear {
+  align-items: center;
+}
+
+.pf-weather-main {
+  margin: 0;
+}
+
+.pf-wear .pf-eyebrow {
+  margin-bottom: 0;
+}
+
+.pf-wear-name {
+  margin: 2px 0 0;
+}

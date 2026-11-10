@@ -65,13 +65,16 @@ function WearCard({ wear, label }) {
       <div>
         <p className="pf-eyebrow">{label}</p>
         <p className="pf-wear-name">{wear.name}</p>
-        <p className="pf-muted">{wear.layers.join(", ")}</p>
-        {wear.extras.length > 0 && <p className="pf-wear-extras">Bring: {wear.extras.join(" · ")}</p>}
-        {wear.warnings.slice(0, 2).map(w => (
-          <p key={w} className="pf-wear-warn">
-            {w}
-          </p>
-        ))}
+        <details className="pf-fold">
+          <summary>What that means</summary>
+          <p className="pf-muted">{wear.layers.join(", ")}</p>
+          {wear.extras.length > 0 && <p className="pf-wear-extras">Bring: {wear.extras.join(" · ")}</p>}
+          {wear.warnings.slice(0, 2).map(w => (
+            <p key={w} className="pf-wear-warn">
+              {w}
+            </p>
+          ))}
+        </details>
       </div>
     </div>
   );
@@ -316,7 +319,14 @@ export default function DayPanel({ onClose, onOpenDetail, onPlanTrip, onLinkCale
             <p className="pf-weather-main">
               {describeWeather(weather.code)}, {formatTemp(weather.high, units)} / {formatTemp(weather.low, units)}
             </p>
-            {details ? <DayStats details={details} weather={weather} units={units} /> : <p className="pf-muted">{weather.precipProb}% rain · wind up to {formatWind(weather.wind, units)} · UV {Math.round(weather.uv)}</p>}
+            {details ? (
+              <details className="pf-fold">
+                <summary>Feels like, wind, UV, air and more</summary>
+                <DayStats details={details} weather={weather} units={units} />
+              </details>
+            ) : (
+              <p className="pf-muted">{weather.precipProb}% rain · wind up to {formatWind(weather.wind, units)} · UV {Math.round(weather.uv)}</p>
+            )}
           </div>
         </div>
       )}

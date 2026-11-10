@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Bell, CalendarDays, CalendarPlus, ListChecks, Settings2, Sparkles, CalendarRange, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, Layers, List, LoaderCircle, Plus, X } from "lucide-react";
+import { Bell, CalendarDays, CalendarPlus, ListChecks, Settings2, Sparkles, LayoutGrid, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, Layers, List, LoaderCircle, LocateFixed, Plus, X } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import { formatTemp } from "../clocast/units";
@@ -20,17 +20,18 @@ import { buildEntries, expandItems, money } from "./model/entries";
 import { headsUp } from "./model/insights";
 import { moveItem } from "./model/tasks";
 import { planSessions, TIMES } from "./model/training";
-import { LAYERS, togglePreset } from "./state/planStore";
+import { togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { fareCurrency, useLayerData } from "./state/useLayerData";
 import "./plan.css";
 import "./identity.css";
 
+// Month is home. The others are one small icon away.
 const VIEWS = [
-  { id: "today", name: "Today", icon: ListChecks },
   { id: "month", name: "Month", icon: CalendarDays },
+  { id: "year", name: "Year", icon: LayoutGrid },
   { id: "agenda", name: "Agenda", icon: List },
-  { id: "year", name: "Year", icon: CalendarRange },
+  { id: "today", name: "Today's list", icon: ListChecks },
 ];
 const AGENDA_DAYS = 30;
 
@@ -96,8 +97,8 @@ const placeKey = place => `${place.latitude.toFixed(3)},${place.longitude.toFixe
 export default function PlanPage() {
   const { data, update, saveItem, deleteItem, toggleDone, toggleLayer, syncStatus, isSignedIn } = usePlanData();
   const [params, setParams] = useSearchParams();
-  const view = VIEWS.some(v => v.id === params.get("view")) ? params.get("view") : "today";
-  const setView = id => setParams(id === "today" ? {} : { view: id });
+  const view = VIEWS.some(v => v.id === params.get("view")) ? params.get("view") : "month";
+  const setView = id => setParams(id === "month" ? {} : { view: id });
 
   const today = todayKey();
   // Hours already gone today are skipped when picking the best time outside.
@@ -232,8 +233,10 @@ export default function PlanPage() {
     setSelected(today);
   }
 
+  // Tapping a day opens it.
   function select(day) {
     setSelected(day);
+    setDayOpen(true);
     if (view === "month" && parseDay(day).getMonth() !== month) setAnchor(day);
   }
 
@@ -265,7 +268,7 @@ export default function PlanPage() {
       setSeen(next);
     }
   };
-  const layersOn = LAYERS.filter(l => data.layers[l.id]).length;
+  const onToday = view === "year" ? year === parseDay(today).getFullYear() : view === "agenda" ? anchor === today : year === parseDay(today).getFullYear() && month === parseDay(today).getMonth();
   const settingsNeedsYou = !data.place;
   const openDay = day => {
     setSelected(day);
@@ -284,19 +287,40 @@ export default function PlanPage() {
 
       <div className={`pf-shell is-${view}`}>
         <div className="pf-toolbar">
-          <div className="pf-segment pf-views" role="group" aria-label="View">
-            {VIEWS.map(v => {
-              const Icon = v.icon;
-              return (
-                <button key={v.id} type="button" aria-pressed={view === v.id} aria-label={v.name} title={v.name} onClick={() => setView(v.id)}>
-                  <Icon size={15} aria-hidden="true" /> <span className="pf-view-name">{v.name}</span>
+          <div className="pf-nav">
+            {view === "today" ? (
+              <h2 className="pf-title">Today</h2>
+            ) : (
+              <>
+                <button type="button" className="pf-icon-btn" onClick={() => move(-1)} aria-label="Previous">
+                  <ChevronLeft size={18} />
                 </button>
-              );
-            })}
+                <h2 className="pf-title">{title}</h2>
+                <button type="button" className="pf-icon-btn" onClick={() => move(1)} aria-label="Next">
+                  <ChevronRight size={18} />
+                </button>
+              </>
+            )}
           </div>
           <div className="pf-actions">
+            {view !== "today" && !onToday && (
+              <button type="button" className="pf-tool" onClick={goToday} aria-label="Go to today" title="Go to today">
+                <LocateFixed size={17} aria-hidden="true" />
+              </button>
+            )}
+            <div className="pf-views" role="group" aria-label="View">
+              {VIEWS.map(v => {
+                const Icon = v.icon;
+                return (
+                  <button key={v.id} type="button" className="pf-tool" aria-pressed={view === v.id} aria-label={v.name} title={v.name} onClick={() => setView(v.id)}>
+                    <Icon size={17} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+            <span className="pf-tool-sep" aria-hidden="true" />
             <BadgeButton icon={Bell} label="Heads up" badge={unseen || null} tone={overdue.length ? "warn" : null} pressed={sheet === "heads"} onClick={() => toggleSheet("heads")} />
-            <BadgeButton icon={Layers} label="Layers" badge={layersOn} tone="quiet" pressed={sheet === "layers"} onClick={() => toggleSheet("layers")} />
+            <BadgeButton icon={Layers} label="Layers" pressed={sheet === "layers"} onClick={() => toggleSheet("layers")} />
             <BadgeButton
               icon={Settings2}
               label="Settings"
@@ -308,26 +332,11 @@ export default function PlanPage() {
                 setShowLayers(v => !v);
               }}
             />
-            <button type="button" className="pf-btn pf-btn-primary pf-add" onClick={() => openNew()}>
-              <Plus size={16} aria-hidden="true" /> <span>Add</span>
+            <button type="button" className="pf-tool pf-add" onClick={() => openNew()} aria-label="Add" title="Add">
+              <Plus size={18} aria-hidden="true" />
             </button>
           </div>
         </div>
-
-        {view !== "today" && (
-          <div className="pf-nav">
-            <button type="button" className="pf-icon-btn" onClick={() => move(-1)} aria-label="Previous">
-              <ChevronLeft size={18} />
-            </button>
-            <h2 className="pf-title">{title}</h2>
-            <button type="button" className="pf-icon-btn" onClick={() => move(1)} aria-label="Next">
-              <ChevronRight size={18} />
-            </button>
-            <button type="button" className="pf-btn pf-btn-quiet" onClick={goToday}>
-              Today
-            </button>
-          </div>
-        )}
 
         {sheet === "heads" && (
           <section className="pf-panel pf-sheet pf-heads" aria-label="Heads up">
@@ -548,32 +557,6 @@ export default function PlanPage() {
             )}
           </div>
 
-          {(view === "month" || view === "agenda") && (
-            <DayPanel
-              key={selected}
-              day={selected}
-              onLinkCalendar={() => setShowLinker(true)}
-              onPlanTrip={code => setTripStart({ day: selected, code })}
-              onOpenDetail={setDetail}
-              today={today}
-              now={now}
-              entries={entriesByDay.get(selected) ?? []}
-              tips={(tipsByDay.get(selected) ?? []).filter(t => t.kind !== "overdue")}
-              forecast={forecast}
-              place={data.place}
-              units={data.units}
-              layers={data.layers}
-              awayForecasts={awayForecasts}
-              trainingActivityId={data.trainingActivityId}
-              onTrainingActivity={id => update({ trainingActivityId: id })}
-              onAdd={openNew}
-              onEdit={openEdit}
-              onToggleDone={toggleDone}
-              onToggleSession={toggleSession}
-              onOpenPlanner={data.program ? null : () => setShowPlanner(true)}
-              planWindow={planWindow}
-            />
-          )}
         </div>
 
         <details className="pf-credits">
@@ -602,7 +585,7 @@ export default function PlanPage() {
         </details>
       </div>
 
-      {dayOpen && view === "today" && (
+      {dayOpen && view !== "year" && (
         <div className="pf-drawer" role="dialog" aria-modal="true" aria-label="Day details">
           <button type="button" className="pf-drawer-scrim" aria-label="Close day details" onClick={() => setDayOpen(false)} />
           <DayPanel

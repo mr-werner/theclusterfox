@@ -1,0 +1,28 @@
+{
+  "id": "/grow",
+  "name": "GrowFox",
+  "short_name": "GrowFox",
+  "start_url": "/grow",
+  "scope": "/grow",
+  "display": "standalone",
+  "background_color": "#f3efe2",
+  "theme_color": "#f3efe2",
+  "icons": [
+    {
+      "src": "/apps/growfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/growfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/growfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

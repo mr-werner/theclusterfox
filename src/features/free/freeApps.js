@@ -435,6 +435,7 @@ const categories = [
       { name: "ServusTV On", alt: "Netflix / sports streaming", url: "https://www.servustv.com/", mark: "ST", color: "#0a2a4a", description: "Free Austrian TV with nature docs, outdoor sports and live events." },
       { name: "RTP Play", alt: "Netflix", url: "https://www.rtp.pt/play/", mark: "RT", color: "#004b8d", description: "Portuguese public TV and radio on demand, with series, films and live channels." },
       { name: "iVysílání", alt: "Netflix", url: "https://www.ceskatelevize.cz/ivysilani/", mark: "ČT", color: "#0053a0", description: "Czech public TV on demand, with films, series, fairy tales and live channels." },
+      { name: "Cont.ar", alt: "Netflix", url: "https://www.cont.ar/", mark: "Co", color: "#00a3e0", description: "Argentina's public streaming platform with series, films, documentaries and live TV." },
     ],
   },
   {
@@ -524,6 +525,7 @@ const categories = [
       { name: "ORF Sound", alt: "SiriusXM / Spotify", url: "https://sound.orf.at/", mark: "OR", color: "#cc0000", description: "Austrian public radio, including Ö1 and FM4, plus podcasts." },
       { name: "RTP Antena", alt: "SiriusXM", url: "https://www.rtp.pt/play/direto/antena1", mark: "A1", color: "#004b8d", description: "Portuguese public radio: Antena 1, Antena 2 classical and Antena 3, live." },
       { name: "mujRozhlas", alt: "Spotify / Audible", url: "https://www.mujrozhlas.cz/", mark: "ČR", color: "#ed2e38", description: "Czech Radio stations, podcasts, radio plays and audiobook readings." },
+      { name: "Radio Nacional", alt: "SiriusXM", url: "https://www.radionacional.com.ar/", mark: "RN", color: "#0072bc", description: "Argentine public radio, including folk, classical and Rock & Pop stations, live." },
     ],
   },
   {
@@ -581,6 +583,7 @@ const categories = [
       { name: "Wealthsimple", alt: "brokerages with fees", url: "https://www.wealthsimple.com/", mark: "W", color: "#32302f", description: "Commission-free stock and ETF trading, plus free tax filing." },
       { name: "bunq", alt: "bank accounts with fees", url: "https://www.bunq.com/", logo: siBunq, description: "App-based European bank with a free plan and budgeting tools." },
       { name: "Nubank", alt: "bank accounts with fees", url: "https://nubank.com.br/", logo: siNubank, description: "No-fee digital bank account and credit card, popular across Latin America." },
+      { name: "Mercado Pago", alt: "bank accounts with fees", url: "https://www.mercadopago.com.ar/", mark: "MP", color: "#00b1ea", description: "Free digital wallet and account with transfers, QR payments and savings." },
     ],
   },
   {
@@ -749,6 +752,7 @@ const categories = [
       { name: "NPTEL", alt: "Coursera / edX", url: "https://nptel.ac.in/", mark: "NP", color: "#b8312f", description: "Free engineering and science courses from the IITs and IISc." },
       { name: "DIKSHA", alt: "BYJU'S", url: "https://diksha.gov.in/", mark: "DK", color: "#024f9d", description: "Free school lessons and textbooks for grades 1 to 12." },
       { name: "Aprende.org", alt: "Coursera / LinkedIn Learning", url: "https://aprende.org/", mark: "Ap", color: "#ef7d00", description: "Free Spanish-language courses in job skills, health and school subjects." },
+      { name: "Educ.ar", alt: "paid tutoring sites", url: "https://www.educ.ar/", mark: "Ed", color: "#2c5aa0", description: "Argentina's public education portal with lessons, courses and teaching resources." },
     ],
   },
   {

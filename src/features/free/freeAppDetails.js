@@ -446,6 +446,10 @@ export const freeAppDetails = {
   mujRozhlas: { note: "Public radio, podcasts and audiobooks with no ads, mostly available worldwide." },
   "Národní digitální knihovna": { note: "Free archive; newer works are viewable only in libraries or with a library login." },
   "Mapy.com": { limits: ["freeTier", "tracking"], note: "Free app from Seznam with ads; premium adds extra offline features." },
+  "Cont.ar": { limits: ["region"], note: "Free public platform; some titles are Argentina only." },
+  "Radio Nacional": { note: "Live public radio, available worldwide." },
+  "Mercado Pago": { limits: ["region", "tracking"], note: "Accounts for residents of Argentina and other Latin American countries." },
+  "Educ.ar": { note: "Free resources from Argentina's Ministry of Education, in Spanish." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -732,4 +736,8 @@ export const freeAppCountries = {
   mujRozhlas: "Czech Republic",
   "Národní digitální knihovna": "Czech Republic",
   "Mapy.com": "Czech Republic",
+  "Cont.ar": "Argentina",
+  "Radio Nacional": "Argentina",
+  "Mercado Pago": "Argentina",
+  "Educ.ar": "Argentina",
 };

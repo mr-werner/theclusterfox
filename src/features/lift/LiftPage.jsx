@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { CalendarRange, Cloud, CloudOff, Dumbbell, HardDrive, History, LoaderCircle } from "lucide-react";
 
@@ -7,7 +8,7 @@ import WorkoutView from "./components/WorkoutView";
 import PlansTab from "./components/PlansTab";
 import HistoryTab from "./components/HistoryTab";
 import { generateWorkout, workoutTitle } from "./model/generate";
-import { PLAN_GOALS, toIsoDay } from "./model/program";
+import { nextSession, PLAN_GOALS, toIsoDay } from "./model/program";
 import { useLiftData } from "./state/useLiftData";
 import { withNext } from "../../lib/redirect";
 import "./lift.css";
@@ -82,11 +83,47 @@ export default function LiftPage() {
     openTab("workout");
   }
 
+  // Opened from PlanFox: ?plan=&session= starts that session, ?next=1 the
+  // next one in your plan. A workout already in progress is left alone.
+  const linkPlan = params.get("plan");
+  const linkSession = params.get("session");
+  const linkNext = params.get("next");
+  useEffect(() => {
+    if (!linkSession && !linkNext) return;
+    const plan = data.plans.find(p => p.id === linkPlan) ?? data.plans.find(p => p.id === data.activePlanId) ?? data.plans[0];
+    let found = null;
+    if (plan && linkSession) {
+      for (const week of plan.program.schedule) {
+        const session = week.sessions.find(s => s.id === linkSession);
+        if (session) found = { week, session };
+      }
+    } else if (plan) {
+      found = nextSession(plan.program, plan.completed);
+    }
+    if (!found) {
+      // Plans arrive with the account; wait for sign-in before giving up.
+      if (authLoading) return;
+      setParams(plan ? { tab: "plans" } : {}, { replace: true });
+      return;
+    }
+    if (data.current) {
+      setParams({}, { replace: true });
+      return;
+    }
+    startSession(plan, found.week, found.session);
+    // startSession and data are read once, when the link arrives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkPlan, linkSession, linkNext, data.plans.length, authLoading]);
+
   const current = data.current;
 
   return (
     <main className="lift-page lf">
-      <AppBar appId="liftfox" />
+      <AppBar
+        appId="liftfox"
+        planTitle={data.plans.length ? "Workout: next in my plan" : "Workout"}
+        planHref={data.plans.length ? "/lift?next=1" : "/lift"}
+      />
 
       <div className="lf-shell">
         <header className="lf-hero">

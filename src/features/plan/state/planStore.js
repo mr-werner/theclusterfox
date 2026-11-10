@@ -3,6 +3,7 @@
 
 import { isDayKey } from "../model/dates.js";
 import { tripDefaults } from "../model/trips.js";
+import { isSitePath } from "../../../app/planLinks.js";
 
 export const STORAGE_KEY = "clusterfox:plan-v1";
 const MAX_ITEMS = 1500;
@@ -25,6 +26,7 @@ export const LAYERS = [
   { id: "bills", name: "Bills", group: "Mine" },
   { id: "deadlines", name: "Work & school deadlines", group: "Mine" },
   { id: "training", name: "Training", group: "Mine", source: "Best outdoor times from SkyFox" },
+  { id: "apps", name: "ClusterFox apps", group: "Mine", source: "Workouts, plans and sessions from your other apps, one tap to open" },
   { id: "feeds", name: "Linked calendars", group: "Mine", source: "School, work or team calendar links (.ics)" },
   { id: "holidays", name: "Holidays & closures", group: "World", source: "Federal holidays and observances" },
   { id: "sports", name: "Sports", group: "World", source: "ESPN schedules" },
@@ -45,7 +47,7 @@ export const NEARBY_KINDS = [
 export const RADII = [10, 25, 50];
 
 // Short labels for the layer bar.
-const SHORT = { nearby: "Nearby", flights: "Flights", alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
+const SHORT = { apps: "Apps", nearby: "Nearby", flights: "Flights", alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
 for (const layer of LAYERS) if (SHORT[layer.id]) layer.short = SHORT[layer.id];
 
 // Quick setups: each switches on the layers that fit a way of planning.
@@ -99,7 +101,7 @@ export const REPEATS = [
 ];
 
 // New calendars start small; quick setup and the layer bar add the rest.
-const STARTING_LAYERS = ["weather", "alerts", "wear", "events", "tasks", "holidays"];
+const STARTING_LAYERS = ["weather", "alerts", "wear", "events", "tasks", "apps", "holidays"];
 const DEFAULT_LAYERS = Object.fromEntries(LAYERS.map(l => [l.id, STARTING_LAYERS.includes(l.id)]));
 
 export function emptyData() {
@@ -116,6 +118,8 @@ export function emptyData() {
     deletedItemIds: [],
     // Linked calendars: { id, name, url, updatedAt }
     feeds: [],
+    // ClusterFox apps kept off the calendar, by app id (all show by default).
+    hiddenApps: [],
     leagues: ["nfl", "cfb", "nba", "nhl", "mlb"],
     // Team names to highlight, e.g. "Bears".
     teams: [],
@@ -171,9 +175,16 @@ function cleanItem(item) {
     minutes: kind === "training" ? Math.min(240, Math.max(15, Math.round(Number(item.minutes) || 60))) : null,
     notes: text(item.notes, 1000),
     priority: ["high", "low"].includes(item.priority) ? item.priority : "normal",
+    link: cleanLink(item.link),
     done: Array.isArray(item.done) ? [...new Set(item.done.filter(isDayKey))].slice(-400) : [],
     updatedAt: item.updatedAt ?? null,
   };
+}
+
+// An item can open a page in another app: { app, href, label }.
+function cleanLink(link) {
+  if (!link || typeof link !== "object" || typeof link.app !== "string" || !/^[a-z0-9-]{1,30}$/.test(link.app) || !isSitePath(link.href)) return null;
+  return { app: link.app, href: link.href, label: text(link.label, 120) };
 }
 
 function cleanProgram(p) {
@@ -238,6 +249,7 @@ export function normalizeData(value) {
     items: cleanList(value.items, cleanItem, MAX_ITEMS),
     deletedItemIds: cleanTombstones(value.deletedItemIds),
     feeds: cleanList(value.feeds, cleanFeed, MAX_FEEDS),
+    hiddenApps: Array.isArray(value.hiddenApps) ? [...new Set(value.hiddenApps.filter(id => typeof id === "string"))].slice(0, 40) : [],
     leagues: Array.isArray(value.leagues) ? [...new Set(value.leagues.filter(l => typeof l === "string"))].slice(0, 20) : base.leagues,
     teams: Array.isArray(value.teams)
       ? [...new Set(value.teams.filter(t => typeof t === "string").map(t => t.trim().slice(0, 40)).filter(Boolean))].slice(0, MAX_TEAMS)

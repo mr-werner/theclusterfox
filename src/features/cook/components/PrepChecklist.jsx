@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { ArrowLeft, Check, ClipboardCopy, Play, ShoppingCart, Store, TriangleAlert } from "lucide-react";
 import { Stepper, UnitToggles } from "./ui";
-import { IngredientLine, LeftOut, SwapControl } from "./RecipeDetail";
+import { IngredientLine, LeftOut, MissingButton, SwapControl } from "./RecipeDetail";
 import SwapDialog from "./SwapDialog";
 import { swappableKeys } from "../model/swaps";
 import { AISLES } from "../data/ingredients";
 import { scaledLines, scaleNotes, servingWord } from "../model/recipe";
 import { amountText } from "../model/units";
+import { buyFor } from "../model/buying";
 import * as S from "../model/session";
 
-export default function PrepChecklist({ base, recipe, profile, onSwap, session, prefs, setPrefs, update, onAddToList, onBack, onCook, onPlanB }) {
+export default function PrepChecklist({ base, recipe, profile, pantry, onSwap, session, prefs, setPrefs, update, onAddToList, onAddLine, onBack, onCook, onPlanB }) {
   const [confirming, setConfirming] = useState(false);
-  const [swapping, setSwapping] = useState(null);
+  const [swapping, setSwapping] = useState(null); // { key, missing }
   const canSwap = swappableKeys(base);
   const [copied, setCopied] = useState(false);
   const [listed, setListed] = useState(false);
@@ -26,7 +27,8 @@ export default function PrepChecklist({ base, recipe, profile, onSwap, session, 
       const a = amountText(l.item, l.amount, prefs.measure);
       const aisle = AISLES[l.item.aisle];
       if (!byAisle.has(aisle)) byAisle.set(aisle, []);
-      byAisle.get(aisle).push(`- ${a.text} ${a.name}`);
+      const buy = buyFor(l.item, l.amount);
+      byAisle.get(aisle).push(buy ? `- ${buy.text} ${a.name} (recipe uses ${a.text})` : `- ${a.text} ${a.name}`);
     }
     const text = [`Shopping list: ${recipe.title} (${session.servings} ${servingWord(recipe, session.servings)})`, ...[...byAisle].flatMap(([aisle, items]) => ["", aisle, ...items])].join("\n");
     try {
@@ -95,7 +97,8 @@ export default function PrepChecklist({ base, recipe, profile, onSwap, session, 
               <li key={l.key} className={prepped ? "is-prepped" : have ? "is-have" : ""}>
                 <div className="ck-prep-ing">
                   <IngredientLine line={l} amount={l.amount} mode={prefs.measure} />
-                  {(!have || l.from) && <SwapControl line={l} canSwap={canSwap.has(l.key)} onOpen={() => setSwapping(l.key)} onUndo={() => onSwap(l.key, null)} />}
+                  {!have && !l.from && <MissingButton line={l} onOpen={() => setSwapping({ key: l.key, missing: true })} />}
+                  {l.from && <SwapControl line={l} canSwap={canSwap.has(l.key)} onOpen={() => setSwapping({ key: l.key, missing: false })} onUndo={() => onSwap(l.key, null)} />}
                 </div>
                 <div className="ck-prep-toggles">
                   <button type="button" className="ck-toggle" aria-pressed={have} onClick={() => update(s => S.toggleHave(s, l.key))}>
@@ -116,12 +119,15 @@ export default function PrepChecklist({ base, recipe, profile, onSwap, session, 
         <SwapDialog
           base={base}
           recipe={recipe}
-          lineKey={swapping}
+          lineKey={swapping.key}
+          missing={swapping.missing}
+          pantry={pantry}
+          onAddToList={key => onAddLine(recipe, session.servings, key)}
           profile={profile}
           prefs={prefs}
           servings={session.servings}
           onChoose={id => {
-            onSwap(swapping, id);
+            onSwap(swapping.key, id);
             setSwapping(null);
           }}
           onClose={() => setSwapping(null)}

@@ -117,7 +117,7 @@ export default function MathPage() {
 
   return (
     <main className="math-page mf">
-      <AppBar appId="mathfox" />
+      <AppBar appId="mathfox" planTitle={q ? `Math: ${q}` : undefined} />
       <div className="mf-shell">
         <header className="mf-hero">
           <div className="mf-logo" aria-hidden="true">

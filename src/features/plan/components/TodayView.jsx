@@ -6,6 +6,7 @@ import { formatTemp } from "../../clocast/units";
 import { addDays, formatTime, longDate, parseDay, relativeDay } from "../model/dates";
 import { money } from "../model/entries";
 import { canMove, CHECKABLE, dueToday, parseQuickAdd } from "../model/tasks";
+import { AppEntry, LaunchButton } from "./AppLinks";
 
 const DRAG_TYPE = "application/x-planfox-item";
 const NEXT_PRIORITY = { normal: "high", high: "low", low: "normal" };
@@ -65,7 +66,7 @@ function QuickAdd({ today, onAdd }) {
   );
 }
 
-function TaskRow({ task, today, week, onToggle, onEdit, onMove }) {
+function TaskRow({ task, today, week, onToggle, onEdit, onMove, onLaunch }) {
   const movable = canMove(task);
   const meta = [
     task.overdue ? `Overdue, was ${relativeDay(task.day, today)}` : null,
@@ -98,6 +99,7 @@ function TaskRow({ task, today, week, onToggle, onEdit, onMove }) {
         <span className="pf-task-title">{task.title}</span>
         {meta.length > 0 && <span className="pf-task-meta">{meta.join(" · ")}</span>}
       </button>
+      {task.link && !task.done && onLaunch && <LaunchButton link={task.link} onLaunch={onLaunch} label="Start" compact />}
       {movable && !task.done && (
         <label className="pf-task-move">
           <ArrowRight size={15} aria-hidden="true" />
@@ -165,12 +167,45 @@ function WeekDay({ day, today, selected, entries, forecast, units, onSelect, onM
 }
 
 /** The day at a glance: what's due, quick add, and the week to drag things into. */
-export default function TodayView({ today, selected, items, entriesByDay, forecastByDay, units, showWeather, onAdd, onToggleDone, onEdit, onMove, onSelect }) {
+/** Today's workouts, sessions and plans from the other apps, one tap to start. */
+function FromApps({ entries, onLaunch }) {
+  const ready = entries.filter(e => !e.done);
+  const done = entries.filter(e => e.done);
+  if (!entries.length) return null;
+  return (
+    <section className="pf-from-apps" aria-label="From your apps">
+      <h3>From your apps</h3>
+      {ready.length > 0 ? (
+        <ul className="pf-entries">
+          {ready.map(entry => (
+            <AppEntry key={entry.id} entry={entry} onLaunch={onLaunch} />
+          ))}
+        </ul>
+      ) : (
+        <p className="pf-muted">All done in your apps today.</p>
+      )}
+      {done.length > 0 && (
+        <details className="pf-done-list">
+          <summary>Done in your apps ({done.length})</summary>
+          <ul className="pf-entries">
+            {done.map(entry => (
+              <AppEntry key={entry.id} entry={entry} onLaunch={onLaunch} />
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  );
+}
+
+export default function TodayView({ today, selected, items, entriesByDay, forecastByDay, units, showWeather, onAdd, onToggleDone, onEdit, onMove, onSelect, onLaunch }) {
   const tasks = useMemo(() => dueToday(items, today), [items, today]);
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i)), [today]);
   const open = tasks.filter(t => !t.done);
   const done = tasks.filter(t => t.done);
-  const schedule = (entriesByDay.get(today) ?? []).filter(e => !e.minor && !(e.item && CHECKABLE.includes(e.item.kind)));
+  const todays = entriesByDay.get(today) ?? [];
+  const fromApps = todays.filter(e => e.launch && !e.item);
+  const schedule = todays.filter(e => !e.minor && !(e.launch && !e.item) && !(e.item && CHECKABLE.includes(e.item.kind)));
   const weather = showWeather ? forecastByDay.get(today) : null;
 
   return (
@@ -192,13 +227,15 @@ export default function TodayView({ today, selected, items, entriesByDay, foreca
         </div>
       </header>
 
+      <FromApps entries={fromApps} onLaunch={onLaunch} />
+
       <QuickAdd today={today} onAdd={onAdd} />
 
       <section className="pf-todo" aria-label="To do">
         {open.length > 0 ? (
           <ul className="pf-tasks">
             {open.map(task => (
-              <TaskRow key={task.id} task={task} today={today} week={week} onToggle={onToggleDone} onEdit={onEdit} onMove={onMove} />
+              <TaskRow key={task.id} task={task} today={today} week={week} onToggle={onToggleDone} onEdit={onEdit} onMove={onMove} onLaunch={onLaunch} />
             ))}
           </ul>
         ) : (
@@ -209,7 +246,7 @@ export default function TodayView({ today, selected, items, entriesByDay, foreca
             <summary>Done today ({done.length})</summary>
             <ul className="pf-tasks">
               {done.map(task => (
-                <TaskRow key={task.id} task={task} today={today} week={week} onToggle={onToggleDone} onEdit={onEdit} onMove={onMove} />
+                <TaskRow key={task.id} task={task} today={today} week={week} onToggle={onToggleDone} onEdit={onEdit} onMove={onMove} onLaunch={onLaunch} />
               ))}
             </ul>
           </details>
@@ -224,6 +261,7 @@ export default function TodayView({ today, selected, items, entriesByDay, foreca
               <li key={e.id} className={`pf-l-${e.layer}`}>
                 <span className="pf-schedule-time">{e.time ? formatTime(e.time) : "All day"}</span>
                 <span>{e.title}</span>
+                {e.launch && onLaunch && <LaunchButton link={e.launch} onLaunch={onLaunch} label="Start" compact />}
               </li>
             ))}
           </ol>

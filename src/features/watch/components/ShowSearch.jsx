@@ -43,11 +43,11 @@ function TitleCard({ title, myServices, showRatings, onOpen }) {
   );
 }
 
-export default function ShowSearch({ data, update, onPickServices }) {
+export default function ShowSearch({ data, update, onPickServices, initialOpen = null }) {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState({ status: "idle", items: [], error: "", code: "", query: "" });
   const [onlyMine, setOnlyMine] = useState(false);
-  const [open, setOpen] = useState(null);
+  const [open, setOpen] = useState(initialOpen);
   const hasServices = data.services.length > 0;
   const searching = result.status !== "idle";
 

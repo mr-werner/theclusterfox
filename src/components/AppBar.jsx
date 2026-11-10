@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { CalendarPlus } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
 import { withNext } from "../lib/redirect";
 import { apps } from "../app/apps";
+import { planAddHref } from "../app/planLinks";
+import { openInApp } from "../lib/launchApp";
 import themes from "../app/appThemes.json";
 import "../styles/appbar.css";
 
@@ -11,7 +14,7 @@ import "../styles/appbar.css";
 // The app's own name sits on the left, styled by that app. The ClusterFox
 // account sits on the right, so every app is plainly signed in to the
 // same account and saves its settings there.
-export default function AppBar({ appId, children }) {
+export default function AppBar({ appId, children, planTitle, planHref }) {
   const app = apps.find((a) => a.id === appId);
   const Icon = app?.icon;
   const title = app?.fullName || app?.subtitle;
@@ -82,6 +85,19 @@ export default function AppBar({ appId, children }) {
       </Link>
 
       {children && <div className="appbar-extra">{children}</div>}
+
+      {appId !== "planfox" && (
+        // Put whatever is open here on your PlanFox calendar, ready to start.
+        <button
+          type="button"
+          className="appbar-plan"
+          onClick={() => openInApp("planfox", planAddHref({ app: appId, href: planHref ?? here, title: planTitle }), navigate)}
+          title="Add this to your PlanFox calendar"
+        >
+          <CalendarPlus size={16} aria-hidden="true" />
+          <span>Plan this</span>
+        </button>
+      )}
 
       <div className="appbar-account" ref={menuRef}>
         {loading ? null : isAuthenticated ? (

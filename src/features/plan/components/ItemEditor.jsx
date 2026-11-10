@@ -4,6 +4,7 @@ import { Trash2, X } from "lucide-react";
 import { activities } from "../../clocast/data/activities";
 import { ITEM_KINDS, REPEATS } from "../state/planStore";
 import PlaceSearch from "./PlaceSearch";
+import { AppLinkField } from "./AppLinks";
 import { CHECKABLE, PRIORITIES } from "../model/tasks";
 
 const PLACEHOLDERS = {
@@ -165,6 +166,8 @@ export default function ItemEditor({ item, onSave, onDelete, onClose }) {
             )}
           </div>
         )}
+
+        <AppLinkField value={draft.link ?? null} onChange={link => set({ link })} />
 
         <label className="pf-field">
           <span>Notes (optional)</span>

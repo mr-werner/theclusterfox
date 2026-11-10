@@ -32,6 +32,8 @@ const TABS = [
   { id: "profile", name: "Profile", icon: UserRound },
 ];
 
+const freshSession = (recipe, servings, have) => S.newSession(recipe, servings, Date.now(), have);
+
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
 export default function CookPage() {
@@ -84,6 +86,9 @@ export default function CookPage() {
   const requested = recipe ? params.get("view") : null;
   const view = finished && recipe?.id === finished.recipeId ? "done" : requested === "cook" && session ? "cook" : requested === "prep" && session ? "prep" : recipe ? "detail" : "tabs";
   const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : "discover";
+  // The tab a recipe was opened from stays in the address, so the tabs stay
+  // on screen inside a recipe and "back" returns to the same place.
+  const fromTab = tab === "discover" ? undefined : tab;
 
   const go = useCallback(
     (next, { replace = false } = {}) => {
@@ -108,10 +113,16 @@ export default function CookPage() {
 
   const update = useCallback(fn => recipe && updateSession(recipe.id, s => (s ? fn(s) : s)), [recipe, updateSession]);
 
-  const startPrep = servings => {
-    updateSession(recipe.id, S.newSession(recipe, servings, Date.now(), P.recipePantry(recipe, data.pantry, today).have));
-    go({ r: recipe.id, view: "prep" });
+  // `have` is the checklist from the recipe page; without it, the pantry decides.
+  const startPrep = (servings, have) => {
+    updateSession(recipe.id, freshSession(recipe, servings, have ?? P.recipePantry(recipe, data.pantry, today).have));
+    go({ tab: fromTab, r: recipe.id, view: "prep" });
   };
+
+  const openRecipe = id => go({ tab: fromTab, r: id });
+
+  // "Don't have it": just that one ingredient onto the shopping list.
+  const addLine = (r, servings, key) => store.setShopping(l => P.addLineToList(l, r, servings, key));
 
   // Adds a recipe's ingredients to the shopping list, minus what's in the pantry.
   // Returns how many lines it contributes.
@@ -123,7 +134,7 @@ export default function CookPage() {
 
   const resume = id => {
     const s = data.sessions[id];
-    go({ r: id, view: s?.phase === "cooking" ? "cook" : "prep" });
+    go({ tab: fromTab, r: id, view: s?.phase === "cooking" ? "cook" : "prep" });
   };
 
   const finishCooking = () => {
@@ -189,7 +200,7 @@ export default function CookPage() {
     <main className="cook-page ck" data-theme={data.prefs.theme}>
       {!fullScreen && (
         <div className="ck-topbar">
-          <AppBar appId="cookfox" />
+          <AppBar appId="cookfox" planTitle={recipe ? `Cook ${recipe.title}` : undefined} planHref={recipe ? `/cook?r=${encodeURIComponent(recipe.id)}` : undefined} />
         </div>
       )}
 
@@ -201,7 +212,7 @@ export default function CookPage() {
           setPrefs={setPrefs}
           update={update}
           now={now}
-          onExit={() => go({ r: recipe.id })}
+          onExit={() => go({ tab: fromTab, r: recipe.id })}
           onFinish={finishCooking}
           onPlanB={() => setPlanB(true)}
         />
@@ -241,20 +252,27 @@ export default function CookPage() {
             </button>
           )}
 
+          <nav className="ck-tabs" aria-label="CookFox">
+            {TABS.map(t => {
+              const Icon = t.icon;
+              const here = tab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  aria-current={here ? (view === "tabs" ? "page" : "location") : undefined}
+                  onClick={() => go({ tab: t.id === "discover" ? undefined : t.id }, { replace: view === "tabs" })}
+                >
+                  <Icon size={17} aria-hidden="true" />
+                  <span className="ck-tab-name">{t.name}</span>
+                  {t.id === "shopping" && shoppingCount > 0 && <span className="ck-tab-count">{shoppingCount}</span>}
+                </button>
+              );
+            })}
+          </nav>
+
           {view === "tabs" && (
             <>
-              <nav className="ck-tabs" aria-label="CookFox">
-                {TABS.map(t => {
-                  const Icon = t.icon;
-                  return (
-                    <button key={t.id} type="button" aria-current={tab === t.id ? "page" : undefined} onClick={() => go({ tab: t.id === "discover" ? undefined : t.id }, { replace: true })}>
-                      <Icon size={17} aria-hidden="true" />
-                      {t.name}
-                      {t.id === "shopping" && shoppingCount > 0 && <span className="ck-tab-count">{shoppingCount}</span>}
-                    </button>
-                  );
-                })}
-              </nav>
 
               {tab === "discover" && (
                 <DiscoverTab
@@ -263,7 +281,7 @@ export default function CookPage() {
                   today={today}
                   filters={filters}
                   setFilters={setFilters}
-                  onOpen={id => go({ r: id })}
+                  onOpen={openRecipe}
                   onToggleFavorite={store.toggleFavorite}
                   onEditProfile={() => go({ tab: "profile" })}
                 />
@@ -272,14 +290,14 @@ export default function CookPage() {
                 <MyRecipesTab
                   data={data}
                   now={now}
-                  onOpen={id => go({ r: id })}
+                  onOpen={openRecipe}
                   onResume={resume}
                   onDiscard={id => updateSession(id, null)}
                   onToggleFavorite={store.toggleFavorite}
                   onCookAgain={h => {
                     // Cook the same version as last time.
                     setSwaps(h.recipeId, h.swaps ?? {});
-                    go({ r: h.recipeId, servings: h.servings });
+                    go({ tab: fromTab, r: h.recipeId, servings: h.servings });
                   }}
                   onRemoveHistory={store.removeHistory}
                   onClearHistory={store.clearHistory}
@@ -296,7 +314,7 @@ export default function CookPage() {
                   }}
                 />
               )}
-              {tab === "shopping" && <ShoppingTab data={data} today={today} setShopping={store.setShopping} patchData={store.patchData} onOpen={id => go({ r: id })} />}
+              {tab === "shopping" && <ShoppingTab data={data} today={today} setShopping={store.setShopping} patchData={store.patchData} onOpen={openRecipe} />}
               {tab === "profile" && <ProfileTab data={data} setPrefs={setPrefs} setProfile={store.setProfile} resetProfile={store.resetProfile} />}
             </>
           )}
@@ -312,10 +330,12 @@ export default function CookPage() {
               today={today}
               setPrefs={setPrefs}
               onAddToList={addToList}
+              onAddLine={addLine}
+              update={update}
               initialServings={params.get("servings") ? Number(params.get("servings")) : undefined}
               favorite={data.favorites.includes(recipe.id)}
               onToggleFavorite={store.toggleFavorite}
-              onBack={() => go({})}
+              onBack={() => go({ tab: fromTab })}
               onStart={startPrep}
               onResume={() => resume(recipe.id)}
               onDiscardSession={() => updateSession(recipe.id, null)}
@@ -328,16 +348,18 @@ export default function CookPage() {
               base={base}
               recipe={recipe}
               profile={limits}
+              pantry={data.pantry}
               onSwap={setSwap}
               session={session}
               prefs={data.prefs}
               setPrefs={setPrefs}
               update={update}
               onAddToList={addToList}
-              onBack={() => go({ r: recipe.id })}
+              onAddLine={addLine}
+              onBack={() => go({ tab: fromTab, r: recipe.id })}
               onCook={() => {
                 update(S.startCooking);
-                go({ r: recipe.id, view: "cook" });
+                go({ tab: fromTab, r: recipe.id, view: "cook" });
               }}
               onPlanB={() => setPlanB(true)}
             />

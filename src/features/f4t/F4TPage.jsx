@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Bookmark, Cloud, CloudOff, History, HardDrive, LoaderCircle, Plus, RotateCcw, Utensils } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
@@ -141,6 +141,19 @@ export default function F4TPage() {
     setSavedNote("");
     document.getElementById("ff-meal")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  // Opened from PlanFox with ?meal=<id>: load that saved meal once.
+  const [params, setParams] = useSearchParams();
+  const linkedMeal = data.meals.find(m => m.id === params.get("meal")) ?? null;
+  const [handledMealId, setHandledMealId] = useState(null);
+  if (linkedMeal && linkedMeal.id !== handledMealId) {
+    setHandledMealId(linkedMeal.id);
+    setMeal(withIds(linkedMeal.items));
+    setActiveMealId(linkedMeal.id);
+  }
+  useEffect(() => {
+    if (handledMealId && params.get("meal")) setParams({}, { replace: true });
+  }, [handledMealId, params, setParams]);
 
   function appendMeal(saved) {
     setMeal(current => [...current, ...withIds(saved.items)]);

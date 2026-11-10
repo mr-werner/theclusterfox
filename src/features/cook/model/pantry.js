@@ -137,6 +137,22 @@ export function addRecipeToList(list, recipe, servings, { pantry = [], onlyMissi
   return pruneList(next);
 }
 
+// Adds one ingredient line of a recipe to the list, for "I don't have this".
+// The amount counts as that recipe's share, so adding the whole recipe later
+// replaces it instead of doubling it.
+export function addLineToList(list, recipe, servings, key) {
+  const line = scaledLines(recipe, servings).find(l => l.key === key);
+  if (!line) return list;
+  const existing = list.find(i => i.ing === line.ing);
+  if (existing) {
+    const others = existing.sources.filter(s => s.recipeId !== recipe.id);
+    const mine = existing.sources.find(s => s.recipeId === recipe.id);
+    const source = { recipeId: recipe.id, amount: Math.max(mine?.amount ?? 0, line.amount) };
+    return list.map(i => (i === existing ? { ...i, sources: [...others, source], checked: false } : i));
+  }
+  return [...list, { id: newId(), ing: line.ing, name: null, sources: [{ recipeId: recipe.id, amount: line.amount }], extra: 0, checked: false }];
+}
+
 // Drops catalog items no recipe or manual amount needs anymore.
 function pruneList(list) {
   return list.filter(i => !i.ing || i.manual || shoppingAmount(i) > 1e-9);

@@ -232,3 +232,46 @@
     animation: none;
   }
 }
+
+/* "Plan this": puts the open page on the PlanFox calendar. */
+.appbar-plan {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  margin-left: auto;
+  padding: 0 12px;
+  border: 1px solid var(--ab-line);
+  border-radius: 999px;
+  color: var(--ab-fg);
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.appbar-plan:hover {
+  border-color: var(--ab-accent);
+}
+
+.appbar-plan + .appbar-account {
+  margin-left: 0;
+}
+
+@media (max-width: 520px) {
+  .appbar-plan {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .appbar-plan span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}

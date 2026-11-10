@@ -5,6 +5,7 @@ import { recipesById } from "../data/recipes";
 import { amountText } from "../model/units";
 import { buyFor } from "../model/buying";
 import * as P from "../model/pantry";
+import StoresPanel from "./StoresPanel";
 
 export default function ShoppingTab({ data, today, setShopping, patchData, onOpen }) {
   const [name, setName] = useState("");
@@ -167,6 +168,8 @@ export default function ShoppingTab({ data, today, setShopping, patchData, onOpe
               </ul>
             </div>
           ))}
+
+          {list.some(i => !i.checked) && <StoresPanel list={list} />}
         </>
       )}
     </section>

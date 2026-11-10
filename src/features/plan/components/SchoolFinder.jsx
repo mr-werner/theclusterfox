@@ -107,7 +107,7 @@ export default function SchoolFinder({ place, onLink }) {
               </li>
             ))}
           </ul>
-          <p className="pf-note">School list from the federal NCES directory, via the Urban Institute's Education Data Portal.</p>
+          <p className="pf-note">School list from the federal NCES public school directory (2024–25).</p>
         </>
       )}
     </div>

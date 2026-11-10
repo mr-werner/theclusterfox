@@ -190,6 +190,18 @@ export const ingredients = [
   { id: "mint", name: "fresh mint leaves", unit: "g", us: "volume", gPerCup: 25, aisle: "produce", n: [44, 3.3, 8.4, 0.7, 6.8, 0, 31] },
   { id: "apple", name: "apple", plural: "apples", unit: "each", gEach: 180, aisle: "produce", n: [52, 0.3, 13.8, 0.2, 2.4, 10.4, 1] },
   { id: "mango", name: "ripe mango", plural: "ripe mangoes", unit: "each", gEach: 200, aisle: "produce", aliases: ["mangoes"], n: [60, 0.8, 15, 0.4, 1.6, 13.7, 1] },
+  // Added with the fourth batch of recipes
+  { id: "ground-pork", name: "ground pork", unit: "g", us: "weight", aisle: "meat", animal: "meat", aliases: ["pork", "meat"], n: [263, 16.9, 0, 21.2, 0, 0, 56] },
+  { id: "ricotta", name: "whole-milk ricotta", unit: "g", us: "volume", gPerCup: 246, aisle: "dairy", allergens: ["milk"], animal: "dairy", aliases: ["cheese"], n: [174, 11.3, 3, 13, 0, 0.3, 84] },
+  { id: "brown-lentils", name: "brown or green lentils", unit: "g", us: "volume", gPerCup: 192, aisle: "pantry", aliases: ["lentils", "green lentils"], n: [352, 24.6, 63.4, 1.1, 10.7, 2, 6] },
+  { id: "cornmeal", name: "yellow cornmeal", unit: "g", us: "volume", gPerCup: 157, aisle: "baking", aliases: ["polenta", "grits", "corn"], n: [370, 7.1, 79, 1.8, 3.9, 0.6, 7] },
+  { id: "raisins", name: "raisins", unit: "g", us: "volume", gPerCup: 145, aisle: "pantry", n: [299, 3.1, 79.2, 0.5, 3.7, 59.2, 11] },
+  { id: "cardamom", name: "ground cardamom", unit: "g", us: "volume", gPerCup: 93, aisle: "spices", n: [311, 10.8, 68.5, 6.7, 28, 0, 18] },
+  { id: "allspice", name: "ground allspice", unit: "g", us: "volume", gPerCup: 91, aisle: "spices", n: [263, 6.1, 72.1, 8.7, 21.6, 0, 77] },
+  { id: "frozen-peas", name: "frozen green peas", unit: "g", us: "volume", gPerCup: 134, aisle: "frozen", aliases: ["peas"], n: [77, 5.2, 13.6, 0.4, 4.5, 5, 108] },
+  { id: "dill", name: "fresh dill, chopped", unit: "g", us: "volume", gPerCup: 9, aisle: "produce", n: [43, 3.5, 7, 1.1, 2.1, 0, 61] },
+  { id: "orange", name: "orange", plural: "oranges", unit: "each", gEach: 140, aisle: "produce", n: [47, 0.9, 11.8, 0.1, 2.4, 9.4, 0] },
+  { id: "pineapple", name: "ripe pineapple", plural: "ripe pineapples", unit: "each", gEach: 900, aisle: "produce", n: [50, 0.5, 13.1, 0.1, 1.4, 9.9, 1] },
 ];
 
 export const ingredientsById = new Map(ingredients.map(i => [i.id, i]));

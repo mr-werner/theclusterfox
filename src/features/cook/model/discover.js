@@ -18,6 +18,7 @@ export const PRIORITIES = {
 
 import { ingredientMatches, parseTerms } from "./match.js";
 import { recipePantry } from "./pantry.js";
+import { gardenReason, gardenScore, recipeGarden } from "./garden.js";
 import { applySwaps, baseRecipe, suggestFixes } from "./swaps.js";
 
 export { ingredientMatches, parseTerms };
@@ -53,6 +54,7 @@ export function emptyFilters() {
     exclude: "",
     maxMissing: -1, // -1 any; 0 "have everything"; 2 "missing 2 or fewer" (needs a pantry)
     useSoon: false, // only recipes that use pantry items close to their use-by date
+    fromGarden: false, // only recipes that use food growing in GrowFox (needs a garden)
   };
 }
 
@@ -91,7 +93,7 @@ export function passesFilters(recipe, profile, filters, pantryInfo) {
 }
 
 // Each criterion scores 0 to 1 and can give a reason.
-function criteria(recipe, profile, filters, pantryInfo) {
+function criteria(recipe, profile, filters, pantryInfo, garden) {
   const facts = factsOf(recipe);
   const n = facts.nutrition;
   const liked = new Set([...(profile.flavors ?? []), ...(filters.tastes ?? [])]);
@@ -124,7 +126,7 @@ function criteria(recipe, profile, filters, pantryInfo) {
       score: n.kcal <= maxCalories ? 1 - (n.kcal / maxCalories) * 0.5 : Math.max(0, 1 - (n.kcal - maxCalories) / maxCalories),
       reason: n.kcal <= Math.min(maxCalories, 500) ? `About ${Math.round(n.kcal / 10) * 10} calories a serving` : null,
     },
-    ingredients: ingredientsCriterion(have, haveHits, pantryInfo),
+    ingredients: withGarden(ingredientsCriterion(have, haveHits, pantryInfo), garden, pantryInfo),
     easy: {
       score: DIFFICULTY_RANK[recipe.difficulty] <= skill ? 1 : 0.3,
       reason: recipe.difficulty === "beginner" ? "Beginner-friendly" : null,
@@ -149,6 +151,15 @@ function ingredientsCriterion(have, haveHits, p) {
           ? `Only ${n} missing ingredient${n > 1 ? "s" : ""}`
           : null;
   return { score: p.useSoon.length || haveHits.length || n <= 2 ? Math.max(score, 0.5) : score, reason };
+}
+
+// Food that's ready in the garden counts as having it, and says so. Use-soon
+// pantry food still comes first: it's the thing that goes off.
+function withGarden(c, g, p) {
+  if (!g) return c;
+  const s = gardenScore(g);
+  const score = g.ready.length ? Math.min(1, Math.max(c.score, 0.5) + s * 0.5) : Math.max(c.score, s * 0.5);
+  return { score, reason: p?.useSoon.length ? c.reason : gardenReason(g) };
 }
 
 export const DEFAULT_PRIORITIES = ["taste", "time", "protein", "ingredients"];
@@ -181,19 +192,27 @@ export function discover(recipes, profile = {}, filters = emptyFilters(), contex
       continue;
     }
     const pantryInfo = usePantry ? recipePantry(recipe, context.pantry, context.today) : null;
+    const garden = context.garden ? recipeGarden(recipe, context.garden) : null;
+    if (filters.fromGarden && context.garden && !garden) continue;
     if (!passesFilters(recipe, profile, filters, pantryInfo)) continue;
-    const c = criteria(recipe, profile, filters, pantryInfo);
+    const c = criteria(recipe, profile, filters, pantryInfo, garden);
     let score = 0;
     priorities.forEach((p, i) => {
       score += c[p].score * (priorities.length - i);
     });
     let reasons = priorities.map(p => c[p]).filter(x => x.reason && x.score >= 0.5).map(x => x.reason).slice(0, 3);
+    // Asked for garden recipes: the garden leads the order and the reasons.
+    if (filters.fromGarden && garden) {
+      score += gardenScore(garden) * (priorities.length + 1) * 2;
+      const why = gardenReason(garden);
+      reasons = [why, ...reasons.filter(r => r !== why)].slice(0, 3);
+    }
     if (fix) {
       const n = Object.keys(fix).length;
       reasons = [`Fits your needs with ${n} swap${n > 1 ? "s" : ""}`, ...reasons].slice(0, 3);
       score -= 0.5; // a recipe that fits as written ranks a little higher
     }
-    results.push({ recipe, score, reasons, pantry: pantryInfo, fix });
+    results.push({ recipe, score, reasons, pantry: pantryInfo, fix, garden });
   }
   results.sort((a, b) => b.score - a.score || a.recipe.title.localeCompare(b.recipe.title));
   return { results, hidden };

@@ -1,11 +1,17 @@
 import { useState } from "react";
-import { AlertCircle, Plus, Search, Trash2, TrendingDown } from "lucide-react";
+import { Link } from "react-router-dom";
+import { AlertCircle, Plus, Search, Sprout, Trash2, TrendingDown } from "lucide-react";
 import { ingredients, AISLES } from "../data/ingredients";
 import * as P from "../model/pantry";
 
 const OTHER = "Other";
 
-export default function PantryTab({ pantry, today, setPantry, onShowRecipes }) {
+const nameList = rows => {
+  const names = rows.map(h => h.name.toLowerCase());
+  return names.length > 3 ? `${names.slice(0, 3).join(", ")} and ${names.length - 3} more` : names.join(", ");
+};
+
+export default function PantryTab({ pantry, today, garden, setPantry, onShowRecipes, onShowGarden }) {
   const [name, setName] = useState("");
   const [expires, setExpires] = useState("");
   const [q, setQ] = useState("");
@@ -34,6 +40,7 @@ export default function PantryTab({ pantry, today, setPantry, onShowRecipes }) {
   }
   const order = [...Object.values(AISLES), OTHER];
   const sorted = [...groups].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]));
+  const ready = garden ? garden.harvest.filter(h => h.ready) : [];
 
   return (
     <section className="ck-pantry" aria-label="Pantry">
@@ -130,6 +137,22 @@ export default function PantryTab({ pantry, today, setPantry, onShowRecipes }) {
           {filtered.length === 0 && <p className="ck-muted">Nothing in your pantry matches "{q}".</p>}
         </>
       )}
+
+      <div className="ck-garden-note">
+        <Sprout size={18} aria-hidden="true" />
+        {garden ? (
+          <p>
+            {ready.length ? `Your garden has ${nameList(ready)} ready to pick.` : `You're growing ${nameList(garden.harvest)} in GrowFox.`}{" "}
+            <button type="button" className="ck-link" onClick={onShowGarden}>
+              See recipes for your garden
+            </button>
+          </p>
+        ) : (
+          <p>
+            Growing food? Add your plants in <Link to="/grow">GrowFox</Link> and CookFox will suggest recipes for what's ready to pick.
+          </p>
+        )}
+      </div>
     </section>
   );
 }

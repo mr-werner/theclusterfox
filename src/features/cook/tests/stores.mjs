@@ -1,6 +1,6 @@
 // Store finder, price comparison and ordering: run with `node src/features/cook/tests/stores.mjs`.
 import assert from "node:assert/strict";
-import { parseOsm, mergeStores, overpassQuery } from "../../../../api/cook/_stores.js";
+import { parseOsm, mergeStores, overpassQuery } from "../../../../api/cook/_osm.js";
 import { parseLocations, parseProducts } from "../../../../api/cook/_kroger.js";
 import { instacartBody } from "../../../../api/cook/_order.js";
 import { miles, webUrl } from "../../../../api/cook/_geo.js";

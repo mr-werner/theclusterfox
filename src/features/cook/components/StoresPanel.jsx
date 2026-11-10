@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BadgeDollarSign, Check, ExternalLink, LoaderCircle, LocateFixed, MapPin, Search, ShoppingBag, Store, Truck, X } from "lucide-react";
 import { searchPlaces } from "../../../services/weather/openMeteo";
+import { fetchOsm, mergeStores } from "../../../../api/cook/_osm.js";
 import { chainFor, compareStores, itemsToPrice, lookupUrl, MAX_COMPARE, milesText, money, orderItems, parsePrice, storeWebsite } from "../model/stores";
 import { RADII, useStoresMemory } from "../state/storesMemory";
 import "./stores.css";
@@ -31,15 +32,20 @@ export default function StoresPanel({ list }) {
   const searching = Boolean(searchKey) && found.key !== searchKey;
   useEffect(() => {
     if (!searchKey) return undefined;
-    const [lat, lon, r] = searchKey.split(",");
+    const [lat, lon, r] = searchKey.split(",").map(Number);
     const controller = new AbortController();
-    getJson(`/api/cook/stores?lat=${lat}&lon=${lon}&radius=${r}`, { signal: controller.signal })
-      .then(body =>
-        setFound({ key: searchKey, stores: body.stores ?? [], features: body.features ?? {}, error: body.stores?.length ? "" : `No grocery stores are mapped within ${r} miles. Try a wider distance.` })
-      )
-      .catch(error => {
-        if (error.name !== "AbortError") setFound({ key: searchKey, stores: [], features: {}, error: error.message });
-      });
+    const here = { lat, lon };
+    // OpenStreetMap from the browser, Kroger's stores and the site's features from ours.
+    Promise.allSettled([
+      fetchOsm(lat, lon, r),
+      getJson(`/api/cook/stores?lat=${lat}&lon=${lon}&radius=${r}`, { signal: controller.signal }),
+    ]).then(([osm, ours]) => {
+      if (controller.signal.aborted) return;
+      const krogerStores = ours.value?.stores ?? [];
+      const stores = mergeStores(osm.value ?? [], krogerStores, here).filter(s => s.distance <= r);
+      const error = stores.length ? "" : osm.status === "rejected" ? osm.reason.message : `No grocery stores are mapped within ${r} miles. Try a wider distance.`;
+      setFound({ key: searchKey, stores: stores.slice(0, 80), features: ours.value?.features ?? {}, error });
+    });
     return () => controller.abort();
   }, [searchKey]);
 

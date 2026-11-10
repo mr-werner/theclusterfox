@@ -11,6 +11,8 @@ import { emptyData, normalizeData } from "../state/cookStore.js";
 import * as P from "../model/pantry.js";
 import * as W from "../model/swaps.js";
 import { swaps, SWAP_REASONS } from "../data/swaps.js";
+import { packages } from "../data/packages.js";
+import { buyFor } from "../model/buying.js";
 
 import { readFileSync } from "node:fs";
 
@@ -98,7 +100,11 @@ const close = (a, b, eps = 1e-6) => Math.abs(a - b) < eps;
     const fromMacros = n.protein * 4 + n.carbs * 4 + n.fat * 9;
     assert(Math.abs(fromMacros - n.kcal) / n.kcal < 0.15, `${r.id}: calories don't match macros`);
   }
-  assert(recipes.length >= 30, "a real starter library");
+  assert(recipes.length >= 60, "a real library");
+  // A spread of cuisines, every meal type, and plenty for each common diet.
+  assert(new Set(recipes.map(r => r.cuisine.replace(/-inspired$/, ""))).size >= 25, "cuisine variety");
+  for (const m of Object.keys(MEALS)) assert(recipes.filter(r => r.meals.includes(m)).length >= 8, `few ${m} recipes`);
+  for (const d of ["vegan", "vegetarian", "gluten-free", "dairy-free"]) assert(recipes.filter(r => dietsOf(r)[d]).length >= 15, `few ${d} recipes`);
   for (const r of recipes) assert(COVER_ICON_NAMES.includes(r.cover.icon), `${r.id}: cover icon ${r.cover.icon} isn't imported in ui.jsx`);
 }
 
@@ -461,6 +467,17 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   // Already-chosen swaps count.
   assert.equal(W.suggestFixes(spaghetti, { allergies: ["milk"] }, { parmesan: "parmesan-none" }), null);
 
+  // World-kitchen swaps: a peanut-free stew, gluten-free couscous, salmon for cod.
+  const stew = recipesById.get("west-african-peanut-stew");
+  assert.deepEqual(W.suggestFixes(stew, { allergies: ["peanut"] }), { "peanut-butter": "peanut-butter-tahini", peanuts: "peanuts-none" });
+  const couscous = recipesById.get("moroccan-couscous-chickpeas");
+  const quinoaVersion = W.applySwaps(couscous, { couscous: "couscous-quinoa" });
+  assert(dietsOf(quinoaVersion)["gluten-free"] && !dietsOf(couscous)["gluten-free"]);
+  assert.equal(quinoaVersion.time.total, couscous.time.total + 10, "quinoa takes longer than couscous");
+  const salmonVersion = W.applySwaps(recipesById.get("coconut-fish-curry"), { cod: "cod-salmon" });
+  assert(salmonVersion.steps.some(s => s.text.includes("{temp:63}")));
+  assert.deepEqual(W.suggestFixes(recipesById.get("lime-chicken-green-sauce"), { diets: ["dairy-free"] }), { "greek-yogurt": "yogurt-coconut-yogurt", parmesan: "parmesan-nutritional-yeast" });
+
   // Saved swaps survive a reload and junk is dropped.
   const d = normalizeData({ custom: { "tomato-basil-spaghetti": { parmesan: "parmesan-none", basil: "nope" }, "no-such-recipe": { x: "y" }, shakshuka: {} } });
   assert.deepEqual(d.custom, { "tomato-basil-spaghetti": { parmesan: "parmesan-none" } });
@@ -577,6 +594,39 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert.equal(d.pantry.length, 1);
   assert.equal(d.pantry[0].expires, null);
   assert.equal(d.shopping[0].sources.length, 1);
+}
+
+// --- Buying in real package sizes ----------------------------------------------
+{
+  const I = id => ingredientsById.get(id);
+  for (const [id, sizes] of Object.entries(packages)) {
+    assert(ingredientsById.has(id), `packages: unknown ingredient ${id}`);
+    assert(sizes.length && sizes.every(p => p.amount > 0 && p.label), `packages: ${id}`);
+  }
+  assert.equal(buyFor(I("black-beans"), 480).text, "2 × 15-oz can");
+  assert.equal(buyFor(I("firm-tofu"), 400).text, "1 × 14-oz block", "a hair short still counts");
+  assert.equal(buyFor(I("butter"), 42).text, "1 × stick (4 oz)");
+  assert.equal(buyFor(I("egg"), 10).text, "1 × carton of 12");
+  assert.equal(buyFor(I("corn-tortillas"), 24).text, "1 × pack of 30", "one big pack beats three small ones");
+  assert.equal(buyFor(I("garlic"), 14).text, "2 × head (about 10 cloves)");
+  assert.equal(buyFor(I("lemon"), 2.5).text, "3 lemons", "produce is bought whole");
+  assert.equal(buyFor(I("onion"), 0.5).text, "1 yellow onion");
+  assert.equal(buyFor(I("cooked-rice"), 300), null, "no standard package: show the amount");
+  // Every recipe ingredient that isn't counted produce has a package.
+  for (const r of recipes) for (const l of r.ingredients) {
+    const item = I(l.ing);
+    if (item.unit !== "each" && !item.id.startsWith("cooked-")) assert(packages[item.id], `${item.id} needs a package size`);
+  }
+
+  // "Don't have it" puts one line on the list, as that recipe's share.
+  const curry = recipesById.get("chickpea-spinach-curry");
+  let list = P.addLineToList([], curry, 4, "chickpeas");
+  assert.equal(list.length, 1);
+  assert.equal(P.shoppingAmount(list[0]), curry.ingredients.find(l => l.ing === "chickpeas").amount);
+  list = P.addLineToList(list, curry, 4, "chickpeas");
+  assert.equal(list.length, 1, "adding twice doesn't double");
+  list = P.addRecipeToList(list, curry, 4, { onlyMissing: false });
+  assert.equal(P.shoppingAmount(list.find(i => i.ing === "chickpeas")), curry.ingredients.find(l => l.ing === "chickpeas").amount, "the whole recipe replaces it");
 }
 
 console.log(`CookFox: ${recipes.length} recipes, ${ingredients.length} ingredients, all checks passed.`);

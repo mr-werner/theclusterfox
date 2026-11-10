@@ -98,7 +98,11 @@ const close = (a, b, eps = 1e-6) => Math.abs(a - b) < eps;
     const fromMacros = n.protein * 4 + n.carbs * 4 + n.fat * 9;
     assert(Math.abs(fromMacros - n.kcal) / n.kcal < 0.15, `${r.id}: calories don't match macros`);
   }
-  assert(recipes.length >= 30, "a real starter library");
+  assert(recipes.length >= 60, "a real library");
+  // A spread of cuisines, every meal type, and plenty for each common diet.
+  assert(new Set(recipes.map(r => r.cuisine.replace(/-inspired$/, ""))).size >= 25, "cuisine variety");
+  for (const m of Object.keys(MEALS)) assert(recipes.filter(r => r.meals.includes(m)).length >= 8, `few ${m} recipes`);
+  for (const d of ["vegan", "vegetarian", "gluten-free", "dairy-free"]) assert(recipes.filter(r => dietsOf(r)[d]).length >= 15, `few ${d} recipes`);
   for (const r of recipes) assert(COVER_ICON_NAMES.includes(r.cover.icon), `${r.id}: cover icon ${r.cover.icon} isn't imported in ui.jsx`);
 }
 
@@ -460,6 +464,17 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert.deepEqual(veganNoodles, { honey: "honey-maple" });
   // Already-chosen swaps count.
   assert.equal(W.suggestFixes(spaghetti, { allergies: ["milk"] }, { parmesan: "parmesan-none" }), null);
+
+  // World-kitchen swaps: a peanut-free stew, gluten-free couscous, salmon for cod.
+  const stew = recipesById.get("west-african-peanut-stew");
+  assert.deepEqual(W.suggestFixes(stew, { allergies: ["peanut"] }), { "peanut-butter": "peanut-butter-tahini", peanuts: "peanuts-none" });
+  const couscous = recipesById.get("moroccan-couscous-chickpeas");
+  const quinoaVersion = W.applySwaps(couscous, { couscous: "couscous-quinoa" });
+  assert(dietsOf(quinoaVersion)["gluten-free"] && !dietsOf(couscous)["gluten-free"]);
+  assert.equal(quinoaVersion.time.total, couscous.time.total + 10, "quinoa takes longer than couscous");
+  const salmonVersion = W.applySwaps(recipesById.get("coconut-fish-curry"), { cod: "cod-salmon" });
+  assert(salmonVersion.steps.some(s => s.text.includes("{temp:63}")));
+  assert.deepEqual(W.suggestFixes(recipesById.get("lime-chicken-green-sauce"), { diets: ["dairy-free"] }), { "greek-yogurt": "yogurt-coconut-yogurt", parmesan: "parmesan-nutritional-yeast" });
 
   // Saved swaps survive a reload and junk is dropped.
   const d = normalizeData({ custom: { "tomato-basil-spaghetti": { parmesan: "parmesan-none", basil: "nope" }, "no-such-recipe": { x: "y" }, shakshuka: {} } });

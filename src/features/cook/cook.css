@@ -836,6 +836,8 @@ button.ck-timer-chip {
 .ck-tone--saffron { --ck-tone-a: #f3d088; --ck-tone-b: #cc8a28; }
 .ck-tone--cocoa { --ck-tone-a: #d8b898; --ck-tone-b: #82573a; }
 .ck-tone--berry { --ck-tone-a: #e6c3d2; --ck-tone-b: #9d5676; }
+.ck-tone--sea { --ck-tone-a: #b9dad6; --ck-tone-b: #3f8582; }
+.ck-tone--olive { --ck-tone-a: #d6d7a8; --ck-tone-b: #7f7f3c; }
 
 .ck-cover-badge {
   position: absolute;

@@ -11,6 +11,7 @@
 // food temperatures.
 
 import { moreRecipes } from "./recipesMore.js";
+import { worldRecipes } from "./recipesWorld.js";
 
 const line = (ing, amount, prep, extra) => ({ ing, amount, ...(prep ? { prep } : {}), ...extra });
 const take = (ing, amount) => ({ ing, amount });
@@ -914,6 +915,7 @@ export const recipes = [
     ...SOURCE,
   },
   ...moreRecipes,
+  ...worldRecipes,
 ];
 
 export const recipesById = new Map(recipes.map(r => [r.id, r]));

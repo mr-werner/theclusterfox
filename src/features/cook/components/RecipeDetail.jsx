@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowLeftRight, Check, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, ShoppingCart, Sparkles, Store, TriangleAlert, Undo2, Users, ChefHat, Info } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, Check, CircleHelp, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, ShoppingCart, Sparkles, Store, TriangleAlert, Undo2, Users, ChefHat, Info } from "lucide-react";
 import { Cover, Segmented, Stepper, UnitToggles } from "./ui";
 import { minutesText } from "./format";
 import { ingredientsById, ALLERGENS } from "../data/ingredients";
@@ -22,6 +22,16 @@ const NUTRITION_ROWS = [
   ["sugar", "Sugars", "g"],
   ["sodium", "Sodium", "mg"],
 ];
+
+// "Don't have it?" on a line the cook hasn't checked off: opens the swap
+// dialog in its don't-have mode, which also offers the shopping list.
+export function MissingButton({ line, onOpen }) {
+  return (
+    <button type="button" className="ck-swap-btn ck-missing-btn" onClick={onOpen} aria-label={`Don't have ${ingredientsById.get(line.ing).name}?`}>
+      <CircleHelp size={13} aria-hidden="true" /> Don't have it?
+    </button>
+  );
+}
 
 // "Swapped from butter · Undo" under a swapped line, or a Swap button.
 export function SwapControl({ line, canSwap, onOpen, onUndo }) {
@@ -77,7 +87,7 @@ export function IngredientLine({ line, amount, mode, showHint }) {
   );
 }
 
-export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, today, setPrefs, onAddToList, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
+export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, today, setPrefs, onAddToList, onAddLine, update, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
   const session = data.sessions[recipe.id];
   const prefs = data.prefs;
   const [servings, setServings] = useState(() => clampServings(initialServings ?? session?.servings ?? recipe.servings));
@@ -94,8 +104,23 @@ export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, t
   const household = data.profile.household;
   const ingNotes = [...new Set(lines.map(l => l.item.note).filter(Boolean))];
   const t = recipe.time;
-  const [swapping, setSwapping] = useState(null);
+  const [swapping, setSwapping] = useState(null); // { key, missing }
   const canSwap = swappableKeys(base);
+  // The ingredient checklist. Before you start it's a draft, prefilled from the
+  // pantry and carried into the cooking session; once a session exists it's
+  // the session's own "have" list, shared with the prep screen.
+  const [draft, setDraft] = useState(() => Object.fromEntries((pantryInfo?.have ?? []).map(k => [k, true])));
+  const have = session ? session.have : draft;
+  const toggleHave = key => {
+    if (session) update(s => ({ ...s, have: { ...s.have, [key]: !s.have[key] }, prepped: s.have[key] ? { ...s.prepped, [key]: false } : s.prepped }));
+    else setDraft(d => ({ ...d, [key]: !d[key] }));
+  };
+  const haveCount = lines.filter(l => have[l.key]).length;
+  const setAllHave = on => {
+    const next = on ? Object.fromEntries(lines.map(l => [l.key, true])) : {};
+    if (session) update(s => ({ ...s, have: next, prepped: on ? s.prepped : {} }));
+    else setDraft(next);
+  };
   const limits = { allergies: data.profile.allergies, diets: data.profile.diets };
   const conflicts = [...new Set(recipe.ingredients.flatMap(l => itemConflicts(ingredientsById.get(l.ing), limits).map(c => (c.kind === "allergy" ? `contains ${c.label.toLowerCase()}` : `not ${c.label.toLowerCase()}`))))];
   const fix = conflicts.length ? suggestFixes(base, limits, recipe.swaps) : null;
@@ -148,7 +173,7 @@ export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, t
                 </button>
               </>
             ) : (
-              <button type="button" className="ck-btn ck-btn--primary ck-btn--big" onClick={() => onStart(servings)}>
+              <button type="button" className="ck-btn ck-btn--primary ck-btn--big" onClick={() => onStart(servings, lines.filter(l => draft[l.key]).map(l => l.key))}>
                 <Play size={18} aria-hidden="true" /> Start cooking
               </button>
             )}
@@ -227,16 +252,32 @@ export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, t
           {session && session.servings !== servings && (
             <p className="ck-note">Your cooking session is set to {session.servings}. Change servings from the prep checklist while cooking.</p>
           )}
-          <ul className="ck-ing-list">
+          <div className="ck-prep-tally ck-ing-tally">
+            <span>
+              <strong>{haveCount}</strong> of {lines.length} ready. Check off what you have before you start.
+            </span>
+            <button type="button" className="ck-link" onClick={() => setAllHave(haveCount < lines.length)}>
+              {haveCount < lines.length ? "I have everything" : "Uncheck all"}
+            </button>
+          </div>
+          <ul className="ck-ing-list ck-ing-checklist">
             {lines.map(l => {
               const inPantry = hasPantry && pantryMatch(data.pantry, l.ing);
+              const on = Boolean(have[l.key]);
+              const name = ingredientsById.get(l.ing).name;
               return (
-                <li key={l.key} className={inPantry ? "is-have" : ""}>
+                <li key={l.key} className={on ? "is-on" : ""}>
+                  <button type="button" className="ck-ing-check" aria-pressed={on} aria-label={`Have ${name}`} onClick={() => toggleHave(l.key)}>
+                    <span className="ck-box" aria-hidden="true">
+                      <Check size={16} />
+                    </span>
+                  </button>
                   <span className="ck-ing-main">
                     <span>
                       <IngredientLine line={l} amount={l.amount} mode={prefs.measure} showHint={f === 1} />
                     </span>
-                    <SwapControl line={l} canSwap={canSwap.has(l.key)} onOpen={() => setSwapping(l.key)} onUndo={() => onSwap(l.key, null)} />
+                    {!on && !l.from && <MissingButton line={l} onOpen={() => setSwapping({ key: l.key, missing: true })} />}
+                    <SwapControl line={l} canSwap={canSwap.has(l.key)} onOpen={() => setSwapping({ key: l.key, missing: false })} onUndo={() => onSwap(l.key, null)} />
                   </span>
                   {inPantry && (
                     <span className="ck-have-tag">
@@ -400,12 +441,15 @@ export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, t
         <SwapDialog
           base={base}
           recipe={recipe}
-          lineKey={swapping}
+          lineKey={swapping.key}
+          missing={swapping.missing}
+          pantry={data.pantry}
+          onAddToList={key => onAddLine(recipe, servings, key)}
           profile={limits}
           prefs={prefs}
           servings={servings}
           onChoose={id => {
-            onSwap(swapping, id);
+            onSwap(swapping.key, id);
             setSwapping(null);
           }}
           onClose={() => setSwapping(null)}

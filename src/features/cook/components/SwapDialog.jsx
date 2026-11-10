@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
-import { ArrowLeftRight, Check, TriangleAlert, Undo2, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeftRight, Check, Refrigerator, ShoppingCart, TriangleAlert, Undo2, X } from "lucide-react";
 import { ALLERGENS, ingredientsById } from "../data/ingredients";
 import { SWAP_REASONS } from "../data/swaps";
 import { DIETS, lineKey, roundNutrient, scaleFactor } from "../model/recipe";
 import { swapsForLine } from "../model/swaps";
+import { pantryMatch } from "../model/pantry";
 import { amountText, renderTemps } from "../model/units";
 
 function deltaText(key, value, unit) {
@@ -14,7 +15,12 @@ function deltaText(key, value, unit) {
 
 // Choose a swap for one ingredient line. Shows what changes before anything
 // is applied: amount, flavor, texture, cooking, nutrition and allergens.
-export default function SwapDialog({ base, recipe, lineKey: key, profile, prefs, servings, onChoose, onClose }) {
+//
+// With `missing`, the cook doesn't have the ingredient: stand-ins they already
+// have come first, leaving it out comes last, and they can put the original on
+// the shopping list instead.
+export default function SwapDialog({ base, recipe, lineKey: key, profile, prefs, servings, onChoose, onClose, missing = false, pantry = [], onAddToList }) {
+  const [listed, setListed] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
     // See PlanB: no close() on cleanup.
@@ -24,7 +30,9 @@ export default function SwapDialog({ base, recipe, lineKey: key, profile, prefs,
 
   const original = base.ingredients.find(l => lineKey(l) === key);
   const current = recipe.swaps?.[key] ?? null;
-  const options = swapsForLine(base, key, profile, recipe.swaps ?? {});
+  const found = swapsForLine(base, key, profile, recipe.swaps ?? {});
+  const rank = o => (!o.to ? 2 : pantryMatch(pantry, o.to.id) ? 0 : 1);
+  const options = missing ? [...found].sort((a, b) => rank(a) - rank(b)) : found;
   const f = scaleFactor(base, servings);
   const fromItem = ingredientsById.get(original.ing);
   const fromAmount = amountText(fromItem, original.amount * f, prefs.measure);
@@ -33,10 +41,15 @@ export default function SwapDialog({ base, recipe, lineKey: key, profile, prefs,
     <dialog ref={ref} className="ck-dialog ck-swap" onClose={onClose} aria-labelledby="ck-swap-h">
       <div className="ck-dialog-head">
         <div>
-          <p className="ck-eyebrow">Swap an ingredient</p>
+          <p className="ck-eyebrow">{missing ? "Don't have it?" : "Swap an ingredient"}</p>
           <h2 id="ck-swap-h">
-            Instead of {fromAmount.text} {fromAmount.name}
+            {missing ? `No ${fromItem.name}? Use one of these` : `Instead of ${fromAmount.text} ${fromAmount.name}`}
           </h2>
+          {missing && (
+            <p className="ck-muted ck-small">
+              The recipe uses {fromAmount.text} {fromAmount.name}.
+            </p>
+          )}
         </div>
         <button type="button" className="ck-icon-btn" onClick={onClose} aria-label="Close">
           <X size={20} />
@@ -49,8 +62,28 @@ export default function SwapDialog({ base, recipe, lineKey: key, profile, prefs,
         </button>
       )}
 
+      {missing && onAddToList && (
+        <div className="ck-swap-missing">
+          <button
+            type="button"
+            className="ck-btn"
+            disabled={listed}
+            onClick={() => {
+              onAddToList(key);
+              setListed(true);
+            }}
+          >
+            {listed ? <Check size={16} aria-hidden="true" /> : <ShoppingCart size={16} aria-hidden="true" />} {listed ? "On your shopping list" : `Add ${fromItem.name} to my shopping list`}
+          </button>
+        </div>
+      )}
+
       {options.length === 0 ? (
-        <p className="ck-muted">No swaps for this one that fit your allergies and diet.</p>
+        <p className="ck-muted">
+          {missing
+            ? `There's no good stand-in for ${fromItem.name} in this recipe that fits your allergies and diet. Pick it up at the store, or choose another recipe.`
+            : "No swaps for this one that fit your allergies and diet."}
+        </p>
       ) : (
         <ul className="ck-swap-list">
           {options.map(o => {
@@ -70,6 +103,11 @@ export default function SwapDialog({ base, recipe, lineKey: key, profile, prefs,
               <li key={o.swap.id} className={on ? "is-on" : ""}>
                 <div className="ck-swap-title">
                   <strong>{o.to ? `${a.text} ${a.name}` : "Leave it out"}</strong>
+                  {missing && o.to && pantryMatch(pantry, o.to.id) && (
+                    <span className="ck-have-tag">
+                      <Refrigerator size={13} aria-hidden="true" /> In your pantry
+                    </span>
+                  )}
                   {tags.length > 0 && (
                     <ul className="ck-badges ck-badges--small">
                       {tags.map(t => (

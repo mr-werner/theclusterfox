@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Bell, BellOff, Info, Play, Star, Volume2 } from "lucide-react";
 
-import { goalsById, KINDS } from "../data/sessions";
+import { goalsById, STYLES, styleOf } from "../data/sessions";
 import { describePattern as describe, patternOf } from "../data/breathing";
 import { buildTimeline, spokenCount } from "../model/schedule";
 import { INTERVALS } from "../state/calmStore";
 import { NATURAL_VOICES, pickVoice, recordedSeconds, speak, stopSpeaking, voiceSupported } from "../audio/voice";
 import { PREVIEW_LINE } from "../data/voiceLines";
 import { startAmbient } from "../audio/sound";
-import { AMBIENT_OPTIONS, GOAL_ICONS, KIND_ICONS } from "./icons";
+import { AMBIENT_OPTIONS, GOAL_ICONS, STYLE_ICONS } from "./icons";
 
 const LENGTHS = [3, 5, 10, 15, 20, 30, 45, 60];
 const PACES = [
@@ -34,8 +34,9 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
   const [trying, setTrying] = useState(false);
   const tryRef = useRef(null);
   const goal = goalsById.get(session.goal) ?? { name: "Breathe" };
-  const GoalIcon = GOAL_ICONS[session.goal] ?? KIND_ICONS.breath;
-  const KindIcon = KIND_ICONS[session.kind];
+  const style = styleOf(session);
+  const GoalIcon = GOAL_ICONS[session.goal] ?? STYLE_ICONS.technique;
+  const StyleIcon = STYLE_ICONS[style];
   const pattern = patternOf(session);
   const isBreath = session.kind === "breath";
   const isTimer = session.kind === "timer";
@@ -108,7 +109,7 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
             <GoalIcon size={14} aria-hidden="true" /> {goal.name}
           </span>
           <span>
-            <KindIcon size={14} aria-hidden="true" /> {KINDS[session.kind]}
+            <StyleIcon size={14} aria-hidden="true" /> {STYLES[style].name}
           </span>
           {isBreath && <span>{describe(pattern, prefs.pace)}</span>}
         </div>
@@ -125,6 +126,9 @@ export default function SessionSetup({ session, prefs, setPrefs, voices, favorit
           </button>
         </div>
         <p>{session.summary}</p>
+        {(style === "awareness" || style === "bodyscan") && (
+          <p className="cm-free-note">No breathing pattern to follow. Let your breath move on its own.</p>
+        )}
         {session.caution && (
           <p className="cm-caution">
             <Info size={15} aria-hidden="true" /> {session.caution}

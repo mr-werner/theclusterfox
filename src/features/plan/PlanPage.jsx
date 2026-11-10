@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Bell, CalendarDays, CalendarPlus, ListChecks, Settings2, Sparkles, LayoutGrid, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, Layers, List, LoaderCircle, LocateFixed, Plus, X } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
+import { openInApp } from "../../lib/launchApp";
+import { isSitePath } from "../../app/planLinks";
 import { formatTemp } from "../clocast/units";
 import { AgendaView, MonthView, YearView } from "./components/CalendarViews";
 import DayPanel, { Tip } from "./components/DayPanel";
@@ -23,6 +25,9 @@ import { planSessions, TIMES } from "./model/training";
 import { togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { fareCurrency, useLayerData } from "./state/useLayerData";
+import { useAppItems } from "./state/useAppLinks";
+import { appById } from "./model/appInfo";
+import "./applinks.css";
 import "./plan.css";
 import "./identity.css";
 
@@ -165,6 +170,9 @@ export default function PlanPage() {
   const toggleSession = id => update(current => ({ programDone: current.programDone.includes(id) ? current.programDone.filter(d => d !== id) : [...current.programDone, id] }));
 
   const instances = useMemo(() => expandItems(data.items, from, to), [data.items, from, to]);
+  const appItems = useAppItems({ enabled: data.layers.apps, hiddenApps: data.hiddenApps, from, to });
+  const navigate = useNavigate();
+  const launch = link => openInApp(link.app, link.href, navigate);
   const entriesByDay = useMemo(
     () =>
       buildEntries({
@@ -182,8 +190,9 @@ export default function PlanPage() {
         nearbyEvents: layerData.nearbyEvents,
         trips: layerData.trips,
         teams: data.teams,
+        appItems,
       }),
-    [data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents, layerData.nearbyEvents, layerData.trips]
+    [appItems, data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents, layerData.nearbyEvents, layerData.trips]
   );
   const forecastByDay = useMemo(() => new Map((forecast?.days ?? []).map(d => [d.day, d])), [forecast]);
 
@@ -250,6 +259,21 @@ export default function PlanPage() {
   };
 
   const openNew = day => setEditing({ day: day ?? selected, kind: "event" });
+
+  // Another app's "Plan this" button lands here with ?add=<app>&open=<path>:
+  // the editor opens with that app already linked.
+  const addApp = appById(params.get("add"));
+  const addHref = params.get("open");
+  const addTitle = (params.get("title") ?? "").slice(0, 120);
+  const addDraft = useMemo(
+    () => (addApp ? { day: today, kind: "event", title: addTitle || addApp.subtitle, link: { app: addApp.id, href: isSitePath(addHref) ? addHref : addApp.path, label: addTitle } } : null),
+    [addApp, addHref, addTitle, today]
+  );
+  const editorItem = editing ?? addDraft;
+  const closeEditor = () => {
+    setEditing(null);
+    if (addDraft) setParams(view === "month" ? {} : { view }, { replace: true });
+  };
   const openEdit = instance => setEditing(data.items.find(i => i.id === (instance.itemId ?? instance.id)) ?? null);
 
   const title = view === "year" ? String(year) : view === "agenda" ? `Next ${AGENDA_DAYS} days` : monthName(year, month);
@@ -515,6 +539,7 @@ export default function PlanPage() {
                 onEdit={openEdit}
                 onMove={moveTo}
                 onSelect={openDay}
+                onLaunch={launch}
               />
             )}
             {view === "month" && (
@@ -618,6 +643,7 @@ export default function PlanPage() {
                 onToggleSession={toggleSession}
                 onOpenPlanner={data.program ? null : () => setShowPlanner(true)}
                 planWindow={planWindow}
+                onLaunch={launch}
               />
         </div>
       )}
@@ -631,18 +657,19 @@ export default function PlanPage() {
         />
       )}
 
-      {editing && (
+      {editorItem && (
         <ItemEditor
-          item={editing}
-          onClose={() => setEditing(null)}
+          item={editorItem}
+          onClose={closeEditor}
           onSave={item => {
             saveItem(item);
             setSelected(item.day);
-            setEditing(null);
+            if (item.link && !data.layers.apps) toggleLayer("apps");
+            closeEditor();
           }}
           onDelete={id => {
             deleteItem(id);
-            setEditing(null);
+            closeEditor();
           }}
         />
       )}

@@ -30,3 +30,13 @@ export function openAppWindow(app) {
 
 /** True when the click asked for the browser's own handling (new tab, etc). */
 export const isModifiedClick = event => event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+
+/**
+ * Open a page inside one of the apps, like "/lift?plan=abc&session=w1d1".
+ * On a computer it goes to that app's own window (reusing it when it is
+ * already open); elsewhere it opens in place.
+ */
+export function openInApp(appId, href, navigate) {
+  if (opensInOwnWindow() && openAppWindow({ id: appId, path: href })) return;
+  navigate(href);
+}

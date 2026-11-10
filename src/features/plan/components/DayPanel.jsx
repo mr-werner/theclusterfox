@@ -7,6 +7,7 @@ import { formatHour, formatTemp, formatWind } from "../../clocast/units";
 import { aqiCategory, describeWeather } from "../../../services/weather/openMeteo";
 import { formatTime, longDate, parseDay, relativeDay } from "../model/dates";
 import { GARDEN_MONTHS, dayDetails, trainingAdvice, trainingWindows, wearFor } from "../model/insights";
+import { AppEntry, LaunchButton } from "./AppLinks";
 
 export const TIP_ICONS = { alert: TriangleAlert, car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell, swing: Thermometer, flight: Plane };
 const LAYER_LABEL = {
@@ -23,6 +24,7 @@ const LAYER_LABEL = {
   games: "Game release",
   nearby: "Nearby",
   flights: "Flight",
+  apps: "App",
 };
 const CHECKABLE = new Set(["task", "bill", "deadline"]);
 const MINOR_SHOWN = 6;
@@ -142,7 +144,7 @@ function TrainWindows({ windows, compact = false }) {
   );
 }
 
-function ItemEntry({ entry, today, now, hours, homePlace, awayForecasts, units, trainingActivityId, onEdit, onToggleDone }) {
+function ItemEntry({ entry, today, now, hours, homePlace, awayForecasts, units, trainingActivityId, onEdit, onToggleDone, onLaunch }) {
   const item = entry.item;
   const away = item.place && placeKey(item.place) !== (homePlace && placeKey(homePlace)) ? awayForecasts.get(placeKey(item.place)) : null;
   const forecastHours = away?.hours ?? hours;
@@ -190,6 +192,7 @@ function ItemEntry({ entry, today, now, hours, homePlace, awayForecasts, units, 
         {training && !training.chosen && <span className="pf-entry-note">Best time outside: {formatHour(training.best.startHour)} ({training.best.label.toLowerCase()}, {training.best.score}/100)</span>}
         {item.notes && <span className="pf-entry-note pf-muted">{item.notes}</span>}
       </button>
+      {item.link && onLaunch && <LaunchButton link={item.link} onLaunch={onLaunch} label="Start" />}
     </li>
   );
 }
@@ -277,7 +280,7 @@ function OtherEntry({ entry, onOpen, onPlanTrip }) {
   );
 }
 
-export default function DayPanel({ onClose, onOpenDetail, onPlanTrip, onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
+export default function DayPanel({ onLaunch, onClose, onOpenDetail, onPlanTrip, onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
   const [showAllMinor, setShowAllMinor] = useState(false);
   const hours = forecast?.hours ?? [];
   const weather = forecast?.days.find(d => d.day === day);
@@ -289,8 +292,9 @@ export default function DayPanel({ onClose, onOpenDetail, onPlanTrip, onLinkCale
 
   const plan = entries.filter(e => e.session);
   const mine = entries.filter(e => e.item);
-  const others = entries.filter(e => !e.item && !e.session && !e.minor);
-  const minor = entries.filter(e => !e.item && !e.session && e.minor);
+  const fromApps = entries.filter(e => e.launch && !e.item);
+  const others = entries.filter(e => !e.item && !e.session && !e.launch && !e.minor);
+  const minor = entries.filter(e => !e.item && !e.session && !e.launch && e.minor);
   const minorShown = showAllMinor ? minor : minor.slice(0, MINOR_SHOWN);
 
   return (
@@ -385,7 +389,11 @@ export default function DayPanel({ onClose, onOpenDetail, onPlanTrip, onLinkCale
             trainingActivityId={trainingActivityId}
             onEdit={onEdit}
             onToggleDone={onToggleDone}
+            onLaunch={onLaunch}
           />
+        ))}
+        {fromApps.map(entry => (
+          <AppEntry key={entry.id} entry={entry} onLaunch={onLaunch} />
         ))}
         {others.map(entry => (
           <OtherEntry key={entry.id} entry={entry} onOpen={onOpenDetail} onPlanTrip={onPlanTrip} />

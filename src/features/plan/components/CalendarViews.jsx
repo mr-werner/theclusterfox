@@ -20,7 +20,7 @@ function summarize(entries) {
   return { major: [...major, ...minorHolidays], counts };
 }
 
-const COUNT_LABEL = { sports: ["game", "games"], movies: ["movie", "movies"], games: ["game release", "game releases"], nearby: ["event nearby", "events nearby"], flights: ["fare", "fares"] };
+const COUNT_LABEL = { sports: ["game", "games"], movies: ["movie", "movies"], games: ["game release", "game releases"], nearby: ["event nearby", "events nearby"], flights: ["fare", "fares"], apps: ["done in apps", "done in apps"] };
 
 function Pill({ entry }) {
   const movable = Boolean(entry.item) && canMove(entry.item);

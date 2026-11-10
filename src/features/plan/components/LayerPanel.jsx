@@ -8,6 +8,7 @@ import { COUNTRIES } from "../model/holidays";
 import { LAYERS, NEARBY_KINDS, RADII } from "../state/planStore";
 import AirportPicker from "./AirportPicker";
 import SchoolFinder from "./SchoolFinder";
+import { AppLinksSettings } from "./AppLinks";
 
 // Layers people asked for that need a paid or keyed data source first.
 const COMING = [
@@ -107,6 +108,8 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
           </ul>
         </div>
       ))}
+
+      {data.layers.apps && <AppLinksSettings hiddenApps={data.hiddenApps} onChange={hiddenApps => update({ hiddenApps })} />}
 
       <div className="pf-layer-group">
         <h3>Holidays for</h3>

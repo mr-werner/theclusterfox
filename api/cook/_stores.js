@@ -13,7 +13,7 @@ const KROGER_BRANDS = /kroger|ralphs|fred meyer|king soopers|smith'?s|fry'?s|qfc
 const MAX_MILES = 25;
 
 export function overpassQuery(lat, lon, meters) {
-  return `[out:json][timeout:20];nwr(around:${Math.round(meters)},${lat.toFixed(5)},${lon.toFixed(5)})["shop"~"^(${SHOPS})$"]["name"];out center tags 150;`;
+  return `[out:json][timeout:10];nwr(around:${Math.round(meters)},${lat.toFixed(5)},${lon.toFixed(5)})["shop"~"^(${SHOPS})$"]["name"];out center tags 150;`;
 }
 
 export function parseOsm(body, here) {
@@ -57,24 +57,35 @@ export function mergeStores(osm, krogerStores, here) {
     .sort((a, b) => a.distance - b.distance);
 }
 
+// Asks every Overpass mirror at once and takes the first good answer, since
+// any one of them can be busy.
 async function fromOsm(lat, lon, radius) {
-  const body = new URLSearchParams({ data: overpassQuery(lat, lon, radius * 1609.34) });
-  let lastError;
-  for (const url of OVERPASS) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "TheClusterFox-CookFox/1.0" },
-        body,
-        signal: AbortSignal.timeout(9000),
-      });
-      if (response.ok) return parseOsm(await response.json(), { lat, lon });
-      lastError = new Error(`Overpass ${response.status}`);
-    } catch (error) {
-      lastError = error;
-    }
+  const body = new URLSearchParams({ data: overpassQuery(lat, lon, radius * 1609.34) }).toString();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error("timed out")), 12000);
+  try {
+    return await Promise.any(
+      OVERPASS.map(async url => {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json", "User-Agent": "TheClusterFox-CookFox/1.0 (+https://theclusterfox.com)" },
+            body,
+            signal: controller.signal,
+          });
+          if (!response.ok) throw new Error(`${response.status}`);
+          return parseOsm(await response.json(), { lat, lon });
+        } catch (error) {
+          throw new Error(`${new URL(url).host}: ${error.message}`, { cause: error });
+        }
+      })
+    );
+  } catch (error) {
+    throw new Error(error.errors ? error.errors.map(e => e.message).join("; ") : error.message, { cause: error });
+  } finally {
+    clearTimeout(timer);
+    controller.abort();
   }
-  throw lastError;
 }
 
 export default async function stores(req, res) {

@@ -2696,6 +2696,120 @@ g:focus-visible > .dg-mass {
   }
 }
 
+/* Building loads */
+
+.ld-projects {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ld-projects .dg-add {
+  align-items: end;
+}
+
+.ld-name input {
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.ld-rooms {
+  display: grid;
+  gap: 8px;
+}
+
+.ld-room {
+  border: 1px solid var(--tf-line);
+  border-left: 3px solid var(--tf-cat);
+  border-radius: 12px;
+  background: var(--tf-surface-2);
+}
+
+.ld-room > summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: baseline;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.ld-room-name {
+  font-weight: 700;
+}
+
+.ld-room-sum {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  color: var(--tf-muted);
+  font-size: 0.84rem;
+}
+
+.ld-room-sum strong {
+  color: #fff;
+}
+
+.ld-body {
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+.ld-sub {
+  margin: 6px 0 0;
+  color: var(--tf-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ld-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.ld-body .dg-num,
+.ld-body .dg-pick,
+.ld-projects .dg-pick {
+  box-shadow: none;
+}
+
+.ld .dg-pick {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ld .dg-pick select {
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.ld-add .is-danger:hover {
+  border-color: #ff7f6b;
+  color: #ff7f6b;
+}
+
+@media (max-width: 560px) {
+  .ld .dg-item-fields {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .ld-row {
+    align-items: start;
+  }
+}
+
 /* Pump system builder */
 .ps {
   display: grid;

@@ -359,3 +359,44 @@ console.log(`Engineer ToolFox: ${CALCS.length} calculators and ${TABLES.length} 
   assert.equal(S.standardMotor(700).label, "1 hp (0.75 kW)");
   console.log("Engineer ToolFox: fan and duct system checks out.");
 }
+
+// Building heating and cooling loads.
+{
+  const L = await import("../model/loads.js");
+  // Solar noon at the summer solstice, 40° N: altitude 90 − 40 + 23.45 = 73.45°, due south.
+  const noon = L.sunPosition(40, 172, 12);
+  near(noon.beta / (Math.PI / 180), 73.45, 2e-3, "solstice noon altitude");
+  assert(Math.abs(noon.phi) < 1e-6, "noon sun due south");
+  // Afternoon sun is in the west (positive azimuth); none at midnight.
+  assert(L.sunPosition(40, 172, 15).phi > 0 && L.sunPosition(40, 172, 0).beta < 0, "sun path");
+  const sky = L.clearSky(172, noon.beta, 0.5, 2.2);
+  assert(sky.Eb > 700 && sky.Eb < 950 && sky.Ed > 80 && sky.Ed < 200, `clear sky ${sky.Eb} ${sky.Ed}`);
+  // A south wall sees little sun at summer noon; a west wall sees more in the afternoon.
+  const s3 = L.sunPosition(40, 172, 16);
+  const sk3 = L.clearSky(172, s3.beta, 0.5, 2.2);
+  assert(L.surfaceIrradiance(s3, sk3, "W").Et > L.surfaceIrradiance(s3, sk3, "E").Et, "west beats east at 4 pm");
+  near(L.rts(3).reduce((a, b) => a + b, 0), 1, 1e-12, "RTS sums to 1");
+  // Humidity ratio from 95 °F / 75 °F at sea level is about 0.0141 (psychrometric chart).
+  const K = (f) => ((f - 32) * 5) / 9 + 273.15;
+  near(L.wFromWetBulb(K(95), K(75), 101325), 0.0141, 1e-2, "W from wet bulb");
+  // A windowless, unoccupied box: steady heating loss is just U·A·ΔT plus infiltration.
+  const box = { ...L.newRoom(), ppl: 0, lt: 0, eq: 0, ach: 0, oap: 0, oaa: 0, w: [["N", 10, 0.5, "light", 0]], g: [], r: 0, f: [20, 0.25] };
+  const d = { lat: 40, month: 7, z: 0, Tdb: K(95), Twb: K(75), DR: 11.1, Twin: K(10), Ti: K(75), rhi: 0.5, Tih: K(70), Ts: K(55), taub: 0.5, taud: 2.2, occ0: 8, occ1: 18, offL: 0.1, offE: 0.3 };
+  near(L.solveLoads([box], d).heat, (10 * 0.5 + 20 * 0.25) * (K(70) - K(10)), 1e-9, "heating U·A·ΔT");
+  // Radiant time series only delays heat: over the day, cooling load equals heat gain.
+  const office = L.newRoom();
+  const res = L.solveLoads([office], d).rooms[0];
+  const gain = Object.values(res.share).flat().reduce((a, b) => a + b, 0);
+  near(res.sens.reduce((a, b) => a + b, 0), gain, 1e-9, "energy conserved");
+  // Supply airflow carries the room's peak sensible load at the supply temperature difference.
+  const sol = L.solveLoads([office], d);
+  near(sol.rooms[0].Qsup * sol.rho * (1006 + 1860 * sol.Wi) * (d.Ti - d.Ts), sol.rooms[0].peakSens, 1e-9, "supply airflow");
+  // Model text round-trips, and the calculator's example runs clean.
+  assert.deepEqual(L.parseProject(L.stringifyProject([office])), L.parseProject(JSON.stringify([office])));
+  const calc = air.find((c) => c.id === "building-loads");
+  const out = run(calc, defaultsOf(calc));
+  assert(out.results.length && !out.warnings.length, `building loads example: ${out.warnings.join("; ")}`);
+  const tons = fromSI(out.results.find((r) => r.id === "coil").value, "power", "TR");
+  assert(tons > 1 && tons < 4, `example coil ${tons} tons for 800 ft²`);
+  console.log("Engineer ToolFox: building loads check out.");
+}

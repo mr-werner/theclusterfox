@@ -85,6 +85,20 @@ export const DIMS = {
   },
   pressure: { label: "Pressure", units: PRESSURE_UNITS, si: "kPa", us: "psi" },
   airPressure: { alias: "pressure", label: "Air pressure", si: "Pa", us: "inH2O" },
+  smallPower: { alias: "power", label: "Heat gain", si: "W", us: "BTU/h" },
+  ventRate: { alias: "flow", label: "Ventilation airflow", si: "L/s", us: "cfm" },
+  heatRate: { alias: "power", label: "Heat rate", si: "kW", us: "BTU/h" },
+  coolingLoad: { alias: "power", label: "Cooling load", si: "kW", us: "TR" },
+  powerDensity: {
+    label: "Power per floor area",
+    units: [u("W/m2", "W/m²", 1), u("W/ft2", "W/ft²", 10.7639104)],
+    si: "W/m2", us: "W/ft2",
+  },
+  airflowArea: {
+    label: "Airflow per floor area",
+    units: [u("L/sm2", "L/(s·m²)", 1e-3), u("cfm/ft2", "cfm/ft²", 4.719474432e-4 / 0.09290304), u("m3/hm2", "m³/(h·m²)", 1 / 3600)],
+    si: "L/sm2", us: "cfm/ft2",
+  },
   pressureGradient: {
     label: "Friction rate",
     units: [u("Pa/m", "Pa/m", 1), u("inH2O/100ft", "in H₂O/100 ft", 249.08891 / 30.48), u("mmH2O/m", "mm H₂O/m", 9.80665)],

@@ -1,7 +1,27 @@
 import { num, choice, preset, out, text, say } from "./define.js";
 import { standardAtmosphere, psychrometrics } from "../model/air.js";
 import { GASES, RU } from "../data/fluids.js";
+import { parseProject, solveLoads, stringifyProject } from "../model/loads.js";
 import { parseSystem, siteAir, solveSystem, systemCurve, fanCurve, operatingPoint, standardMotor } from "../model/airsystem.js";
+
+const F = (f) => ((f - 32) * 5) / 9 + 273.15;
+const FT2 = 0.09290304, FT = 0.3048, UIP = 5.678263341, CFM = 4.719474432e-4;
+// Two rooms of a small office: a south-facing open office and a top-floor corner office.
+const LOAD_EXAMPLE = stringifyProject([
+  {
+    n: "Open office", A: 600 * FT2, H: 9 * FT, mass: "medium", ppl: 5, ps: 73, pl: 59, lt: 0.9 * 10.7639, eq: 1.0 * 10.7639, ach: 0.3,
+    oap: 5 * CFM, oaa: 0.06 * CFM / FT2,
+    w: [["S", 300 * FT2, 0.08 * UIP, "medium", 0]], g: [["S", 80 * FT2, 0.45 * UIP, 0.38, 1]], r: 0, f: 0,
+  },
+  {
+    n: "Corner office", A: 200 * FT2, H: 9 * FT, mass: "light", ppl: 2, ps: 73, pl: 59, lt: 0.9 * 10.7639, eq: 1.0 * 10.7639, ach: 0.3,
+    oap: 5 * CFM, oaa: 0.06 * CFM / FT2,
+    w: [["W", 140 * FT2, 0.064 * UIP, "light", 1], ["S", 130 * FT2, 0.064 * UIP, "light", 1]],
+    g: [["W", 40 * FT2, 0.45 * UIP, 0.38, 0.85], ["S", 30 * FT2, 0.45 * UIP, 0.38, 1]],
+    r: [200 * FT2, 0.032 * UIP, "light", 1], f: 0,
+  },
+]);
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // A rooftop unit serving one run of ductwork: 2,000 cfm, critical path to the farthest diffuser.
 const FAN_EXAMPLE = [
@@ -260,5 +280,72 @@ export const air = [
       "Lay out the critical path: the run from the fan to the outlet with the most resistance, plus the return or intake side if this fan pulls through it. Add every coil, filter and grille the fan must push through. Ducts can carry less air than the fan (a branch), so give each run its own airflow. The friction method is the same as the ASHRAE duct design method. Fitting coefficients are typical first-pass values. For final design, use the coefficient for your exact fitting from the ASHRAE Duct Fitting Database or the manufacturer, and use the actual pressure drops of the coils and filters you've selected. At altitude the air is thinner, so the ductwork loses less pressure but the fan also makes less. Fan catalogs are printed for standard air (0.075 lb/ft³), so you select the fan at the standard-air pressure shown here and the actual airflow. The motor needs less power than at sea level for the same fan.",
     sources: "ASHRAE Handbook—Fundamentals, Duct Design chapter (method); AMCA Publication 200, Air Systems; Colebrook (1939).",
     related: ["duct-size", "air-heat", "standard-atmosphere"],
+  },
+  {
+    id: "building-loads",
+    cat: "air",
+    name: "Building heating and cooling loads",
+    blurb: "Room-by-room design cooling and heating loads, hour by hour, with supply airflow and coil size.",
+    keywords: "load calculation cooling load heating load hvac sizing tons btu rts radiant time series manual j hap trace block load peak load room by room solar gain shgc u-value infiltration ventilation outdoor air coil load supply cfm",
+    inputs: [
+      text("model", "Rooms", LOAD_EXAMPLE, { hidden: true }),
+      num("lat", "Latitude (north +)", "none", 40, { min: -66, max: 66 }),
+      choice("month", "Design month", MONTHS.map((m, k) => ({ value: String(k + 1), label: m })), "7"),
+      num("z", "Site elevation", "length", 0, { min: -400, max: 6000 }),
+      num("Tdb", "Summer design dry bulb", "temp", F(95), { hint: "Use your location's 0.4% or 1% cooling design temperature." }),
+      num("Twb", "Coincident wet bulb", "temp", F(75)),
+      num("DR", "Daily temperature range", "dtemp", (20 * 5) / 9, { min: 0 }),
+      num("Twin", "Winter design dry bulb", "temp", F(10), { hint: "Use your location's 99.6% or 99% heating design temperature." }),
+      num("Ti", "Indoor cooling setpoint", "temp", F(75)),
+      num("rhi", "Indoor relative humidity", "percent", 0.5, { min: 0, max: 1 }),
+      num("Tih", "Indoor heating setpoint", "temp", F(70)),
+      num("Ts", "Supply air temperature (cooling)", "temp", F(55)),
+      num("taub", "Clear-sky beam optical depth (τb)", "none", 0.5, { min: 0.1, max: 1.5, hint: "From your location's climate data for the design month. 0.35–0.6 is typical in summer; higher means hazier." }),
+      num("taud", "Clear-sky diffuse optical depth (τd)", "none", 2.2, { min: 1, max: 3.5 }),
+      num("occ0", "Occupied from (hour)", "none", 8, { min: 0, max: 24 }),
+      num("occ1", "Occupied until (hour)", "none", 18, { min: 0, max: 24 }),
+      num("offL", "Lighting left on after hours", "percent", 0.1, { min: 0, max: 1 }),
+      num("offE", "Equipment left on after hours", "percent", 0.3, { min: 0, max: 1 }),
+      num("margin", "Safety margin", "percent", 0.1, { min: 0, max: 1 }),
+    ],
+    compute: (v) => {
+      const rooms = parseProject(v.model);
+      if (!rooms.length) return { results: [], warnings: ["Add a room to start."] };
+      const d = { ...v, month: Number(v.month) };
+      const r = solveLoads(rooms, d);
+      const m = 1 + v.margin;
+      const results = [
+        out("coil", "Cooling coil load", "coolingLoad", r.coil * m, { primary: true }),
+        out("coilS", "Coil sensible load", "heatRate", r.coilSens * m),
+        out("room", "Room load at the building peak (sensible + latent)", "heatRate", (r.block[r.blockHour - 1] + r.blockLat[r.blockHour - 1]) * m),
+        say("hour", "Building peak hour (solar time)", `${String(r.blockHour - 1).padStart(2, "0")}:00–${String(r.blockHour).padStart(2, "0")}:00, ${MONTHS[d.month - 1]}`),
+        out("sum", "Sum of each room's own peak", "heatRate", r.sumPeaks * m),
+        out("oa", "Outdoor air load at peak", "heatRate", r.oaT * m),
+        out("Qsup", "Supply airflow (sum of room peaks)", "airflow", r.Qsup * m),
+        out("Qoa", "Outdoor air", "airflow", r.Qoa),
+        out("heat", "Heating load (with outdoor air)", "heatRate", r.heat * m),
+        out("area", "Floor area", "area", r.area),
+        out("perArea", "Cooling per floor area", "heatflux", (r.coil * m) / r.area),
+      ];
+      const warnings = [];
+      if (v.Twb > v.Tdb) warnings.push("The wet bulb can't be above the dry bulb.");
+      if (v.Ts >= v.Ti) warnings.push("The supply air must be colder than the room to cool it.");
+      if (r.coil / r.area > 300) warnings.push("Over 300 W/m² (about 95 BTU/h·ft²) is very high for most buildings. Check the inputs.");
+      return { results, warnings, visual: { type: "loads", ...r, margin: m } };
+    },
+    formula: [
+      "Sun: sin β = cos L cos δ cos H + sin L sin δ;   clear sky E_b = E₀ exp(−τ_b m^ab),  E_d = E₀ exp(−τ_d m^ad)",
+      "Sol-air: T_e = T_o + (α/h_o) E_t − ε ΔR/h_o",
+      "Walls and roofs: q = U A [ (T̄_e − T_i) + λ (T_e(t − φ) − T̄_e) ]   (decrement λ, lag φ)",
+      "Glass: q = U A (T_o − T_i) + A · SHGC(θ) · IAC · E",
+      "Cooling load = convective gain + Σ r_j · radiant gain(t − j)   (radiant time series)",
+      "Infiltration and outdoor air: q_s = ρ c_p Q ΔT,  q_l = ρ Q h_fg ΔW",
+      "Supply airflow = room sensible peak / (ρ c_p (T_room − T_supply))",
+      "Heating = Σ U A (T_i − T_winter) + ρ c_p Q_inf ΔT + outdoor air",
+    ],
+    about:
+      "This follows the structure of the ASHRAE Radiant Time Series method: an hour-by-hour design day with sun position, clear-sky sunshine, sol-air temperatures, and radiant heat that reaches the air hours after it's absorbed by the room. To keep it free and open, three pieces use published simplified forms instead of licensed tables. Wall and roof conduction uses a time lag and decrement factor by construction weight. The radiant time series is an exponential decay set by the room's construction weight. The outdoor temperature follows a smooth daily swing that peaks at 3 pm. Hours are solar time. Enter your own design temperatures and optical depths from your local climate data. Heating is a steady-state design loss with no credit for sun or internal heat. Results suit equipment sizing and early design. They aren't an annual energy simulation, and a jurisdiction that requires a specific procedure (such as ACCA Manual J for homes) still needs that procedure.",
+    sources: "ASHRAE Handbook—Fundamentals, Nonresidential Cooling and Heating Load Calculations chapter (RTS method structure, clear-sky model form); Mackey and Wright (1944), time lag and decrement; Spitler, Load Calculation Applications Manual.",
+    related: ["fan-system", "psychrometrics", "air-heat"],
   },
 ];

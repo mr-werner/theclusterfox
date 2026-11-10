@@ -135,6 +135,22 @@ export function Pick({ label, options, value, onPick }) {
   );
 }
 
+/** A labelled dropdown of { value, label } options. */
+export function Choice({ label, value, options, onChange }) {
+  return (
+    <label className="dg-pick">
+      <span className="dg-num-label">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 /** A read-only value badge on the diagram. */
 export function Badge({ label, children, strong }) {
   return (

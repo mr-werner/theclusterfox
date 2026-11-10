@@ -625,3 +625,271 @@
     animation: none;
   }
 }
+
+/* ---- Ways to practice: technique, awareness, body scan ---- */
+.cm-practices h2 {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+}
+
+.cm-practice-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .cm-practice-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cm-practice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 16px 18px;
+  border: 1px solid var(--cm-line);
+  border-radius: var(--cm-radius);
+  color: var(--text);
+  background: var(--cm-surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 400ms var(--cm-slow), transform 400ms var(--cm-slow);
+}
+
+.cm-practice:hover,
+.cm-practice:focus-visible {
+  border-color: var(--cm-line-strong);
+  transform: translateY(-2px);
+}
+
+.cm-practice .cm-mood-icon {
+  grid-row: span 2;
+  margin: 0;
+}
+
+.cm-practice .cm-mood-name {
+  font-size: 1.1rem;
+}
+
+.cm-practice--techniques {
+  --tile: var(--cm-mist);
+}
+
+.cm-practice--awareness {
+  --tile: var(--cm-sage);
+}
+
+.cm-practice--bodyscan {
+  --tile: var(--cm-lavender);
+}
+
+.cm-own-rhythm {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 14px 18px;
+  border: 1px dashed var(--cm-line-strong);
+  border-radius: var(--cm-radius);
+  color: var(--text);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cm-own-rhythm span {
+  color: var(--cm-muted);
+  font-size: 0.88rem;
+}
+
+.cm-own-rhythm:hover {
+  border-color: var(--cm-accent);
+}
+
+.cm-free-note {
+  margin: 0 0 14px;
+  color: var(--cm-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.cm-setup-head .cm-free-note {
+  margin: 10px 0 0;
+}
+
+/* ---- Adjusting a session while it plays ---- */
+.cm-player-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0.6;
+}
+
+.cm-player-foot:hover,
+.cm-player-foot:focus-within {
+  opacity: 1;
+}
+
+.cm-player .cm-player-foot .cm-end {
+  opacity: 1;
+}
+
+.cm-adjust-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--cm-line-strong);
+  border-radius: 999px;
+  color: var(--text);
+  background: transparent;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.cm-adjust-btn[aria-expanded="true"] {
+  border-color: var(--cm-kind);
+}
+
+.cm-adjust-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  border: 0;
+  background: rgba(0, 0, 0, 0.18);
+  cursor: default;
+}
+
+.cm-adjust {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  gap: 18px;
+  width: min(100%, 560px);
+  max-height: 80vh;
+  padding: 20px 20px max(22px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  border: 1px solid var(--cm-line-strong);
+  border-bottom: 0;
+  border-radius: var(--cm-radius) var(--cm-radius) 0 0;
+  color: var(--text);
+  transform: translateX(-50%);
+  animation: cm-sheet-up 360ms var(--cm-slow) both;
+}
+
+.cm[data-theme="light"] .cm-adjust {
+  background: #f7f5ef;
+  box-shadow: 0 -18px 50px rgba(47, 58, 53, 0.14);
+}
+
+.cm[data-theme="dark"] .cm-adjust {
+  background: #161d1a;
+  box-shadow: 0 -18px 50px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes cm-sheet-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 24px);
+  }
+}
+
+.cm-adjust header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cm-adjust h3 {
+  margin: 0;
+  font-family: var(--cm-serif);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.cm-icon-btn--sm {
+  width: 38px;
+  height: 38px;
+}
+
+.cm-adjust-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.cm-adjust-row--stack {
+  display: grid;
+}
+
+.cm-adjust-label {
+  color: var(--cm-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.cm-adjust-row--stack .cm-chips + .cm-field {
+  margin-top: 4px;
+}
+
+.cm-adjust-note {
+  color: var(--cm-muted);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cm-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cm-stepper button {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--cm-line-strong);
+  border-radius: 999px;
+  color: var(--text);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cm-stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.cm-stepper output {
+  min-width: 64px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-adjust {
+    animation: none;
+  }
+}
+
+.cm-adjust .cm-field {
+  margin: 0;
+}

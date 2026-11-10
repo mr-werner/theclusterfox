@@ -164,9 +164,15 @@ export function speak(text, { voice, rate = 0.85, pitch = 1, volume = 1, onEnd }
       if (playing?.source === source) playing = null;
       onEnd?.();
     };
-    playing = { source, token: mine };
+    playing = { source, gain, token: mine };
     source.start();
   });
+}
+
+/** Change the volume of the line playing now. Device voices can't change mid-sentence, so they pick it up on the next line. */
+export function setSpeakingVolume(volume) {
+  const ac = audio();
+  if (ac && playing?.gain) playing.gain.gain.setTargetAtTime(volume, ac.currentTime, 0.1);
 }
 
 export function isSpeaking() {

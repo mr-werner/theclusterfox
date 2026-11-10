@@ -3,6 +3,7 @@ import { G } from "../model/units.js";
 import { frictionFactor, flowRegime, circleArea } from "../model/math.js";
 import { FLUID_PRESETS } from "../data/fluids.js";
 import { ROUGHNESS, HAZEN_C, MANNING_N, STEEL_PIPE, pipeLabel } from "../data/piping.js";
+import { pumpSystem } from "./pumpSystem.js";
 
 const fluidPreset = (extra) => preset("fluid", "Fluid", FLUID_PRESETS, extra);
 const rhoIn = () => num("rho", "Density", "density", 998.2, { min: 0 });
@@ -14,6 +15,7 @@ const pipePresets = [
 ];
 
 export const fluids = [
+  pumpSystem,
   {
     id: "pipe-velocity",
     cat: "fluids",
@@ -119,7 +121,7 @@ export const fluids = [
     about:
       "Darcy–Weisbach is the general-purpose pipe friction equation: it works for any Newtonian fluid, in any units, at any temperature. The friction factor comes from the Colebrook–White equation, solved exactly here rather than read off a chart. The dot on the Moody chart shows where your pipe sits.",
     sources: "Colebrook (1939); Moody (1944); Crane TP-410 for fitting K values.",
-    related: ["pipe-velocity", "reynolds", "pump-power", "hazen-williams"],
+    related: ["pipe-velocity", "reynolds", "pump-power", "hazen-williams", "pump-system"],
   },
   {
     id: "hazen-williams",
@@ -201,7 +203,7 @@ export const fluids = [
     },
     formula: ["P_hydraulic = ρ g Q H", "P_shaft = P_hydraulic / η_pump", "P_electric = P_shaft / η_motor"],
     about: "The power that ends up in the fluid is density × g × flow × head. Real pumps waste some of it as heat, so divide by efficiency to size the motor. Centrifugal pumps typically run 50–85% efficient.",
-    related: ["pressure-drop"],
+    related: ["pressure-drop", "pump-system"],
   },
   {
     id: "orifice",

@@ -115,3 +115,25 @@ export const MINOR_LOSSES = [
   ["Pipe entrance, rounded", 0.05],
   ["Pipe exit into tank", 1],
 ].map(([name, K]) => ({ name, K }));
+
+// ASTM B88 copper water tube: nominal size, OD in, wall in (Type K), wall in (Type L).
+const COPPER = [
+  ["1/2", 0.625, 0.049, 0.04],
+  ["3/4", 0.875, 0.065, 0.045],
+  ["1", 1.125, 0.065, 0.05],
+  ["1-1/4", 1.375, 0.065, 0.055],
+  ["1-1/2", 1.625, 0.072, 0.06],
+  ["2", 2.125, 0.083, 0.07],
+  ["2-1/2", 2.625, 0.095, 0.08],
+  ["3", 3.125, 0.109, 0.09],
+  ["4", 4.125, 0.134, 0.11],
+  ["5", 5.125, 0.16, 0.125],
+  ["6", 6.125, 0.192, 0.14],
+];
+
+export const COPPER_TUBE = COPPER.flatMap(([size, od, wk, wl]) =>
+  [
+    ["K", wk],
+    ["L", wl],
+  ].map(([type, wall]) => ({ size, type, OD: od * IN, t: wall * IN, ID: (od - 2 * wall) * IN }))
+);

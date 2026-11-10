@@ -18,6 +18,18 @@ export const CATEGORIES = [
   { id: "geo", name: "Geometry & Math", short: "Geometry", icon: Shapes, hue: "#ff7aa8", blurb: "Tanks, areas, volumes, slopes and interpolation." },
 ];
 
+/** Full-page builders that don't fit the one-form calculator layout. */
+export const BUILDERS = [
+  {
+    id: "frame",
+    cat: "mech",
+    name: "Frame builder",
+    blurb: "Draw a 2D frame or truss from standard sizes, pick connections and supports, load it, and get axial, shear, moment, deflection and member checks.",
+    keywords: "frame builder structure structural analysis portal frame truss braced frame stiffness method 2d frame members joints connections pinned rigid moment connection supports wide flange w shape hss ipe hea lumber timber steel aluminum axial force shear moment diagram deflected shape reactions buckling utilization",
+    path: "/tools/frame",
+  },
+];
+
 export const CALCS = [...fluids, ...heat, ...air, ...mechanics, ...electrical, ...geometry];
 
 export { TABLES };
@@ -32,10 +44,12 @@ export const calcById = Object.fromEntries(CALCS.map((c) => [c.id, c]));
 export const CALC_ALIASES = {
   "beam-builder": { to: "beam", params: { setup: "custom", L: "8", model: "pin@0;roller@5;w6000@0-5;P12000@8", I: "2.77e-5", S: "2.52e-4" } },
 };
+export const builderById = Object.fromEntries(BUILDERS.map((b) => [b.id, b]));
 export const tableById = Object.fromEntries(TABLES.map((t) => [t.id, t]));
 
 /** Everything searchable, as { kind, id, name, blurb, cat, path, keywords }. */
 export const SEARCH_INDEX = [
+  ...BUILDERS.map((b) => ({ kind: "builder", id: b.id, name: b.name, blurb: b.blurb, cat: b.cat, path: b.path, keywords: b.keywords })),
   ...CALCS.map((c) => ({ kind: "calc", id: c.id, name: c.name, blurb: c.blurb, cat: c.cat, path: `/tools/calc/${c.id}`, keywords: c.keywords || "" })),
   ...TABLES.map((t) => ({ kind: "table", id: t.id, name: t.name, blurb: t.blurb, cat: t.cat, path: `/tools/data/${t.id}`, keywords: t.keywords || "" })),
 ];

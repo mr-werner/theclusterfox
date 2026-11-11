@@ -11,12 +11,12 @@ const GROUND = 380, X = 260, MAX_UP = 270;
 
 export default function EnergyDiagram({ values: v, set, output, unit, setUnit }) {
   const svgRef = useRef(null);
-  const num = (key, label, dim) => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const num = (key, label, dim) => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
   const h = Number.isFinite(v.h) ? v.h : 0;
   const top = Math.max(1, Math.abs(h) * 1.25, 10);
   const sy = (z) => GROUND - (clamp(z, 0, top) / top) * MAX_UP;
   const by = sy(h);
-  const drag = useDrag(svgRef, ({ y }) => set("h", tidy(((GROUND - clamp(y, GROUND - MAX_UP, GROUND)) / MAX_UP) * top)));
+  const drag = useDrag(svgRef, ({ y }) => set("h", tidy(((GROUND - clamp(y, GROUND - MAX_UP, GROUND)) / MAX_UP) * top)), { field: "h" });
   const nudge = keyNudge((k) => set("h", tidy(Math.max(0, h + (k * top) / 100))));
   const res = (id) => output.results.find((r) => r.id === id);
   const KE = res("KE"), PE = res("PE"), vf = res("vf");

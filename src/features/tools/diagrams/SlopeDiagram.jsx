@@ -15,9 +15,9 @@ export default function SlopeDiagram({ values: v, set, output, unit, setUnit }) 
   const dRise = dRun * s;
   const X1 = X0 + dRun, Y1 = Y0 - dRise;
   // Dragging the top corner changes the rise; the run stays put.
-  const drag = useDrag(svgRef, ({ y }) => set("rise", tidy(Math.max(0, ((Y0 - clamp(y, Y0 - MAX_RISE, Y0)) / dRun) * run))));
+  const drag = useDrag(svgRef, ({ y }) => set("rise", tidy(Math.max(0, ((Y0 - clamp(y, Y0 - MAX_RISE, Y0)) / dRun) * run))), { field: "rise" });
   const nudge = keyNudge((k) => set("rise", tidy(Math.max(0, rise + (k * run) / 100))));
-  const num = (key, label) => <Num label={label} dim="length" value={v[key]} unit={unit("length")} onValue={(x) => set(key, x)} onUnit={(u) => setUnit("length", u)} />;
+  const num = (key, label) => <Num field={key} label={label} dim="length" value={v[key]} unit={unit("length")} onValue={(x) => set(key, x)} onUnit={(u) => setUnit("length", u)} />;
   const angle = Math.atan2(rise, run);
   const arcR = 54;
   const res = (id) => output.results.find((r) => r.id === id);

@@ -454,3 +454,101 @@
     justify-content: center;
   }
 }
+
+/* Dragging and typing on the drawing. */
+
+.fr-svg .fr-node circle.fr-hit,
+.fr-hit {
+  fill: transparent;
+  stroke: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.fr-load.is-point {
+  cursor: grab;
+  touch-action: none;
+}
+
+.fr-hit-line {
+  stroke: transparent !important;
+  stroke-width: 22 !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+.fr-svg.is-dragging,
+.fr-svg.is-dragging .fr-hit,
+.fr-svg.is-dragging .fr-load.is-point {
+  cursor: grab;
+  touch-action: none;
+}
+
+.fr-hit-line {
+  cursor: grabbing;
+}
+
+.fr-node:hover circle:not(.fr-hit) {
+  stroke: var(--tf-accent);
+}
+
+.fr-node.is-drag circle:not(.fr-hit) {
+  fill: #ffc764;
+}
+
+.fr-load.is-drag line:not(.fr-hit-line) {
+  stroke: #ffc764;
+}
+
+.fr-tags {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fr-tag {
+  position: absolute;
+  z-index: 2;
+  pointer-events: auto;
+  white-space: nowrap;
+}
+
+.fr-tag.is-c { transform: translate(-50%, -50%); }
+.fr-tag.is-t { transform: translate(-50%, 0); }
+.fr-tag.is-b { transform: translate(-50%, -100%); }
+.fr-tag.is-l { transform: translate(0, -50%); }
+.fr-tag.is-r { transform: translate(-100%, -50%); }
+.fr-tag.is-tl { transform: translate(0, 0); }
+.fr-tag.is-tr { transform: translate(-100%, 0); }
+.fr-tag.is-bl { transform: translate(0, -100%); }
+.fr-tag.is-br { transform: translate(-100%, -100%); }
+
+.fr-tag.is-read {
+  pointer-events: none;
+}
+
+.fr-tag-text {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--tf-cat) 55%, transparent);
+  border-radius: 8px;
+  background: rgba(6, 22, 42, 0.92);
+  color: #fff;
+  font-family: var(--tf-mono, ui-monospace, monospace);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fr-tag.is-live .fr-tag-text {
+  border-color: #ffc764;
+  box-shadow: 0 0 0 3px rgba(255, 199, 100, 0.18);
+}
+
+.fr-tag-text b {
+  color: #ffc764;
+}
+
+.fr-tag-row {
+  display: flex;
+  gap: 6px;
+}

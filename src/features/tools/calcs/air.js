@@ -24,24 +24,9 @@ const LOAD_EXAMPLE = stringifyProject([
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // A rooftop unit serving one run of ductwork: 2,000 cfm, critical path to the farthest diffuser.
-const FAN_EXAMPLE = [
-  "c,louv,40",
-  "c,filt,100",
-  "c,ccoil,150",
-  "f,entP,1",
-  "d,x,0.508,0.3048,3.048,g",
-  "f,el90mv,1",
-  "d,x,0.508,0.3048,12.192,l",
-  "f,teeS,2",
-  "f,red,1",
-  "d,r,0.3048,9.144,g,0.47195",
-  "f,wyeB,1",
-  "d,r,0.2032,4.572,g,0.14158",
-  "f,el90r,1",
-  "d,r,0.2032,1.829,f,0.14158",
-  "f,flex90,1",
-  "c,diff,25",
-].join(";");
+// The example starts small: one duct run, one fitting and one component.
+// Add to it or delete from there.
+const FAN_EXAMPLE = ["d,r,0.3048,9.144,g", "f,el90r,1", "c,diff,25"].join(";");
 
 export const air = [
   {
@@ -197,7 +182,7 @@ export const air = [
     blurb: "Build the duct path, then get the static pressure, fan power and motor size, corrected for elevation.",
     keywords: "fan sizing duct static pressure external static esp total pressure elevation altitude density correction fan curve system curve operating point bhp motor flex duct fittings duct design friction rate equal friction",
     inputs: [
-      num("Q", "Fan airflow (actual)", "airflow", 0.943895, { min: 0 }),
+      num("Q", "Fan airflow (actual)", "airflow", 0.471947, { min: 0 }),
       text("model", "Duct path", FAN_EXAMPLE, { hidden: true }),
       num("z", "Site elevation", "length", 0, { min: -400, max: 6000 }),
       num("T", "Air temperature at the fan", "temp", 294.261),
@@ -209,10 +194,10 @@ export const air = [
       num("rate", "Target friction rate (for sizing ducts)", "pressureGradient", 0.817, { min: 0 }),
       num("vmax", "Velocity limit (for sizing ducts)", "velocity", 7.62, { min: 0 }),
       choice("fan", "Check a fan", [{ value: "none", label: "No fan curve yet" }, { value: "curve", label: "Plot a fan from its catalog" }]),
-      num("P0", "Fan shutoff pressure (catalog, standard air)", "airPressure", 597.8, { min: 0, when: (v) => v.fan === "curve" }),
-      num("Qr", "Catalog airflow", "airflow", 0.943895, { min: 0, when: (v) => v.fan === "curve" }),
-      num("Pr", "Catalog pressure at that airflow", "airPressure", 473.3, { min: 0, when: (v) => v.fan === "curve" }),
-      num("Qmax", "Fan free-delivery airflow (zero pressure)", "airflow", 1.699, { min: 0, when: (v) => v.fan === "curve" }),
+      num("P0", "Fan shutoff pressure (catalog, standard air)", "airPressure", 99.64, { min: 0, when: (v) => v.fan === "curve" }),
+      num("Qr", "Catalog airflow", "airflow", 0.471947, { min: 0, when: (v) => v.fan === "curve" }),
+      num("Pr", "Catalog pressure at that airflow", "airPressure", 62.27, { min: 0, when: (v) => v.fan === "curve" }),
+      num("Qmax", "Fan free-delivery airflow (zero pressure)", "airflow", 0.755115, { min: 0, when: (v) => v.fan === "curve" }),
     ],
     compute: (v) => {
       const items = parseSystem(v.model);

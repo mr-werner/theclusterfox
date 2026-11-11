@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeftRight, BookOpen, Calculator, ChevronRight, Clock, Network, Search, Star, Table2, Wrench } from "lucide-react";
+import { ArrowLeftRight, BookOpen, Calculator, ChevronRight, Clock, FolderOpen, Network, Search, Star, Table2, Wrench } from "lucide-react";
 import AppBar from "../../components/AppBar";
 import { CATEGORIES, CALCS, TABLES, BUILDERS, CALC_ALIASES, calcById, tableById, builderById, categoryById, search } from "./registry";
 import { usePrefs } from "./state/usePrefs";
@@ -13,10 +13,21 @@ import { MakeRoute } from "./design/MakeView";
 import { CALLOUTS as GDT_CALLOUTS } from "./design/gdtModel";
 import "./tools.css";
 import "./identity.css";
+import ProjectsProvider from "./state/ProjectsProvider";
+import { useProjects } from "./state/useProjects";
+import { ProjectsIndex, ProjectPage, ProjectReport } from "./components/ProjectsView";
 
 const POPULAR = ["pressure-drop", "beam", "psychrometrics", "voltage-drop", "tank-volume", "section-properties"];
 
 export default function ToolsPage() {
+  return (
+    <ProjectsProvider>
+      <ToolsShell />
+    </ProjectsProvider>
+  );
+}
+
+function ToolsShell() {
   const prefsApi = usePrefs();
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -54,6 +65,9 @@ export default function ToolsPage() {
             <kbd>/</kbd>
           </button>
           <nav className="tf-side-nav">
+            <NavLink to="/tools/projects" className="tf-side-link">
+              <FolderOpen size={16} aria-hidden="true" /> Projects
+            </NavLink>
             <NavLink to="/tools/convert" className="tf-side-link">
               <ArrowLeftRight size={16} aria-hidden="true" /> Unit converter
             </NavLink>
@@ -93,6 +107,9 @@ export default function ToolsPage() {
             <Route path="gdt/:id" element={<Touch prefsApi={prefsApi} id="builder:gdt"><GdtRoute prefsApi={prefsApi} /></Touch>} />
             <Route path="make" element={<Touch prefsApi={prefsApi} id="builder:make"><MakeRoute prefsApi={prefsApi} /></Touch>} />
             <Route path="make/methods" element={<Touch prefsApi={prefsApi} id="builder:methods"><MakeRoute prefsApi={prefsApi} library /></Touch>} />
+            <Route path="projects" element={<ProjectsIndex />} />
+            <Route path="projects/:id" element={<ProjectPage />} />
+            <Route path="projects/:id/report" element={<ProjectReport />} />
             <Route path="convert" element={<ConverterRoute prefsApi={prefsApi} />} />
             <Route path="convert/:dim" element={<ConverterRoute prefsApi={prefsApi} />} />
             <Route path="*" element={<Home prefsApi={prefsApi} openSearch={() => setPaletteOpen(true)} />} />
@@ -185,6 +202,8 @@ function Home({ prefsApi, openSearch }) {
         </button>
       </section>
 
+      <HomeProjects />
+
       {(favorites.length > 0 || recent.length > 0) && (
         <section className="tf-home-block">
           {favorites.length > 0 && (
@@ -251,6 +270,26 @@ function Home({ prefsApi, openSearch }) {
         </div>
       </section>
     </div>
+  );
+}
+
+/** Your latest projects, on the home page. */
+function HomeProjects() {
+  const { projects } = useProjects();
+  if (!projects.length) return null;
+  const latest = [...projects].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3);
+  return (
+    <section className="tf-home-block">
+      <h2 className="tf-block-title">
+        <FolderOpen size={16} aria-hidden="true" /> Projects
+      </h2>
+      <div className="tf-tool-list">
+        {latest.map((p) => (
+          <ToolCard key={p.id} item={{ kind: "project", icon: FolderOpen, name: p.name, blurb: `${p.items.length} saved ${p.items.length === 1 ? "calculation" : "calculations"}${p.number ? ` · ${p.number}` : ""}`, path: `/tools/projects/${p.id}` }} />
+        ))}
+        <ToolCard item={{ kind: "project", icon: FolderOpen, name: "All projects", blurb: "Open, print or start a project.", path: "/tools/projects" }} />
+      </div>
+    </section>
   );
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Check, Link2, MousePointer2, PenLine, Plus, RotateCcw, Star, Trash2, TriangleAlert, Undo2, X } from "lucide-react";
 import ZoomPan from "./ZoomPan";
+import { Num } from "../diagrams/kit";
 import { NumField, UnitSelect } from "./Fields";
 import { SectionShape } from "./Visuals";
 import { categoryById } from "../registry";
@@ -141,6 +142,9 @@ export default function FrameView({ prefsApi }) {
     setModelState(next);
     return next;
   };
+  // Dragging on the drawing: one undo step for the whole drag, live updates while it moves.
+  const beginLive = () => setHistory((h) => [...h.slice(-49), model]);
+  const live = (fn) => setModelState((m) => clean(fn(m)));
   const undo = () => {
     if (!history.length) return;
     setModelState(history[history.length - 1]);
@@ -371,11 +375,25 @@ export default function FrameView({ prefsApi }) {
           ? pending
             ? `Drawing from joint ${pending}. Tap a grid point, a joint or a member to add the next member. Tap ${pending} again to stop.`
             : "Tap the grid to place a joint, then tap again to draw a member to the next point. Tapping a member adds a joint on it."
-          : "Tap a joint or member to edit it. Pinch or use + to zoom; Fit shows the whole frame."}
+          : "Drag a joint to move it, or drag a point load along its member; the sizes show as you go. Tap a joint or member to type its position, length or loads right on the drawing. Arrow keys nudge the selected joint."}
       </p>
 
       <section className="tf-card fr-canvas-card" aria-label="Frame drawing">
-        <FrameCanvas model={model} result={result} view={view} sel={sel} pending={pending} mode={mode} onTap={onCanvasTap} unitFor={unitFor} />
+        <FrameCanvas
+          model={model}
+          result={result}
+          view={view}
+          sel={sel}
+          pending={pending}
+          mode={mode}
+          onTap={onCanvasTap}
+          onSelect={setSel}
+          unitFor={unitFor}
+          setUnit={setUnit}
+          beginLive={beginLive}
+          live={live}
+          setModel={setModel}
+        />
       </section>
 
       <div className="fr-grid">
@@ -465,24 +483,9 @@ function frameSectionMat(sec) {
   return FRAME_SECTIONS.find((s) => s.id === sec)?.mat || "a992";
 }
 
-// The drawing -----------------------------------------------------------------
-
-function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }) {
-  const svgRef = useRef(null);
-  const boxRef = useRef(null);
-  // Drawn at about the card's own width, so labels stay readable on a phone.
-  const [W, setW] = useState(800);
-  useLayoutEffect(() => {
-    const el = boxRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(([e]) => setW(Math.round(Math.min(860, Math.max(340, e.contentRect.width - 4)))));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+/** The world window and scale that fit the whole frame in a drawing W wide. */
+function fitView(nodes, grid, mode, W) {
   const maxH = Math.max(420, Math.min(900, W * 1.25)), minH = Math.max(260, W * 0.45);
-  const grid = model.grid > 0 ? model.grid : 0.5;
-  const { nodes, members, loads } = model;
-
   // World extents with room around the frame; more room while drawing.
   const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
   const margin = grid * (mode === "draw" ? 4 : 2) + (nodes.length ? 0 : grid * 8);
@@ -503,14 +506,41 @@ function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }
     H = maxH;
     const cx = (minX + maxX) / 2, half = (W - 2 * pad) / k / 2;
     minX = cx - half;
-    maxX = cx + half;
   }
   if (H < minH) {
     const cy = (minY + maxY) / 2, half = (minH - 2 * pad) / k / 2;
-    minY = cy - half;
     maxY = cy + half;
     H = minH;
   }
+  return { minX, maxY, k, H, pad, W };
+}
+
+// The drawing -----------------------------------------------------------------
+
+function FrameCanvas({ model, result, view, sel, pending, mode, onTap, onSelect, unitFor, setUnit, beginLive, live, setModel }) {
+  const svgRef = useRef(null);
+  const boxRef = useRef(null);
+  // Drawn at about the card's own width, so labels stay readable on a phone.
+  const [W, setW] = useState(800);
+  useLayoutEffect(() => {
+    const el = boxRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => setW(Math.round(Math.min(860, Math.max(340, e.contentRect.width - 4)))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const grid = model.grid > 0 ? model.grid : 0.5;
+  const { nodes, members, loads } = model;
+
+  // While something is being dragged the view holds still, so the frame doesn't
+  // rescale under the pointer. It refits when the drag ends.
+  const [frozen, setFrozen] = useState(null);
+  const [dragging, setDragging] = useState(null); // { kind: "node", id } | { kind: "load", id }
+  const dragRef = useRef(null);
+  const suppressClick = useRef(false);
+  const fitted = fitView(nodes, grid, mode, W);
+  const { minX, maxY, k, H, pad } = frozen && frozen.W === W ? frozen : fitted;
+  const maxX = minX + (W - 2 * pad) / k, minY = maxY - (H - 2 * pad) / k;
   const X = (x) => pad + (x - minX) * k;
   const Y = (y) => pad + (maxY - y) * k;
   const node = (id) => nodes.find((n) => n.id === id);
@@ -526,6 +556,10 @@ function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }
   }
 
   function onClick(e) {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
     const { x, y, tol } = toWorld(e);
     let best = null;
     for (const n of nodes) {
@@ -552,6 +586,83 @@ function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }
     }
     onTap({ x: snap(x), y: snap(y) });
   }
+
+  // Dragging joints and point loads. A press that doesn't move stays a tap.
+  const startDrag = (e, what) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    e.stopPropagation();
+    dragRef.current = { ...what, x0: e.clientX, y0: e.clientY, moved: false, view: { minX, maxY, k, H, pad, W } };
+    svgRef.current?.setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e) => {
+    const d = dragRef.current;
+    if (!d) return;
+    if (!d.moved) {
+      if (Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 5) return;
+      d.moved = true;
+      beginLive();
+      setFrozen(d.view);
+      setDragging({ kind: d.kind, id: d.id });
+      if (d.kind === "node" && mode === "select") onSelect({ kind: "node", id: d.id });
+      if (d.kind === "load" && mode === "select") onSelect({ kind: "member", id: d.member });
+    }
+    const v = d.view;
+    const svg = svgRef.current;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const wx = (p.x - v.pad) / v.k + v.minX, wy = v.maxY - (p.y - v.pad) / v.k;
+    // Snap to the grid; hold Alt (Option) to place freely.
+    const step = e.altKey ? grid / 20 : grid;
+    const snap = (q) => Number((Math.round(q / step) * step).toFixed(6));
+    if (d.kind === "node") {
+      const x = snap(wx), y = snap(wy);
+      live((m) => {
+        // Don't drop a joint right on top of another one.
+        if (m.nodes.some((n) => n.id !== d.id && Math.abs(n.x - x) < 1e-9 && Math.abs(n.y - y) < 1e-9)) return m;
+        return { ...m, nodes: m.nodes.map((n) => (n.id === d.id ? { ...n, x, y } : n)) };
+      });
+    } else {
+      live((m) => {
+        const mem = m.members.find((q) => q.id === d.member);
+        const a = mem && m.nodes.find((n) => n.id === mem.a), b = mem && m.nodes.find((n) => n.id === mem.b);
+        if (!a || !b) return m;
+        const L = Math.hypot(b.x - a.x, b.y - a.y);
+        const t = segDist(wx, wy, a.x, a.y, b.x, b.y).t;
+        const half = e.altKey ? grid / 40 : grid / 2;
+        const at = Math.min(L, Math.max(0, Number((Math.round((t * L) / half) * half).toFixed(6))));
+        return { ...m, loads: m.loads.map((l) => (l.id === d.id ? { ...l, a: at } : l)) };
+      });
+    }
+  };
+  const endDrag = () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (!d) return;
+    if (d.moved) suppressClick.current = true;
+    setFrozen(null);
+    setDragging(null);
+  };
+
+  // Arrow keys nudge the selected joint by one grid step (Shift: a tenth).
+  useEffect(() => {
+    if (sel?.kind !== "node") return;
+    const onKey = (e) => {
+      const dir = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
+      if (!dir) return;
+      const t = e.target;
+      if (t && (t.closest?.("input, select, textarea, [contenteditable]") || (t.getAttribute?.("role") === "radio"))) return;
+      e.preventDefault();
+      const step = e.shiftKey ? grid / 10 : grid;
+      setModel((m) => ({
+        ...m,
+        nodes: m.nodes.map((n) => (n.id === sel.id ? { ...n, x: Number((n.x + dir[0] * step).toFixed(6)), y: Number((n.y + dir[1] * step).toFixed(6)) } : n)),
+      }));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sel, grid, setModel]);
 
   // Grid.
   const gridLines = [];
@@ -589,7 +700,7 @@ function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }
     <div ref={boxRef}>
     <ZoomPan width={W} label="frame drawing">
       <div className="fr-draw">
-        <svg ref={svgRef} viewBox={`0 0 ${W} ${H.toFixed(1)}`} role="img" aria-label="Frame drawing" onClick={onClick} className={`fr-svg is-${mode}`}>
+        <svg ref={svgRef} viewBox={`0 0 ${W} ${H.toFixed(1)}`} role="img" aria-label="Frame drawing" onClick={onClick} onPointerMove={onPointerMove} onPointerUp={endDrag} onPointerCancel={endDrag} className={`fr-svg is-${mode} ${dragging ? "is-dragging" : ""}`}>
           <defs>
             <marker id="fr-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" className="fr-arrowhead" />
@@ -693,8 +804,12 @@ function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }
                 if (l.kind === "point") {
                   const at = Math.min(Math.max(l.a ?? L / 2, 0), L);
                   const [tx, ty] = tip(a.x + c * at, a.y + s * at);
+                  const isDrag = dragging?.kind === "load" && dragging.id === l.id;
                   return (
-                    <g key={l.id} className="fr-load">
+                    <g key={l.id} className={`fr-load is-point ${isDrag ? "is-drag" : ""}`} onPointerDown={(e) => startDrag(e, { kind: "load", id: l.id, member: m.id })}>
+                      <line x1={tx - dx * loadArrowLen * 1.4} y1={ty - dy * loadArrowLen * 1.4} x2={tx} y2={ty} className="fr-hit-line">
+                        <title>Drag along the member to move this load</title>
+                      </line>
                       <line x1={tx - dx * loadArrowLen * 1.4} y1={ty - dy * loadArrowLen * 1.4} x2={tx - dx * 4} y2={ty - dy * 4} markerEnd="url(#fr-arrow)" />
                       <text x={tx - dx * loadArrowLen * 1.4 + (dy ? 6 : 0)} y={ty - dy * loadArrowLen * 1.4 - (dx ? 6 : 0) - (dy > 0 ? 4 : -12)} className="fr-load-text" textAnchor={dy ? "start" : "middle"}>
                         {fmtF(Math.abs(val), "force")}
@@ -798,8 +913,11 @@ function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }
             const isSel = sel?.kind === "node" && sel.id === n.id;
             const isPend = pending === n.id;
             return (
-              <g key={n.id} className={`fr-node ${isSel ? "is-sel" : ""} ${isPend ? "is-pending" : ""}`}>
+              <g key={n.id} className={`fr-node ${isSel ? "is-sel" : ""} ${isPend ? "is-pending" : ""} ${dragging?.kind === "node" && dragging.id === n.id ? "is-drag" : ""}`}>
                 <circle cx={X(n.x)} cy={Y(n.y)} r={isSel || isPend ? 8 : 6} />
+                <circle cx={X(n.x)} cy={Y(n.y)} r="17" className="fr-hit" onPointerDown={(e) => startDrag(e, { kind: "node", id: n.id })}>
+                  <title>{`Joint ${n.id}: drag to move, tap to edit`}</title>
+                </circle>
                 <text x={X(n.x) - 10} y={Y(n.y) - 10} textAnchor="end" className="fr-nlabel">
                   {n.id}
                 </text>
@@ -807,8 +925,187 @@ function FrameCanvas({ model, result, view, sel, pending, mode, onTap, unitFor }
             );
           })}
         </svg>
+        <FrameTags
+          model={model}
+          sel={sel}
+          mode={mode}
+          dragging={dragging}
+          X={X}
+          Y={Y}
+          W={W}
+          H={H}
+          unitFor={unitFor}
+          setUnit={setUnit}
+          setModel={setModel}
+        />
       </div>
     </ZoomPan>
+    </div>
+  );
+}
+
+/**
+ * Values that sit right on the drawing: what's being dragged, live as it moves, and
+ * typeable boxes for whatever is selected (a joint's position, a member's length,
+ * its loads and where they sit).
+ */
+function FrameTags({ model, sel, mode, dragging, X, Y, W, H, unitFor, setUnit, setModel }) {
+  const { nodes, members, loads } = model;
+  const boxRef = useRef(null);
+  // Keep every box inside the drawing: slide any that would hang off an edge back in.
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const outer = box.getBoundingClientRect();
+    const s = outer.width / (box.offsetWidth || 1) || 1;
+    const placed = [];
+    for (const el of box.children) {
+      el.style.translate = "";
+      const r = el.getBoundingClientRect();
+      let dx = r.left < outer.left + 4 ? outer.left + 4 - r.left : r.right > outer.right - 4 ? outer.right - 4 - r.right : 0;
+      let dy = r.top < outer.top + 4 ? outer.top + 4 - r.top : r.bottom > outer.bottom - 4 ? outer.bottom - 4 - r.bottom : 0;
+      // Then step clear of any box already placed (on a phone they can pile up).
+      for (let tries = 0; tries < 6; tries++) {
+        const a = { l: r.left + dx, r: r.right + dx, t: r.top + dy, b: r.bottom + dy };
+        const hit = placed.find((p) => a.l < p.r + 3 && a.r > p.l - 3 && a.t < p.b + 3 && a.b > p.t - 3);
+        if (!hit) break;
+        const down = hit.b + 4 - a.t, up = hit.t - 4 - a.b;
+        dy += a.b + down <= outer.bottom - 4 ? down : up;
+      }
+      placed.push({ l: r.left + dx, r: r.right + dx, t: r.top + dy, b: r.bottom + dy });
+      if (dx || dy) el.style.translate = `${dx / s}px ${dy / s}px`;
+    }
+  });
+  const node = (id) => nodes.find((n) => n.id === id);
+  const tags = [];
+  const place = (key, x, y, anchor, children, cls = "") => {
+    const ax = Math.min(W - 8, Math.max(8, x)), ay = Math.min(H - 8, Math.max(8, y));
+    tags.push(
+      <div key={key} className={`fr-tag is-${anchor} ${cls}`} style={{ left: `${(ax / W) * 100}%`, top: `${(ay / H) * 100}%` }}>
+        {children}
+      </div>
+    );
+  };
+  const num = (label, dim, value, onValue) => (
+    <Num compact unitText label={label} dim={dim} value={value} unit={unitFor(dim)} onValue={(v) => Number.isFinite(v) && onValue(v)} onUnit={(u) => setUnit(dim, u)} />
+  );
+  const lengthText = (L) => `${fmt(fromSI(L, "length", unitFor("length")), 4)} ${unitLabel("length", unitFor("length"))}`;
+  const geom = (m) => {
+    const a = node(m.a), b = node(m.b);
+    if (!a || !b) return null;
+    const L = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+    return { a, b, L, c: (b.x - a.x) / L, s: (b.y - a.y) / L };
+  };
+  // A side of the joint with room for the box: away from the middle of the drawing.
+  const jointTag = (key, n, children, cls) => {
+    const x = X(n.x), y = Y(n.y);
+    const right = x < W * 0.62, up = y > 70;
+    place(key, x + (right ? 16 : -16), y + (up ? -16 : 16), `${up ? "b" : "t"}${right ? "l" : "r"}`, children, cls);
+  };
+  const setLength = (m, Lnew) => {
+    if (!(Lnew > 0)) return;
+    setModel((cur) => {
+      const g = geom(m);
+      if (!g) return cur;
+      return { ...cur, nodes: cur.nodes.map((n) => (n.id === m.b ? { ...n, x: Number((g.a.x + g.c * Lnew).toFixed(6)), y: Number((g.a.y + g.s * Lnew).toFixed(6)) } : n)) };
+    });
+  };
+  const setLoad = (id, patch) => setModel((cur) => ({ ...cur, loads: cur.loads.map((l) => (l.id === id ? { ...l, ...patch } : l)) }));
+  const lengthTag = (m, editable) => {
+    const g = geom(m);
+    if (!g) return;
+    const mx = (X(g.a.x) + X(g.b.x)) / 2, my = (Y(g.a.y) + Y(g.b.y)) / 2;
+    // Off to the side of the member (screen normal), so the box doesn't hide it.
+    const nx = g.s, ny = g.c;
+    const off = editable ? 30 : 22;
+    place(`len${m.id}`, mx + nx * off, my + ny * off, "c", editable ? num(`${m.id} length`, "length", g.L, (v) => setLength(m, v)) : <span className="fr-tag-text">{`${m.id} ${lengthText(g.L)}`}</span>, editable ? "" : "is-read");
+  };
+
+  if (dragging?.kind === "node") {
+    const n = node(dragging.id);
+    if (n) {
+      jointTag(
+        "drag",
+        n,
+        <span className="fr-tag-text">
+          <b>{n.id}</b> x {lengthText(n.x)} · y {lengthText(n.y)}
+        </span>,
+        "is-read is-live"
+      );
+      members.filter((m) => m.a === n.id || m.b === n.id).forEach((m) => lengthTag(m, false));
+    }
+    return (
+      <div className="fr-tags" ref={boxRef}>
+        {tags}
+      </div>
+    );
+  }
+  if (dragging?.kind === "load") {
+    const l = loads.find((q) => q.id === dragging.id);
+    const m = l && members.find((q) => q.id === l.member);
+    const g = m && geom(m);
+    if (g) {
+      const at = Math.min(Math.max(l.a ?? g.L / 2, 0), g.L);
+      const px = X(g.a.x + g.c * at), py = Y(g.a.y + g.s * at);
+      place("drag", px, py + 18, "t", <span className="fr-tag-text">{`${lengthText(at)} from ${m.a} · ${lengthText(g.L - at)} from ${m.b}`}</span>, "is-read is-live");
+    }
+    return (
+      <div className="fr-tags" ref={boxRef}>
+        {tags}
+      </div>
+    );
+  }
+
+  if (mode === "select" && sel?.kind === "node") {
+    const n = node(sel.id);
+    if (n) {
+      jointTag(
+        "node",
+        n,
+        <div className="fr-tag-row">
+          {num(`${n.id} x`, "length", n.x, (v) => setModel((cur) => ({ ...cur, nodes: cur.nodes.map((q) => (q.id === n.id ? { ...q, x: v } : q)) })))}
+          {num(`${n.id} y`, "length", n.y, (v) => setModel((cur) => ({ ...cur, nodes: cur.nodes.map((q) => (q.id === n.id ? { ...q, y: v } : q)) })))}
+        </div>
+      );
+    }
+  }
+  if (mode === "select" && sel?.kind === "member") {
+    const m = members.find((q) => q.id === sel.id);
+    const g = m && geom(m);
+    if (g) {
+      lengthTag(m, true);
+      for (const l of loads.filter((q) => q.on === "member" && q.member === m.id)) {
+        const val = l.kind === "udl" ? l.w : l.P;
+        const sgn = val < 0 ? -1 : 1;
+        let dx, dy;
+        if (l.dir === "right") (dx = sgn), (dy = 0);
+        else if (l.dir === "perp") (dx = sgn * g.s), (dy = sgn * g.c);
+        else (dx = 0), (dy = sgn);
+        if (l.kind === "point") {
+          const at = Math.min(Math.max(l.a ?? g.L / 2, 0), g.L);
+          const tx = X(g.a.x + g.c * at), ty = Y(g.a.y + g.s * at);
+          const len = 34 * 1.4 + 8;
+          place(
+            l.id,
+            tx - dx * len,
+            ty - dy * len,
+            dy > 0.5 ? "b" : dy < -0.5 ? "t" : dx > 0 ? "r" : "l",
+            <div className="fr-tag-row">
+              {num("Load", "force", l.P, (v) => setLoad(l.id, { P: v }))}
+              {num(`From ${m.a}`, "length", at, (v) => setLoad(l.id, { a: Math.min(Math.max(v, 0), g.L) }))}
+            </div>
+          );
+        } else {
+          const len = 34 * 0.7 + 10;
+          const mx = (X(g.a.x) + X(g.b.x)) / 2, my = (Y(g.a.y) + Y(g.b.y)) / 2;
+          place(l.id, mx - dx * len + (dy ? 70 : 0), my - dy * len, dy > 0.5 ? "bl" : dy < -0.5 ? "tl" : dx > 0 ? "r" : "l", num("Load per length", "linearLoad", l.w, (v) => setLoad(l.id, { w: v })));
+        }
+      }
+    }
+  }
+  return (
+    <div className="fr-tags" ref={boxRef}>
+      {tags}
     </div>
   );
 }

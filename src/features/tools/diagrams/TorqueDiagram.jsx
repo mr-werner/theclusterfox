@@ -8,7 +8,7 @@ const W = 860, H = 380;
 const CY = 180;
 
 export default function TorqueDiagram({ values: v, set, output, unit, setUnit }) {
-  const num = (key, label, dim) => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const num = (key, label, dim) => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
   const res = (id) => output.results.find((r) => r.id === id);
   const T = res("T"), d = res("d");
   // One turn every 60/rpm seconds is too fast to see; show it slowed to a readable spin.

@@ -666,10 +666,17 @@
   min-width: 0;
 }
 
-.tf-results {
+/* The results follow you down a long form, but only as a whole column, and only
+   when nothing else (a chart, a plot) sits under them. Pinning just the results card
+   made it slide over the export buttons and charts below it on big screens. */
+.tf-results-col {
   position: sticky;
   top: 16px;
   z-index: 2;
+}
+
+.tf-results-col:has(> :not(.tf-results):not(.tf-export)) {
+  position: static;
 }
 
 .tf-primary {
@@ -1452,11 +1459,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .tf-results {
-    position: static;
-  }
-
   .tf-results-col {
+    position: static;
     order: -1;
   }
 }
@@ -1689,6 +1693,17 @@
 
 .dg-num.is-bad {
   border-color: #ff7f6b;
+}
+
+/* The value a drag handle is changing, lit up while you drag it. */
+.dg-num[data-live] {
+  border-color: #ffc764;
+  box-shadow: 0 0 0 3px rgba(255, 199, 100, 0.25);
+  transition: none;
+}
+
+.dg-num[data-live] input {
+  color: #ffd98f;
 }
 
 .dg-num-label {
@@ -2563,34 +2578,235 @@ g:focus-visible > .dg-mass {
 
 /* Fan and duct system sizer */
 
-.fs-site {
+.fs-top {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  align-items: flex-end;
   margin-bottom: 10px;
 }
 
-.fs-site .dg-num {
+.fs-top .dg-num {
   box-shadow: none;
 }
 
-.fs-items {
-  counter-reset: fs;
+.fs-add {
+  margin-bottom: 6px;
 }
 
-.fs-item {
-  grid-template-columns: 120px minmax(0, 1fr) auto;
+.fs-chip {
+  border-color: color-mix(in srgb, var(--fs-c) 55%, transparent) !important;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.fs-chip svg {
+  color: var(--fs-c);
+}
+
+.fs-help {
+  margin: 0 0 8px;
+}
+
+.fs-canvas {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--tf-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.fs-path {
+  fill: none;
+  stroke: var(--tf-line-strong);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+}
+
+.fs-arrow {
+  fill: none;
+  stroke: #7be0c3;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fs-label {
+  fill: #d8ddda;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.fs-label.is-dim {
+  fill: var(--tf-muted);
+}
+
+.fs-label.is-warn {
+  fill: var(--tf-warn);
+}
+
+.fs-label.is-drop {
+  fill: var(--tf-cat);
+  font-weight: 600;
+}
+
+.fs-num {
+  font-weight: 700;
+}
+
+.fs-it {
+  outline: none;
+}
+
+.fs-it.is-moving {
+  opacity: 0.35;
+}
+
+.fs-duct,
+.fs-fit,
+.fs-comp {
+  fill: color-mix(in srgb, var(--fs-c) 20%, #0f1312);
+  stroke: var(--fs-c);
+  stroke-width: 1.5;
+}
+
+.fs-it:hover .fs-duct,
+.fs-it:hover .fs-fit,
+.fs-it:hover .fs-comp {
+  fill: color-mix(in srgb, var(--fs-c) 32%, #0f1312);
+}
+
+.fs-it.is-sel .fs-duct,
+.fs-it.is-sel .fs-fit,
+.fs-it.is-sel .fs-comp,
+.fs-it:focus-visible .fs-duct,
+.fs-it:focus-visible .fs-fit,
+.fs-it:focus-visible .fs-comp {
+  stroke: #fff;
+  stroke-width: 2.5;
+}
+
+.fs-flex,
+.fs-hatch {
+  fill: none;
+  stroke: color-mix(in srgb, var(--fs-c, #c6a6ff) 70%, transparent);
+  stroke-width: 1.2;
+  pointer-events: none;
+}
+
+.fs-it.is-duct .fs-flex {
+  stroke: color-mix(in srgb, #5cc8ff 60%, transparent);
+}
+
+.fs-it.is-comp .fs-hatch {
+  stroke: color-mix(in srgb, #c6a6ff 70%, transparent);
+}
+
+.fs-liner {
+  fill: none;
+  stroke: color-mix(in srgb, #5cc8ff 45%, transparent);
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.fs-glyph {
+  fill: #ffc764;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.fs-count {
+  fill: #ffc764;
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.fs-comp-text {
+  fill: #e6dcff;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.fs-handle-g {
+  outline: none;
+}
+
+.fs-drop {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 3;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.fs-drop.is-split {
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  fill: color-mix(in srgb, var(--tf-cat) 10%, transparent);
+}
+
+.fs-on .dg-num {
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.fs-on.is-live .dg-num {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-cat) 45%, transparent);
+}
+
+.fs-ghost {
+  position: fixed;
+  z-index: 50;
+  padding: 6px 12px;
+  border: 1px solid var(--fs-c);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fs-c) 25%, #0f1312);
+  color: #fff;
+  font-size: 0.8rem;
+  pointer-events: none;
+  transform: translate(-50%, -130%);
+}
+
+.fs-edit {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--tf-line);
   border-left: 3px solid var(--fs-c);
+  border-radius: 12px;
 }
 
-.fs-head {
+.fs-edit-head {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
+.fs-edit-name {
+  color: var(--fs-c);
+  font-size: 0.92rem;
+}
+
+.fs-edit .fs-tools {
+  margin-left: auto;
+}
+
+.fs-edit .dg-pick select {
+  max-width: 300px;
+}
+
+.fs-none {
+  margin: 10px 2px 0;
+}
+
 .fs-step {
   display: grid;
+  flex: none;
   place-items: center;
   width: 22px;
   height: 22px;
@@ -2599,18 +2815,6 @@ g:focus-visible > .dg-mass {
   color: var(--fs-c);
   font-size: 0.72rem;
   font-weight: 700;
-}
-
-.fs-item .dg-item-name {
-  color: var(--fs-c);
-}
-
-.fs-item .dg-pick {
-  min-width: 0;
-}
-
-.fs-item .dg-pick select {
-  max-width: 260px;
 }
 
 .fs-tools {
@@ -2623,10 +2827,19 @@ g:focus-visible > .dg-mass {
   cursor: default;
 }
 
+.fs-tools .dg-item-del:disabled:hover {
+  border-color: var(--tf-line);
+  color: var(--tf-muted);
+}
+
+.fs-tools .dg-item-del:not(.is-danger):hover {
+  border-color: var(--tf-cat);
+  color: var(--tf-cat);
+}
+
 .fs-out {
   display: flex;
   flex-wrap: wrap;
-  grid-column: 1 / -1;
   gap: 4px 12px;
   align-items: center;
   font-size: 0.82rem;
@@ -2650,8 +2863,42 @@ g:focus-visible > .dg-mass {
   color: var(--tf-warn);
 }
 
-.fs-add {
-  margin-top: 10px;
+.fs-list summary {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.fs-list ol {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fs-list button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--tf-line);
+  border-radius: 10px;
+  background: transparent;
+  color: #e8ece9;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.fs-list button:hover,
+.fs-list button.is-sel {
+  border-color: var(--fs-c);
+}
+
+.fs-list-name {
+  flex: 1;
+  min-width: 0;
 }
 
 .fs-budget {
@@ -2672,24 +2919,16 @@ g:focus-visible > .dg-mass {
 }
 
 .fs-chart {
-  margin-top: 14px;
+  margin-top: 8px;
 }
 
 @media (max-width: 560px) {
-  .fs-item {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .fs-top .ps-kpis {
+    margin-left: 0;
   }
 
-  .fs-item .dg-item-fields {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
-  .fs-item .dg-pick {
-    max-width: 100%;
-  }
-
-  .fs-item .dg-pick select {
+  .fs-edit .dg-pick,
+  .fs-edit .dg-pick select {
     width: 100%;
     max-width: 100%;
     text-overflow: ellipsis;

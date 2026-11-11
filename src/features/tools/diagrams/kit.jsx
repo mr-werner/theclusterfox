@@ -50,14 +50,16 @@ export function At({ x, y, anchor = "c", children, className = "" }) {
 }
 
 /** A compact number + unit box that lives on the drawing. */
-export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact }) {
+export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact, field, unitText }) {
   const [text, setText] = useState("");
   const [editing, setEditing] = useState(false);
   const shown = Number.isFinite(value) ? fmtInput(fromSI(value, dim, unit), 5) : text;
   const bad = editing && text.trim() !== "" && !Number.isFinite(parseNumber(text));
   const units = DIMS[dim]?.units || [];
+  // `unitText` shows the unit as plain text (no picker) to keep a box small.
+  const fixedUnit = unitText ? units.find((u) => u.id === unit)?.label : units[0]?.label;
   return (
-    <label className={`dg-num ${bad ? "is-bad" : ""} ${wide ? "is-wide" : ""} ${compact ? "is-compact" : ""}`}>
+    <label className={`dg-num ${bad ? "is-bad" : ""} ${wide ? "is-wide" : ""} ${compact ? "is-compact" : ""}`} data-field={field}>
       <span className="dg-num-label">{label}</span>
       <span className="dg-num-row">
         <input
@@ -89,7 +91,7 @@ export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact })
           }}
           aria-label={label}
         />
-        {units.length > 1 ? (
+        {units.length > 1 && !unitText ? (
           <select value={unit} onChange={(e) => onUnit(e.target.value)} aria-label={`${label} unit`}>
             {units.map((u) => (
               <option key={u.id} value={u.id}>
@@ -98,7 +100,7 @@ export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact })
             ))}
           </select>
         ) : (
-          units[0]?.label && <span className="dg-num-unit">{units[0].label}</span>
+          fixedUnit && <span className="dg-num-unit">{fixedUnit}</span>
         )}
       </span>
     </label>

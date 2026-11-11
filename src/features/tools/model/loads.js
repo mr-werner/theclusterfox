@@ -151,6 +151,8 @@ export function solveLoads(rooms, d) {
   const rhoAt = (T, W) => p / (287.042 * T * (1 + 1.607858 * W)) * (1 + W);
   const rhoI = rhoAt(d.Ti, Wi);
   const cpm = CP + CPV * Wi;
+  // Heating air is taken as dry at the indoor heating setpoint.
+  const rhoH = rhoAt(d.Tih, 0);
   const hours = Array.from({ length: 24 }, (_, k) => k + 1);
   const To = hours.map((h) => d.Tdb - d.DR * rangeFraction(h));
   const sun = hours.map((h) => sunPosition(d.lat, n, h - 0.5));
@@ -221,22 +223,23 @@ export function solveLoads(rooms, d) {
     const Qsup = sens[peak] > 0 ? sens[peak] / (rhoI * cpm * (d.Ti - d.Ts)) : 0;
     const Qoa = room.oap * room.ppl + room.oaa * room.A;
 
-    // Heating: steady state at the winter design temperature.
+    // Heating: steady state at the winter design temperature, no sun or internal credit.
     const dT = d.Tih - d.Twin;
-    let UA = 0;
-    for (const [, A, U] of room.g || []) UA += U * A;
+    const hp = { walls: 0, glass: 0, roof: 0, floor: 0, infil: 0 };
+    for (const [, A, U] of room.g || []) hp.glass += U * A * dT;
     const glassLeft = {};
     for (const [o, A] of room.g || []) glassLeft[o] = (glassLeft[o] || 0) + A;
     for (const [o, Ag, U] of room.w || []) {
       const A = Math.max(0, Ag - (glassLeft[o] || 0));
       glassLeft[o] = Math.max(0, (glassLeft[o] || 0) - Ag);
-      UA += U * A;
+      hp.walls += U * A * dT;
     }
-    if (room.r) UA += room.r[1] * room.r[0];
-    if (room.f) UA += room.f[1] * room.f[0];
-    const heat = UA * dT + rhoI * Qinf * CP * dT;
+    if (room.r) hp.roof = room.r[1] * room.r[0] * dT;
+    if (room.f) hp.floor = room.f[1] * room.f[0] * dT;
+    hp.infil = rhoH * Qinf * CP * dT;
+    const heat = hp.walls + hp.glass + hp.roof + hp.floor + hp.infil;
 
-    return { name: room.n, sens, latent, peakHour: peak + 1, peakSens: sens[peak], peakLat: latent[peak], Qsup, Qoa, heat, share };
+    return { name: room.n, sens, latent, peakHour: peak + 1, peakSens: sens[peak], peakLat: latent[peak], Qsup, Qoa, heat, heatParts: hp, share };
   });
 
   // Block load: all rooms together, at the hour the sum peaks.
@@ -251,7 +254,9 @@ export function solveLoads(rooms, d) {
   const oaT = Qoa * rhoI * (hoAt(bk) - hi);
   const coil = block[bk] + blockLat[bk] + Math.max(0, oaT);
   const coilSens = block[bk] + Math.max(0, oaS);
-  const oaHeat = Qoa * rhoI * CP * (d.Tih - d.Twin);
+  const oaHeat = Qoa * rhoH * CP * (d.Tih - d.Twin);
+  const heatParts = Object.fromEntries(["walls", "glass", "roof", "floor", "infil"].map((c) => [c, results.reduce((a, r) => a + r.heatParts[c], 0)]));
+  heatParts.oa = oaHeat;
   const breakdown = Object.fromEntries(COMPONENTS.map((c) => [c, results.reduce((a, r) => a + r.share[c][bk], 0)]));
   const area = rooms.reduce((a, r) => a + r.A, 0);
   return {
@@ -259,6 +264,7 @@ export function solveLoads(rooms, d) {
     sumPeaks: results.reduce((a, r) => a + r.peakSens + r.peakLat, 0),
     Qsup: results.reduce((a, r) => a + r.Qsup, 0),
     heat: results.reduce((a, r) => a + r.heat, 0) + oaHeat,
-    area, breakdown, rho: rhoI,
+    area, breakdown, heatParts, rho: rhoI,
+    dTheat: d.Tih - d.Twin, dTcool: d.Tdb - d.Ti,
   };
 }

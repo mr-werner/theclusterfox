@@ -67,7 +67,7 @@ export const BUILDERS = [
 
 /** Every GD&T page, so search finds "flatness" or "datums" directly. */
 export const GDT_PAGES = [
-  ...GDT_BASICS.map((b) => ({ id: `gdt-${b.id}`, name: b.name, blurb: b.summary, path: `/tools/gdt/${b.id}`, keywords: "gd&t gdt basics datum frame mmc lmc bonus" })),
+  ...GDT_BASICS.map((b) => ({ id: `gdt-${b.id}`, name: b.name, blurb: b.summary, path: `/tools/gdt/${b.id}`, keywords: "gd&t gdt basics lesson datum frame mmc lmc mmb lmb rmb bonus datum shift pattern composite order 3-2-1" })),
   ...GDT_CALLOUTS.map((c) => ({ id: `gdt-${c.id}`, name: `${c.name} (GD&T)`, blurb: c.summary, path: `/tools/gdt/${c.id}`, keywords: `gd&t gdt ${c.group} ${c.name.toLowerCase()} tolerance callout symbol` })),
 ];
 

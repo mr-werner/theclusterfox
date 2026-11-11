@@ -400,3 +400,53 @@ console.log(`Engineer ToolFox: ${CALCS.length} calculators and ${TABLES.length} 
   assert(tons > 1 && tons < 4, `example coil ${tons} tons for 800 ft²`);
   console.log("Engineer ToolFox: building loads check out.");
 }
+
+// Pump builder editing: drag joints, split pipes around equipment, rejoin them.
+{
+  const ps = await import("../model/pumpSystem.js");
+  const runs = ps.parseModel(ps.DEFAULT_MODEL);
+  const s = runs.filter((r) => r.side === "s");
+  const d = runs.filter((r) => r.side === "d");
+  assert.deepEqual(ps.jointZ(s, "s"), [1.5, 1.5, 0], "suction joints");
+  assert.deepEqual(ps.jointZ(d, "d"), [0, 0, 12, 12], "discharge joints");
+  // Raise the tank outlet: only the pipe on it changes, and the pump stays at 0.
+  const s2 = ps.moveJoint(s, "s", 0, 3);
+  assert.deepEqual(ps.jointZ(s2, "s"), [3, 1.5, 0], "outlet moved");
+  near(s2[0].L, 3 + 1.5, 1e-9, "outlet pipe stretched");
+  assert.equal(ps.jointMovable(s, "s", 2), false, "pump end fixed");
+  // Move the discharge end down 2 m.
+  const d2 = ps.moveJoint(d, "d", 3, 10);
+  near(d2[2].dz, -2, 1e-9, "end moved");
+  near(d2[2].L, 47, 1e-9, "end pipe stretched");
+  // Drop a filter halfway along the header: the pipe splits, total length kept.
+  const d3 = ps.insertEquipment(d, 2, 0.5, ps.newEquipment("d", "filter"));
+  assert.equal(d3.length, 5, "split adds two items");
+  assert.ok(ps.isEquip(d3[3]), "filter in the middle");
+  near(d3[2].L + d3[4].L, 45, 1e-9, "split keeps length");
+  assert.equal(d3[4].fit.exit, 1, "exit stays at the end");
+  // The filter's drop shows up in the head, and scales with flow squared.
+  const p = { rho: 998, mu: 1e-3, pv: 2339, patm: 101325, srcP: 0, zs: 3, dst: "tank", zd: 12, dstP: 0, Qd: 0.01 };
+  const base = ps.solveSystem([...s, ...d], 0.01, p).TDH;
+  const withF = ps.solveSystem([...s, ...d3], 0.01, p).TDH;
+  near(withF - base, ps.equipmentById.filter.dp / (998 * 9.80665), 1e-6, "filter head");
+  const half = ps.solveSystem([...s, ...d3], 0.005, p).TDH - ps.solveSystem([...s, ...d], 0.005, p).TDH;
+  near(half, ps.equipmentById.filter.dp / 4 / (998 * 9.80665), 1e-6, "filter scales with Q²");
+  // Dragging the filter moves both pipe ends next to it.
+  const d4 = ps.moveJoint(d3, "d", 3, 14);
+  assert.deepEqual(ps.jointZ(d4, "d"), [0, 0, 12, 14, 14, 12], "filter raised");
+  // Removing it rejoins the header.
+  const d5 = ps.removeItem(d3, 3);
+  assert.equal(d5.length, 3, "rejoined");
+  near(d5[2].L, 45, 1e-9, "rejoined length");
+  // Round trip with equipment, including a valve Cv.
+  const cvRun = { ...ps.newEquipment("d", "cv"), cv: 60 };
+  const txt = ps.stringifyModel([...s, ...d3, cvRun]);
+  assert.deepEqual(ps.parseModel(txt), [...s, ...d3, cvRun], "equipment round trip");
+  // Cv: 100 gpm through Cv 50 is 4 psi of water.
+  near(ps.equipmentDp({ eq: "cv", cv: 50 }, 100 * 6.30901964e-5, 999, 0), 4 * 6894.757, 1e-6, "Cv drop");
+  // A water main: NPSH comes from the main pressure at the tap height.
+  const pm = { ...p, src: "main", srcP: 300000 };
+  const m = ps.solveSystem([...s, ...d], 1e-9, pm);
+  near(m.NPSHa, (101325 + 300000) / (998 * 9.80665) + 1.5 - 2339 / (998 * 9.80665), 1e-6, "main NPSHa");
+  console.log("Engineer ToolFox: pump builder editing checks out.");
+}

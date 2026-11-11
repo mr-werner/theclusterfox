@@ -1,0 +1,753 @@
+/* Projects, the save dialog, and the printable report. */
+
+.tf-export-btn.is-primary {
+  border-style: solid;
+  border-color: var(--tf-accent);
+  background: color-mix(in srgb, var(--tf-accent) 14%, transparent);
+}
+
+.tf-export-btn.is-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.tf-saved-note {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  color: #9ff0c9;
+  font-size: 0.86rem;
+}
+
+.tf-saved-note a {
+  color: var(--tf-accent);
+  text-decoration: underline;
+}
+
+/* Save dialog */
+.tf-save-backdrop {
+  align-items: flex-start;
+}
+
+.tf-save-dialog {
+  display: grid;
+  gap: 14px;
+  width: min(100%, 480px);
+  max-height: 84vh;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: var(--tf-radius);
+  background: var(--tf-surface);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.tf-save-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tf-save-dialog h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.tf-save-dialog p {
+  margin: 0;
+}
+
+.tf-save-dialog .tf-field > span,
+.tf-projects .tf-field > span {
+  color: #d8ddda;
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.tf-projects textarea.tf-text,
+.tf-save-dialog textarea.tf-text {
+  min-height: 0;
+  padding: 10px 12px;
+  font: inherit;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.tf-save-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tf-save-actions .tf-export-btn {
+  flex: 0 0 auto;
+}
+
+/* Projects list */
+.tf-pj-new {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.tf-pj-new .tf-field {
+  flex: 1 1 260px;
+}
+
+.tf-pj-new .tf-export-btn {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+
+.tf-pj-sync {
+  margin: 0 0 18px;
+}
+
+.tf-pj-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 10px;
+}
+
+.tf-pj-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--tf-line);
+  border-radius: var(--tf-radius);
+  background: var(--tf-surface);
+}
+
+.tf-pj-card:hover {
+  border-color: var(--tf-accent);
+}
+
+.tf-pj-card-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--tf-line-strong);
+  color: var(--tf-accent);
+}
+
+.tf-pj-card-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tf-pj-card-text small {
+  color: var(--tf-accent);
+  font-family: var(--tf-mono);
+  font-size: 0.74rem;
+}
+
+.tf-pj-card-text strong {
+  font-size: 1.02rem;
+}
+
+.tf-pj-card-text span {
+  color: var(--tf-muted);
+  font-size: 0.82rem;
+}
+
+.tf-pj-empty h2 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.tf-pj-empty ol {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  color: var(--tf-muted);
+  line-height: 1.6;
+}
+
+/* One project */
+.tf-pj-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.tf-pj-details {
+  display: grid;
+  gap: 12px;
+}
+
+.tf-pj-items-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.tf-pj-items-head .tf-block-title {
+  margin: 0;
+}
+
+.tf-pj-items-head .tf-export-btn {
+  flex: 0 0 auto;
+}
+
+.tf-pj-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tf-pj-item {
+  display: grid;
+  gap: 10px;
+}
+
+.tf-pj-item-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tf-pj-num {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--tf-line-strong);
+  font-family: var(--tf-mono);
+  font-weight: 600;
+}
+
+.tf-pj-item-title {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tf-pj-item-title .tf-text {
+  min-height: 38px;
+  font-weight: 600;
+}
+
+.tf-pj-headline {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 3px solid var(--tf-accent);
+  background: var(--tf-surface-2);
+  font-family: var(--tf-mono);
+  font-size: 0.9rem;
+}
+
+.tf-pj-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tf-pj-item-actions .tf-export-btn {
+  flex: 0 0 auto;
+  min-height: 38px;
+}
+
+.tf-pj-item-actions .tf-icon-btn:disabled {
+  opacity: 0.35;
+}
+
+.tf-pj-move {
+  width: auto;
+  min-height: 38px;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 820px) {
+  .tf-pj-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Report page: white sheets on the drafting table. */
+.tf-report-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--tf-line);
+  background: var(--tf-surface);
+}
+
+.tf-report-bar .tf-export-btn {
+  flex: 0 0 auto;
+}
+
+.tf-report-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.tf-check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.tf-check input {
+  accent-color: var(--tf-accent);
+}
+
+.tf-report-hint {
+  margin: -4px 0 12px;
+}
+
+.tf-report-hint a {
+  color: var(--tf-accent);
+  text-decoration: underline;
+}
+
+.tf-report-page {
+  min-width: 0;
+}
+
+.rp-doc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  color: #111;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.rp-sheet {
+  max-width: 216mm;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14mm 14mm 16mm;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+.tf .rp-doc h1,
+.tf .rp-doc h2,
+.tf .rp-doc h3 {
+  color: #111;
+  font-family: var(--tf-draft);
+}
+
+.rp-cover-top {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #111;
+  font-family: var(--tf-draft);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rp-cover h1 {
+  margin: 18mm 0 8mm;
+  font-size: 2.2rem;
+  line-height: 1.1;
+}
+
+.rp-cover h2 {
+  margin: 10mm 0 3mm;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rp-cover-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin: 0;
+  border: 1px solid #111;
+}
+
+.rp-cover-meta div {
+  padding: 6px 10px;
+  border-right: 1px solid #111;
+  border-bottom: 1px solid #111;
+  margin: 0 -1px -1px 0;
+}
+
+.rp-cover-meta dt,
+.rp-sh-meta dt,
+.rp-sh-label {
+  color: #555;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rp-cover-meta dd,
+.rp-sh-meta dd {
+  margin: 2px 0 0;
+  font-family: var(--tf-mono);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.rp-description {
+  margin: 6mm 0 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.rp-signoff {
+  margin-top: 10mm;
+}
+
+.rp-signoff td {
+  height: 26px;
+}
+
+.rp-disclaimer {
+  margin: 6mm 0 0;
+  color: #555;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.rp-sheet-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr);
+  border: 1.5px solid #111;
+}
+
+.rp-sh-main {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-right: 1.5px solid #111;
+}
+
+.rp-sh-main strong {
+  font-family: var(--tf-draft);
+  font-size: 1.2rem;
+  line-height: 1.15;
+}
+
+.rp-sh-main span:last-child:not(.rp-sh-label) {
+  color: #444;
+  font-size: 0.8rem;
+}
+
+.rp-sh-meta {
+  display: grid;
+  grid-template-columns: 2fr 1fr 0.6fr 1fr 1fr;
+  margin: 0;
+}
+
+.rp-sh-meta div {
+  padding: 8px 8px;
+  border-left: 1px solid #111;
+}
+
+.rp-sh-meta div:first-child {
+  border-left: 0;
+}
+
+.rp-saved {
+  margin: 4px 0 10px;
+  color: #555;
+  font-size: 0.74rem;
+  text-align: right;
+}
+
+.rp-answer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1.5px solid #111;
+  border-left-width: 6px;
+}
+
+.rp-answer span {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.rp-answer strong {
+  font-family: var(--tf-mono);
+  font-size: 1.35rem;
+}
+
+.rp-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 16px;
+  align-items: start;
+}
+
+.rp-block {
+  margin: 0 0 12px;
+}
+
+.rp-block h3 {
+  break-after: avoid;
+}
+
+.rp-two .rp-block,
+.rp-answer,
+.rp-sheet-head {
+  break-inside: avoid;
+}
+
+.rp-block h3 {
+  margin: 0 0 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #111;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rp-block p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.rp-note {
+  white-space: pre-wrap;
+}
+
+.rp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.rp-kv th,
+.rp-kv td {
+  padding: 3px 4px;
+  border-bottom: 1px dotted #999;
+  vertical-align: top;
+  text-align: left;
+}
+
+.rp-kv th {
+  font-weight: 500;
+}
+
+.rp-kv .rp-num {
+  font-family: var(--tf-mono);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rp-kv .rp-unit {
+  width: 1%;
+  color: #444;
+  font-family: var(--tf-mono);
+  white-space: nowrap;
+}
+
+.rp-kv tr.is-primary th,
+.rp-kv tr.is-primary td {
+  font-weight: 700;
+}
+
+.rp-grid th,
+.rp-grid td {
+  padding: 4px 6px;
+  border: 1px solid #111;
+  text-align: left;
+  vertical-align: top;
+}
+
+.rp-grid thead th {
+  background: #eef1f4;
+  font-size: 0.72rem;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.rp-grid td {
+  font-family: var(--tf-mono);
+  font-size: 0.74rem;
+}
+
+.rp-index td:nth-child(2),
+.rp-index td:nth-child(3) {
+  font-family: inherit;
+}
+
+.rp-warnings ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.rp-figures {
+  display: grid;
+  gap: 10px;
+}
+
+.rp-figure {
+  margin: 0;
+  padding: 6px;
+  border: 1px solid #111;
+  break-inside: avoid;
+}
+
+/* Drawings are dark-theme SVG; invert them for white paper and keep their hues. */
+.rp-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: invert(1) hue-rotate(180deg);
+  box-sizing: border-box;
+}
+
+.rp-figure figcaption {
+  margin-top: 4px;
+  color: #333;
+  font-size: 0.76rem;
+}
+
+.rp-formulas {
+  display: grid;
+  gap: 3px;
+}
+
+.rp-formulas code {
+  font-family: var(--tf-mono);
+  font-size: 0.76rem;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 720px) {
+  .rp-sheet {
+    padding: 16px;
+  }
+
+  .rp-two,
+  .rp-sheet-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rp-kv .rp-num {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .rp-sh-main {
+    border-right: 0;
+    border-bottom: 1.5px solid #111;
+  }
+
+  .rp-sh-meta {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .rp-sh-meta div {
+    border-bottom: 1px solid #111;
+  }
+
+  .rp-grid {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Printing the report: only the sheets, one calculation per page set. */
+@page {
+  size: auto;
+  margin: 14mm 12mm 16mm;
+
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    font: 8pt sans-serif;
+    color: #444;
+  }
+}
+
+@media print {
+  .tf-report-bar,
+  .tf-report-hint,
+  .tf-saved-note {
+    display: none !important;
+  }
+
+  .tf-report-page ~ *,
+  .tf-main:has(.tf-report-page) {
+    padding: 0 !important;
+  }
+
+  .rp-doc {
+    display: block;
+  }
+
+  .rp-sheet {
+    max-width: none;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .rp-sheet + .rp-sheet {
+    break-before: page;
+  }
+
+  .rp-two {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .rp-sheet-head {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr);
+  }
+
+  .rp-figure img {
+    max-height: 120mm;
+    object-fit: contain;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .rp-grid thead {
+    display: table-header-group;
+  }
+
+  .rp-grid tr {
+    break-inside: avoid;
+  }
+}
+
+/* Frame builder: the save buttons sit under the title. */
+.fr-save {
+  margin: -6px 0 14px;
+}
+
+.fr-save .tf-export-btn {
+  flex: 0 0 auto;
+}

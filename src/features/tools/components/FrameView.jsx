@@ -9,6 +9,9 @@ import { categoryById } from "../registry";
 import { defaultUnit, fromSI, unitLabel, fmt } from "../model/units";
 import { solveFrame, frameTemplate, FRAME_TEMPLATES, nextLabel, newId } from "../model/frame";
 import { FRAME_MATERIALS, FRAME_SECTIONS, FRAME_SECTION_FAMILIES, frameMaterial, memberSection } from "../data/frameLibrary";
+import { reportSnapshot } from "../model/projects";
+import { captureFromPage } from "../model/capture";
+import SaveToProject from "./SaveToProject";
 import "./frame.css";
 
 // The frame builder: draw joints and members on a grid, pick sizes, materials,
@@ -130,6 +133,7 @@ export default function FrameView({ prefsApi }) {
   const [pending, setPending] = useState(null); // joint id a new member starts from
   const [view, setView] = useState("M");
   const [copied, setCopied] = useState(false);
+  const pageRef = useRef(null);
 
   // Every edit is computed from the model on screen, and the old one goes on the undo stack.
   const setModel = (fn) => {
@@ -185,6 +189,51 @@ export default function FrameView({ prefsApi }) {
       },
       () => {}
     );
+  }
+
+  /** The frame, its loads and its results as a project report snapshot. */
+  function snapshot() {
+    const q = (dim, x, sig = 4) => `${fmt(fromSI(x, dim, unitFor(dim)), sig)} ${unitLabel(dim, unitFor(dim))}`.trim();
+    const text = (el) => (el?.textContent || "").replace(/\s+/g, " ").trim();
+    const root = pageRef.current;
+    const results = root
+      ? [...root.querySelectorAll(".fr-summary .tf-result")].map((el) => {
+          const member = text(el.querySelector(".fr-member-link"));
+          return { label: member ? `${text(el.querySelector("dt"))} (member ${member})` : text(el.querySelector("dt")), value: text(el.querySelector(".tf-result-num")), unit: "" };
+        })
+      : [];
+    const primaryEl = root?.querySelector(".fr-summary .tf-primary:not(.is-empty)");
+    const primary = primaryEl ? { label: text(primaryEl.querySelector(".tf-primary-label")), value: text(primaryEl.querySelector("output")), unit: text(primaryEl.querySelector(".tf-primary-value span")) } : null;
+    const supports = model.nodes.filter((n) => n.sup && n.sup !== "free").map((n) => `${n.id} ${SUPPORTS.find((x) => x.value === n.sup)?.label.toLowerCase()}`);
+    const loadText = (l) =>
+      l.on === "node"
+        ? [l.Fx && `Fx ${q("force", l.Fx)}`, l.Fy && `Fy ${q("force", l.Fy)}`, l.M && `M ${q("moment", l.M)}`].filter(Boolean).join(", ")
+        : l.kind === "udl"
+          ? q("linearLoad", l.w)
+          : `${q("force", l.P)} at ${q("length", l.a ?? 0)}`;
+    const captured = captureFromPage(root, { figures: [[".fr-canvas-card", `Frame, ${VIEWS.find((v) => v.value === view)?.label.toLowerCase()} view`]], tables: [[".fr-table-card", null]] });
+    return reportSnapshot({
+      inputs: [
+        { label: "Joints", value: String(model.nodes.length), unit: "" },
+        { label: "Members", value: String(model.members.length), unit: "" },
+        { label: "Supports", value: supports.join(", ") || "None", unit: "" },
+        { label: "Loads", value: String(model.loads.length), unit: "" },
+        { label: "Self weight included", value: model.selfWeight ? "Yes" : "No", unit: "" },
+      ],
+      results,
+      primary,
+      warnings: result.ok ? result.warnings : [result.error],
+      units: us ? "US customary" : "Metric (SI)",
+      figures: captured.figures,
+      tables: [
+        { title: "Joints", head: ["Joint", `x (${unitLabel("length", unitFor("length"))})`, `y (${unitLabel("length", unitFor("length"))})`, "Support"], rows: model.nodes.map((n) => [n.id, fmt(fromSI(n.x, "length", unitFor("length")), 4), fmt(fromSI(n.y, "length", unitFor("length")), 4), SUPPORTS.find((x) => x.value === (n.sup || "free"))?.label || ""]) },
+        { title: "Loads", head: ["Load", "On", "Type", "Direction", "Value"], rows: model.loads.map((l) => [l.id, l.on === "node" ? `Joint ${l.node}` : `Member ${l.member}`, l.on === "node" ? "Joint load" : l.kind === "udl" ? "Uniform" : "Point", l.on === "node" ? "—" : DIRS.find((d) => d.value === l.dir)?.label || "", loadText(l)]) },
+        ...captured.tables,
+      ],
+      formula: [...(root?.querySelectorAll(".tf-about .tf-formulas code") || [])].map(text),
+      about: text(root?.querySelector(".tf-about .tf-about-block:nth-of-type(2) p")),
+      sources: text(root?.querySelector(".tf-about .tf-source")),
+    });
   }
 
   // Editing actions.
@@ -260,7 +309,7 @@ export default function FrameView({ prefsApi }) {
   }, [us]);
 
   return (
-    <article className="tf-calc tf-frame" style={{ "--tf-cat": cat.hue }}>
+    <article ref={pageRef} className="tf-calc tf-frame" style={{ "--tf-cat": cat.hue }}>
       <header className="tf-page-head">
         <Link to={`/tools/c/${cat.id}`} className="tf-crumb">
           <cat.icon size={15} aria-hidden="true" /> {cat.name}
@@ -284,6 +333,14 @@ export default function FrameView({ prefsApi }) {
         </div>
         <p className="tf-lede">Draw a 2D frame or truss from standard steel, aluminum and timber sizes, choose rigid or pinned connections and supports, load it, and see axial force, shear, moment, deflection and member checks.</p>
       </header>
+
+      <div className="tf-export fr-save" role="group" aria-label="Save this frame">
+        <SaveToProject
+          tool={{ kind: "builder", id: "frame", name: "Frame builder", discipline: cat.name }}
+          getReport={snapshot}
+          getPath={() => `/tools/frame?m=${b64(JSON.stringify(model))}`}
+        />
+      </div>
 
       <div className="fr-toolbar">
         <label className="fr-template">

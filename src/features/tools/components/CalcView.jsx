@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Check, ClipboardList, Copy, Download, Link2, Printer, RotateCcw, Star, TriangleAlert } from "lucide-react";
 import { calcById, categoryById } from "../registry";
@@ -8,6 +8,19 @@ import { NumField, ChoiceField, PresetField, TextField, UnitSelect } from "./Fie
 import Visual from "./Visuals";
 import { DIAGRAMS } from "../diagrams";
 import { inputRows, reportCsv, reportText, resultRows } from "../model/report";
+import { reportSnapshot } from "../model/projects";
+import { captureFromPage } from "../model/capture";
+import SaveToProject from "./SaveToProject";
+
+// Drawings and tables a saved calc takes along when the page doesn't mark its own
+// (data-report-figure / data-report-table; see model/capture.js).
+const CAPTURE_FALLBACK = {
+  figures: [
+    [".tf-diagram", "Diagram"],
+    [".tf-visual", null],
+  ],
+  tables: [[".tf-visual table", null]],
+};
 
 const MODE_KEY = "toolfox-mode";
 const readMode = () => {
@@ -28,6 +41,7 @@ export default function CalcView({ id, prefsApi }) {
   const [values, setValues] = useState(() => (calc ? fromParams(calc, params) : {}));
   const [outUnits, setOutUnits] = useState({});
   const [copied, setCopied] = useState("");
+  const pageRef = useRef(null);
   const [mode, setModeState] = useState(readMode);
   const setMode = (m) => {
     setModeState(m);
@@ -102,6 +116,21 @@ export default function CalcView({ id, prefsApi }) {
     return { calc, inputs, results, warnings: output.warnings, url: window.location.href };
   }
 
+  /** Everything a project report needs, captured as it is on screen now. */
+  function snapshot() {
+    const { inputs, results } = report();
+    const p = primary ? resultRows([primary], outUnitFor)[0] : null;
+    return reportSnapshot({
+      calc,
+      inputs,
+      results,
+      primary: p,
+      warnings: output.warnings,
+      units: prefs.system === "us" ? "US customary" : "Metric (SI)",
+      ...captureFromPage(pageRef.current, CAPTURE_FALLBACK),
+    });
+  }
+
   function download() {
     const blob = new Blob([reportCsv(report())], { type: "text/csv" });
     const a = document.createElement("a");
@@ -114,7 +143,7 @@ export default function CalcView({ id, prefsApi }) {
   const resultText = (r) => (r.text !== undefined ? r.text : `${fmt(fromSI(r.value, r.dim, outUnitFor(r)))} ${unitLabel(r.dim, outUnitFor(r))}`.trim());
 
   return (
-    <article className="tf-calc" style={{ "--tf-cat": cat.hue }}>
+    <article ref={pageRef} className="tf-calc" style={{ "--tf-cat": cat.hue }}>
       <header className="tf-page-head">
         <Link to={`/tools/c/${cat.id}`} className="tf-crumb">
           <cat.icon size={15} aria-hidden="true" /> {cat.name}
@@ -252,6 +281,7 @@ export default function CalcView({ id, prefsApi }) {
             <button type="button" className="tf-export-btn" onClick={() => window.print()}>
               <Printer size={15} aria-hidden="true" /> Print sheet
             </button>
+            <SaveToProject tool={{ kind: "calc", id: calc.id, name: calc.name, discipline: cat.name }} getReport={snapshot} />
           </div>
           {showVisual && <Visual visual={output.visual} system={prefs.system} unit={unitFor} />}
         </div>

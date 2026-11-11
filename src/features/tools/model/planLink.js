@@ -12,6 +12,9 @@ export const launchTargets = () => [
   { id: "mech", title: "Mechanics & Structures", href: "/tools/c/mech" },
   { id: "elec", title: "Electrical", href: "/tools/c/elec" },
   { id: "geo", title: "Geometry & Math", href: "/tools/c/geo" },
+  { id: "design", title: "Design & Manufacturing", href: "/tools/c/design" },
   { id: "frame", title: "Frame builder", href: "/tools/frame" },
+  { id: "gdt", title: "GD&T explorer", href: "/tools/gdt" },
+  { id: "make", title: "Manufacturing process finder", href: "/tools/make" },
   { id: "convert", title: "Unit converter", href: "/tools/convert" },
 ];

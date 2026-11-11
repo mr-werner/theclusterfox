@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeftRight, Calculator, ChevronRight, Clock, Network, Search, Star, Table2, Wrench } from "lucide-react";
+import { ArrowLeftRight, BookOpen, Calculator, ChevronRight, Clock, Network, Search, Star, Table2, Wrench } from "lucide-react";
 import AppBar from "../../components/AppBar";
 import { CATEGORIES, CALCS, TABLES, BUILDERS, CALC_ALIASES, calcById, tableById, builderById, categoryById, search } from "./registry";
 import { usePrefs } from "./state/usePrefs";
@@ -8,6 +8,9 @@ import CalcView from "./components/CalcView";
 import TableView from "./components/TableView";
 import ConverterView from "./components/ConverterView";
 import FrameView from "./components/FrameView";
+import { GdtIndex, GdtRoute } from "./design/GdtView";
+import { MakeRoute } from "./design/MakeView";
+import { CALLOUTS as GDT_CALLOUTS } from "./design/gdtModel";
 import "./tools.css";
 import "./identity.css";
 
@@ -86,6 +89,10 @@ export default function ToolsPage() {
             <Route path="data" element={<AllData />} />
             <Route path="data/:id" element={<TableRoute prefsApi={prefsApi} />} />
             <Route path="frame" element={<FrameView prefsApi={prefsApi} />} />
+            <Route path="gdt" element={<Touch prefsApi={prefsApi} id="builder:gdt"><GdtIndex /></Touch>} />
+            <Route path="gdt/:id" element={<Touch prefsApi={prefsApi} id="builder:gdt"><GdtRoute prefsApi={prefsApi} /></Touch>} />
+            <Route path="make" element={<Touch prefsApi={prefsApi} id="builder:make"><MakeRoute prefsApi={prefsApi} /></Touch>} />
+            <Route path="make/methods" element={<Touch prefsApi={prefsApi} id="builder:methods"><MakeRoute prefsApi={prefsApi} library /></Touch>} />
             <Route path="convert" element={<ConverterRoute prefsApi={prefsApi} />} />
             <Route path="convert/:dim" element={<ConverterRoute prefsApi={prefsApi} />} />
             <Route path="*" element={<Home prefsApi={prefsApi} openSearch={() => setPaletteOpen(true)} />} />
@@ -95,6 +102,15 @@ export default function ToolsPage() {
       {paletteOpen && <Palette onClose={() => setPaletteOpen(false)} />}
     </main>
   );
+}
+
+/** Remember a builder page in "Recently used". */
+function Touch({ prefsApi, id, children }) {
+  const { touch } = prefsApi;
+  useEffect(() => {
+    touch(id);
+  }, [touch, id]);
+  return children;
 }
 
 function CalcRoute({ prefsApi }) {
@@ -127,7 +143,7 @@ const itemFor = (key) => {
 
 function ToolCard({ item }) {
   const cat = item.cat ? categoryById[item.cat] : null;
-  const Icon = item.kind === "table" ? Table2 : item.kind === "convert" ? ArrowLeftRight : item.kind === "builder" ? Network : Calculator;
+  const Icon = item.icon || (item.kind === "table" ? Table2 : item.kind === "convert" ? ArrowLeftRight : item.kind === "builder" ? Network : item.kind === "guide" ? BookOpen : Calculator);
   return (
     <Link to={item.path} className="tf-tool-card" style={cat ? { "--tf-cat": cat.hue } : undefined}>
       <span className="tf-tool-icon" aria-hidden="true">
@@ -160,7 +176,7 @@ function Home({ prefsApi, openSearch }) {
         <p className="tf-eyebrow">Engineer ToolFox</p>
         <h1>Engineering answers, without the clutter.</h1>
         <p className="tf-lede">
-          {CALCS.length} live calculators and {TABLES.length} reference tables for fluids, heat, air, structures and electrical work. Every number works in any unit.
+          {CALCS.length} live calculators and {TABLES.length} reference tables for fluids, heat, air, structures and electrical work, plus interactive GD&amp;T and a manufacturing process finder. Every number works in any unit.
         </p>
         <button type="button" className="tf-hero-search" onClick={openSearch}>
           <Search size={20} aria-hidden="true" />
@@ -211,9 +227,7 @@ function Home({ prefsApi, openSearch }) {
                 </span>
                 <strong>{c.name}</strong>
                 <span className="tf-cat-blurb">{c.blurb}</span>
-                <span className="tf-cat-count">
-                  {n} calculators · {t} tables
-                </span>
+                <span className="tf-cat-count">{c.count || `${n} calculators · ${t} tables`}</span>
               </Link>
             );
           })}
@@ -277,12 +291,26 @@ function CategoryRoute() {
           </div>
         </>
       )}
-      <h2 className="tf-block-title">Calculators</h2>
-      <div className="tf-tool-list">
-        {calcs.map((c) => (
-          <ToolCard key={c.id} item={itemFor(`calc:${c.id}`)} />
-        ))}
-      </div>
+      {cat.id === "design" && (
+        <>
+          <h2 className="tf-block-title">GD&amp;T callouts</h2>
+          <div className="tf-tool-list">
+            {GDT_CALLOUTS.map((g) => (
+              <ToolCard key={g.id} item={{ kind: "guide", name: g.name, blurb: g.summary, cat: "design", path: `/tools/gdt/${g.id}` }} />
+            ))}
+          </div>
+        </>
+      )}
+      {calcs.length > 0 && (
+        <>
+          <h2 className="tf-block-title">Calculators</h2>
+          <div className="tf-tool-list">
+            {calcs.map((c) => (
+              <ToolCard key={c.id} item={itemFor(`calc:${c.id}`)} />
+            ))}
+          </div>
+        </>
+      )}
       {tables.length > 0 && (
         <>
           <h2 className="tf-block-title">Reference data</h2>
@@ -372,11 +400,11 @@ function Palette({ onClose }) {
             return (
               <li key={`${r.kind}${r.id}`} role="option" aria-selected={i === active}>
                 <button type="button" className={i === active ? "is-active" : ""} onMouseEnter={() => setActive(i)} onClick={() => go(r)} style={{ "--tf-cat": cat?.hue }}>
-                  {r.kind === "table" ? <Table2 size={16} aria-hidden="true" /> : r.kind === "builder" ? <Network size={16} aria-hidden="true" /> : <Calculator size={16} aria-hidden="true" />}
+                  {r.kind === "table" ? <Table2 size={16} aria-hidden="true" /> : r.kind === "builder" ? <Network size={16} aria-hidden="true" /> : r.kind === "guide" ? <BookOpen size={16} aria-hidden="true" /> : <Calculator size={16} aria-hidden="true" />}
                   <span>
                     <strong>{r.name}</strong>
                     <small>
-                      {cat?.short} · {r.kind === "table" ? "Table" : r.kind === "builder" ? "Builder" : "Calculator"}
+                      {cat?.short} · {r.kind === "table" ? "Table" : r.kind === "builder" ? "Builder" : r.kind === "guide" ? "GD&T" : "Calculator"}
                     </small>
                   </span>
                 </button>

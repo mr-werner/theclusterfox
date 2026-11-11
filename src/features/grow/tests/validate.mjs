@@ -9,6 +9,7 @@ import { sunHours, sideReport, sunPosition, noonShadow } from "../model/sun.js";
 import { dayNum, dayKey, fromDoy, weekday } from "../model/dates.js";
 import { normalizeData, emptyData } from "../state/growStore.js";
 import { planItems, launchTargets } from "../model/planLink.js";
+import { dayLength, defaultYard, pointHours, sunGrid, lightAt, plantFit, houseSides, cleanYard, lightShares } from "../model/yard.js";
 
 let passed = 0;
 const test = (name, fn) => {
@@ -143,7 +144,6 @@ test("care cadence uses Daily / Weekly / Monthly / Seasonal / Never", () => {
   const tomato = cadence(plantsById.get("tomato"), climateFromZone(6));
   assert.equal(tomato.find(g => g.id === "water").word, "Daily");
   assert.equal(tomato.find(g => g.id === "trim").word, "Weekly");
-  assert.equal(tomato.find(g => g.id === "sun").word, "Never");
   const sedum = cadence(plantsById.get("sedum"), climateFromZone(6));
   assert.equal(sedum.find(g => g.id === "water").word, "Never");
   assert.equal(sedum.find(g => g.id === "trim").word, "Seasonal");
@@ -202,6 +202,12 @@ test("saved data is cleaned on load", () => {
   assert.equal(d.garden[0].spotId, null);
   assert.equal(d.garden[0].planted, null);
   assert.deepEqual(normalizeData(null), emptyData());
+  const withYard = normalizeData({ yard: { facing: 90, objects: [{ id: "t", kind: "tree", x: 3, y: 4 }] }, spots: [{ id: "s", name: "Bed", light: "part", x: 2, y: -8 }, { id: "s2", light: "shade", x: 400, y: 1 }] });
+  assert.equal(withYard.yard.facing, 90);
+  assert.equal(withYard.yard.objects[0].kind, "tree");
+  assert.deepEqual([withYard.spots[0].x, withYard.spots[0].y, withYard.spots[0].auto], [2, -8, true]);
+  assert.deepEqual([withYard.spots[1].x, withYard.spots[1].auto], [null, false]);
+  assert.equal(emptyData().yard, null);
   const shifted = effectiveClimate({ ...emptyData(), climate: computeClimate(synthetic(40), 40), zoneShift: -1 });
   assert.equal(shifted.zone, 7.5);
 });
@@ -224,6 +230,60 @@ test("PlanFox gets dated jobs that open GrowFox", () => {
   assert.deepEqual(planItems(null, "2026-07-01", "2026-07-02"), []);
   assert.equal(launchTargets(raw).length, 2);
   assert.equal(dayKey(dayNum("2026-07-01")), "2026-07-01");
+});
+
+test("yard sun map casts real shadows for the latitude", () => {
+  assert.ok(Math.abs(dayLength(0, 172) - 12) < 0.1);
+  assert.ok(dayLength(60, 172) > 18 && dayLength(60, 355) < 6.5);
+  assert.ok(Math.abs(dayLength(40, 172) - dayLength(-40, 355)) < 0.1);
+  const house = defaultYard(); // front faces south
+  const sides = Object.fromEntries(houseSides(house, 40).map(s => [s.id, s]));
+  assert.equal(sides.front.compass, "south");
+  assert.ok(sides.front.hours > sides.back.hours + 4, "south wall sunnier than north at 40N");
+  assert.equal(sides.front.light, "full");
+  assert.notEqual(sides.back.light, "full");
+  assert.equal(houseSides(house, 40, "winter").find(s => s.id === "back").light, "shade");
+  const south = Object.fromEntries(houseSides(house, -35).map(s => [s.id, s]));
+  assert.ok(south.back.hours > south.front.hours + 3, "north wall sunnier in the south");
+  const turned = { ...house, facing: 0 };
+  assert.equal(houseSides(turned, 40).find(s => s.id === "back").light, "full");
+  // A leafy tree shades the ground to its north; an evergreen shades it more.
+  const open = pointHours(house, 40, 0, -12);
+  const tree = { ...house, objects: [{ id: "t", kind: "tree", x: 0, y: -14, h: 9, r: 3.5 }] };
+  const ever = { ...house, objects: [{ id: "t", kind: "evergreen", x: 0, y: -14, h: 9, r: 3.5 }] };
+  assert.ok(pointHours(tree, 40, 0, -12) < open - 1);
+  assert.ok(pointHours(ever, 40, 0, -12) < pointHours(tree, 40, 0, -12));
+  assert.ok(pointHours(tree, 40, 0, -14) < 6, "under the canopy is no longer full sun");
+  assert.ok(Math.abs(pointHours(tree, 40, 0, -19) - pointHours(house, 40, 0, -19)) < 1, "little shade on the sunny side");
+  // An east-west fence shades a strip on its north side in winter.
+  const fence = { ...house, objects: [{ id: "f", kind: "fence", x: 8, y: -10, h: 1.8, len: 10, angle: 90 }] };
+  assert.ok(pointHours(fence, 40, 8, -9.5, "winter") < pointHours(house, 40, 8, -9.5, "winter") - 2);
+  assert.equal(pointHours(house, 40, 0, 0), null);
+  // A wing makes the house an L: its ground is building, and it shades the yard beside it.
+  const ell = { ...house, objects: [{ id: "w", kind: "wing", x: 9, y: -1.5, w: 6, d: 6, h: 4, angle: 180 }] };
+  assert.equal(pointHours(ell, 40, 9, -1.5), null);
+  assert.ok(pointHours(ell, 40, 9, 3, "equinox") < pointHours(house, 40, 9, 3, "equinox") - 2);
+  const grid = sunGrid(tree, 40);
+  assert.equal(grid.hours.length, grid.n * grid.n);
+  assert.equal(lightAt(grid, 0, 0), null);
+  assert.equal(lightAt(grid, 0, 7).light, "full");
+  const shares = lightShares(grid);
+  assert.ok(Math.abs(shares.full + shares.part + shares.shade - 1) < 1e-6);
+  const fit = plantFit(grid, plantsById.get("hosta"));
+  assert.ok(fit.some(f => f === 2) && fit.some(f => f === 0));
+  const y = cleanYard({ facing: 400, width: 10, objects: [{ id: "a", kind: "tree", x: 99, h: 7 }, { id: "b", kind: "ufo" }, { kind: "fence" }] });
+  assert.equal(y.facing, 180);
+  assert.equal(y.width, 10);
+  assert.equal(y.objects.length, 1);
+  assert.equal(y.objects[0].x, 0);
+  assert.equal(y.objects[0].h, 7);
+  assert.deepEqual(cleanYard(null), defaultYard());
+});
+
+test("the sunlight row says how much sun, not how often", () => {
+  const row = cadence(plantsById.get("tomato"), null).find(c => c.id === "sun");
+  assert.equal(row.word, null);
+  assert.match(row.need, /Full sun/);
 });
 
 console.log(`\n${passed} GrowFox checks passed`);

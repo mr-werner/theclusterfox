@@ -7,6 +7,7 @@ import { plantsById } from "./data/plants";
 import { effectiveClimate, zoneLabel } from "./model/climate";
 import { rate } from "./model/care";
 import { dayNum, todayKey } from "./model/dates";
+import { defaultYard, sunGrid, withMapLight } from "./model/yard";
 import { useGrowData } from "./state/useGrowData";
 import TodayTab from "./components/TodayTab";
 import PlantsTab from "./components/PlantsTab";
@@ -40,7 +41,14 @@ export default function GrowPage() {
   }, []);
 
   const climate = useMemo(() => effectiveClimate(data), [data]);
-  const spotsById = useMemo(() => new Map(data.spots.map(s => [s.id, s])), [data.spots]);
+  // The sun map uses your exact latitude; without a place, a typical one for your hemisphere.
+  const sunLat = data.place?.latitude ?? climate?.latitude ?? (data.hemisphere === "S" ? -35 : 40);
+  const yard = useMemo(() => data.yard ?? defaultYard(), [data.yard]);
+  const yardGrid = useMemo(() => sunGrid(yard, sunLat), [yard, sunLat]);
+  // Spots placed on the map take their light from it.
+  const spots = useMemo(() => withMapLight(data.spots, yardGrid), [data.spots, yardGrid]);
+  const view = useMemo(() => ({ ...data, spots }), [data, spots]);
+  const spotsById = useMemo(() => new Map(spots.map(s => [s.id, s])), [spots]);
   const ratingFor = useCallback((plant, light = null) => rate(plant, climate, light), [climate]);
 
   // A PlanFox link (?task=…&day=…) opens Today on that day's job; ?entry= opens My garden.
@@ -67,6 +75,11 @@ export default function GrowPage() {
 
   const ctx = {
     ...store,
+    data: view,
+    yard,
+    yardGrid,
+    sunLat,
+    sunLatExact: data.place != null || climate?.latitude != null,
     climate,
     today,
     todayNum: dayNum(today),

@@ -2431,3 +2431,118 @@ button.ck-timer-chip {
 .ck-missing-btn {
   border-style: dashed;
 }
+
+/* From your garden (food growing in GrowFox) */
+.ck-garden {
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--ck-line);
+  border-radius: var(--ck-radius);
+  background: var(--ck-accent-soft);
+}
+
+.ck-garden-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.ck-garden-head > svg {
+  flex: 0 0 auto;
+  color: var(--ck-accent-text);
+}
+
+.ck-garden-head > div {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.ck-garden-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.ck-garden-head p {
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+}
+
+.ck-garden-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ck-garden-list li {
+  padding: 4px 10px;
+  border: 1px solid var(--ck-line);
+  border-radius: 999px;
+  background: var(--ck-surface);
+  font-size: 0.82rem;
+}
+
+.ck-garden-list li span {
+  color: var(--ck-muted);
+}
+
+.ck-garden-list li.is-ready {
+  border-color: var(--ck-accent);
+}
+
+.ck-garden-list li.is-ready span {
+  color: var(--ck-accent-text);
+  font-weight: 700;
+}
+
+.ck-cover-garden {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ck-cover-garden.is-growing {
+  color: var(--ck-text);
+  background: var(--ck-surface);
+}
+
+.ck-garden-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ck-accent-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ck-shop-item .ck-garden-tag {
+  display: flex;
+  margin-top: 2px;
+}
+
+.ck-garden-tag.is-growing {
+  color: var(--ck-muted);
+}
+
+.ck-garden-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px dashed var(--ck-line-strong);
+  border-radius: var(--ck-radius);
+}
+
+.ck-garden-note > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ck-accent-text);
+}
+
+.ck-garden-note p {
+  margin: 0;
+}

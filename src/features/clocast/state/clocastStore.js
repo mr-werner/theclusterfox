@@ -3,6 +3,7 @@
 
 export const STORAGE_KEY = "clocast-data-v1";
 export const MAX_SAVED_PLACES = 8;
+export const MAP_LAYERS = ["rain", "clouds", "wind", "fires"];
 export const HOURLY_LAYERS = ["rain", "feels", "shade", "wind", "humidity", "dew", "aqi", "uv", "cloud"];
 
 export function emptyData() {
@@ -20,6 +21,8 @@ export function emptyData() {
     attire: "casual",
     // Extra rows shown under the hourly graph.
     hourlyLayers: ["rain"],
+    // Layers on the weather map.
+    mapLayers: ["rain"],
     // Planned sessions: { id, activityId, title, day, startHour, hours, updatedAt }
     plans: [],
     deletedPlanIds: [],
@@ -109,6 +112,9 @@ export function normalizeData(value) {
     hourlyLayers: Array.isArray(value.hourlyLayers)
       ? [...new Set(value.hourlyLayers.filter(id => HOURLY_LAYERS.includes(id)))]
       : base.hourlyLayers,
+    mapLayers: Array.isArray(value.mapLayers)
+      ? [...new Set(value.mapLayers.filter(id => MAP_LAYERS.includes(id)))]
+      : base.mapLayers,
     plans: cleanList(value.plans, cleanPlan),
     deletedPlanIds: cleanTombstones(value.deletedPlanIds),
     goals: cleanList(value.goals, cleanGoal),

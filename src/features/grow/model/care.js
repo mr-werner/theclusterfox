@@ -163,10 +163,22 @@ export function cadence(plant, climate) {
       detail = items[0].note;
     }
     if (g.id === "sun") {
-      detail = plant.sun.includes("full") && plant.sun.length === 1 ? "Pick a sunny spot once and you're set" : plant.sun.includes("shade") && !plant.sun.includes("full") ? "Pick a shady spot once and you're set" : "Pick the right spot once and you're set";
+      // Sunlight isn't a chore you repeat: say how much the plant needs.
+      return { ...g, word: null, need: sunNeed(plant), detail: "Pick the right spot once; the light there does the rest", adjusted: false };
     }
     return { ...g, word, detail, adjusted: items.some(c => c.adjusted) };
   });
+}
+
+const SUN_NAME = { full: "Full sun", part: "Part sun", shade: "Shade" };
+const SUN_HOURS = { full: "6+ hours", part: "3–6 hours", shade: "under 3 hours" };
+/** How much sun a plant needs, in hours: "Full sun · 6+ hours of direct sun a day". */
+export function sunNeed(plant) {
+  const [first] = plant.sun;
+  const names = plant.sun.map((s, i) => (i ? SUN_NAME[s].toLowerCase() : SUN_NAME[s]));
+  const range = plant.sun.length === 1 ? SUN_HOURS[first] : plant.sun.includes("shade") ? (plant.sun.includes("full") ? "any amount" : "up to 6 hours") : "3 hours or more";
+  const best = plant.sun.length > 1 ? `, best with ${SUN_HOURS[first]}` : "";
+  return `${names.join(" or ")} · ${range} of direct sun a day${best}`;
 }
 
 // ── Jobs for a day ─────────────────────────────────────────────

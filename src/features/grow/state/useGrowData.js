@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAccountSync } from "../../../lib/useAccountSync";
 import { computeClimate } from "../model/climate";
+import { defaultYard, OBJECT_KINDS } from "../model/yard";
 import { fetchDailyHistory } from "../../../services/garden/climateApi";
 import { emptyData, loadData, MAX_DONE, normalizeData, saveData, STORAGE_KEY } from "./growStore";
 
@@ -62,6 +63,26 @@ export function useGrowData() {
     patch(d => ({ spots: [...d.spots, { soil: "", note: "", ...spot, id }] }));
     return id;
   }, [patch]);
+  // The yard map: pass a patch for the house, or use the object helpers.
+  const setYard = useCallback(p => patch(d => ({ yard: { ...(d.yard ?? defaultYard()), ...p } })), [patch]);
+  const addObject = useCallback((kind, at = {}) => {
+    const id = newId();
+    const k = OBJECT_KINDS[kind];
+    const size = { h: k.h, r: k.r ?? 0, len: k.len ?? 0, w: k.w ?? 0, d: k.d ?? 0, angle: k.angle ?? 0 };
+    patch(d => {
+      const y = d.yard ?? defaultYard();
+      return { yard: { ...y, objects: [...y.objects, { x: 0, y: 0, ...size, ...at, kind, id }] } };
+    });
+    return id;
+  }, [patch]);
+  const updateObject = useCallback((id, p) => patch(d => {
+    const y = d.yard ?? defaultYard();
+    return { yard: { ...y, objects: y.objects.map(o => (o.id === id ? { ...o, ...p } : o)) } };
+  }), [patch]);
+  const removeObject = useCallback(id => patch(d => {
+    const y = d.yard ?? defaultYard();
+    return { yard: { ...y, objects: y.objects.filter(o => o.id !== id) } };
+  }), [patch]);
   const updateSpot = useCallback((id, p) => patch(d => ({ spots: d.spots.map(s => (s.id === id ? { ...s, ...p } : s)) })), [patch]);
   const removeSpot = useCallback(id => patch(d => ({ spots: d.spots.filter(s => s.id !== id), garden: d.garden.map(e => (e.spotId === id ? { ...e, spotId: null } : e)) })), [patch]);
   const addEntry = useCallback(entry => {
@@ -91,6 +112,10 @@ export function useGrowData() {
     setPlace,
     setPrefs,
     addSpot,
+    setYard,
+    addObject,
+    updateObject,
+    removeObject,
     updateSpot,
     removeSpot,
     addEntry,

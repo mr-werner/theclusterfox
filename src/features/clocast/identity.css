@@ -337,7 +337,7 @@
 .cc-graph-cell {
   display: grid;
   justify-items: center;
-  grid-template-rows: 20px 24px 92px 46px;
+  grid-template-rows: 20px 24px var(--band, 92px) 46px;
   gap: 4px;
   flex: 0 0 62px;
   padding: 6px 0;
@@ -642,13 +642,11 @@
 }
 
 /* ---- Hourly layers ---- */
+/* All the options wrap onto as many lines as they need. */
 .cc-layer-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  margin: 0 -6px;
-  padding: 0 6px 2px;
-  scrollbar-width: none;
 }
 
 .cc-layer-chips button {
@@ -681,7 +679,7 @@
 }
 
 .cc-graph-cells.no-rain .cc-graph-cell {
-  grid-template-rows: 20px 24px 92px;
+  grid-template-rows: 20px 24px var(--band, 92px);
 }
 
 .cc-layer-row {
@@ -939,4 +937,107 @@
   stroke: var(--cc-muted);
   stroke-width: 1.5;
   stroke-dasharray: 3 4;
+}
+
+/* ---- Feels like and shade on the temperature graph ---- */
+.cc-graph-curve {
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.cc-graph-curve.is-feels {
+  stroke: #f6c453;
+  stroke-dasharray: 7 5;
+}
+
+.cc-graph-curve.is-shade {
+  stroke: #7fe0b0;
+  stroke-dasharray: 2 5;
+}
+
+.cc-graph-svg text.is-feels {
+  fill: #f6c453;
+  font-size: 12px;
+}
+
+.cc-graph-svg text.is-shade {
+  fill: #7fe0b0;
+  font-size: 12px;
+}
+
+.cc-graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.cc-graph-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-graph-legend span {
+  width: 20px;
+  border-top: 2.5px solid var(--cc-accent);
+}
+
+.cc-graph-legend .is-feels {
+  color: #f6c453;
+}
+
+.cc-graph-legend .is-feels span {
+  border-top: 2.5px dashed #f6c453;
+}
+
+.cc-graph-legend .is-shade {
+  color: #7fe0b0;
+}
+
+.cc-graph-legend .is-shade span {
+  border-top: 2.5px dotted #7fe0b0;
+}
+
+/* ---- Map layers ---- */
+.cc-map-chips {
+  margin-bottom: 2px;
+}
+
+.cc-radar-clouds {
+  opacity: 0.55;
+}
+
+.cc-radar-fires {
+  filter: drop-shadow(0 0 3px rgba(255, 90, 40, 0.9));
+}
+
+.cc-radar-wind {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.cc-radar-wind text {
+  fill: #fff;
+  font: 700 10px "Manrope", sans-serif;
+  paint-order: stroke;
+  stroke: rgba(8, 22, 38, 0.8);
+  stroke-width: 3px;
+}
+
+.cc-radar-key {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--cc-muted);
+  font-size: 0.76rem;
 }

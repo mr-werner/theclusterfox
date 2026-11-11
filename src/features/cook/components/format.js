@@ -1,3 +1,6 @@
+// "Aug 12" for a "YYYY-MM-DD" day.
+export const shortDay = key => new Date(`${key}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+
 export const toggleIn = (list, value) => (list.includes(value) ? list.filter(x => x !== value) : [...list, value]);
 
 export function minutesText(min) {

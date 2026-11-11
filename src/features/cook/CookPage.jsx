@@ -20,6 +20,7 @@ import * as S from "./model/session";
 import * as P from "./model/pantry";
 import { applySwaps, cleanChoices, customizedRecipes } from "./model/swaps";
 import { useCookData } from "./state/useCookData";
+import { useGarden } from "./state/useGarden";
 import { ringAlarm, useNow } from "./state/device";
 import "./cook.css";
 import "./identity.css";
@@ -44,6 +45,7 @@ export default function CookPage() {
   const [planB, setPlanB] = useState(false);
   const [finished, setFinished] = useState(null); // { recipeId, minutes, servings }
   const [today] = useState(() => P.toIsoDay(Date.now()));
+  const garden = useGarden(today);
 
   const base = recipesById.get(params.get("r")) ?? null;
   const custom = data.custom;
@@ -279,6 +281,7 @@ export default function CookPage() {
                   data={data}
                   recipes={allRecipes}
                   today={today}
+                  garden={garden}
                   filters={filters}
                   setFilters={setFilters}
                   onOpen={openRecipe}
@@ -307,14 +310,19 @@ export default function CookPage() {
                 <PantryTab
                   pantry={data.pantry}
                   today={today}
+                  garden={garden}
                   setPantry={store.setPantry}
                   onShowRecipes={() => {
                     setFilters({ ...emptyFilters(), useSoon: true });
                     go({});
                   }}
+                  onShowGarden={() => {
+                    setFilters({ ...emptyFilters(), fromGarden: true });
+                    go({});
+                  }}
                 />
               )}
-              {tab === "shopping" && <ShoppingTab data={data} today={today} setShopping={store.setShopping} patchData={store.patchData} onOpen={openRecipe} />}
+              {tab === "shopping" && <ShoppingTab data={data} today={today} garden={garden?.index} setShopping={store.setShopping} patchData={store.patchData} onOpen={openRecipe} />}
               {tab === "profile" && <ProfileTab data={data} setPrefs={setPrefs} setProfile={store.setProfile} resetProfile={store.resetProfile} />}
             </>
           )}
@@ -328,6 +336,7 @@ export default function CookPage() {
               onSetSwaps={choices => setSwaps(base.id, choices)}
               data={data}
               today={today}
+              garden={garden?.index}
               setPrefs={setPrefs}
               onAddToList={addToList}
               onAddLine={addLine}

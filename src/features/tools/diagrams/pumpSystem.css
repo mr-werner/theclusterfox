@@ -1,0 +1,609 @@
+/* Pump system builder: the editable drawing, palette, value chips and the printed report. */
+
+.ps-print-btn {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 10px;
+  background: var(--tf-surface-3);
+  color: #e6ebe8;
+  font-weight: 600;
+}
+.ps-print-btn:hover,
+.ps-print-btn[aria-expanded="true"] {
+  border-color: var(--tf-cat);
+}
+.ps-print-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--tf-cat);
+  border-radius: 14px;
+  background: var(--tf-surface-2);
+}
+.ps-print-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+}
+.ps-print-field {
+  display: grid;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--tf-muted);
+}
+.ps-print-field input,
+.ps-print-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 9px;
+  background: var(--tf-surface);
+  color: #e6ebe8;
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+/* Palette */
+.ps-sketch {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  min-width: 0;
+}
+.ps-palette {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.ps-palette-h {
+  color: var(--tf-muted);
+  font-size: 0.78rem;
+}
+.ps-palette-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.ps-palette-sep {
+  flex: none;
+  width: 1px;
+  margin: 4px 2px;
+  background: var(--tf-line-strong);
+}
+.ps-chip {
+  flex: none;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 10px;
+  background: var(--tf-surface);
+  color: #e6ebe8;
+  font-size: 0.84rem;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ps-chip:hover {
+  border-color: color-mix(in srgb, var(--tf-cat) 60%, transparent);
+}
+.ps-chip.is-on {
+  border-color: var(--tf-warn);
+  background: color-mix(in srgb, var(--tf-warn) 14%, transparent);
+}
+.ps-ghost {
+  position: fixed;
+  z-index: 60;
+  transform: translate(-50%, -140%);
+  padding: 5px 10px;
+  border: 1px solid var(--tf-warn);
+  border-radius: 9px;
+  background: rgba(13, 17, 16, 0.92);
+  color: #fff;
+  font-size: 0.82rem;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.ps-status {
+  min-height: 1.4em;
+  font-size: 0.84rem;
+}
+.ps-status-armed {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: var(--tf-warn);
+}
+.ps-status-armed button {
+  padding: 3px 10px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 8px;
+  background: var(--tf-surface-3);
+  color: #e6ebe8;
+}
+
+/* Toolbar over the drawing */
+.ps-zoom-bar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 6px 0;
+}
+.ps-zoom-bar .ps-zoom-btns {
+  margin: 0;
+}
+.ps-tools {
+  display: flex;
+  gap: 4px;
+}
+.ps-tool {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 11px;
+  background: rgba(13, 17, 16, 0.9);
+  color: #e6ebe8;
+  font-size: 0.8rem;
+}
+.ps-tool:disabled {
+  opacity: 0.4;
+}
+.ps-zoom-inner {
+  position: relative;
+}
+
+/* Drawing */
+.ps-bg {
+  fill: transparent;
+}
+.ps-sketch.is-placing svg,
+.ps-sketch.is-placing .ps-pipe {
+  cursor: crosshair;
+}
+.ps-sketch.is-dragging,
+.ps-sketch.is-dragging * {
+  cursor: grabbing !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ps-handle {
+  cursor: ns-resize;
+  outline: none;
+}
+.ps-handle-hit {
+  fill: transparent;
+}
+.ps-handle-dot {
+  fill: #fff;
+  stroke: var(--tf-cat);
+  stroke-width: 2.5;
+  transition: r 0.12s;
+}
+.ps-handle:hover .ps-handle-dot,
+.ps-handle:focus-visible .ps-handle-dot,
+.ps-handle.is-on .ps-handle-dot {
+  r: 8;
+  fill: var(--tf-cat);
+  stroke: #fff;
+}
+.ps-level-line {
+  stroke: #5cc8ff;
+  stroke-width: 2;
+}
+.ps-level:hover .ps-level-mark,
+.ps-level:focus-visible .ps-level-mark,
+.ps-level.is-on .ps-level-mark {
+  fill: var(--tf-cat);
+}
+.ps-level.is-on .ps-level-line,
+.ps-level:focus-visible .ps-level-line {
+  stroke: var(--tf-cat);
+  stroke-width: 3;
+}
+.ps-equip {
+  cursor: grab;
+  outline: none;
+}
+.ps-eq-hit {
+  fill: transparent;
+}
+.ps-eq-body {
+  fill: var(--tf-surface-3);
+  stroke: #cfd6d2;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.ps-eq-mark {
+  fill: none;
+  stroke: #cfd6d2;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ps-eq-mark.is-dash {
+  stroke-dasharray: 3 3;
+}
+.ps-eq-text {
+  fill: #e6ebe8;
+  font-weight: 700;
+}
+.ps-equip:hover .ps-eq-body,
+.ps-equip:focus-visible .ps-eq-body,
+.ps-equip.is-sel .ps-eq-body {
+  stroke: var(--tf-cat);
+  stroke-width: 3;
+}
+.ps-label.is-small {
+  font-size: 11px;
+}
+.ps-valve {
+  fill: #cfd6d2;
+  stroke: #0d1110;
+  stroke-width: 1;
+  pointer-events: none;
+}
+.ps-pipe.is-target .ps-pipe-wall {
+  stroke: var(--tf-warn);
+}
+.ps-drop {
+  fill: color-mix(in srgb, var(--tf-warn) 30%, transparent);
+  stroke: var(--tf-warn);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+.ps-main-pipe {
+  fill: rgba(92, 200, 255, 0.25);
+  stroke: #cfd6d2;
+  stroke-width: 3;
+}
+.ps-main-dot {
+  fill: #5cc8ff;
+}
+.ps-handle.is-on .ps-main-pipe,
+.ps-handle:hover .ps-main-pipe {
+  stroke: var(--tf-cat);
+}
+
+/* The value chip */
+.ps-chip-at {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, calc(-100% - 4px));
+}
+.ps-chip-at.is-below {
+  transform: translate(-50%, 34px);
+}
+.ps-value {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 0 6px;
+  align-items: baseline;
+  padding: 5px 10px;
+  border: 1px solid var(--tf-cat);
+  border-radius: 10px;
+  background: rgba(13, 17, 16, 0.94);
+  color: #fff;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  cursor: text;
+}
+.ps-value.is-live {
+  border-color: var(--tf-warn);
+}
+.ps-value-title {
+  color: var(--tf-muted);
+}
+.ps-value strong {
+  font-size: 0.95rem;
+}
+.ps-value svg {
+  color: var(--tf-cat);
+}
+.ps-value-notes {
+  grid-column: 1 / -1;
+  color: var(--tf-muted);
+  font-size: 0.74rem;
+}
+.ps-value-edit {
+  display: grid;
+  gap: 8px;
+  width: min(260px, 80vw);
+  padding: 10px;
+  border: 1px solid var(--tf-cat);
+  border-radius: 12px;
+  background: rgba(13, 17, 16, 0.97);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+.ps-value-edit header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.ps-value-edit header button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--tf-surface-3);
+  color: #e6ebe8;
+}
+.ps-value-edit .dg-num {
+  width: 100%;
+  box-sizing: border-box;
+}
+.ps-value-edit p {
+  margin: 0;
+}
+.ps-value-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.ps-value-btns button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 9px;
+  background: var(--tf-surface-3);
+  color: #e6ebe8;
+  font-weight: 600;
+}
+.ps-value-btns button.is-danger {
+  margin-right: auto;
+  color: #ff9d8e;
+}
+.ps-value-btns button.is-primary {
+  border-color: var(--tf-cat);
+  background: var(--tf-cat);
+  color: #071311;
+}
+
+/* Cards */
+.ps-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ps-add-pick select {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tf-cat);
+  font: inherit;
+  cursor: pointer;
+}
+.ps-add-pick select option {
+  background: #1c2120;
+  color: #e6ebe8;
+}
+.ps-tag.is-equip {
+  background: #c6a6ff;
+}
+.ps-run.is-equip {
+  border-style: dashed;
+}
+
+/* The printed report: hidden on screen, the only thing on paper. */
+.ps-report {
+  display: none;
+}
+
+@media print {
+  html.ps-printing body *:not(:has(.ps-report)):not(.ps-report):not(.ps-report *) {
+    display: none !important;
+  }
+  html.ps-printing body *:has(.ps-report) {
+    display: block !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+  html.ps-printing,
+  html.ps-printing body {
+    background: #fff !important;
+  }
+  html.ps-printing .ps-report {
+    display: block !important;
+    color: #000;
+    font: 10.5pt/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @page {
+    margin: 14mm 12mm;
+  }
+}
+
+.ps-report * {
+  color: #000 !important;
+}
+.ps-report h1 {
+  margin: 0;
+  font-size: 18pt;
+}
+.ps-report h2 {
+  margin: 14pt 0 5pt;
+  padding-bottom: 2pt;
+  border-bottom: 1.5pt solid #000;
+  font-size: 12pt;
+  break-after: avoid;
+}
+.ps-r-head {
+  display: flex !important;
+  gap: 16pt;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 8pt;
+  border-bottom: 2.5pt solid #000;
+}
+.ps-r-head p {
+  margin: 2pt 0 0;
+}
+.ps-r-block {
+  border-collapse: collapse;
+  font-size: 9.5pt;
+}
+.ps-r-block th,
+.ps-r-block td {
+  padding: 2pt 6pt;
+  border: 0.75pt solid #000;
+  text-align: left;
+}
+.ps-r-kv {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin: 0;
+  border: 0.75pt solid #000;
+}
+.ps-r-kv div {
+  display: block !important;
+  padding: 4pt 6pt;
+  border: 0.5pt solid #999;
+}
+.ps-r-kv dt {
+  font-size: 8.5pt;
+}
+.ps-r-kv dd {
+  margin: 0;
+  font-weight: 700;
+}
+.ps-r-notes {
+  margin: 6pt 0 0;
+  padding: 5pt 7pt;
+  border-left: 2pt solid #000;
+}
+.ps-r-fig {
+  break-inside: avoid;
+  border: 0.75pt solid #000;
+  padding: 4pt;
+}
+.ps-r-fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ps-r-fig.is-chart {
+  max-width: 150mm;
+}
+.ps-r-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+  page-break-inside: auto;
+}
+.ps-r-table.is-small {
+  font-size: 8.5pt;
+}
+.ps-r-table th,
+.ps-r-table td {
+  padding: 2.5pt 5pt;
+  border: 0.5pt solid #666;
+  text-align: left;
+  vertical-align: top;
+}
+.ps-r-table thead th {
+  background: #eee !important;
+  border-color: #000;
+}
+.ps-r-table tr {
+  break-inside: avoid;
+}
+.ps-r-table .is-total td {
+  font-weight: 700;
+  border-top: 1pt solid #000;
+}
+.ps-r-list {
+  margin: 0;
+  padding-left: 14pt;
+}
+.ps-r-list.is-mono {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 9pt;
+}
+.ps-r-small {
+  font-size: 8.5pt;
+}
+.ps-r-foot {
+  margin-top: 14pt;
+  padding-top: 4pt;
+  border-top: 0.75pt solid #000;
+  font-size: 8pt;
+}
+/* Drawing colours for white paper. */
+.ps-report .ps-tick line {
+  stroke: #ccc;
+}
+.ps-report .ps-tick text,
+.ps-report .ps-label {
+  fill: #000;
+}
+.ps-report .ps-label.is-dim,
+.ps-report .ps-tick text {
+  fill: #444;
+}
+.ps-report .ps-centerline {
+  stroke: #000;
+  opacity: 0.6;
+}
+.ps-report .ps-liquid {
+  fill: #d6ecfa;
+}
+.ps-report .ps-tank-wall,
+.ps-report .ps-eq-mark {
+  stroke: #000;
+}
+.ps-report .ps-pipe-wall,
+.ps-report .ps-stub {
+  stroke: #000;
+}
+.ps-report .ps-pipe-bore {
+  stroke: #9fd3f3;
+  opacity: 1;
+}
+.ps-report .ps-joint {
+  fill: #000;
+}
+.ps-report .ps-eq-body,
+.ps-report .ps-pump circle,
+.ps-report .ps-main-pipe {
+  fill: #fff;
+  stroke: #000;
+}
+.ps-report .ps-pump path,
+.ps-report .ps-level-mark,
+.ps-report .ps-eq-text {
+  fill: #000;
+}
+.ps-report .ps-r-fig.is-chart svg text {
+  fill: #000 !important;
+}

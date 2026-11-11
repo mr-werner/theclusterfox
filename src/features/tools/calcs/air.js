@@ -271,16 +271,17 @@ export const air = [
     cat: "air",
     name: "Building heating and cooling loads",
     blurb: "Room-by-room design cooling and heating loads, hour by hour, with supply airflow and coil size.",
-    keywords: "load calculation cooling load heating load hvac sizing tons btu rts radiant time series manual j hap trace block load peak load room by room solar gain shgc u-value infiltration ventilation outdoor air coil load supply cfm",
+    keywords: "load calculation cooling load heating load hvac sizing tons btu rts radiant time series manual j hap trace block load peak load room by room solar gain shgc u-value infiltration ventilation outdoor air coil load supply cfm design temperature design weather 99.6% 0.4% ashrae climate location city delta t winter design summer design",
     inputs: [
       text("model", "Rooms", LOAD_EXAMPLE, { hidden: true }),
+      text("loc", "Building location", "", { hidden: true }),
       num("lat", "Latitude (north +)", "none", 40, { min: -66, max: 66 }),
       choice("month", "Design month", MONTHS.map((m, k) => ({ value: String(k + 1), label: m })), "7"),
       num("z", "Site elevation", "length", 0, { min: -400, max: 6000 }),
-      num("Tdb", "Summer design dry bulb", "temp", F(95), { hint: "Use your location's 0.4% or 1% cooling design temperature." }),
+      num("Tdb", "Summer design dry bulb", "temp", F(95), { hint: "Set by the building location above, or type your location's 0.4% or 1% cooling design temperature." }),
       num("Twb", "Coincident wet bulb", "temp", F(75)),
       num("DR", "Daily temperature range", "dtemp", (20 * 5) / 9, { min: 0 }),
-      num("Twin", "Winter design dry bulb", "temp", F(10), { hint: "Use your location's 99.6% or 99% heating design temperature." }),
+      num("Twin", "Winter design dry bulb", "temp", F(10), { hint: "The coldest condition the heating must meet. Set by the building location above, or type your location's 99.6% or 99% heating design temperature." }),
       num("Ti", "Indoor cooling setpoint", "temp", F(75)),
       num("rhi", "Indoor relative humidity", "percent", 0.5, { min: 0, max: 1 }),
       num("Tih", "Indoor heating setpoint", "temp", F(70)),
@@ -301,6 +302,9 @@ export const air = [
       const m = 1 + v.margin;
       const results = [
         out("coil", "Cooling coil load", "coolingLoad", r.coil * m, { primary: true }),
+        out("heat", "Heating load (worst-case winter, with outdoor air)", "heatRate", r.heat * m),
+        out("dTh", "Heating design ΔT (indoor − winter design)", "dtemp", r.dTheat),
+        out("dTc", "Cooling design ΔT (summer design − indoor)", "dtemp", r.dTcool),
         out("coilS", "Coil sensible load", "heatRate", r.coilSens * m),
         out("room", "Room load at the building peak (sensible + latent)", "heatRate", (r.block[r.blockHour - 1] + r.blockLat[r.blockHour - 1]) * m),
         say("hour", "Building peak hour (solar time)", `${String(r.blockHour - 1).padStart(2, "0")}:00–${String(r.blockHour).padStart(2, "0")}:00, ${MONTHS[d.month - 1]}`),
@@ -308,13 +312,15 @@ export const air = [
         out("oa", "Outdoor air load at peak", "heatRate", r.oaT * m),
         out("Qsup", "Supply airflow (sum of room peaks)", "airflow", r.Qsup * m),
         out("Qoa", "Outdoor air", "airflow", r.Qoa),
-        out("heat", "Heating load (with outdoor air)", "heatRate", r.heat * m),
+        out("heatRoom", "Heating load of the rooms alone (no outdoor air)", "heatRate", (r.heat - r.oaHeat) * m),
+        out("heatOa", "Outdoor air heating load", "heatRate", r.oaHeat * m),
         out("area", "Floor area", "area", r.area),
         out("perArea", "Cooling per floor area", "heatflux", (r.coil * m) / r.area),
       ];
       const warnings = [];
       if (v.Twb > v.Tdb) warnings.push("The wet bulb can't be above the dry bulb.");
       if (v.Ts >= v.Ti) warnings.push("The supply air must be colder than the room to cool it.");
+      if (v.Twin >= v.Tih) warnings.push("The winter design temperature is at or above the heating setpoint, so there's no heating load. Pick the building's location or lower the winter design dry bulb.");
       if (r.coil / r.area > 300) warnings.push("Over 300 W/m² (about 95 BTU/h·ft²) is very high for most buildings. Check the inputs.");
       return { results, warnings, visual: { type: "loads", ...r, margin: m } };
     },
@@ -327,10 +333,11 @@ export const air = [
       "Infiltration and outdoor air: q_s = ρ c_p Q ΔT,  q_l = ρ Q h_fg ΔW",
       "Supply airflow = room sensible peak / (ρ c_p (T_room − T_supply))",
       "Heating = Σ U A (T_i − T_winter) + ρ c_p Q_inf ΔT + outdoor air",
+      "Design weather: heating 99.6% = dry bulb colder than only 0.4% of hours; cooling 0.4% = dry bulb hotter than only 0.4% of hours, with the mean coincident wet bulb",
     ],
     about:
-      "This follows the structure of the ASHRAE Radiant Time Series method: an hour-by-hour design day with sun position, clear-sky sunshine, sol-air temperatures, and radiant heat that reaches the air hours after it's absorbed by the room. To keep it free and open, three pieces use published simplified forms instead of licensed tables. Wall and roof conduction uses a time lag and decrement factor by construction weight. The radiant time series is an exponential decay set by the room's construction weight. The outdoor temperature follows a smooth daily swing that peaks at 3 pm. Hours are solar time. Enter your own design temperatures and optical depths from your local climate data. Heating is a steady-state design loss with no credit for sun or internal heat. Results suit equipment sizing and early design. They aren't an annual energy simulation, and a jurisdiction that requires a specific procedure (such as ACCA Manual J for homes) still needs that procedure.",
-    sources: "ASHRAE Handbook—Fundamentals, Nonresidential Cooling and Heating Load Calculations chapter (RTS method structure, clear-sky model form); Mackey and Wright (1944), time lag and decrement; Spitler, Load Calculation Applications Manual.",
+      "This follows the structure of the ASHRAE Radiant Time Series method: an hour-by-hour design day with sun position, clear-sky sunshine, sol-air temperatures, and radiant heat that reaches the air hours after it's absorbed by the room. To keep it free and open, three pieces use published simplified forms instead of licensed tables. Wall and roof conduction uses a time lag and decrement factor by construction weight. The radiant time series is an exponential decay set by the room's construction weight. The outdoor temperature follows a smooth daily swing that peaks at 3 pm. Hours are solar time. Pick the building's location and the design temperatures are worked out the way ASHRAE builds its design conditions: from ten years of hourly weather (Open-Meteo's free ERA5 archive), the heating design temperature is the dry bulb that's colder only 0.4% of the hours (99.6%), and the cooling design is the dry bulb that's hotter only 0.4% of the hours with its mean coincident wet bulb. The heating ΔT is the indoor setpoint minus that winter temperature; the cooling ΔT is the summer temperature minus the indoor setpoint. Reanalysis weather is an area average, so it can run a degree or two milder than an airport station on the coldest nights; where a code or client names a station's ASHRAE values, type those under More settings. Heating is a steady-state design loss with no credit for sun or internal heat. Results suit equipment sizing and early design. They aren't an annual energy simulation, and a jurisdiction that requires a specific procedure (such as ACCA Manual J for homes) still needs that procedure.",
+    sources: "ASHRAE Handbook—Fundamentals, Climatic Design Information chapter (design percentiles, mean coincident wet bulb) and Nonresidential Cooling and Heating Load Calculations chapter (RTS method structure, clear-sky model form); Mackey and Wright (1944), time lag and decrement; Spitler, Load Calculation Applications Manual; Open-Meteo historical weather API (ERA5 reanalysis, Hersbach et al. 2020).",
     related: ["fan-system", "psychrometrics", "air-heat"],
   },
 ];

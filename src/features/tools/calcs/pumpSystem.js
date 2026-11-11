@@ -2,7 +2,7 @@ import { num, choice, preset, text, out, say } from "./define.js";
 import { G } from "../model/units.js";
 import { standardAtmosphere } from "../model/air.js";
 import { waterAt } from "../data/fluids.js";
-import { parseModel, solveSystem, pumpCurve, operatingPoint, curves, runLabel, DEFAULT_MODEL } from "../model/pumpSystem.js";
+import { parseModel, solveSystem, pumpCurve, operatingPoint, curves, runLabel, isEquip, DEFAULT_MODEL } from "../model/pumpSystem.js";
 
 // Liquids with the vapour pressure that NPSH needs. Water comes from the IAPWS
 // table; the others are typical values near 20 °C (fuels vary with blend).
@@ -41,9 +41,11 @@ export const pumpSystem = {
     choice("src", "Supply", [
       { value: "open", label: "Open tank" },
       { value: "closed", label: "Closed tank" },
+      { value: "main", label: "Water main" },
     ]),
+    num("mainP", "Pressure in the main (gauge)", "pressure", 50 * 6894.757, { when: (v) => v.src === "main", hint: "Static or residual pressure at the tap, from the water utility or a hydrant flow test. The tap height is where the first suction pipe starts." }),
     num("srcP", "Pressure above the liquid (gauge)", "pressure", 0, { when: (v) => v.src === "closed", hint: "Negative for a vacuum, such as a condenser hotwell." }),
-    num("zs", "Supply liquid level above the pump", "length", 10 * FT, { hint: "Negative if the liquid is below the pump (suction lift)." }),
+    num("zs", "Supply liquid level above the pump", "length", 10 * FT, { when: (v) => v.src !== "main", hint: "Negative if the liquid is below the pump (suction lift)." }),
     choice("dst", "Delivers to", [
       { value: "tank", label: "A tank" },
       { value: "free", label: "Open pipe end" },
@@ -62,9 +64,10 @@ export const pumpSystem = {
   compute: (v) => {
     const runs = parseModel(v.model);
     const patm = standardAtmosphere(v.site).p;
-    const p = { rho: v.rho, mu: v.mu, pv: v.pv, patm, srcP: v.src === "closed" ? v.srcP : 0, zs: v.zs, dst: v.dst, zd: v.zd, dstP: v.dstP };
+    const main = v.src === "main";
+    const p = { rho: v.rho, mu: v.mu, pv: v.pv, patm, src: v.src, srcP: main ? v.mainP : v.src === "closed" ? v.srcP : 0, zs: v.zs, dst: v.dst, zd: v.zd, dstP: v.dstP, Qd: v.Q };
     const warnings = [];
-    const bad = runs.find((r) => !(r.L >= 0) || (r.D !== undefined && !(r.D > 0)));
+    const bad = runs.find((r) => !isEquip(r) && (!(r.L >= 0) || (r.D !== undefined && !(r.D > 0))));
     if (bad) return { results: [], warnings: ["Each pipe run needs a length of zero or more, and custom pipes need an inside diameter."] };
     if (!runs.some((r) => r.side === "d")) warnings.push("There's no discharge piping yet, so the head is just the lift to the destination.");
 
@@ -114,34 +117,36 @@ export const pumpSystem = {
       out("Pe", "Electrical input", "power", Ph / v.eta / v.etaM)
     );
 
-    s.sRows.forEach((r, i) => {
-      if (r.v > 2.4) warnings.push(`Suction run ${i + 1} (${r.run.name || runLabel(r.run)}) runs at ${r.v.toFixed(1)} m/s. Keep pump suction lines below about 1.5–2.4 m/s (5–8 ft/s) so the flow reaches the impeller evenly.`);
+    s.sRows.filter((r) => !r.equip).forEach((r, i) => {
+      if (r.v > 2.4) warnings.push(`Suction run S${i + 1} (${r.run.name || runLabel(r.run)}) runs at ${r.v.toFixed(1)} m/s. Keep pump suction lines below about 1.5–2.4 m/s (5–8 ft/s) so the flow reaches the impeller evenly.`);
     });
-    s.dRows.forEach((r, i) => {
-      if (r.v > 3.5) warnings.push(`Discharge run ${i + 1} (${r.run.name || runLabel(r.run)}) runs at ${r.v.toFixed(1)} m/s. Above about 3 m/s (10 ft/s) lines get noisy and erode fittings.`);
+    s.dRows.filter((r) => !r.equip).forEach((r, i) => {
+      if (r.v > 3.5) warnings.push(`Discharge run D${i + 1} (${r.run.name || runLabel(r.run)}) runs at ${r.v.toFixed(1)} m/s. Above about 3 m/s (10 ft/s) lines get noisy and erode fittings.`);
     });
-    if (s.inletZ > v.zs + 1e-9) warnings.push("The suction pipe inlet sits above the supply liquid level, so it would draw air. Lower the inlet or check the rise of each suction run.");
+    if (!main && s.inletZ > v.zs + 1e-9) warnings.push("The suction pipe inlet sits above the supply liquid level, so it would draw air. Lower the inlet or check the rise of each suction run.");
     const low = s.nodes.find((n) => n.p < v.pv * 1.05);
     if (low && s.NPSHa > 0) warnings.push("Somewhere in the piping the pressure drops close to the liquid's vapour pressure (a high point running under vacuum). It may flash or air-bind there.");
-    if (v.zs < 0 && -v.zs > patm / g - v.pv / g - 1) warnings.push("That suction lift is close to the physical limit for this liquid. Even a perfect pipe can't lift much further.");
+    if (!main && v.zs < 0 && -v.zs > patm / g - v.pv / g - 1) warnings.push("That suction lift is close to the physical limit for this liquid. Even a perfect pipe can't lift much further.");
 
+    if (s.TDH <= 0) warnings.push(main ? "The main's pressure alone can push the design flow to the destination, so the pump adds no head here. Check the lowest main pressure you can expect before deciding you don't need a booster." : "The supply alone can push the design flow to the destination, so the pump adds no head here.");
     const pts = curves(runs, p, v.Q, curve, v.Qr, v.NPSHr);
     return {
       results,
       warnings,
-      visual: { type: "pump", s, op, NPSHr: v.NPSHr, Q: v.Q, curves: pts, runs, zs: v.zs, zd: s.zdEff, dst: v.dst, src: v.src, pv: v.pv, rho: v.rho, patm },
+      visual: { type: "pump", s, op, NPSHr: v.NPSHr, Q: v.Q, curves: pts, runs, zs: main ? s.inletZ : v.zs, zd: s.zdEff, dst: v.dst, src: v.src, srcP: p.srcP, pv: v.pv, rho: v.rho, patm },
     };
   },
   formula: [
     "h_f = ( f L / D + ΣK ) · v² / 2g + Δp_equipment / ρg   (each run)",
     "K_fitting = (L/D)_eq · f_T   (Crane TP-410)",
-    "NPSHa = (p_atm + p_supply) / ρg + z_supply − h_f,suction − p_vapour / ρg",
+    "NPSHa = (p_atm + p_supply) / ρg + z_supply − h_f,suction − p_vapour / ρg   (from a main, z_supply is the tap)",
+    "Δp_equipment(Q) = Δp_design · (Q / Q_design)²,  or for a valve Δp = SG · (Q / Cv)²",
     "TDH = (p_dest − p_supply) / ρg + (z_dest − z_supply) + h_f,suction + h_f,discharge",
     "Operating point: H_pump(Q) = TDH(Q)",
     "P_shaft = ρ g Q H / η",
   ],
   about:
-    "Lay the system out in flow order. Suction runs go from the supply tank to the pump, and discharge runs go from the pump to the end. For each run, give the pipe, its length, how far it rises (negative if it drops), and its fittings. Elevations are measured from the pump centerline. Friction uses Darcy–Weisbach with the Colebrook friction factor, and fittings use the Crane equivalent-length method, so their losses scale with pipe size. Atmospheric pressure comes from the standard atmosphere at your site elevation. NPSH available is the absolute head at the pump suction above the liquid's vapour pressure. It must stay above the pump's NPSH required, with margin to spare. Each loss is lumped at the end of its run when the pressure at the joints is worked out. Single-path systems only: no branches or loops, and liquids only.",
+    "Lay the system out in flow order. Suction runs go from the supply tank (or a water main) to the pump, and discharge runs go from the pump to the end. For each run, give the pipe, its length, how far it rises (negative if it drops), and its fittings. Elevations are measured from the pump centerline. Friction uses Darcy–Weisbach with the Colebrook friction factor, and fittings use the Crane equivalent-length method, so their losses scale with pipe size. Atmospheric pressure comes from the standard atmosphere at your site elevation. NPSH available is the absolute head at the pump suction above the liquid's vapour pressure. It must stay above the pump's NPSH required, with margin to spare. Inline equipment (filters, meters, backflow preventers, heat exchangers, control valves) has its pressure drop at the design flow, scaled with flow squared along the system curve; a control valve can use its Cv instead. From a water main, the main pressure at the tap takes the place of the supply tank level. Each loss is lumped at the end of its run when the pressure at the joints is worked out. Single-path systems only: no branches or loops, and liquids only.",
   sources: "Crane TP-410, Flow of Fluids Through Valves, Fittings and Pipe; Hydraulic Institute ANSI/HI 9.6.1, Rotodynamic Pumps Guideline for NPSH Margin; Colebrook (1939).",
   related: ["pressure-drop", "pump-power", "pipe-velocity"],
 };

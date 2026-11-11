@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, ChevronLeft } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
 import { withNext } from "../lib/redirect";
 import { apps } from "../app/apps";
 import { planAddHref } from "../app/planLinks";
 import { openInApp } from "../lib/launchApp";
+import { defaultParent, isAppStart, isInside, previousAddress } from "../lib/appBack";
 import themes from "../app/appThemes.json";
 import "../styles/appbar.css";
 
@@ -14,7 +15,12 @@ import "../styles/appbar.css";
 // The app's own name sits on the left, styled by that app. The ClusterFox
 // account sits on the right, so every app is plainly signed in to the
 // same account and saves its settings there.
-export default function AppBar({ appId, children, planTitle, planHref }) {
+//
+// Once you are past an app's start screen a back button sits at the far
+// left, because apps open in their own window where the browser's back
+// button isn't there. An app whose pages are folders passes `backTo`,
+// the page above a given location, for when there is no step back to take.
+export default function AppBar({ appId, children, planTitle, planHref, backTo }) {
   const app = apps.find((a) => a.id === appId);
   const Icon = app?.icon;
   const title = app?.fullName || app?.subtitle;
@@ -73,8 +79,29 @@ export default function AppBar({ appId, children, planTitle, planHref }) {
     navigate("/");
   }
 
+  const appPath = app?.path || "/";
+  const showBack = Boolean(app) && !isAppStart(appPath, location);
+
+  function goBack() {
+    setOpen(false);
+    if (isInside(previousAddress(), appPath)) {
+      navigate(-1);
+      return;
+    }
+    // Nothing of this app behind us: climb to the page above instead of
+    // leaving the app, and take this page's place so the trail stays tidy.
+    const parent = (backTo && backTo(location)) || defaultParent(appPath, location);
+    navigate(parent, { replace: true });
+  }
+
   return (
-    <header className="appbar" data-app={appId}>
+    <header className={`appbar${showBack ? " has-back" : ""}`} data-app={appId}>
+      {showBack && (
+        <button type="button" className="appbar-back" onClick={goBack} aria-label="Back" title="Back">
+          <ChevronLeft size={20} strokeWidth={2.25} aria-hidden="true" />
+          <span>Back</span>
+        </button>
+      )}
       <Link to={app?.path || "/"} className="appbar-brand" aria-label={title}>
         {Icon && (
           <span className="appbar-mark" aria-hidden="true">

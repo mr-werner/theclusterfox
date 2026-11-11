@@ -3,6 +3,7 @@ import { Copy, FolderOpen, Plus, Save, Trash2 } from "lucide-react";
 import { Num, Choice } from "./kit";
 import { show } from "./helpers";
 import Chart from "../components/Chart";
+import LoadLocation from "./LoadLocation";
 import { parseProject, stringifyProject, newRoom, ORIENTATIONS, MASS } from "../model/loads";
 
 // Rooms as cards. Each card holds the room's size, people, lights, equipment,
@@ -47,6 +48,14 @@ const PARTS = [
   ["lights", "Lights", "#7be0c3"],
   ["equip", "Equipment", "#62d6c9"],
   ["infil", "Infiltration", "#9aa39f"],
+];
+const HEAT_PARTS = [
+  ["walls", "Walls", "#c6a6ff"],
+  ["glass", "Windows", "#5cc8ff"],
+  ["roof", "Roof", "#ff7aa8"],
+  ["floor", "Floor", "#d9b38c"],
+  ["infil", "Infiltration", "#9aa39f"],
+  ["oa", "Outdoor air", "#ff8a4c"],
 ];
 const hourLabel = (h) => `${String(h - 1).padStart(2, "0")}:00`;
 
@@ -133,6 +142,8 @@ export default function LoadBuilder({ values: v, set, output, unit, setUnit }) {
         </div>
         {note && <p className="tf-muted tf-small">{note}</p>}
       </div>
+
+      <LoadLocation values={v} set={set} unit={unit} />
 
       <div className="ld-rooms">
         {rooms.map((room, i) => {
@@ -276,6 +287,37 @@ export default function LoadBuilder({ values: v, set, output, unit, setUnit }) {
 
       {vis && (
         <>
+          <div className="ld-heat" aria-label="Heating load at the winter design temperature">
+            <h3 className="tf-visual-title">Heating load at the winter design temperature</h3>
+            <p className="ld-heat-total">
+              <strong>{H(vis.heat)}</strong>
+              <span className="tf-muted tf-small">
+                {show(v.Twin, "temp", unit("temp"))} outside, {show(v.Tih, "temp", unit("temp"))} inside: ΔT {show(vis.dTheat, "dtemp", unit("dtemp"))}. No credit for sun, people, lights or equipment.
+              </span>
+            </p>
+            {vis.heat > 0 ? (
+              (() => {
+                const tot = HEAT_PARTS.reduce((a, [k]) => a + Math.max(0, vis.heatParts[k]), 0) || 1;
+                return (
+                  <>
+                    <div className="fs-stack">
+                      {HEAT_PARTS.map(([k, label, c]) => (vis.heatParts[k] > 0 ? <i key={k} style={{ width: `${(vis.heatParts[k] / tot) * 100}%`, background: c }} title={label} /> : null))}
+                    </div>
+                    <div className="tf-legend">
+                      {HEAT_PARTS.filter(([k]) => vis.heatParts[k] > 0.5).map(([k, label, c]) => (
+                        <span key={k}>
+                          <i style={{ background: c }} />
+                          {label} {H(vis.heatParts[k])}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()
+            ) : (
+              <p className="tf-muted tf-small">The winter design temperature isn't below the heating setpoint, so there's nothing to heat.</p>
+            )}
+          </div>
           <div className="fs-chart">
             <h3 className="tf-visual-title">Building cooling load through the design day</h3>
             <Chart

@@ -1,6 +1,6 @@
 import Chart from "./Chart";
 import { fromSI, unitLabel, fmt } from "../model/units";
-import { runLabel } from "../model/pumpSystem";
+import { runLabel, tagsFor } from "../model/pumpSystem";
 
 // Pump system results: the head–flow chart (system curve, pump curve, NPSH
 // available and required) and a run-by-run loss breakdown.
@@ -17,7 +17,9 @@ export default function PumpPlots({ v, unit }) {
   const L = unit("length");
   const val = (x, dim) => `${fmt(fromSI(x, dim, unit(dim)))} ${unitLabel(dim, unit(dim))}`;
 
-  const rows = [...s.sRows.map((r, i) => ({ ...r, tag: `S${i + 1}` })), ...s.dRows.map((r, i) => ({ ...r, tag: `D${i + 1}` }))];
+  const sTags = tagsFor(s.sRows.map((r) => r.run), "s");
+  const dTags = tagsFor(s.dRows.map((r) => r.run), "d");
+  const rows = [...s.sRows.map((r, i) => ({ ...r, tag: sTags[i] })), ...s.dRows.map((r, i) => ({ ...r, tag: dTags[i] }))];
 
   return (
     <section className="tf-card tf-visual tf-pump-plots">
@@ -47,14 +49,14 @@ export default function PumpPlots({ v, unit }) {
                 <td className="is-text">
                   <strong>{r.tag}</strong> {r.run.name || runLabel(r.run)}
                   <span className="tf-pump-sub">
-                    {runLabel(r.run)} · ID {val(r.D, "smallLength")} · {val(r.run.L, "length")}
+                    {r.equip ? `${runLabel(r.run)} · ${r.run.cv > 0 ? `Cv ${fmt(r.run.cv, 3)}` : `${val(r.run.dp, "pressure")} at design flow`}` : `${runLabel(r.run)} · ID ${val(r.D, "smallLength")} · ${val(r.run.L, "length")}`}
                   </span>
                 </td>
-                <td>{val(r.v, "velocity")}</td>
-                <td>{fmt(r.Re, 3)}</td>
-                <td>{fmt(r.K, 3)}</td>
-                <td>{val(r.hPipe, "length")}</td>
-                <td>{val(r.hFit, "length")}</td>
+                <td>{r.equip ? "—" : val(r.v, "velocity")}</td>
+                <td>{r.equip ? "—" : fmt(r.Re, 3)}</td>
+                <td>{r.equip ? "—" : fmt(r.K, 3)}</td>
+                <td>{r.equip ? "—" : val(r.hPipe, "length")}</td>
+                <td>{r.equip ? "—" : val(r.hFit, "length")}</td>
                 <td>{r.hEquip ? val(r.hEquip, "length") : "—"}</td>
                 <td>
                   <strong>{val(r.h, "length")}</strong>

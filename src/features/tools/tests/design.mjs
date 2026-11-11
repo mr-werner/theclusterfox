@@ -1,6 +1,7 @@
 // Design & Manufacturing: GD&T checks and the process recommender.
 import assert from "node:assert/strict";
 import { CALLOUTS, HOLE, PIN, bonusFor, calloutById, evaluate, initialState, runoutFim, virtualCondition } from "../design/gdtModel.js";
+import { evaluatePattern, evaluateShift, holeMadeIn, seatPart } from "../design/gdtLessons.js";
 import { PROCESSES, FEATURES, MATERIALS, SHAPES, capableOf, fit, recommend } from "../design/processes.js";
 
 const near = (a, b, tol = 1e-6, what = "") => assert(Math.abs(a - b) <= tol, `${what}: expected ${b}, got ${a}`);
@@ -100,5 +101,44 @@ assert(["laser", "punching", "press-brake", "stamping"].includes(recommend({ mat
 // GD&T link: lapping is the way to 0.001 flatness.
 assert(capableOf("flatness", 0.001).some((x) => x.p.id === "lapping"));
 assert(!capableOf("flatness", 0.001).some((x) => x.p.id === "milling"));
+
+// Straightness on a surface line is a flat bar: no ⌀ in its size.
+{
+  const c = calloutById.straightness;
+  const st = { ...initialState(c), mode: "line" };
+  assert(!c.params(st).some((p) => p.label.includes("⌀")), "surface line has no diameter input");
+  assert(!evaluate(c, st).checks.some((k) => k.label.includes("⌀")), "surface line checks have no ⌀");
+}
+
+// Datum shift: MMB lets the whole pattern shift, RMB doesn't, and shift can't save a stray hole.
+{
+  const base = { tol: 0.2, mod: "RFS", bore: 20.08, hole: 8.0, dx: 0.12, dy: 0, solo: 0 };
+  assert(!evaluateShift({ ...base, dmod: "RMB" }).ok, "RMB: pattern off 0.12 fails");
+  const m = evaluateShift({ ...base, dmod: "MMB" });
+  assert(m.ok, "MMB: shift saves it");
+  near(Math.max(...m.errors), 0.16, 1e-3, "0.12 − 0.04 slide, ×2");
+  const stray = evaluateShift({ ...base, dmod: "MMB", bore: 20.06, dx: 0, solo: 0.14 });
+  assert(!stray.ok, "shift can't rescue one stray hole");
+  near(evaluateShift({ ...base, dmod: "MMB", bore: 20.06, dx: 0, solo: 0.13 }).errors[0], 0.2, 2e-3, "stray hole after the best slide");
+}
+
+// Hole patterns: composite accepts a shifted pattern that single rejects, and the lower line matches assembly.
+{
+  const s = { px: 0.25, py: -0.15, rotDeg: 0, stray: 0, hole: 8.45, single: 0.4, upper: 0.8, lower: 0.4 };
+  const r = evaluatePattern(s);
+  assert(!r.single.ok && r.composite.ok && r.assembles, "shifted pattern: composite and cover agree");
+  const bad = evaluatePattern({ ...s, px: 0, py: 0, hole: 8.4, stray: 0.4 });
+  assert(!bad.lower.ok && !bad.assembles, "stray hole fails the lower line and the cover");
+  const ok = evaluatePattern({ ...s, px: 0, py: 0, hole: 8.4, stray: 0.3 });
+  assert(ok.lower.ok && ok.assembles && !ok.single.ok, "best fit shares one stray hole's error");
+}
+
+// Datum order: a part drilled A|B measures perfect A|B and fails B|A.
+{
+  const h = holeMadeIn("AB", 0.25);
+  near(seatPart("AB", 0.25, h).error, 0, 1e-9, "same order as made");
+  near(seatPart("BA", 0.25, h).error, 0.316, 2e-3, "other order");
+  near(seatPart("BA", 0, holeMadeIn("AB", 0)).error, 0, 1e-9, "square part doesn't care");
+}
 
 console.log("design: all checks passed");

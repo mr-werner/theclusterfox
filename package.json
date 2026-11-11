@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node src/app/tests/planLinks.mjs && node src/features/f4t/tests/validate.mjs && node src/features/clocast/tests/validate.mjs && node src/features/watch/tests/validate.mjs && node src/features/sports/tests/validate.mjs && node src/features/sports/tests/feeds.mjs && node src/features/plan/tests/validate.mjs && node src/features/lift/tests/validate.mjs && node src/features/tools/tests/validate.mjs && node src/features/tools/tests/frame.mjs && node src/features/tools/tests/design.mjs && node src/features/calm/tests/validate.mjs && node src/features/math/tests/validate.mjs && node src/features/cook/tests/validate.mjs && node src/features/home/tests/validate.mjs && node src/features/grow/tests/validate.mjs",
+    "test": "node src/app/tests/planLinks.mjs && node src/features/f4t/tests/validate.mjs && node src/features/clocast/tests/validate.mjs && node src/features/watch/tests/validate.mjs && node src/features/sports/tests/validate.mjs && node src/features/sports/tests/feeds.mjs && node src/features/plan/tests/validate.mjs && node src/features/lift/tests/validate.mjs && node src/features/tools/tests/validate.mjs && node src/features/tools/tests/frame.mjs && node src/features/tools/tests/design.mjs && node src/features/calm/tests/validate.mjs && node src/features/math/tests/validate.mjs && node src/features/cook/tests/validate.mjs && node src/features/cook/tests/stores.mjs && node src/features/home/tests/validate.mjs && node src/features/grow/tests/validate.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -219,3 +219,29 @@ export function aqiCategory(aqi) {
   if (aqi <= 300) return { label: "Very unhealthy", tone: "very" };
   return { label: "Hazardous", tone: "hazardous" };
 }
+
+/**
+ * Wind right now at many points at once (Open-Meteo takes a list of
+ * coordinates in one request). points: [{ latitude, longitude }].
+ * Returns [{ latitude, longitude, speed m/s, gust m/s, direction ° (from) }].
+ */
+export async function fetchWindGrid(points, { signal } = {}) {
+  if (!points.length) return [];
+  const params = new URLSearchParams({
+    latitude: points.map(p => p.latitude.toFixed(2)).join(","),
+    longitude: points.map(p => p.longitude.toFixed(2)).join(","),
+    current: "wind_speed_10m,wind_direction_10m,wind_gusts_10m",
+    wind_speed_unit: "ms",
+  });
+  const response = await fetch(`${FORECAST_URL}?${params}`, { signal });
+  if (!response.ok) throw new Error("Wind isn't available right now.");
+  const body = await response.json();
+  const list = Array.isArray(body) ? body : [body];
+  return list.map((item, i) => ({
+    latitude: points[i].latitude,
+    longitude: points[i].longitude,
+    speed: item.current?.wind_speed_10m ?? null,
+    gust: item.current?.wind_gusts_10m ?? null,
+    direction: item.current?.wind_direction_10m ?? null,
+  }));
+}

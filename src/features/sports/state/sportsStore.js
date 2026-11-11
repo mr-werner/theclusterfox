@@ -1,7 +1,8 @@
 // What ScoreFox remembers, kept in this browser: the leagues you follow and
 // the services you have, so it can tell which games you can watch.
 
-import { isRegion, leaguesById, LIVE_SERVICES } from "../../../services/watch/parse.js";
+import { isRegion, LIVE_SERVICES } from "../../../services/watch/parse.js";
+import { sportsLeaguesById } from "../../../services/sports/leagues.js";
 import { toggleIn, toggleService } from "../../watch/state/watchStore.js";
 
 export { toggleIn, toggleService };
@@ -20,6 +21,8 @@ export function emptyData() {
     // Live TV and sports services by label (see LIVE_SERVICES).
     live: [],
     leagues: DEFAULT_LEAGUES,
+    // Betting lines (spread, total, moneyline) on games that have them.
+    showOdds: true,
   };
 }
 
@@ -35,13 +38,14 @@ export function normalizeData(value) {
         .slice(0, 60)
     : [];
   const live = Array.isArray(value.live) ? [...new Set(value.live.filter(l => liveLabels.has(l)))] : [];
-  const leagues = Array.isArray(value.leagues) ? [...new Set(value.leagues.filter(id => leaguesById.has(id)))] : base.leagues;
+  const leagues = Array.isArray(value.leagues) ? [...new Set(value.leagues.filter(id => sportsLeaguesById.has(id)))] : base.leagues;
   return {
     ...base,
     region: isRegion(value.region) ? value.region : base.region,
     services,
     live,
     leagues,
+    showOdds: value.showOdds !== false,
   };
 }
 

@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { LoaderCircle, RotateCcw, Trophy } from "lucide-react";
+import { LoaderCircle, RotateCcw, SlidersHorizontal, Trophy } from "lucide-react";
 
-import { networkLink } from "../../../services/watch/links";
-import { fetchGames } from "../../../services/watch/watchApi";
-import { canWatchNetwork, isBroadcastNetwork, LEAGUES, leaguesById, networksForServices } from "../../../services/watch/parse";
-import { pickedNames, toggleIn } from "../state/sportsStore";
+import { sportsLeaguesById, SPORTS_LEAGUES } from "../../../services/sports/leagues";
+import { fetchSportsDay } from "../../../services/sports/sportsApi";
+import { networksForServices } from "../../../services/watch/parse";
+import { pickedNames } from "../state/sportsStore";
+import { canWatch, dateKey, onDay } from "../model/schedule";
+import { CardEvent, FieldEvent, ListingEvent, MatchRow, TennisEvent } from "./EventViews";
+import GameDetail from "./GameDetail";
+import LeaguePicker from "./LeaguePicker";
 
 const DAYS = 7;
-
-const dateKey = date =>
-  `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
 
 function upcomingDays() {
   const today = new Date();
@@ -20,75 +21,34 @@ function upcomingDays() {
   });
 }
 
-function gameTime(game) {
-  if (game.state === "in") return { text: game.detail || "Live", live: true };
-  if (game.state === "post") return { text: game.detail || "Final" };
-  if (!game.start) return { text: game.detail || "TBD" };
-  return { text: new Date(game.start).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) };
-}
-
-function Game({ game, networkKeys }) {
-  const time = gameTime(game);
-  const watchable = game.networks.some(n => canWatchNetwork(n.name, networkKeys));
-  const showScore = game.state !== "pre" && game.home.score != null;
-
-  return (
-    <li className={`wf-game${watchable ? " is-mine" : ""}`}>
-      <p className={`wf-game-time${time.live ? " is-live" : ""}`}>{time.text}</p>
-      <div className="wf-game-teams">
-        {[game.away, game.home].map((team, i) => (
-          <p key={i}>
-            {team.logo && <img src={team.logo} alt="" width="20" height="20" loading="lazy" />}
-            <span>{team.name}</span>
-            {showScore && <strong>{team.score}</strong>}
-          </p>
-        ))}
-      </div>
-      <ul className="wf-networks" aria-label="Where it's on">
-        {game.networks.length === 0 && <li className="wf-muted">No TV listing yet</li>}
-        {game.networks.map(network => {
-          const mine = canWatchNetwork(network.name, networkKeys);
-          const regional = network.market !== "national";
-          const link = networkLink(network.name);
-          const label = (
-            <>
-              {network.name}
-              {regional && <span className="wf-net-tag">{network.market === "home" ? "home area" : "away area"}</span>}
-              {!mine && isBroadcastNetwork(network.name) && <span className="wf-net-tag">free with antenna</span>}
-            </>
-          );
-          return (
-            <li key={`${network.name}-${network.market}`} className={mine ? "is-mine" : undefined}>
-              {link ? (
-                <a href={link} target="_blank" rel="noreferrer">
-                  {label}
-                </a>
-              ) : (
-                label
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </li>
-  );
+function EventItem({ event, league, networkKeys, showOdds, onOpen }) {
+  if (event.kind === "match") return <MatchRow game={event} networkKeys={networkKeys} showOdds={showOdds} onOpen={() => onOpen(event, league)} />;
+  if (event.kind === "card") return <CardEvent event={event} networkKeys={networkKeys} />;
+  if (event.kind === "field") return <FieldEvent event={event} networkKeys={networkKeys} />;
+  if (event.kind === "tennis") return <TennisEvent event={event} networkKeys={networkKeys} />;
+  return <ListingEvent event={event} networkKeys={networkKeys} />;
 }
 
 export default function SportsSchedule({ data, update, onPickServices }) {
   const [days] = useState(upcomingDays);
   const [day, setDay] = useState(days[0].key);
   const [onlyMine, setOnlyMine] = useState(false);
+  const [only, setOnly] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [open, setOpen] = useState(null);
   const [reloads, setReloads] = useState(0);
   const [state, setState] = useState({ key: null, byLeague: {}, failed: [] });
   const networkKeys = useMemo(() => networksForServices(pickedNames(data)), [data]);
-  const leagues = LEAGUES.filter(league => data.leagues.includes(league.id));
-  const requestKey = `${day}|${data.leagues.join(",")}|${reloads}`;
+  // Keep the catalog's order (by sport) rather than the order they were picked.
+  const leagues = SPORTS_LEAGUES.filter(league => data.leagues.includes(league.id));
+  const focus = only && data.leagues.includes(only) ? only : null;
+  const requestKey = `${day}|${leagues.map(l => l.id).join(",")}|${reloads}`;
 
   useEffect(() => {
     const controller = new AbortController();
-    const ids = requestKey.split("|")[1].split(",").filter(Boolean);
-    const date = requestKey.split("|")[0];
-    Promise.allSettled(ids.map(id => fetchGames(id, date, { signal: controller.signal }))).then(results => {
+    const [date, list] = requestKey.split("|");
+    const ids = list.split(",").filter(Boolean);
+    Promise.allSettled(ids.map(id => fetchSportsDay(id, date, { signal: controller.signal }))).then(results => {
       if (controller.signal.aborted) return;
       const byLeague = {};
       const failed = [];
@@ -104,30 +64,43 @@ export default function SportsSchedule({ data, update, onPickServices }) {
   const loading = state.key !== requestKey;
   const hasServices = data.services.length > 0 || data.live.length > 0;
   const sections = leagues
-    .map(league => {
-      const games = (state.byLeague[league.id] ?? []).filter(
-        game => !onlyMine || game.networks.some(n => canWatchNetwork(n.name, networkKeys))
-      );
-      return { league, games };
-    })
-    .filter(section => section.games.length);
+    .filter(league => !focus || league.id === focus)
+    .map(league => ({
+      league,
+      events: (state.byLeague[league.id] ?? []).map(e => onDay(e, day)).filter(e => e && (!onlyMine || canWatch(e, networkKeys))),
+    }))
+    .filter(section => section.events.length);
+
+  if (editing) {
+    return (
+      <section className="wf-panel">
+        <LeaguePicker data={data} update={update} onDone={() => setEditing(false)} />
+      </section>
+    );
+  }
 
   return (
     <section className="wf-panel">
-      <ul className="wf-chip-row" aria-label="Leagues">
-        {LEAGUES.map(league => (
-          <li key={league.id}>
-            <button
-              type="button"
-              className="wf-chip"
-              aria-pressed={data.leagues.includes(league.id)}
-              onClick={() => update(current => ({ ...current, leagues: toggleIn(current.leagues, league.id) }))}
-            >
-              {league.name}
+      <div className="sf-follow">
+        <ul className="wf-chip-row" aria-label="Show one league">
+          <li>
+            <button type="button" className="wf-chip" aria-pressed={!focus} onClick={() => setOnly(null)}>
+              All
             </button>
           </li>
-        ))}
-      </ul>
+          {leagues.map(league => (
+            <li key={league.id}>
+              <button type="button" className="wf-chip" aria-pressed={focus === league.id} onClick={() => setOnly(o => (o === league.id ? null : league.id))}>
+                {league.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <button type="button" className="wf-btn wf-btn--ghost sf-edit" onClick={() => setEditing(true)}>
+          <SlidersHorizontal size={15} aria-hidden="true" /> Leagues
+          <span className="wf-count">{leagues.length}</span>
+        </button>
+      </div>
 
       <div className="wf-days" role="group" aria-label="Day">
         {days.map(item => (
@@ -141,7 +114,7 @@ export default function SportsSchedule({ data, update, onPickServices }) {
       <div className="wf-toolbar">
         {hasServices ? (
           <button type="button" className="wf-chip" aria-pressed={onlyMine} onClick={() => setOnlyMine(v => !v)}>
-            Only games I can watch
+            Only what I can watch
           </button>
         ) : (
           onPickServices && (
@@ -153,45 +126,74 @@ export default function SportsSchedule({ data, update, onPickServices }) {
             </p>
           )
         )}
+        <button type="button" className="wf-chip" aria-pressed={data.showOdds} onClick={() => update(current => ({ ...current, showOdds: !current.showOdds }))}>
+          Betting lines
+        </button>
         <button type="button" className="wf-link-btn" onClick={() => setReloads(n => n + 1)}>
           <RotateCcw size={14} aria-hidden="true" /> Refresh
         </button>
       </div>
 
-      {!leagues.length && <p className="wf-muted">Pick a league above to see its games.</p>}
+      {!leagues.length && (
+        <div className="wf-empty">
+          <Trophy size={30} aria-hidden="true" />
+          <p className="wf-muted">You aren’t following any leagues yet.</p>
+          <button type="button" className="wf-btn" onClick={() => setEditing(true)}>
+            Choose leagues
+          </button>
+        </div>
+      )}
 
       {leagues.length > 0 && loading && (
         <p className="wf-muted wf-loading">
-          <LoaderCircle size={16} className="spin" aria-hidden="true" /> Loading games…
+          <LoaderCircle size={16} className="spin" aria-hidden="true" /> Loading the schedule…
         </p>
       )}
 
       {!loading && state.failed.length > 0 && (
         <p className="wf-alert">
-          Couldn’t load {state.failed.map(id => leaguesById.get(id)?.name).join(", ")}. Try refreshing.
+          Couldn’t load {state.failed.map(id => sportsLeaguesById.get(id)?.name).join(", ")}. Try refreshing.
         </p>
       )}
 
       {!loading && leagues.length > 0 && !sections.length && (
         <div className="wf-empty">
           <Trophy size={30} aria-hidden="true" />
-          <p className="wf-muted">{onlyMine ? "No games on your services this day." : "No games scheduled this day."}</p>
+          <p className="wf-muted">{onlyMine ? "Nothing on your services this day." : "Nothing scheduled this day."}</p>
         </div>
       )}
 
       {!loading &&
-        sections.map(({ league, games }) => (
+        sections.map(({ league, events }) => (
           <div key={league.id} className="wf-league">
             <h3>{league.name}</h3>
             <ul className="wf-games">
-              {games.map(game => (
-                <Game key={game.id} game={game} networkKeys={networkKeys} />
+              {events.map(event => (
+                <EventItem
+                  key={event.id}
+                  event={event}
+                  league={league}
+                  networkKeys={networkKeys}
+                  showOdds={data.showOdds}
+                  onOpen={(game, l) => setOpen({ game, league: l })}
+                />
               ))}
             </ul>
           </div>
         ))}
 
-      <p className="wf-note">US TV listings from ESPN. Times are in your time zone.</p>
+      {open && (
+        <GameDetail
+          key={`${open.league.id}-${open.game.id}`}
+          game={open.game}
+          league={open.league}
+          networkKeys={networkKeys}
+          showOdds={data.showOdds}
+          onClose={() => setOpen(null)}
+        />
+      )}
+
+      <p className="wf-note">US TV listings from ESPN. Times are in your time zone. Tap a game for stats, leaders and standings.</p>
     </section>
   );
 }

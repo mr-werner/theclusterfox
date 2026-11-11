@@ -59,6 +59,12 @@ test("once ScoreFox has its own settings, WatchFox no longer changes them", () =
   assert.deepEqual(loadData().leagues, ["mlb"]);
 });
 
+test("betting lines show unless turned off, and new leagues are kept", () => {
+  assert.equal(normalizeData({}).showOdds, true);
+  assert.equal(normalizeData({ showOdds: false }).showOdds, false);
+  assert.deepEqual(normalizeData({ leagues: ["ufc", "boxing", "alpine", "made-up"] }).leagues, ["ufc", "boxing", "alpine"]);
+});
+
 test("following no leagues is remembered, not reset to the defaults", () => {
   saveData({ ...emptyData(), leagues: [] });
   assert.deepEqual(loadData().leagues, []);

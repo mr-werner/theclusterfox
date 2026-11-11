@@ -398,5 +398,32 @@ console.log(`Engineer ToolFox: ${CALCS.length} calculators and ${TABLES.length} 
   assert(out.results.length && !out.warnings.length, `building loads example: ${out.warnings.join("; ")}`);
   const tons = fromSI(out.results.find((r) => r.id === "coil").value, "power", "TR");
   assert(tons > 1 && tons < 4, `example coil ${tons} tons for 800 ft²`);
+  // Heating breakdown adds up to the heating load, and the location's design weather drives ΔT.
+  const two = L.solveLoads(L.parseProject(defaultsOf(calc).model), d);
+  near(Object.values(two.heatParts).reduce((a, b) => a + b, 0), two.heat, 1e-9, "heating parts sum");
+  near(two.dTheat, K(70) - K(10), 1e-12, "heating ΔT");
+  const W = await import("../model/designWeather.js");
+  // A synthetic year: 20 °C mean, ±15 °C seasonal swing, ±5 °C daily swing.
+  const t = [], T = [], Td = [];
+  for (let k = 0; k < 24 * 365 * 2; k++) {
+    const day = k / 24;
+    t.push(1704067200 + k * 3600);
+    T.push(20 - 15 * Math.cos((2 * Math.PI * (day - 15)) / 365) - 5 * Math.cos((2 * Math.PI * ((k % 24) - 3)) / 24));
+    Td.push(T[k] - 8);
+  }
+  const dc = W.designConditions({ t, T, Td });
+  assert(dc.heat996 < dc.heat99 && dc.heat99 < dc.cool1 && dc.cool1 < dc.cool04, "design percentiles in order");
+  assert(dc.heat996 - 273.15 > -0.5 && dc.heat996 - 273.15 < 2, `99.6% heating ${dc.heat996 - 273.15}`);
+  assert(dc.cool04 - 273.15 > 37 && dc.cool04 - 273.15 < 40.5, `0.4% cooling ${dc.cool04 - 273.15}`);
+  near(dc.DR, 10, 2e-2, "mean daily range");
+  assert(dc.month === 7 && dc.mcwb04 < dc.cool04, "hottest month and wet bulb");
+  // The location survives the page link, and picking it sets the design inputs.
+  const loc = { name: "Test~town", lat: 45, lon: -93, z: 250, ...dc, hp: "99", cp: "0.4" };
+  const back = W.decodeLocation(W.encodeLocation(loc));
+  near(back.heat99, dc.heat99, 1e-3, "location round-trip");
+  near(W.designInputs(back).Twin, back.heat99, 1e-12, "99% heating picked");
+  const withLoc = run(calc, { ...defaultsOf(calc), loc: W.encodeLocation(loc), ...W.designInputs(back) });
+  near(withLoc.results.find((r) => r.id === "dTh").value, defaultsOf(calc).Tih - back.heat99, 1e-9, "heating ΔT from location");
+  assert(run(calc, { ...defaultsOf(calc), Twin: K(75) }).warnings.length, "warns when winter is warmer than the setpoint");
   console.log("Engineer ToolFox: building loads check out.");
 }

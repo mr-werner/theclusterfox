@@ -19,9 +19,9 @@ export default function TankDiagram({ values: v, set, output, unit, setUnit }) {
   const frac = clamp(v.h / height, 0, 1);
   const levelY = bottom - frac * dh;
 
-  const drag = useDrag(svgRef, ({ y }) => set("h", tidy(clamp((bottom - y) / dh, 0, 1) * height)));
+  const drag = useDrag(svgRef, ({ y }) => set("h", tidy(clamp((bottom - y) / dh, 0, 1) * height)), { field: "h" });
   const nudge = keyNudge((s) => set("h", tidy(clamp(v.h + (s * height) / 100, 0, height))));
-  const num = (key, label, dim = "length") => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const num = (key, label, dim = "length") => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
 
   const outlineShape =
     shape === "sphere" ? (

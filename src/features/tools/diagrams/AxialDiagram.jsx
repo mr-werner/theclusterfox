@@ -24,11 +24,11 @@ export default function AxialDiagram({ calc, values: v, set, output, unit, setUn
   // The arrow starts past the furthest the bar can stretch, so dragging doesn't fight the stretch.
   const BASE = X0 + LEN + 96;
   const tip = BASE + arrow;
-  const drag = useDrag(svgRef, ({ x }) => set("F", (tension ? 1 : -1) * tidy((clamp(x - 14 - BASE - 34, 0, 110) / 110) * 1.6 * Fy)));
+  const drag = useDrag(svgRef, ({ x }) => set("F", (tension ? 1 : -1) * tidy((clamp(x - 14 - BASE - 34, 0, 110) / 110) * 1.6 * Fy)), { field: "F" });
   const nudge = keyNudge((k) => set("F", tidy(v.F + (tension ? 1 : -1) * k * Fy * 0.02)));
   const hue = 170 - 170 * clamp(ratio, 0, 1);
   const rodColor = ratio > 1 ? "#ff5a5a" : `hsl(${hue} 70% 58%)`;
-  const num = (key, label, dim) => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const num = (key, label, dim) => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
   const res = (id) => output.results.find((r) => r.id === id);
   const s = res("s"), dL = res("dL"), fos = res("fos");
   const mat = calc.inputs.find((i) => i.id === "mat");

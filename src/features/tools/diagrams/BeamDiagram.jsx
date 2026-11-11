@@ -11,7 +11,7 @@ export default function BeamDiagram({ values: v, set, output, unit, setUnit }) {
   const xa = X0 + clamp(v.a / L, 0, 1) * (X1 - X0);
   const isPoint = v.load === "point";
   const vis = output.visual;
-  const drag = useDrag(svgRef, ({ x }) => set("a", tidy(clamp((x - X0) / (X1 - X0), 0, 1) * L)));
+  const drag = useDrag(svgRef, ({ x }) => set("a", tidy(clamp((x - X0) / (X1 - X0), 0, 1) * L)), { field: "a" });
   const nudge = keyNudge((s) => set("a", tidy(clamp(v.a + (s * L) / 100, 0, L))));
 
   // Deflected shape, exaggerated so the biggest sag is 46 px.
@@ -23,7 +23,7 @@ export default function BeamDiagram({ values: v, set, output, unit, setUnit }) {
     shape = vis.pts.map((p, i) => `${i ? "L" : "M"}${(X0 + (p.x / L) * (X1 - X0)).toFixed(1)},${sy(p.y).toFixed(1)}`).join(" ");
     maxPt = { x: X0 + (vis.xMaxY / L) * (X1 - X0), y: sy(vis.maxY) };
   }
-  const num = (key, label, dim) => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const num = (key, label, dim) => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
 
   const svg = (
     <>

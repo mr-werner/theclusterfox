@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { DatumFlag, FrameSvg, Basic } from "./Frame";
-import { HOLE, PIN, bump, runoutRadius, sag, wave } from "./gdtModel";
+import { BAR, HOLE, PIN, bump, runoutRadius, sag, wave } from "./gdtModel";
 
 // Simplified drawings for each callout. Every drawing shows the part, the
 // tolerance zone (green when the part passes, red when it fails) and the actual
@@ -103,56 +103,71 @@ function Flatness({ s, r, layout }) {
   );
 }
 
-function Straightness({ s, r, layout }) {
+function Straightness(props) {
+  return props.s.mode === "line" ? <StraightnessLine {...props} /> : <StraightnessAxis {...props} />;
+}
+
+/** Surface line: a flat bar seen from the side. Its size is a thickness, so nothing here carries ⌀. */
+function StraightnessLine({ s, r, layout }) {
+  const K = 300, x0 = 100, x1 = 520, yB = 300, t0 = 120;
+  const X = (u) => x0 + u * (x1 - x0);
+  const th = t0 + K * (s.size - BAR.nominal);
+  const yTopNom = yB - th;
+  const bowAt = (u) => K * s.bow * sag(u);
+  const top = samples(160, (u) => [X(u), yTopNom - bowAt(u) - K * wave(u, s.wave, 3)]);
+  const bot = samples(160, (u) => [X(1 - u), yB - bowAt(1 - u)]);
+  const devs = samples(160, (u) => s.bow * sag(u) + wave(u, s.wave, 3));
+  const mid = (Math.min(...devs) + Math.max(...devs)) / 2;
+  const zone = r.checks[0];
+  const envTop = yB - (t0 + K * (BAR.mmc - BAR.nominal));
+  const lowest = Math.max(...bot.map((p) => p[1]));
+  return (
+    <Sheet label="Straightness of a surface line: side view of a flat bar">
+      <Defs />
+      <line x1={x0 - 24} x2={x1 + 24} y1={envTop - (yB - lowest)} y2={envTop - (yB - lowest)} className="gd-envelope" />
+      <line x1={x0 - 24} x2={x1 + 24} y1={lowest} y2={lowest} className="gd-envelope" />
+      <Label x={x1 + 28} y={envTop - (yB - lowest) + 4} className="is-dim">plate</Label>
+      <Label x={x1 + 28} y={lowest + 4} className="is-dim">plate</Label>
+      <path d={`${pts([...top, ...bot])} Z`} className="gd-part" />
+      <rect x={x0 - 16} width={x1 - x0 + 32} y={yTopNom - K * (mid + s.tol / 2)} height={K * s.tol} className={zoneClass(zone.ok)} />
+      <path d={pts(top)} className="gd-actual" />
+      <DimV x={62} y1={yTopNom} y2={yB} label={BAR.label} />
+      <Callout layout={layout} x={280} y={26} to={[X(0.35), yTopNom - bowAt(0.35) - 4]} />
+      <Label x={x0} y={lowest + 30} className="is-dim">Rule #1: perfect form at MMC, two flat plates 10.1 apart</Label>
+      <Label x={x0} y={lowest + 52} className="is-dim">No ⌀ anywhere: the zone is a flat band along the top face</Label>
+    </Sheet>
+  );
+}
+
+function StraightnessAxis({ s, r, layout }) {
   const K = 300, x0 = 100, x1 = 520, cy = 205, r0 = 68;
   const X = (u) => x0 + u * (x1 - x0);
   const rA = r0 + (K * (s.size - PIN.nominal)) / 2;
   const axisY = (u) => cy - K * s.bow * sag(u);
-  const waveOn = s.mode === "line" ? s.wave : 0;
-  const top = samples(160, (u) => [X(u), axisY(u) - rA - K * wave(u, waveOn, 3)]);
-  const bot = samples(160, (u) => [X(1 - u), axisY(1 - u) + rA - K * wave(1 - u, waveOn, 2.5)]);
+  const top = samples(160, (u) => [X(u), axisY(u) - rA]);
+  const bot = samples(160, (u) => [X(1 - u), axisY(1 - u) + rA]);
   const zone = r.checks[0];
-  let zoneEl;
-  if (s.mode === "line") {
-    // Two parallel lines around the top line element, placed to fit it best.
-    const devs = samples(160, (u) => s.bow * sag(u) + wave(u, waveOn, 3));
-    const mid = (Math.min(...devs) + Math.max(...devs)) / 2;
-    const yTop = cy - rA;
-    zoneEl = <rect x={x0 - 16} width={x1 - x0 + 32} y={yTop - K * (mid + s.tol / 2)} height={K * s.tol} className={zoneClass(zone.ok)} />;
-  } else {
-    const allowed = r.main.allowed;
-    const yMid = cy - (K * s.bow) / 2;
-    zoneEl = (
-      <g>
-        <rect x={x0 - 16} width={x1 - x0 + 32} y={yMid - (K * allowed) / 2} height={K * allowed} className={zoneClass(zone.ok)} />
-        {r.main.bonus > 0 && <rect x={x0 - 16} width={x1 - x0 + 32} y={yMid - (K * s.tol) / 2} height={K * s.tol} className="gd-zone-base" />}
-      </g>
-    );
-  }
-  const env = s.mode === "line" ? r0 + (K * (PIN.mmc - PIN.nominal)) / 2 : r.vc ? r0 + (K * (r.vc - PIN.nominal)) / 2 : null;
+  const allowed = r.main.allowed;
+  const yMid = cy - (K * s.bow) / 2;
+  const env = r.vc ? r0 + (K * (r.vc - PIN.nominal)) / 2 : null;
   return (
-    <Sheet label="Straightness: side view of a pin">
+    <Sheet label="Straightness of an axis: side view of a pin">
       <Defs />
       {env && (
         <g>
           <rect x={x0 - 10} width={x1 - x0 + 20} y={cy - env} height={env * 2} className="gd-envelope" />
-          <Label x={x0 - 6} y={cy + env + 24} className="is-dim">
-            {s.mode === "line" ? "Rule #1: perfect form at MMC ⌀10.1" : `Virtual condition ⌀${r.vc.toFixed(2)} (gauge sleeve)`}
-          </Label>
+          <Label x={x0 - 6} y={cy + env + 24} className="is-dim">{`Virtual condition ⌀${r.vc.toFixed(2)} (gauge sleeve)`}</Label>
         </g>
       )}
       <path d={`${pts([...top, ...bot])} Z`} className="gd-part" />
       <line x1={x0 - 24} x2={x1 + 24} y1={cy} y2={cy} className="gd-center" />
-      {zoneEl}
-      {s.mode === "line" ? <path d={pts(top)} className="gd-actual" /> : <path d={pts(samples(80, (u) => [X(u), axisY(u)]))} className="gd-actual" />}
-      {s.mode === "line" ? (
-        <Callout layout={layout} x={280} y={26} to={[X(0.35), axisY(0.35) - rA - 4]} />
-      ) : (
-        <g>
-          <Label x={x1 + 30} y={cy - 40} className="is-strong">{PIN.label}</Label>
-          <Callout layout={layout} x={x1 - 170} y={cy + r0 + 60} to={[X(0.8), axisY(0.8) + rA + 4]} />
-        </g>
-      )}
+      <g>
+        <rect x={x0 - 16} width={x1 - x0 + 32} y={yMid - (K * allowed) / 2} height={K * allowed} className={zoneClass(zone.ok)} />
+        {r.main.bonus > 0 && <rect x={x0 - 16} width={x1 - x0 + 32} y={yMid - (K * s.tol) / 2} height={K * s.tol} className="gd-zone-base" />}
+      </g>
+      <path d={pts(samples(80, (u) => [X(u), axisY(u)]))} className="gd-actual" />
+      <Label x={x1 + 30} y={cy - 40} className="is-strong">{PIN.label}</Label>
+      <Callout layout={layout} x={x1 - 170} y={cy + r0 + 60} to={[X(0.8), axisY(0.8) + rA + 4]} />
     </Sheet>
   );
 }

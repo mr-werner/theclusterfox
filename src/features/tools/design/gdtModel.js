@@ -14,6 +14,8 @@ export const GROUPS = [
 /** The two features of size the examples use. A pin is an external feature, a hole internal. */
 export const PIN = { nominal: 10, lo: 9.9, hi: 10.1, mmc: 10.1, lmc: 9.9, label: "⌀10 ±0.1" };
 export const HOLE = { nominal: 10, lo: 10.0, hi: 10.1, mmc: 10.0, lmc: 10.1, label: "⌀10 +0.1/0" };
+/** A flat bar measured across its thickness. Same limits as the pin but no ⌀: it's a width, not a diameter. */
+export const BAR = { nominal: 10, lo: 9.9, hi: 10.1, mmc: 10.1, lmc: 9.9, label: "10 ±0.1", flat: true };
 
 /** Extra tolerance a material condition modifier gives at an actual size. */
 export function bonusFor(mod, feature, size) {
@@ -31,16 +33,19 @@ export function virtualCondition(mod, feature, tol) {
 export const inSize = (feature, size) => size >= Math.min(feature.lo, feature.hi) - 1e-9 && size <= Math.max(feature.lo, feature.hi) + 1e-9;
 
 const EPS = 1e-9;
-const sizeCheck = (feature, size) => ({
-  id: "size",
-  label: `Size ${feature.label}`,
-  ok: inSize(feature, size),
-  measured: size,
-  allowed: null,
-  text: inSize(feature, size)
-    ? `Actual size ⌀${size.toFixed(3)} is inside the size limits.`
-    : `Actual size ⌀${size.toFixed(3)} is outside ${feature.lo.toFixed(2)}–${feature.hi.toFixed(2)}. The part fails on size before GD&T is even checked.`,
-});
+const sizeCheck = (feature, size) => {
+  const d = feature.flat ? "" : "⌀";
+  return {
+    id: "size",
+    label: `Size ${feature.label}`,
+    ok: inSize(feature, size),
+    measured: size,
+    allowed: null,
+    text: inSize(feature, size)
+      ? `Actual ${feature.flat ? "thickness" : "size"} ${d}${size.toFixed(3)} is inside the size limits.`
+      : `Actual ${feature.flat ? "thickness" : "size"} ${d}${size.toFixed(3)} is outside ${feature.lo.toFixed(2)}–${feature.hi.toFixed(2)}. The part fails on size before GD&T is even checked.`,
+  };
+};
 const zoneCheck = (label, measured, allowed, extra = "") => ({
   id: "zone",
   label,
@@ -109,18 +114,24 @@ const straightness = {
   id: "straightness",
   name: "Straightness",
   group: "form",
-  summary: "How straight a line is. On a surface it checks each line element; with ⌀ it checks the axis of a pin or shaft.",
+  summary: "How straight a line is. On a surface it checks each line element, like the top edge of a bar; with ⌀ it checks the axis of a pin or shaft.",
   frame: { dia: "mode", mods: "mode", datums: "none", tol: [0.005, 0.3, 0.005] },
   modes: [
     { value: "line", label: "Surface line" },
     { value: "axis", label: "Axis (⌀)" },
   ],
   defaults: { tol: 0.05, mode: "line", mod: "RFS", bow: 0.03, wave: 0.01, size: 10.05 },
-  params: (s) => [
-    { key: "bow", label: "Bend in the middle", min: 0, max: 0.25, step: 0.005, help: "How far the middle of the pin sits off a straight line." },
-    ...(s.mode === "line" ? [{ key: "wave", label: "Surface waviness", min: 0, max: 0.15, step: 0.005 }] : []),
-    { key: "size", label: `Actual diameter (${PIN.label})`, min: 9.85, max: 10.15, step: 0.005, abs: true },
-  ],
+  params: (s) =>
+    s.mode === "line"
+      ? [
+          { key: "bow", label: "Bow in the middle", min: 0, max: 0.25, step: 0.005, help: "How far the middle of the bar's top face sits off a straight line." },
+          { key: "wave", label: "Surface waviness", min: 0, max: 0.15, step: 0.005 },
+          { key: "size", label: `Actual thickness (${BAR.label})`, min: 9.85, max: 10.15, step: 0.005, abs: true, help: "A flat bar, so this is a plain width. No ⌀: the surface-line callout isn't about a diameter." },
+        ]
+      : [
+          { key: "bow", label: "Bend in the middle", min: 0, max: 0.25, step: 0.005, help: "How far the middle of the pin's axis sits off a straight line." },
+          { key: "size", label: `Actual diameter (${PIN.label})`, min: 9.85, max: 10.15, step: 0.005, abs: true },
+        ],
   feature: PIN,
   evaluate(s) {
     if (s.mode === "axis") {
@@ -134,23 +145,23 @@ const straightness = {
     }
     const measured = s.bow + s.wave;
     const env = s.size + s.bow + s.wave;
-    const envelope = { id: "envelope", label: "Rule #1 envelope (perfect form at MMC ⌀10.1)", measured: env, allowed: PIN.mmc, ok: env <= PIN.mmc + EPS };
-    envelope.text = envelope.ok ? "The bent pin still fits through a perfect ⌀10.1 sleeve." : "Size plus bend is bigger than ⌀10.1, so the pin no longer fits a perfect ⌀10.1 sleeve. Rule #1 rejects it.";
-    return { checks: [zoneCheck("Line element zone", measured, s.tol), sizeCheck(PIN, s.size), envelope], main: { measured, allowed: s.tol }, warnings: [] };
+    const envelope = { id: "envelope", label: "Rule #1 envelope (perfect form at MMC, 10.1 thick)", measured: env, allowed: BAR.mmc, ok: env <= BAR.mmc + EPS };
+    envelope.text = envelope.ok ? "The bowed bar still slides between two perfect flat plates 10.1 apart." : "Thickness plus bow is more than 10.1, so the bar no longer fits between perfect plates 10.1 apart. Rule #1 rejects it.";
+    return { checks: [zoneCheck("Line element zone", measured, s.tol), sizeCheck(BAR, s.size), envelope], main: { measured, allowed: s.tol }, warnings: [] };
   },
   read: (s, L) =>
     s.mode === "axis"
       ? `The pin's axis must lie inside a cylinder ⌀${L(s.tol)}${s.mod === "MMC" ? " when the pin is at its largest size (MMC), growing as it gets smaller" : s.mod === "LMC" ? " when the pin is at its smallest size (LMC), growing as it gets bigger" : ", whatever size the pin is"}.`
-      : `Each straight line along the surface must lie between two parallel lines ${L(s.tol)} apart.`,
+      : `Each straight line along the top face must lie between two parallel lines ${L(s.tol)} apart. No ⌀, so the zone is a flat band, not a cylinder.`,
   text: {
-    means: "On a surface (no ⌀): every line drawn along the surface must be straight within the tolerance. On a feature of size with ⌀: the derived axis must fit in a cylinder, which allows a bent pin that is still undersize.",
-    zone: "Surface line: two parallel lines in the plane of each line element. Axis: a cylinder of the stated diameter.",
+    means: "On a surface (no ⌀): every line drawn along the surface must be straight within the tolerance. The example is a flat bar's top face, sized by a plain thickness. On a feature of size with ⌀: the derived axis must fit in a cylinder, which allows a bent pin that is still undersize.",
+    zone: "Surface line: two parallel lines in the plane of each line element, a flat band the tolerance wide. Axis: a cylinder of the stated diameter, which is the only time ⌀ appears.",
     part: "A tighter value keeps shafts, rails and slides from bowing. Calling it on the axis lets a bent pin pass as long as it still fits its mating part.",
-    accept: "Surface line: the bend plus waviness must be within the tolerance, and Rule #1 still applies (perfect form at MMC). Axis: the bend must be within ⌀tol, plus bonus if MMC or LMC is used. Rule #1 no longer applies to that feature.",
+    accept: "Surface line: the bow plus waviness must be within the tolerance, and Rule #1 still applies (perfect form at MMC, here 10.1 thick). Axis: the bend must be within ⌀tol, plus bonus if MMC or LMC is used. Rule #1 no longer applies to that feature.",
     datums: "Never. Straightness is form only.",
     modifiers: "Only when it's on the axis (with ⌀). MMC gives bonus tolerance as the pin shrinks, and sets a virtual condition of MMC + tol that a gauge sleeve can check.",
     inspect: "Surface line: a straight edge or indicator run along the part. Axis: CMM, or a functional sleeve gauge at the virtual condition when MMC is used.",
-    mistakes: ["Forgetting that surface straightness still lives inside Rule #1.", "Putting the ⌀ symbol on a surface line callout. ⌀ means axis."],
+    mistakes: ["Forgetting that surface straightness still lives inside Rule #1.", "Putting the ⌀ symbol on a surface line callout. ⌀ means axis.", "On a round shaft, surface straightness checks lines along the outside (still no ⌀), which is different from bending of the axis."],
   },
   make: { char: "flatness", feature: "od" },
 };
@@ -610,5 +621,8 @@ export function evaluate(c, s) {
 export const BASICS = [
   { id: "frame", name: "Reading a feature control frame", summary: "Build a callout box by box and hear it read in plain words." },
   { id: "datums", name: "Datums and the 3-2-1 rule", summary: "How a part is held for measuring, and what each datum locks." },
-  { id: "modifiers", name: "MMC, LMC and bonus tolerance", summary: "Why a bigger hole can be further out of position and still fit." },
+  { id: "modifiers", name: "MMC, LMC and bonus tolerance", summary: "Why a bigger hole can be further out of position and still fit, with worked examples." },
+  { id: "datum-shift", name: "Datum modifiers and datum shift", summary: "What a circled M after a datum letter does, and how a loose datum bore lets the whole pattern shift." },
+  { id: "patterns", name: "Locating a hole pattern", summary: "Four holes held together: single and composite position, and whether the mating part still bolts on." },
+  { id: "datum-order", name: "Why datum order matters", summary: "The same part measured A|B and B|A. One order passes it, the other rejects it." },
 ];

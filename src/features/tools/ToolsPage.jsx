@@ -10,7 +10,7 @@ import ConverterView from "./components/ConverterView";
 import FrameView from "./components/FrameView";
 import { GdtIndex, GdtRoute } from "./design/GdtView";
 import { MakeRoute } from "./design/MakeView";
-import { CALLOUTS as GDT_CALLOUTS } from "./design/gdtModel";
+import { BASICS as GDT_BASICS, CALLOUTS as GDT_CALLOUTS } from "./design/gdtModel";
 import "./tools.css";
 import "./identity.css";
 
@@ -293,6 +293,12 @@ function CategoryRoute() {
       )}
       {cat.id === "design" && (
         <>
+          <h2 className="tf-block-title">Learn GD&amp;T</h2>
+          <div className="tf-tool-list">
+            {GDT_BASICS.map((g, i) => (
+              <ToolCard key={g.id} item={{ kind: "guide", name: `${i + 1}. ${g.name}`, blurb: g.summary, cat: "design", path: `/tools/gdt/${g.id}` }} />
+            ))}
+          </div>
           <h2 className="tf-block-title">GD&amp;T callouts</h2>
           <div className="tf-tool-list">
             {GDT_CALLOUTS.map((g) => (

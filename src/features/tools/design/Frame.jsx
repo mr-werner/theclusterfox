@@ -145,10 +145,11 @@ export function FrameSvg({ layout, x = 0, y = 0, active, onCell, className = "" 
             </g>
           )}
           {c.letter !== undefined && (
-            <text x={c.x + c.w / 2} y={h / 2 + 0.5} textAnchor="middle" dominantBaseline="central" className="gd-fcf-text is-datum">
+            <text x={c.dmod ? c.x + 13 : c.x + c.w / 2} y={h / 2 + 0.5} textAnchor="middle" dominantBaseline="central" className="gd-fcf-text is-datum">
               {c.letter}
             </text>
           )}
+          {c.dmod && <CircledLetter x={c.x + c.w - 13} y={h / 2} letter={c.dmod === "MMB" ? "M" : "L"} r={6.5} />}
         </g>
       ))}
     </g>
@@ -158,7 +159,7 @@ export function FrameSvg({ layout, x = 0, y = 0, active, onCell, className = "" 
 function cellLabel(c) {
   if (c.key === "symbol") return "Geometric characteristic";
   if (c.key === "tol") return "Tolerance";
-  return `Datum ${c.letter}`;
+  return `Datum ${c.letter}${c.dmod ? ` at ${c.dmod}` : ""}`;
 }
 
 /** A frame in its own SVG, sized to fit. */

@@ -12,6 +12,7 @@ import LoginPage from "./features/auth/LoginPage";
 import SignUpPage from "./features/auth/SignUpPage";
 import ForgotPasswordPage from "./features/auth/ForgotPasswordPage";
 import AccountPage from "./features/account/AccountPage";
+import { useHistoryTrail } from "./lib/appBack";
 
 // Brand icons make the 3rd Party Alternatives directory heavy, so it loads on demand.
 const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
@@ -33,6 +34,9 @@ function RedirectToAlternatives() {
 }
 
 export default function App() {
+    // Lets each app's back button tell whether the step before is still
+    // inside that app.
+    useHistoryTrail();
     return (
         <Routes>
             <Route path="/" element={<HomePage />} />

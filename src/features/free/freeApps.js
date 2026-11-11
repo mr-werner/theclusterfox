@@ -436,6 +436,7 @@ const categories = [
       { name: "RTP Play", alt: "Netflix", url: "https://www.rtp.pt/play/", mark: "RT", color: "#004b8d", description: "Portuguese public TV and radio on demand, with series, films and live channels." },
       { name: "iVysílání", alt: "Netflix", url: "https://www.ceskatelevize.cz/ivysilani/", mark: "ČT", color: "#0053a0", description: "Czech public TV on demand, with films, series, fairy tales and live channels." },
       { name: "Cont.ar", alt: "Netflix", url: "https://www.cont.ar/", mark: "Co", color: "#00a3e0", description: "Argentina's public streaming platform with series, films, documentaries and live TV." },
+      { name: "SABC+", alt: "Netflix / DStv", url: "https://sabc-plus.com/", mark: "S+", color: "#0b4ea2", description: "South African public TV and radio: live channels, local series and news." },
     ],
   },
   {
@@ -753,6 +754,7 @@ const categories = [
       { name: "DIKSHA", alt: "BYJU'S", url: "https://diksha.gov.in/", mark: "DK", color: "#024f9d", description: "Free school lessons and textbooks for grades 1 to 12." },
       { name: "Aprende.org", alt: "Coursera / LinkedIn Learning", url: "https://aprende.org/", mark: "Ap", color: "#ef7d00", description: "Free Spanish-language courses in job skills, health and school subjects." },
       { name: "Educ.ar", alt: "paid tutoring sites", url: "https://www.educ.ar/", mark: "Ed", color: "#2c5aa0", description: "Argentina's public education portal with lessons, courses and teaching resources." },
+      { name: "Siyavula", alt: "paid tutoring / textbooks", url: "https://www.siyavula.com/", mark: "Si", color: "#17a589", description: "Free open maths and science textbooks with practice for high school." },
     ],
   },
   {
@@ -784,6 +786,7 @@ const categories = [
       { name: "Yle Kielikoulu", alt: "Babbel", url: "https://kielikoulu.yle.fi/", mark: "YK", color: "#00b4c4", description: "Learn Finnish or Swedish with subtitles on Yle Areena shows." },
       { name: "Teanglann", alt: "paid dictionaries", url: "https://www.teanglann.ie/en/", mark: "Te", color: "#167a3e", description: "Official Irish dictionaries with grammar and native-speaker audio." },
       { name: "Te Aka Māori Dictionary", alt: "paid dictionaries", url: "https://maoridictionary.co.nz/", mark: "TA", color: "#8b2a1e", description: "Free Māori to English dictionary with example sentences and audio." },
+      { name: "VivA Afrikaans", alt: "paid dictionaries", url: "https://viva-afrikaans.org/", mark: "Vi", color: "#e67e22", description: "Free Afrikaans dictionaries and language tools from a nonprofit." },
     ],
   },
 ];

@@ -450,6 +450,9 @@ export const freeAppDetails = {
   "Radio Nacional": { note: "Live public radio, available worldwide." },
   "Mercado Pago": { limits: ["region", "tracking"], note: "Accounts for residents of Argentina and other Latin American countries." },
   "Educ.ar": { note: "Free resources from Argentina's Ministry of Education, in Spanish." },
+  "SABC+": { limits: ["region"], note: "Free account needed; most content is South Africa only." },
+  Siyavula: { ...OS, limits: ["freeTier"], note: "Textbooks are openly licensed; full practice needs a paid plan." },
+  "VivA Afrikaans": { note: "Free nonprofit dictionary portal; no account needed." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -740,4 +743,7 @@ export const freeAppCountries = {
   "Radio Nacional": "Argentina",
   "Mercado Pago": "Argentina",
   "Educ.ar": "Argentina",
+  "SABC+": "South Africa",
+  Siyavula: "South Africa",
+  "VivA Afrikaans": "South Africa",
 };

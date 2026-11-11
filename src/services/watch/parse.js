@@ -304,7 +304,7 @@ function cleanTeam(competitor) {
   };
 }
 
-function eventNetworks(competition) {
+export function eventNetworks(competition) {
   const seen = new Map();
   const add = (name, kind, market) => {
     if (!name) return;

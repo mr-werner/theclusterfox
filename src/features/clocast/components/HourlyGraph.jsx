@@ -8,12 +8,54 @@ import WeatherIcon from "./WeatherIcon";
 
 const CELL = 62;
 const BAND = 92; // height of the temperature band
+const TALL_BAND = 136; // with feels-like lines drawn in it too
 const PAD = 20;
+
+// Lines that can share the temperature graph.
+const CURVES = [
+  { id: "temp", name: "Temperature", value: h => h.temp, className: "is-temp" },
+  { id: "feels", name: "Feels like", value: h => h.feels.sun, className: "is-feels" },
+  { id: "shade", name: "In the shade", value: h => h.feels.shade, className: "is-shade" },
+];
+
+// A smooth path through points (Catmull-Rom as cubic Béziers).
+function smooth(points) {
+  return points
+    .map(([px, py], i) => {
+      if (i === 0) return `M${px},${py}`;
+      const [x0, y0] = points[Math.max(0, i - 2)];
+      const [x1, y1] = points[i - 1];
+      const [x3, y3] = points[Math.min(points.length - 1, i + 1)];
+      const c1 = [x1 + (px - x0) / 6, y1 + (py - y0) / 6];
+      const c2 = [px - (x3 - x1) / 6, py - (y3 - y1) / 6];
+      return `C${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${px},${py}`;
+    })
+    .join(" ");
+}
+
+/**
+ * Where each line's number goes at one hour: the highest point's number sits
+ * above it, the rest below their points, pushed apart so none overlap. A
+ * number that matches the one just above it is left out.
+ */
+function placeLabels(entries, band) {
+  const sorted = [...entries].sort((a, b) => a.y - b.y);
+  const placed = [];
+  for (const entry of sorted) {
+    const prev = placed.at(-1);
+    let at = prev ? Math.max(entry.y + 15, prev.at + 13) : entry.y - 10;
+    if (prev && prev.text === entry.text && at - prev.at <= 15) continue;
+    at = Math.min(at, band - 2);
+    placed.push({ ...entry, at });
+  }
+  return placed;
+}
 
 const windNumber = (ms, units) => Math.round(units === "metric" ? ms * 3.6 : ms * 2.23694);
 
-// Extra rows that can be switched on under the graph. Rain is drawn as bars
-// inside the graph itself; the rest are a line of values each.
+// What can be switched on in the hourly forecast. Rain is drawn as bars and
+// feels like / shade as extra lines inside the temperature graph; the rest
+// are a row each with a small graph and the numbers.
 const LAYERS = [
   { id: "rain", name: "Precip", icon: Droplets },
   { id: "feels", name: "Feels like", icon: Thermometer },
@@ -37,10 +79,6 @@ function layerCaption(id, units) {
 
 function LayerValue({ id, hour, units }) {
   switch (id) {
-    case "feels":
-      return formatTemp(hour.feels.sun, units, { unit: false });
-    case "shade":
-      return formatTemp(hour.feels.shade, units, { unit: false });
     case "wind":
       return (
         <span className="cc-layer-wind">
@@ -76,8 +114,6 @@ const AQI_COLORS = { good: "#4fd18b", moderate: "#f2c14e", usg: "#f59f4a", unhea
 
 // The number each row graphs, and how: a line, or bars on a fixed scale.
 const SERIES = {
-  feels: { value: h => h.feels.sun, kind: "line" },
-  shade: { value: h => h.feels.shade, kind: "line" },
   wind: { value: h => h.wind, extra: h => h.gust, kind: "line" },
   humidity: { value: h => h.rh, kind: "line", range: [0, 100] },
   dew: { value: h => h.dewPoint, kind: "line" },
@@ -139,27 +175,28 @@ export default function HourlyGraph({ hours: rawHours, units, place, firstIsNow,
   const hours = useMemo(() => rawHours.map(hour => ({ ...hour, feels: feelsLike(hour, place) })), [rawHours, place]);
   if (!hours.length) return null;
   const on = new Set(layers);
-  const rows = LAYERS.filter(layer => layer.id !== "rain" && on.has(layer.id));
+  // Feels like and shade are drawn on the temperature graph, not as rows.
+  const rows = LAYERS.filter(layer => !["rain", "feels", "shade"].includes(layer.id) && on.has(layer.id));
+  const curves = CURVES.filter(curve => curve.id === "temp" || on.has(curve.id));
+  const band = curves.length > 1 ? TALL_BAND : BAND;
 
-  const temps = hours.map(h => h.temp);
-  const lo = Math.min(...temps);
-  const hi = Math.max(...temps);
+  const all = curves.flatMap(curve => hours.map(curve.value));
+  const lo = Math.min(...all);
+  const hi = Math.max(...all);
   const span = Math.max(1, hi - lo);
-  const y = t => PAD + (1 - (t - lo) / span) * (BAND - PAD * 2);
+  const y = t => PAD + (1 - (t - lo) / span) * (band - PAD * 2);
   const x = i => i * CELL + CELL / 2;
-  const points = hours.map((h, i) => [x(i), y(h.temp)]);
-  // A smooth path through the points (Catmull-Rom as cubic Béziers).
-  const path = points
-    .map(([px, py], i) => {
-      if (i === 0) return `M${px},${py}`;
-      const [x0, y0] = points[Math.max(0, i - 2)];
-      const [x1, y1] = points[i - 1];
-      const [x3, y3] = points[Math.min(points.length - 1, i + 1)];
-      const c1 = [x1 + (px - x0) / 6, y1 + (py - y0) / 6];
-      const c2 = [px - (x3 - x1) / 6, py - (y3 - y1) / 6];
-      return `C${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${px},${py}`;
-    })
-    .join(" ");
+  const lines = curves.map(curve => {
+    const points = hours.map((h, i) => [x(i), y(curve.value(h))]);
+    return { ...curve, points, path: smooth(points) };
+  });
+  const [tempLine] = lines;
+  const labels = hours.map((h, i) =>
+    placeLabels(
+      lines.map(line => ({ id: line.id, className: line.className, y: line.points[i][1], text: formatTemp(line.value(h), units, { unit: false }) })),
+      band
+    )
+  );
   const width = hours.length * CELL;
   const label = i => (firstIsNow && i === 0 ? "Now" : formatHour(hours[i].localHour));
   const toggle = id => onLayers(on.has(id) ? layers.filter(layer => layer !== id) : [...layers, id]);
@@ -178,32 +215,58 @@ export default function HourlyGraph({ hours: rawHours, units, place, firstIsNow,
         })}
       </div>
 
+      {curves.length > 1 && (
+        <ul className="cc-graph-legend">
+          {curves.map(curve => (
+            <li key={curve.id} className={curve.className}>
+              <span aria-hidden="true" />
+              {curve.name}
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="cc-graph-scroll">
         <div className="cc-graph-track" style={{ width }}>
-          <svg className="cc-graph-svg" width={width} height={BAND} viewBox={`0 0 ${width} ${BAND}`} aria-hidden="true">
+          <svg className="cc-graph-svg" width={width} height={band} viewBox={`0 0 ${width} ${band}`} aria-hidden="true">
             <defs>
               <linearGradient id="cc-graph-fill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor="currentColor" stopOpacity="0.28" />
                 <stop offset="1" stopColor="currentColor" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <path d={`${path} L${x(hours.length - 1)},${BAND} L${x(0)},${BAND} Z`} fill="url(#cc-graph-fill)" />
-            <path d={path} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-            {points.map(([px, py], i) => (
-              <g key={i}>
-                <circle cx={px} cy={py} r={i === 0 && firstIsNow ? 5 : 3} className={i === 0 && firstIsNow ? "is-picked" : ""} />
-                <text x={px} y={py - 10} textAnchor="middle">
-                  {formatTemp(hours[i].temp, units, { unit: false })}
-                </text>
-              </g>
+            <path d={`${tempLine.path} L${x(hours.length - 1)},${band} L${x(0)},${band} Z`} fill="url(#cc-graph-fill)" />
+            {lines.slice(1).map(line => (
+              <path key={line.id} d={line.path} className={`cc-graph-curve ${line.className}`} />
             ))}
+            <path d={tempLine.path} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            {tempLine.points.map(([px, py], i) => (
+              <circle key={i} cx={px} cy={py} r={i === 0 && firstIsNow ? 5 : 3} className={i === 0 && firstIsNow ? "is-picked" : ""} />
+            ))}
+            {labels.map((list, i) =>
+              list.map(item => (
+                <text key={`${i}-${item.id}`} x={x(i)} y={item.at} textAnchor="middle" className={item.className}>
+                  {item.text}
+                </text>
+              ))
+            )}
           </svg>
-          <ol className={`cc-graph-cells ${on.has("rain") ? "" : "no-rain"}`} aria-label="Hourly forecast">
+          <ol
+            className={`cc-graph-cells ${on.has("rain") ? "" : "no-rain"}`}
+            style={{ "--band": `${band}px` }}
+            aria-label="Hourly forecast"
+          >
             {hours.map((h, i) => (
               <li
                 key={h.time.getTime()}
                 className="cc-graph-cell"
-                aria-label={`${label(i)}: ${formatTemp(h.temp, units)}, ${describeWeather(h.code)}, ${h.precipProb}% chance of rain`}
+                aria-label={[
+                  `${label(i)}: ${formatTemp(h.temp, units)}`,
+                  on.has("feels") && `feels like ${formatTemp(h.feels.sun, units)}`,
+                  on.has("shade") && `${formatTemp(h.feels.shade, units)} in the shade`,
+                  describeWeather(h.code),
+                  `${h.precipProb}% chance of rain`,
+                ].filter(Boolean).join(", ")}
               >
                 <span className="cc-graph-time">{label(i)}</span>
                 <WeatherIcon code={h.code} isDay={h.isDay} size={20} />

@@ -165,6 +165,8 @@ export default function ClocastPage() {
             layers={data.hourlyLayers}
             onLayers={hourlyLayers => update({ hourlyLayers })}
             onUnits={value => update({ units: value })}
+            mapLayers={data.mapLayers}
+            onMapLayers={mapLayers => update({ mapLayers })}
           />
         )}
 

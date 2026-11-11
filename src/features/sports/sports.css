@@ -172,3 +172,589 @@
     font-size: 0.75rem;
   }
 }
+
+/* ----- Followed leagues and the league picker ----- */
+
+.sf-follow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sf-follow .wf-chip-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sf-edit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-picker {
+  display: grid;
+  gap: 10px;
+}
+
+.sf-picker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.sf-picker-head h3 {
+  margin: 0 0 4px;
+}
+
+.sf-sport {
+  border: 1px solid var(--wf-line);
+  border-radius: 12px;
+  background: var(--wf-surface-2);
+}
+
+.sf-sport summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.sf-sport summary::-webkit-details-marker {
+  display: none;
+}
+
+.sf-sport-chev {
+  margin-left: auto;
+  color: var(--wf-muted);
+  transition: transform 160ms ease;
+}
+
+.sf-sport[open] .sf-sport-chev {
+  transform: rotate(180deg);
+}
+
+.sf-sport .wf-chip-row {
+  padding: 0 16px 16px;
+}
+
+/* ----- Team games ----- */
+
+.wf-game.sf-match {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.sf-match-open {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sf-chevron {
+  color: var(--wf-muted);
+}
+
+.sf-match-open:hover .sf-chevron,
+.sf-match-open:focus-visible .sf-chevron {
+  color: var(--wf-accent);
+}
+
+.sf-record {
+  color: var(--wf-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.sf-odds {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--wf-line-strong);
+  color: var(--wf-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-odds-tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: var(--wf-accent-ink);
+  background: var(--wf-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sf-odds-by {
+  margin-left: auto;
+  font-size: 0.7rem;
+}
+
+/* ----- Fight cards, leaderboards, tennis, listings ----- */
+
+.wf-game.sf-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.sf-block .wf-networks {
+  justify-content: flex-start;
+}
+
+.sf-block-head {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.sf-block-head h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.sf-venue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+}
+
+.sf-dot {
+  justify-self: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--wf-accent);
+}
+
+.sf-result {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.sf-bouts,
+.sf-tennis,
+.sf-board {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sf-bout,
+.sf-tennis > li {
+  padding: 10px 12px;
+  border: 1px solid var(--wf-line);
+  border-radius: 10px;
+}
+
+.sf-bout.is-main {
+  border-color: var(--wf-line-strong);
+}
+
+.sf-bout-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--wf-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sf-bout-state {
+  margin-left: auto;
+}
+
+.sf-bout-state.is-live {
+  color: var(--sf-live, #f27a6c);
+}
+
+.sf-bout-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.sf-fighter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sf-fighter.is-right {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.sf-fighter > span {
+  display: grid;
+  min-width: 0;
+}
+
+.sf-fighter strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sf-fighter small {
+  color: var(--wf-muted);
+  font-size: 0.72rem;
+}
+
+.sf-fighter.is-winner strong::after {
+  content: " W";
+  color: var(--wf-accent);
+  font-size: 0.7rem;
+}
+
+.sf-vs {
+  color: var(--wf-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.sf-sessions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+}
+
+.sf-sessions li {
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: var(--wf-muted);
+  background: var(--wf-surface);
+}
+
+.sf-sessions li.is-done {
+  opacity: 0.6;
+}
+
+.sf-sessions li.is-live {
+  color: var(--sf-live, #f27a6c);
+}
+
+.sf-board li,
+.sf-tennis-row {
+  display: grid;
+  grid-template-columns: 28px auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.sf-tennis-row {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 2px 0;
+}
+
+.sf-tennis-row.is-winner {
+  font-weight: 700;
+}
+
+.sf-flag {
+  display: inline-flex;
+  width: 18px;
+}
+
+.sf-pos {
+  color: var(--wf-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sf-board-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sf-seed {
+  color: var(--wf-muted);
+}
+
+.sf-sets {
+  display: inline-flex;
+  gap: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-sets span {
+  min-width: 12px;
+  text-align: center;
+}
+
+.sf-sets sup {
+  font-size: 0.6rem;
+}
+
+.sf-reveal {
+  justify-self: start;
+}
+
+.sf-reveal svg {
+  transition: transform 160ms ease;
+}
+
+.sf-reveal svg.is-open {
+  transform: rotate(180deg);
+}
+
+/* ----- Game detail sheet ----- */
+
+.sf-detail-head {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 28px 24px 18px;
+  text-align: center;
+  border-bottom: 1px solid var(--wf-line);
+}
+
+.sf-detail-head .wf-networks {
+  justify-content: center;
+}
+
+.sf-scoreline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.sf-score-team {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sf-score-team strong {
+  font-size: 1.05rem;
+}
+
+.sf-score-mid {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.sf-score-big {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.sf-score-big span,
+.sf-score-at {
+  color: var(--wf-muted);
+}
+
+.sf-score-at {
+  font-size: 1.2rem;
+}
+
+.sf-headshot {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--wf-surface-2);
+}
+
+.sf-detail-body {
+  display: grid;
+  gap: 16px;
+  padding: 18px 24px 24px;
+}
+
+.sf-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sf-sections .wf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sf-table th,
+.sf-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--wf-line);
+  text-align: center;
+}
+
+.sf-table thead th {
+  color: var(--wf-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.sf-table tbody th {
+  font-weight: 600;
+  text-align: left;
+}
+
+.sf-table--stats td {
+  width: 22%;
+  font-weight: 700;
+}
+
+.sf-table--stats .sf-table-label {
+  color: var(--wf-muted);
+  font-weight: 500;
+  text-align: center;
+}
+
+.sf-leaders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.sf-leaders h4,
+.sf-standings h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.sf-leaders ul,
+.sf-news {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sf-leaders li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.sf-leaders li img {
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--wf-surface-2);
+}
+
+.sf-leaders li > span {
+  display: grid;
+  font-size: 0.85rem;
+}
+
+.sf-leaders small {
+  color: var(--wf-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sf-odds-big {
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.sf-odds-big span {
+  color: var(--wf-muted);
+  font-weight: 600;
+}
+
+.sf-standings {
+  display: grid;
+  gap: 18px;
+}
+
+.sf-news li {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--wf-line);
+}
+
+.sf-news a {
+  color: inherit;
+}
+
+@media (max-width: 640px) {
+  .wf-game.sf-match {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sf-match-open,
+  .sf-block-head {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+  }
+
+  .sf-block-head {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .sf-follow {
+    flex-direction: column;
+  }
+
+  .sf-record {
+    display: none;
+  }
+
+  .sf-detail-head,
+  .sf-detail-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .sf-score-big {
+    font-size: 1.9rem;
+  }
+}

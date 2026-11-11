@@ -297,3 +297,27 @@ console.log(`PASS: CloCast model, ${activities.length} activities, ${Object.valu
   assert.deepEqual(normalize({}).hourlyLayers, ['rain']);
   console.log('SkyFox feels-like, attire and hourly layers check out.');
 }
+
+// Map tiles, satellites and the wind grid.
+{
+  const { project, unproject, tilesFor, tileBbox, satelliteFor, windGrid } = await import('../model/mapTiles.js');
+  const { normalizeData: normalize } = await import('../state/clocastStore.js');
+  const p = project(39.74, -104.99, 6);
+  const back = unproject(p.x, p.y, 6);
+  near(back.latitude, 39.74, 1e-6, 'unproject latitude');
+  near(back.longitude, -104.99, 1e-6, 'unproject longitude');
+  const tiles = tilesFor(p, 7, 600, 400, 6);
+  assert(tiles.every(t => t.z === 6 && t.size === 512), 'low-zoom tiles are stretched to fit');
+  assert.equal(tileBbox(0, 0, 0), '-20037508.3,-20037508.3,20037508.3,20037508.3');
+  assert.equal(satelliteFor(-122), 'GOES-West_ABI_Band13_Clean_Infrared');
+  assert.equal(satelliteFor(-80), 'GOES-East_ABI_Band13_Clean_Infrared');
+  assert.equal(satelliteFor(139), 'Himawari_AHI_Band13_Clean_Infrared');
+  assert.equal(satelliteFor(10), null, 'no GIBS geostationary satellite over Europe');
+  const grid = windGrid(p, 6, 600, 400);
+  assert(grid.length >= 20 && grid.length <= 35, `wind grid has a sensible number of points, got ${grid.length}`);
+  assert(grid.every(g => g.left >= 0 && g.left <= 600 && g.top >= 0 && g.top <= 400), 'wind points are on the map');
+  assert.deepEqual(windGrid({ x: p.x + 5, y: p.y }, 6, 600, 400).map(g => g.key).slice(0, 3), grid.map(g => g.key).slice(0, 3), 'small drags keep the same points');
+  assert.deepEqual(normalize({}).mapLayers, ['rain']);
+  assert.deepEqual(normalize({ mapLayers: ['fires', 'nope', 'wind'] }).mapLayers, ['fires', 'wind']);
+  console.log('SkyFox map layers check out.');
+}

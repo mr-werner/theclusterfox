@@ -74,6 +74,8 @@ export default function WeatherReport({
   layers,
   onLayers,
   onUnits,
+  mapLayers,
+  onMapLayers,
 }) {
   const { current, hours } = forecast;
   const [radarOpen, setRadarOpen] = useState(false);
@@ -198,10 +200,10 @@ export default function WeatherReport({
         onClick={() => setRadarOpen(open => !open)}
       >
         <Radar size={16} aria-hidden="true" />
-        Radar
+        Radar &amp; maps
         <ChevronDown size={16} className={radarOpen ? "is-flipped" : ""} aria-hidden="true" />
       </button>
-      {radarOpen && <RadarMap place={place} />}
+      {radarOpen && <RadarMap place={place} units={units} layers={mapLayers} onLayers={onMapLayers} />}
 
       <h3 className="cc-subhead">{days.length}-day forecast</h3>
       <ul className="cc-week">

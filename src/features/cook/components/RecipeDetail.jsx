@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowLeftRight, Check, CircleHelp, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, ShoppingCart, Sparkles, Store, TriangleAlert, Undo2, Users, ChefHat, Info } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, Check, CircleHelp, Clock, Flame, Heart, Play, RotateCcw, ShieldCheck, ShoppingCart, Sparkles, Sprout, Store, TriangleAlert, Undo2, Users, ChefHat, Info } from "lucide-react";
 import { Cover, Segmented, Stepper, UnitToggles } from "./ui";
 import { minutesText } from "./format";
 import { ingredientsById, ALLERGENS } from "../data/ingredients";
@@ -87,7 +87,7 @@ export function IngredientLine({ line, amount, mode, showHint }) {
   );
 }
 
-export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, today, setPrefs, onAddToList, onAddLine, update, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
+export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, today, garden, setPrefs, onAddToList, onAddLine, update, initialServings, favorite, onToggleFavorite, onBack, onStart, onResume, onDiscardSession, onPlanB }) {
   const session = data.sessions[recipe.id];
   const prefs = data.prefs;
   const [servings, setServings] = useState(() => clampServings(initialServings ?? session?.servings ?? recipe.servings));
@@ -263,6 +263,7 @@ export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, t
           <ul className="ck-ing-list ck-ing-checklist">
             {lines.map(l => {
               const inPantry = hasPantry && pantryMatch(data.pantry, l.ing);
+              const grown = garden?.get(l.ing);
               const on = Boolean(have[l.key]);
               const name = ingredientsById.get(l.ing).name;
               return (
@@ -282,6 +283,11 @@ export default function RecipeDetail({ base, recipe, onSwap, onSetSwaps, data, t
                   {inPantry && (
                     <span className="ck-have-tag">
                       <Check size={13} aria-hidden="true" /> In pantry
+                    </span>
+                  )}
+                  {grown && !inPantry && (
+                    <span className={`ck-have-tag ck-garden-tag${grown.ready ? "" : " is-growing"}`}>
+                      <Sprout size={13} aria-hidden="true" /> {grown.ready ? "In your garden" : "Growing"}
                     </span>
                   )}
                 </li>

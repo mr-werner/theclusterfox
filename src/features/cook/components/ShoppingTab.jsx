@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ClipboardCopy, Minus, PackageCheck, Plus, Trash2, X } from "lucide-react";
+import { Check, ClipboardCopy, Minus, PackageCheck, Plus, Sprout, Trash2, X } from "lucide-react";
 import { ingredientsById, AISLES } from "../data/ingredients";
 import { recipesById } from "../data/recipes";
 import { amountText } from "../model/units";
@@ -7,7 +7,7 @@ import { buyFor } from "../model/buying";
 import * as P from "../model/pantry";
 import StoresPanel from "./StoresPanel";
 
-export default function ShoppingTab({ data, today, setShopping, patchData, onOpen }) {
+export default function ShoppingTab({ data, today, garden, setShopping, patchData, onOpen }) {
   const [name, setName] = useState("");
   const [copied, setCopied] = useState(false);
   const list = data.shopping;
@@ -145,6 +145,11 @@ export default function ShoppingTab({ data, today, setShopping, patchData, onOpe
                           {l.name}
                           {recipes.length > 1 && <span className="ck-muted ck-shop-for"> · {recipes.length} recipes</span>}
                           {l.need && <span className="ck-shop-need">{l.need}</span>}
+                          {i.ing && garden?.get(i.ing)?.ready && (
+                            <span className="ck-garden-tag">
+                              <Sprout size={13} aria-hidden="true" /> Ready in your garden. Pick it before you buy.
+                            </span>
+                          )}
                         </span>
                       </label>
                       <div className="ck-shop-actions">

@@ -148,4 +148,15 @@ export const packages = {
   "flour-tortillas": [{ amount: 8, label: "pack of 8" }],
   bread: [{ amount: 16, label: "loaf (about 16 slices)" }],
   pita: [{ amount: 6, label: "pack of 6" }],
+
+  // Fourth batch
+  "ground-pork": [{ amount: 454, label: "1-lb pack" }],
+  ricotta: [{ amount: 425, label: "15-oz tub" }],
+  "brown-lentils": [{ amount: 454, label: "1-lb bag" }],
+  cornmeal: [{ amount: 680, label: "24-oz canister" }],
+  raisins: [{ amount: 340, label: "12-oz box" }],
+  cardamom: jar(50, 1.75),
+  allspice: jar(54, 1.9),
+  "frozen-peas": [{ amount: 340, label: "12-oz bag" }, { amount: 454, label: "1-lb bag" }],
+  dill: [{ amount: 19, label: "0.66-oz pack" }],
 };

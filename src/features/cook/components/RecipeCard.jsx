@@ -1,17 +1,25 @@
-import { ArrowLeftRight, Clock, Heart, Sparkles, ChefHat, Users } from "lucide-react";
+import { ArrowLeftRight, Clock, Heart, Sparkles, ChefHat, Sprout, Users } from "lucide-react";
 import { Cover } from "./ui";
 import { minutesText } from "./format";
 import { factsOf } from "../model/discover";
 import { roundNutrient, servingWord } from "../model/recipe";
 import { DIFFICULTY } from "../data/recipes";
 
-export default function RecipeCard({ recipe, reasons = [], pantry = null, fix = null, favorite, inProgress, onOpen, onToggleFavorite }) {
+export default function RecipeCard({ recipe, reasons = [], pantry = null, fix = null, garden = null, favorite, inProgress, onOpen, onToggleFavorite }) {
   const n = factsOf(recipe).nutrition;
   const t = recipe.time;
   return (
     <article className="ck-card">
       <Cover recipe={recipe}>
-        {inProgress && <span className="ck-cover-badge">In progress</span>}
+        {inProgress ? (
+          <span className="ck-cover-badge">In progress</span>
+        ) : (
+          garden && (
+            <span className={`ck-cover-badge ck-cover-garden${garden.ready.length ? "" : " is-growing"}`}>
+              <Sprout size={12} aria-hidden="true" /> {garden.ready.length ? "From your garden" : "Growing in your garden"}
+            </span>
+          )
+        )}
         {pantry && (
           <span className={`ck-cover-pantry${pantry.missing.length === 0 ? " is-all" : ""}`}>
             {pantry.missing.length === 0 ? "You have everything" : `Missing ${pantry.missing.length} of ${pantry.total}`}

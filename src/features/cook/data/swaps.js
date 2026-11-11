@@ -38,7 +38,7 @@ export const swaps = [
     flavor: "Fruitier and less rich. Fine in savory cooking and in banana bread.",
     texture: "Slightly less tender in baking.",
     cooking: "Use about three-quarters as much oil as butter. Oil won't foam or brown like butter does.",
-    notIn: ["brown-butter-cookies", "saturday-pancakes", "apple-oat-crisp"],
+    notIn: ["brown-butter-cookies", "saturday-pancakes", "apple-oat-crisp", "cardamom-shortbread", "summer-berry-crisp"],
   },
   {
     id: "butter-plant-butter",
@@ -135,7 +135,7 @@ export const swaps = [
     flavor: "Faintly nutty.",
     texture: "Denser and a little less lift.",
     cooking: "For each egg, stir 1 tbsp ground flaxseed with 3 tbsp water and let it thicken for 5 minutes.",
-    only: ["saturday-pancakes", "brown-butter-cookies", "banana-bread", "apple-cinnamon-baked-oatmeal", "lemon-yogurt-snack-cake"],
+    only: ["saturday-pancakes", "brown-butter-cookies", "banana-bread", "apple-cinnamon-baked-oatmeal", "lemon-yogurt-snack-cake", "cornmeal-blueberry-muffins", "peanut-butter-blondies"],
   },
   {
     id: "egg-tofu",
@@ -186,7 +186,7 @@ export const swaps = [
     flavor: "Almost the same.",
     texture: "A little more tender and crumbly.",
     cooking: "Use a 1-to-1 blend, cup for cup. Let the batter or dough rest 10 minutes so the flour hydrates.",
-    only: ["saturday-pancakes", "brown-butter-cookies", "banana-bread", "mug-brownie", "lemon-yogurt-snack-cake"],
+    only: ["saturday-pancakes", "brown-butter-cookies", "banana-bread", "mug-brownie", "lemon-yogurt-snack-cake", "cornmeal-blueberry-muffins", "peanut-butter-blondies", "cardamom-shortbread", "summer-berry-crisp", "zucchini-feta-fritters"],
   },
   {
     id: "rice-brown",
@@ -197,7 +197,7 @@ export const swaps = [
     texture: "Chewier, with more bite.",
     cooking: "Brown rice needs about 45 minutes and a little more water. Start it before anything else.",
     timer: 45,
-    only: ["chicken-broccoli-stir-fry", "crispy-teriyaki-tofu-bowls", "coconut-fish-curry", "gochujang-chicken-bowls", "chicken-adobo"],
+    only: ["chicken-broccoli-stir-fry", "crispy-teriyaki-tofu-bowls", "coconut-fish-curry", "gochujang-chicken-bowls", "chicken-adobo", "pork-larb-rice-bowls", "sri-lankan-green-bean-curry", "hawaiian-pineapple-chicken-bowls", "brazilian-black-bean-stew"],
   },
   {
     id: "cooked-rice-brown",
@@ -285,7 +285,7 @@ export const swaps = [
     texture: "Runnier. Use less water to loosen.",
     cooking: "Swap one for one. Stir the jar well first.",
     caution: "Tahini is made from sesame, a major allergen.",
-    only: ["peanut-noodles", "peanut-butter-oat-bites", "west-african-peanut-stew"],
+    only: ["peanut-noodles", "peanut-butter-oat-bites", "west-african-peanut-stew", "gado-gado-peanut-salad", "banana-oat-cookies"],
   },
 
   // Meat and broth
@@ -327,6 +327,17 @@ export const swaps = [
     flavor: "Beefier and richer.",
     texture: "Juicier.",
     cooking: "Pour off extra fat after browning. Ground beef is safe at {temp:71}.",
+  },
+  {
+    id: "pork-turkey",
+    from: "ground-pork",
+    to: "ground-turkey",
+    temps: { 71: 74 },
+    safety: { "ground-meat": "ground-poultry" },
+    reasons: ["lower-fat", "have"],
+    flavor: "Milder and less rich. A little extra lime and chili helps.",
+    texture: "Leaner and a little drier.",
+    cooking: "Ground turkey must reach {temp:74}, higher than pork.",
   },
   {
     id: "chicken-broth-veg",
@@ -400,6 +411,16 @@ export const swaps = [
     ratio: "volume",
     reasons: ["have"],
     flavor: "Grassy and fresh, without the citrusy, soapy note some people taste in cilantro.",
+    texture: "Same.",
+    cooking: "Swap one for one.",
+  },
+  {
+    id: "dill-parsley",
+    from: "dill",
+    to: "parsley",
+    ratio: "volume",
+    reasons: ["have"],
+    flavor: "Fresh and grassy, without dill's anise-like note.",
     texture: "Same.",
     cooking: "Swap one for one.",
   },
@@ -495,6 +516,15 @@ export const swaps = [
     flavor: "No heat, so the other flavors come forward.",
     texture: "Same.",
     cooking: "Just leave it out. A pinch of red pepper flakes on the side lets anyone add heat.",
+  },
+  {
+    id: "raisins-none",
+    from: "raisins",
+    to: null,
+    reasons: ["have"],
+    flavor: "Less sweet.",
+    texture: "No chewy bits. Chopped dried apricots or dates work the same way.",
+    cooking: "Just leave them out.",
   },
   {
     id: "olives-none",

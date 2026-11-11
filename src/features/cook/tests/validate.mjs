@@ -13,6 +13,9 @@ import * as W from "../model/swaps.js";
 import { swaps, SWAP_REASONS } from "../data/swaps.js";
 import { packages } from "../data/packages.js";
 import { buyFor } from "../model/buying.js";
+import { GARDEN_INGREDIENTS, gardenIndex, recipeGarden } from "../model/garden.js";
+import { gardenHarvest } from "../../grow/model/cookLink.js";
+import { plantsById } from "../../grow/data/plants.js";
 
 import { readFileSync } from "node:fs";
 
@@ -440,6 +443,9 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert(turkeyChili.steps.some(s => s.text.includes("{temp:74}")));
   assert(!turkeyChili.steps.some(s => s.text.includes("{temp:71}")));
   assert(turkeyChili.safety.includes("ground-poultry") && !turkeyChili.safety.includes("ground-meat"));
+  const turkeyLarb = W.applySwaps(recipesById.get("pork-larb-rice-bowls"), { "ground-pork": "pork-turkey" });
+  assert(turkeyLarb.steps.some(s => s.text.includes("{temp:74}")) && !turkeyLarb.steps.some(s => s.text.includes("{temp:71}")));
+  assert(turkeyLarb.safety.includes("ground-poultry") && !turkeyLarb.safety.includes("ground-meat"));
 
   // Slower ingredients lengthen the timer and the total time.
   const stirFry = recipesById.get("chicken-broccoli-stir-fry");
@@ -627,6 +633,43 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert.equal(list.length, 1, "adding twice doesn't double");
   list = P.addRecipeToList(list, curry, 4, { onlyMissing: false });
   assert.equal(P.shoppingAmount(list.find(i => i.ing === "chickpeas")), curry.ingredients.find(l => l.ing === "chickpeas").amount, "the whole recipe replaces it");
+}
+
+// --- Cooking from the garden ---------------------------------------------------
+{
+  // Every garden mapping points at real plants and real ingredients.
+  for (const [plantId, ings] of Object.entries(GARDEN_INGREDIENTS)) {
+    assert(plantsById.get(plantId)?.tags.includes("edible"), `${plantId} isn't an edible GrowFox plant`);
+    for (const i of ings) assert(ingredientsById.has(i), `${plantId} maps to unknown ingredient ${i}`);
+  }
+  const raw = {
+    garden: [
+      { id: "a", plantId: "tomato", status: "growing", planted: "2026-05-01" },
+      { id: "b", plantId: "basil", status: "growing", planted: "2026-05-01" },
+      { id: "c", plantId: "zucchini", status: "planned", planted: null },
+      { id: "d", plantId: "pepper", status: "growing", planted: "2026-07-20" },
+      { id: "e", plantId: "zinnia", status: "growing", planted: "2026-05-01" },
+    ],
+  };
+  const harvest = gardenHarvest(raw, "2026-08-01");
+  assert.deepEqual(harvest.map(h => [h.plantId, h.ready]), [["basil", true], ["tomato", true], ["pepper", false]], "edible, growing plants only, ready first");
+  assert.equal(harvest.find(h => h.plantId === "pepper").readyOn, "2026-09-28");
+  assert.deepEqual(gardenHarvest(raw, "2027-06-01").map(h => h.plantId), ["basil"], "last year's annuals are finished");
+  assert.deepEqual(gardenHarvest(null, "2026-08-01"), []);
+
+  const index = gardenIndex(harvest);
+  assert(index.get("cherry-tomatoes").ready && !index.get("bell-pepper").ready);
+  const g = recipeGarden(recipesById.get("fresh-tomato-basil-spaghetti"), index);
+  assert(g.ready.includes("tomato") && g.ready.includes("basil"));
+  assert.equal(recipeGarden(recipesById.get("overnight-oats"), index), null);
+
+  // "Cook from my garden" keeps only recipes that use it, garden-heaviest first.
+  const fromGarden = discover(recipes, emptyData().profile, { ...emptyFilters(), fromGarden: true }, { garden: index });
+  assert(fromGarden.results.length > 0 && fromGarden.results.every(r => r.garden));
+  assert(fromGarden.results[0].garden.ready.length >= 2);
+  assert(fromGarden.results[0].reasons[0].endsWith("from your garden"));
+  // Without a garden the switch does nothing, and plain Discover still ranks as before.
+  assert.equal(discover(recipes, emptyData().profile, { ...emptyFilters(), fromGarden: true }).results.length, discover(recipes, emptyData().profile, emptyFilters()).results.length);
 }
 
 console.log(`CookFox: ${recipes.length} recipes, ${ingredients.length} ingredients, all checks passed.`);

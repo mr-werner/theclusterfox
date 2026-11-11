@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, Sprout, X } from "lucide-react";
 import RecipeCard from "./RecipeCard";
 import { Chips } from "./ui";
-import { toggleIn } from "./format";
+import { shortDay, toggleIn } from "./format";
 import { MEALS, TASTES, TAGS, DIFFICULTY } from "../data/recipes";
 import { DIETS } from "../model/recipe";
 import { discover, emptyFilters } from "../model/discover";
@@ -17,9 +17,10 @@ const TIMES = [
 
 const QUICK_DIETS = ["vegetarian", "vegan", "gluten-free", "dairy-free"];
 
-export default function DiscoverTab({ data, recipes, today, filters, setFilters, onOpen, onToggleFavorite, onEditProfile }) {
+export default function DiscoverTab({ data, recipes, today, garden, filters, setFilters, onOpen, onToggleFavorite, onEditProfile }) {
   const [more, setMore] = useState(false);
-  const { results, hidden } = useMemo(() => discover(recipes, data.profile, filters, { pantry: data.pantry, today }), [recipes, data.profile, data.pantry, filters, today]);
+  const gardenMap = garden?.index;
+  const { results, hidden } = useMemo(() => discover(recipes, data.profile, filters, { pantry: data.pantry, today, garden: gardenMap }), [recipes, data.profile, data.pantry, filters, today, gardenMap]);
   const hasPantry = data.pantry.length > 0;
   const set = patch => setFilters(f => ({ ...f, ...patch }));
   const active = JSON.stringify(filters) !== JSON.stringify(emptyFilters());
@@ -35,6 +36,8 @@ export default function DiscoverTab({ data, recipes, today, filters, setFilters,
         </label>
         <input id="ck-q" type="search" placeholder="Search recipes or ingredients" value={filters.q} onChange={e => set({ q: e.target.value })} />
       </div>
+
+      {garden && <GardenPanel garden={garden} on={filters.fromGarden} onToggle={() => set({ fromGarden: !filters.fromGarden })} />}
 
       <div className="ck-filter-rows">
         <div className="ck-chips" role="group" aria-label="Ready in">
@@ -157,13 +160,14 @@ export default function DiscoverTab({ data, recipes, today, filters, setFilters,
         </div>
       ) : (
         <div className="ck-grid">
-          {results.map(({ recipe, reasons, pantry, fix }) => (
+          {results.map(({ recipe, reasons, pantry, fix, garden: fromGarden }) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
               reasons={reasons}
               pantry={pantry}
               fix={fix}
+              garden={fromGarden}
               favorite={data.favorites.includes(recipe.id)}
               inProgress={Boolean(data.sessions[recipe.id])}
               onOpen={onOpen}
@@ -172,6 +176,36 @@ export default function DiscoverTab({ data, recipes, today, filters, setFilters,
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+// What's growing in GrowFox, and a switch to cook from it.
+function GardenPanel({ garden, on, onToggle }) {
+  const ready = garden.harvest.filter(h => h.ready);
+  return (
+    <section className="ck-garden" aria-label="From your garden">
+      <div className="ck-garden-head">
+        <Sprout size={20} aria-hidden="true" />
+        <div>
+          <h2>From your garden</h2>
+          <p className="ck-muted">
+            {ready.length
+              ? `${ready.length} ${ready.length === 1 ? "thing is" : "things are"} ready to pick in GrowFox.`
+              : "Nothing's ready to pick yet. These recipes will use it when it is."}
+          </p>
+        </div>
+        <button type="button" className={`ck-btn${on ? "" : " ck-btn--primary"}`} aria-pressed={on} onClick={onToggle}>
+          {on ? "Show all recipes" : "Cook from my garden"}
+        </button>
+      </div>
+      <ul className="ck-garden-list">
+        {garden.harvest.map(h => (
+          <li key={h.plantId} className={h.ready ? "is-ready" : ""}>
+            <strong>{h.name}</strong> <span>{h.ready ? "Ready" : h.readyOn ? `About ${shortDay(h.readyOn)}` : "Growing"}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

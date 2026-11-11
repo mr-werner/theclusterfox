@@ -12,6 +12,7 @@
 
 import { moreRecipes } from "./recipesMore.js";
 import { worldRecipes } from "./recipesWorld.js";
+import { moreWorldRecipes } from "./recipesMoreWorld.js";
 
 const line = (ing, amount, prep, extra) => ({ ing, amount, ...(prep ? { prep } : {}), ...extra });
 const take = (ing, amount) => ({ ing, amount });
@@ -916,6 +917,7 @@ export const recipes = [
   },
   ...moreRecipes,
   ...worldRecipes,
+  ...moreWorldRecipes,
 ];
 
 export const recipesById = new Map(recipes.map(r => [r.id, r]));

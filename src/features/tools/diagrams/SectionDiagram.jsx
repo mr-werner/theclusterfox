@@ -1,5 +1,6 @@
+import { useRef } from "react";
 import { Canvas, At, Num, Pills, Badge, DimLine } from "./kit";
-import { show } from "./helpers";
+import { useDrag, keyNudge, show, tidy } from "./helpers";
 import { SectionShape } from "../components/Visuals";
 import { sectionOutline } from "../model/structures";
 
@@ -20,8 +21,9 @@ const SHAPES = [
 ];
 
 export default function SectionDiagram({ values: v, set, output, unit, setUnit }) {
+  const svgRef = useRef(null);
   const { shape } = v;
-  const num = (key, label) => <Num label={label} dim="smallLength" value={v[key]} unit={unit("smallLength")} onValue={(x) => set(key, x)} onUnit={(u) => setUnit("smallLength", u)} />;
+  const num = (key, label) => <Num field={key} label={label} dim="smallLength" value={v[key]} unit={unit("smallLength")} onValue={(x) => set(key, x)} onUnit={(u) => setUnit("smallLength", u)} />;
   const o = sectionOutline(shape, v);
   const ok = o.w > 0 && o.h > 0;
   const k = ok ? BOX / Math.max(o.w, o.h) : 1;
@@ -34,6 +36,28 @@ export default function SectionDiagram({ values: v, set, output, unit, setUnit }
 
   const widthKey = { round: "D", tube: "D", rhs: "B", hex: null }[shape] ?? "b";
   const heightKey = { rhs: "H", hex: "s", round: null, tube: null }[shape] ?? (shape === "rect" || shape === "ibeam" || shape === "tee" || shape === "channel" || shape === "angle" || shape === "triangle" ? "h" : null);
+  // Drag the corner handle: the shape is always drawn to fit, so the drag scales the
+  // width and height by how far the pointer moves from the centre, relative to where it started.
+  const round = !heightKey && widthKey;
+  const dragKeys = [widthKey, heightKey].filter(Boolean);
+  const drag = useDrag(
+    svgRef,
+    ({ x, y }, g) => {
+      if (!g) return;
+      const patch = {};
+      if (round) {
+        const r = Math.hypot(x - CX, y - CY) / g.r;
+        set(widthKey, tidy(Math.max(1e-4, g.w * r)));
+        return;
+      }
+      if (widthKey && g.dx > 4) patch[widthKey] = tidy(Math.max(1e-4, (g.w * Math.max(4, x - CX)) / g.dx));
+      if (heightKey && g.dy > 4) patch[heightKey] = tidy(Math.max(1e-4, (g.h * Math.max(4, y - CY)) / g.dy));
+      for (const [key, val] of Object.entries(patch)) set(key, val);
+    },
+    { field: dragKeys, onStart: (p) => ({ w: v[widthKey], h: v[heightKey], dx: p.x - CX, dy: p.y - CY, r: Math.hypot(p.x - CX, p.y - CY) || 1 }) }
+  );
+  const nudge = keyNudge((s) => dragKeys.forEach((key) => set(key, tidy(Math.max(1e-4, v[key] * (1 + 0.02 * s))))));
+  const hx = round ? CX + (w / 2) * Math.SQRT1_2 : R, hy = round ? CY + (h / 2) * Math.SQRT1_2 : B;
   // Callouts on the right: [key, label, point on the shape (drawing coords), y of the label].
   const callouts = [];
   if (shape === "ibeam" || shape === "tee" || shape === "channel") {
@@ -59,6 +83,12 @@ export default function SectionDiagram({ values: v, set, output, unit, setUnit }
           <line x1={L - 66} x2={X(o.w / 4)} y1={B} y2={B} className="dg-leader" />
         </>
       )}
+      {ok && dragKeys.length > 0 && (
+        <g {...drag} {...nudge} aria-label="Resize the shape" aria-valuenow={v[dragKeys[0]]}>
+          <circle cx={hx} cy={hy} r="12" className="dg-handle" />
+          <path d={`M${hx - 5},${hy - 1} v-4 h4 M${hx + 5},${hy + 1} v4 h-4 M${hx - 4},${hy - 4} l8,8`} className="dg-handle-glyph" />
+        </g>
+      )}
       {callouts.map(([key, , [px, py], ly]) => (
         <path key={key} d={`M${px},${py} L${R + 30},${ly} H${R + 50}`} className="dg-leader" fill="none" />
       ))}
@@ -66,7 +96,7 @@ export default function SectionDiagram({ values: v, set, output, unit, setUnit }
   );
 
   return (
-    <Canvas w={W} h={H} svg={svg} label="Cross-section with its dimensions">
+    <Canvas w={W} h={H} svg={svg} svgRef={svgRef} label="Cross-section with its dimensions">
       <At x={14} y={14} anchor="tl">
         <div style={{ maxWidth: 520 }}>
           <Pills label="Shape" value={shape} onChange={(x) => set("shape", x)} options={SHAPES} />

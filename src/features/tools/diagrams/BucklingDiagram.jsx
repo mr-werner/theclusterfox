@@ -25,7 +25,7 @@ const ENDS = [
 ];
 
 export default function BucklingDiagram({ calc, values: v, set, output, unit, setUnit, pick, presetValue }) {
-  const num = (key, label, dim) => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const num = (key, label, dim) => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
   const fixedBase = v.ends !== "1";
   const top = { 1: "pin", 2: "free", "0.7": "pin", "0.5": "fixed" }[v.ends];
   const n = 60;

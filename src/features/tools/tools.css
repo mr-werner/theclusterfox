@@ -666,10 +666,17 @@
   min-width: 0;
 }
 
-.tf-results {
+/* The results follow you down a long form, but only as a whole column, and only
+   when nothing else (a chart, a plot) sits under them. Pinning just the results card
+   made it slide over the export buttons and charts below it on big screens. */
+.tf-results-col {
   position: sticky;
   top: 16px;
   z-index: 2;
+}
+
+.tf-results-col:has(> :not(.tf-results):not(.tf-export)) {
+  position: static;
 }
 
 .tf-primary {
@@ -1452,11 +1459,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .tf-results {
-    position: static;
-  }
-
   .tf-results-col {
+    position: static;
     order: -1;
   }
 }
@@ -1689,6 +1693,17 @@
 
 .dg-num.is-bad {
   border-color: #ff7f6b;
+}
+
+/* The value a drag handle is changing, lit up while you drag it. */
+.dg-num[data-live] {
+  border-color: #ffc764;
+  box-shadow: 0 0 0 3px rgba(255, 199, 100, 0.25);
+  transition: none;
+}
+
+.dg-num[data-live] input {
+  color: #ffd98f;
 }
 
 .dg-num-label {

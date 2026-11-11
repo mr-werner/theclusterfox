@@ -1,18 +1,26 @@
+import { useRef } from "react";
 import { Canvas, At, Num, Pick, Badge, DimLine } from "./kit";
-import { show, clamp } from "./helpers";
+import { useDrag, keyNudge, show, clamp, tidy } from "./helpers";
 import { fmt } from "../model/units";
 
 const W = 860, H = 400;
 const X0 = 250, X1 = 660, CY = 190;
 
 export default function PipeDiagram({ calc, values: v, set, output, unit, setUnit, pick, presetValue }) {
+  const svgRef = useRef(null);
   const r = (id) => output.results.find((x) => x.id === id);
   const dp = r("dp"), vel = r("v"), re = r("Re"), regime = r("regime"), f = r("f");
   // Pipe drawn thicker for bigger pipes (log scale), flow animates faster for faster flow.
   const half = clamp(22 + 14 * Math.log10((v.D || 0.05) / 0.01), 14, 52);
   const speed = vel ? clamp(3.2 / Math.max(vel.value, 0.05), 0.25, 20) : 0;
-  const num = (key, label, dim) => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const num = (key, label, dim) => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
   const presetInput = (id) => calc.inputs.find((i) => i.id === id);
+  // Drag the top of the pipe up or down to change the bore: 80 px of drag is ten times the size.
+  const drag = useDrag(svgRef, ({ y }, g) => g && set("D", tidy(clamp(g.D * 10 ** ((g.y - y) / 80), 1e-3, 3))), {
+    field: "D",
+    onStart: (p) => ({ D: v.D > 0 ? v.D : 0.05, y: p.y }),
+  });
+  const nudge = keyNudge((k) => set("D", tidy(Math.max(1e-4, (v.D || 0.05) * (1 + 0.02 * k)))));
   const gaugeAngle = dp ? clamp(Math.log10(1 + dp.value / 1000) / 3, 0, 1) * 220 - 110 : -110;
 
   const svg = (
@@ -31,6 +39,10 @@ export default function PipeDiagram({ calc, values: v, set, output, unit, setUni
         <line key={k} x1={X0 + 4} x2={X1 - 4} y1={CY + k * half} y2={CY + k * half} className="dg-flow" style={{ animationDuration: `${speed}s`, opacity: k === 0 ? 1 : 0.6 }} />
       ))}
       <ellipse cx={X1} cy={CY} rx="9" ry={half} className="dg-pipe-end" />
+      <g {...drag} {...nudge} aria-label="Pipe inside diameter" aria-valuenow={v.D}>
+        <circle cx={X1} cy={CY - half} r="12" className="dg-handle" />
+        <path d={`M${X1 - 5},${CY - half - 2} l5,-5 l5,5 M${X1 - 5},${CY - half + 2} l5,5 l5,-5`} className="dg-handle-glyph" />
+      </g>
       {/* Inlet arrow */}
       <path d={`M${X0 - 70},${CY} h52 m-12,-10 l12,10 l-12,10`} className="dg-arrow" />
 
@@ -47,7 +59,7 @@ export default function PipeDiagram({ calc, values: v, set, output, unit, setUni
   );
 
   return (
-    <Canvas w={W} h={H} svg={svg} label="Pipe with flow, size and pressure drop" minWidth={620}>
+    <Canvas w={W} h={H} svg={svg} svgRef={svgRef} label="Pipe with flow, size and pressure drop" minWidth={620}>
       <At x={10} y={CY} anchor="l">
         {num("Q", "Flow", "flow")}
       </At>

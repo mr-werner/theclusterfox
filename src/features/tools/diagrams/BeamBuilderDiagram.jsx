@@ -177,7 +177,7 @@ export default function BeamBuilderDiagram({ values: v, set, output, unit, setUn
 
 /** The small editor that opens under the selected item. */
 function Editor({ it, i, update, remove, close, unit, setUnit }) {
-  const len = (key, label) => <Num compact label={label} dim="length" value={it[key]} unit={unit("length")} onValue={(x) => Number.isFinite(x) && update(i, { [key]: x })} onUnit={(u) => setUnit("length", u)} />;
+  const len = (key, label) => <Num compact field={`b${i}-${key}`} label={label} dim="length" value={it[key]} unit={unit("length")} onValue={(x) => Number.isFinite(x) && update(i, { [key]: x })} onUnit={(u) => setUnit("length", u)} />;
   const sloped = it.kind === "udl" && Math.abs(it.w1 - it.w2) > 1e-9;
   return (
     <div className="dg-pop" role="group" aria-label={NAMES[it.kind]}>
@@ -227,7 +227,7 @@ function Editor({ it, i, update, remove, close, unit, setUnit }) {
 
 /** A support, point load or moment: drag it along the beam. */
 function Item({ it, i, sel, setSel, sx, svgRef, fromPx, snap, update, step, L, unit, reaction }) {
-  const drag = useDrag(svgRef, ({ x }) => update(i, { x: snap(fromPx(x)) }));
+  const drag = useDrag(svgRef, ({ x }) => update(i, { x: snap(fromPx(x)) }), { field: `b${i}-x` });
   const nudge = keyNudge((k) => update(i, { x: clamp(snap(it.x + k * step), 0, L) }));
   const x = sx(it.x);
   const cls = `dg-bitem ${sel ? "is-sel" : ""}`;
@@ -309,9 +309,9 @@ function Udl({ it, i, sel, setSel, sx, maxW, svgRef, fromPx, snap, update, step,
     if (grabAt.current === null) grabAt.current = at - it.x1;
     const x1 = clamp(snap(at - grabAt.current), 0, L - span);
     update(i, { x1, x2: x1 + span });
-  });
-  const left = useDrag(svgRef, ({ x }) => update(i, { x1: Math.min(snap(fromPx(x)), it.x2 - step) }));
-  const right = useDrag(svgRef, ({ x }) => update(i, { x2: Math.max(snap(fromPx(x)), it.x1 + step) }));
+  }, { field: [`b${i}-x1`, `b${i}-x2`] });
+  const left = useDrag(svgRef, ({ x }) => update(i, { x1: Math.min(snap(fromPx(x)), it.x2 - step) }), { field: `b${i}-x1` });
+  const right = useDrag(svgRef, ({ x }) => update(i, { x2: Math.max(snap(fromPx(x)), it.x1 + step) }), { field: `b${i}-x2` });
   const nudge = keyNudge((k) => {
     const x1 = clamp(snap(it.x1 + k * step), 0, L - span);
     update(i, { x1, x2: x1 + span });

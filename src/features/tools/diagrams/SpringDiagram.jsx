@@ -1,5 +1,6 @@
+import { useRef } from "react";
 import { Canvas, At, Num, Badge, DimLine } from "./kit";
-import { show, clamp } from "./helpers";
+import { useDrag, keyNudge, show, clamp, tidy } from "./helpers";
 import { fmt } from "../model/units";
 
 // A coil spring drawn to scale, unloaded on the left and under the load on the
@@ -22,7 +23,8 @@ function coil(cx, bottom, height, R, n, wire) {
 }
 
 export default function SpringDiagram({ values: v, set, output, unit, setUnit }) {
-  const num = (key, label, dim) => <Num label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
+  const svgRef = useRef(null);
+  const num = (key, label, dim) => <Num field={key} label={label} dim={dim} value={v[key]} unit={unit(dim)} onValue={(x) => set(key, x)} onUnit={(u) => setUnit(dim, u)} />;
   const res = (id) => output.results.find((r) => r.id === id);
   const k = res("k"), x = res("x"), tau = res("tau"), C = res("C");
   const d = v.d > 0 ? v.d : 0.002, Dm = v.Dm > 0 ? v.Dm : 0.016, Na = v.Na > 0 ? v.Na : 1;
@@ -35,6 +37,18 @@ export default function SpringDiagram({ values: v, set, output, unit, setUnit })
   const freeH = free * scale;
   const bottomed = free - defl <= solid;
   const L1 = 220, L2 = 560;
+  // Drag the plate on the loaded spring: how far it squashes sets the load (F = k x).
+  const rate = k?.value > 0 ? k.value : 0;
+  const drag = useDrag(
+    svgRef,
+    ({ y }) => {
+      if (!rate) return;
+      const h = clamp(BASE - 12 - y, solid * scale, freeH);
+      set("F", tidy(Math.max(0, rate * (free - h / scale))));
+    },
+    { field: "F" }
+  );
+  const nudge = keyNudge((s) => set("F", tidy(Math.max(0, (v.F || 0) + s * Math.max(rate * (free - solid), 1) * 0.01))));
 
   const svg = (
     <>
@@ -46,7 +60,11 @@ export default function SpringDiagram({ values: v, set, output, unit, setUnit })
       </text>
       {/* Loaded spring */}
       <path d={coil(L2, BASE, loadedH, R, Na + 2, wire)} className={`dg-coil ${bottomed ? "is-solid" : ""}`} style={{ strokeWidth: wire }} />
-      <rect x={L2 - R - 24} y={BASE - loadedH - 12} width={2 * R + 48} height="12" rx="3" className="dg-support" />
+      <g {...drag} {...nudge} aria-label="Load: drag the plate down to squash the spring" aria-valuenow={v.F}>
+        <rect x={L2 - R - 24} y={BASE - loadedH - 12} width={2 * R + 48} height="12" rx="3" className="dg-support" />
+        <circle cx={L2 + R + 24} cy={BASE - loadedH - 6} r="12" className="dg-handle" />
+        <path d={`M${L2 + R + 19},${BASE - loadedH - 8} l5,-5 l5,5 M${L2 + R + 19},${BASE - loadedH - 4} l5,5 l5,-5`} className="dg-handle-glyph" />
+      </g>
       <g className="dg-load">
         <line x1={L2} x2={L2} y1={BASE - loadedH - 90} y2={BASE - loadedH - 26} />
         <path d={`M${L2 - 9},${BASE - loadedH - 30} l9,16 l9,-16 Z`} />
@@ -65,7 +83,7 @@ export default function SpringDiagram({ values: v, set, output, unit, setUnit })
   );
 
   return (
-    <Canvas w={W} h={H} svg={svg} label="Coil spring, unloaded and under load" minWidth={660}>
+    <Canvas w={W} h={H} svg={svg} svgRef={svgRef} label="Coil spring, unloaded and under load" minWidth={660}>
       <At x={L1} y={BASE - freeH - 36} anchor="c">
         {num("Dm", "Mean coil diameter", "smallLength")}
       </At>

@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Check, TriangleAlert, Volume2 } from "lucide-react";
 import { CALLOUTS, GROUPS, HOLE, PIN, bonusFor, calloutById, inSize, virtualCondition } from "./gdtModel";
 import { FrameBox } from "./Frame";
 import { Crumbs, Segmented, Slider } from "./ui";
 import { DESIGN_HUE, lengthUnits, useTitle } from "./units";
+import { Card, LessonNav } from "./GdtLessons";
 
 // The three "start here" pages: reading a frame, datums, and material condition modifiers.
 
@@ -33,9 +35,11 @@ export function FramePage({ prefsApi }) {
   const [dia, setDia] = useState(true);
   const [mod, setMod] = useState("MMC");
   const [dat, setDat] = useState(["A", "B", "C"]);
+  const [dmods, setDmods] = useState(["RMB", "RMB", "RMB"]);
   const [active, setActive] = useState("tol");
   const c = calloutById[sym];
   const datums = dat.filter(Boolean);
+  const datumMods = dat.map((d, i) => (d ? dmods[i] : null)).filter((m) => m !== null);
 
   const problems = [];
   if (c.group === "form" && datums.length) problems.push(`${c.name} is a form control, so it can't have datums. Remove them.`);
@@ -45,18 +49,23 @@ export function FramePage({ prefsApi }) {
   if (mod !== "RFS" && NO_MODS.has(sym)) problems.push(`${c.name} can't take ${mod}. Material condition modifiers only go on features of size (holes, pins, slots), with position, orientation or straightness.`);
   if (new Set(datums).size !== datums.length) problems.push("Each datum letter should appear once.");
   if (dat.some((d, i) => !d && dat.slice(i + 1).some(Boolean))) problems.push("Fill the datum boxes in order: primary first.");
+  if (datums.some((d, i) => d === "A" && datumMods[i] !== "RMB")) problems.push("Datum A here is a flat face, which has no size, so it can't be at MMB or LMB. Only datums that are features of size (a bore, shaft or slot) take a modifier.");
 
   const sentence = [
     `${c.name}:`,
     `the feature must stay inside a ${dia ? `cylindrical zone ⌀${units.L(tol)}` : `zone ${units.L(tol)} wide`}`,
     mod === "MMC" ? "when the feature is at its maximum material size, with bonus tolerance as it departs from MMC" : mod === "LMC" ? "when the feature is at its least material size, with bonus as it departs from LMC" : "at whatever size the feature is (RFS)",
-    datums.length ? `, ${datums.map((d, i) => `${RANKS[i]} datum ${d}`).join(", ")}.` : c.group === "form" ? ", with no datums (it's compared only to itself)." : ".",
+    datums.length
+      ? `, ${datums.map((d, i) => `${RANKS[i]} datum ${d}${datumMods[i] === "MMB" ? " at MMB (the part may shift on it)" : datumMods[i] === "LMB" ? " at LMB" : ""}`).join(", ")}.`
+      : c.group === "form"
+        ? ", with no datums (it's compared only to itself)."
+        : ".",
   ].join(" ").replace(" ,", ",");
 
   const cells = [
     { key: "symbol", n: 1, title: "Characteristic symbol", body: "What kind of control this is: form, orientation, location, profile or runout. It sets the shape of the zone." },
     { key: "tol", n: 2, title: "Tolerance, ⌀ and modifier", body: "The size of the zone. ⌀ in front makes it a cylinder. A circled M or L after it says the value applies at maximum or least material condition, and grows as the size moves away." },
-    { key: "datum0", n: 3, title: "Primary datum", body: "The part sits on this first. A flat primary locks 3 degrees of freedom: one move and two tilts." },
+    { key: "datum0", n: 3, title: "Primary datum", body: "The part sits on this first. A flat primary locks 3 degrees of freedom: one move and two tilts. A circled M or L after a datum letter (only on a bore, shaft or slot) sets the gauge size for that datum and can let the part shift: see lesson 4." },
     { key: "datum1", n: 4, title: "Secondary datum", body: "Pushed against next, square to the primary. Locks 2 more." },
     { key: "datum2", n: 5, title: "Tertiary datum", body: "Slid against last. Locks the final one." },
   ];
@@ -67,7 +76,7 @@ export function FramePage({ prefsApi }) {
       <div className="gd-grid">
         <section className="tf-card gd-stage">
           <div className="gd-frame-big">
-            <FrameBox symbol={sym} tol={tol} dia={dia} mod={mod} datums={datums} fmtTol={units.num} scale={2.6} active={active} onCell={setActive} />
+            <FrameBox symbol={sym} tol={tol} dia={dia} mod={mod} datums={datums} datumMods={datumMods} fmtTol={units.num} scale={2.6} active={active} onCell={setActive} />
           </div>
           <p className="gd-read is-big">
             <Volume2 size={16} aria-hidden="true" />
@@ -127,19 +136,32 @@ export function FramePage({ prefsApi }) {
             {RANKS.map((rank, i) => (
               <label key={rank} className="gd-field">
                 <span className="gd-field-label">{rank[0].toUpperCase() + rank.slice(1)} datum</span>
-                <select className="tf-select" value={dat[i] || ""} onChange={(e) => setDat((d) => d.map((x, j) => (j === i ? e.target.value : x)))}>
-                  <option value="">None</option>
-                  {["A", "B", "C", "D"].map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
+                <span className="gd-frame-mods">
+                  <select className="tf-select" aria-label={`${rank} datum letter`} value={dat[i] || ""} onChange={(e) => setDat((d) => d.map((x, j) => (j === i ? e.target.value : x)))}>
+                    <option value="">None</option>
+                    {["A", "B", "C", "D"].map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                  <select className="tf-select" aria-label={`${rank} datum modifier`} value={dmods[i]} disabled={!dat[i]} onChange={(e) => setDmods((d) => d.map((x, j) => (j === i ? e.target.value : x)))}>
+                    <option value="RMB">None</option>
+                    <option value="MMB">Ⓜ MMB</option>
+                    <option value="LMB">Ⓛ LMB</option>
+                  </select>
+                </span>
               </label>
             ))}
           </div>
         </aside>
       </div>
+      <section className="gd-explain">
+        <Card title="Reading it left to right">Symbol, then the zone, then where it's measured from. &ldquo;Position, ⌀0.25 at MMC, to A, B, C&rdquo; reads: the axis must be inside a ⌀0.25 cylinder (bigger if the hole is bigger), at the exact spot the basic dimensions give, with the part held on A, then B, then C.</Card>
+        <Card title="Two places for a circled M">After the tolerance it's about the feature being controlled: bonus tolerance as it departs from MMC (lesson 3). After a datum letter it's about the datum feature: the gauge is fixed at MMB and the part may shift (lesson 4).</Card>
+        <Card title="Things that are never in a frame">Plus-minus tolerances, degrees, or a modifier after a flat datum face. The location itself is given by boxed basic dimensions on the drawing, not by the frame.</Card>
+      </section>
+      <LessonNav id="frame" />
     </div>
   );
 }
@@ -299,9 +321,25 @@ export function DatumsPage() {
               The primary datum gets the most contact, so it should be the face the part really sits on in use, usually the biggest and most stable. Swap A and B and the part rests on a different face first: a slightly out-of-square part then measures differently, and a part that passed can fail.
             </p>
             <p className="gd-help">Datum features on real parts are never perfect, so the inspector holds the part on gauge surfaces (a surface plate, angle plate, pins) that simulate the perfect datums.</p>
+            <p className="gd-help">
+              <Link to="/tools/gdt/datum-order">See a real out-of-square part pass in one order and fail in the other.</Link>
+            </p>
           </div>
         </aside>
       </div>
+      <h2 className="tf-block-title">Modifiers on datums</h2>
+      <section className="gd-explain">
+        <Card title="Flat faces: no modifier">A plane like A, B or C above has no size, so it's always simulated by a perfect plane in contact with the high points. Nothing to modify.</Card>
+        <Card title="Bores, shafts and slots: RMB by default">When a datum is a feature of size, its simulator is a pin, a ring or a pair of jaws. With no symbol (RMB) it grows or closes until it fits the real feature tightly, so the part can't move.</Card>
+        <Card title="Ⓜ MMB: a fixed-size gauge">A circled M after the letter fixes the simulator at the maximum material boundary, such as a ⌀20.0 pin in a ⌀20 +0.1/0 bore. A bigger bore lets the part move on the pin: datum shift.</Card>
+        <Card title="Ⓛ LMB: from the thin side">A circled L holds the simulator at the least material boundary. Used to protect wall thickness when the datum feature itself has a tolerance.</Card>
+        <Card title="Learn more">
+          <p>
+            <Link to="/tools/gdt/datum-shift">Lesson 4: datum modifiers and datum shift</Link>, with a plate on a gauge pin you can slide.
+          </p>
+        </Card>
+      </section>
+      <LessonNav id="datums" />
     </div>
   );
 }
@@ -416,6 +454,96 @@ export function ModifiersPage({ prefsApi }) {
           </div>
         </aside>
       </div>
+      <BonusExamples units={units} />
+      <LessonNav id="modifiers" />
     </div>
+  );
+}
+
+// Worked bonus examples ------------------------------------------------------------
+
+const BATCH = [
+  { n: 1, size: 10.0, off: 0.09 },
+  { n: 2, size: 10.08, off: 0.13 },
+  { n: 3, size: 10.02, off: 0.13 },
+  { n: 4, size: 10.1, off: 0.15 },
+];
+
+function BonusExamples({ units }) {
+  const tol = 0.2;
+  const pin = virtualCondition("MMC", HOLE, tol); // ⌀9.8 mating pin at true position
+  const sizes = [10.0, 10.025, 10.05, 10.075, 10.1];
+  return (
+    <>
+      <h2 className="tf-block-title">Worked examples</h2>
+      <div className="tf-card gd-table-card">
+        <table className="gd-table">
+          <caption>Hole {HOLE.label} with position ⌀0.2: how much it may be off at each size</caption>
+          <thead>
+            <tr>
+              <th scope="col">Actual hole</th>
+              <th scope="col">RFS</th>
+              <th scope="col">Ⓜ MMC</th>
+              <th scope="col">Ⓛ LMC</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sizes.map((z) => (
+              <tr key={z}>
+                <td>⌀{units.num(z)}</td>
+                <td>⌀{units.num(tol)}</td>
+                <td>⌀{units.num(tol + bonusFor("MMC", HOLE, z))}</td>
+                <td>⌀{units.num(tol + bonusFor("LMC", HOLE, z))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="tf-card gd-table-card">
+        <table className="gd-table">
+          <caption>
+            Four holes from the same batch, position ⌀0.2, each checked against a ⌀{units.num(pin)} mating pin at true position (the virtual condition)
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Part</th>
+              <th scope="col">Hole size</th>
+              <th scope="col">Off by</th>
+              <th scope="col">Position error</th>
+              <th scope="col">RFS</th>
+              <th scope="col">Ⓜ MMC</th>
+              <th scope="col">Pin goes in?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {BATCH.map((b) => {
+              const err = 2 * b.off;
+              const rfs = err <= tol + 1e-9;
+              const mmc = err <= tol + bonusFor("MMC", HOLE, b.size) + 1e-9;
+              const fits = b.off <= (b.size - pin) / 2 + 1e-9;
+              const cell = (ok, yes, no) => <td className={ok ? "is-ok" : "is-bad"}>{ok ? yes : no}</td>;
+              return (
+                <tr key={b.n}>
+                  <td>{b.n}</td>
+                  <td>⌀{units.num(b.size)}</td>
+                  <td>{units.num(b.off)}</td>
+                  <td>⌀{units.num(err)}</td>
+                  {cell(rfs, "Accept", "Reject")}
+                  {cell(mmc, "Accept", "Reject")}
+                  {cell(fits, "Yes", "No")}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <section className="gd-explain">
+        <Card title="Why bonus matters">Parts 2 and 4 are rejected under RFS but the pin goes in: their holes are big enough to make up for being off. RFS scraps good parts. MMC accepts exactly the parts that assemble, no more, no less. Part 3 is off just as far as part 2 but its hole is small, so it really doesn't fit and both methods reject it.</Card>
+        <Card title="Floating fastener">Bolt through clearance holes in both parts, nut on the end. Each part gets T = H − F. M8 bolt (F = 8.0) in ⌀8.4 holes: position ⌀0.4 Ⓜ on both plates. At ⌀8.6 each hole gets ⌀0.6, and the bolt still fits.</Card>
+        <Card title="Fixed fastener">Stud pressed or threaded into one part, clearance hole in the other. The two parts share the clearance: T = (H − F) / 2. Same M8 in ⌀8.4: ⌀0.2 Ⓜ each. Projected tolerance zone (Ⓟ) is often added on the threaded hole so a tilted stud doesn't eat the clearance.</Card>
+        <Card title="LMC: protecting a wall">A ⌀10 +0.1/0 hole whose centre is 8 from an edge, position ⌀0.2 Ⓛ. Thinnest wall = 8 − ⌀10.1 / 2 − 0.2 / 2 = 2.85, at every size. If the hole is smaller it's allowed further off, because there's more metal around it.</Card>
+        <Card title="Pins get bonus the other way">A pin ⌀10 ±0.1 at MMC is ⌀10.1. A pin made at ⌀9.95 gets 0.15 bonus. The gauge is a ring (or hole) at MMC + tol, the pin's virtual condition.</Card>
+      </section>
+    </>
   );
 }

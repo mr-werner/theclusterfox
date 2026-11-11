@@ -9,6 +9,7 @@ import { capableOf } from "./processes";
 import { Crumbs, Segmented, Slider } from "./ui";
 import { DESIGN_HUE, lengthUnits, useTitle } from "./units";
 import { DatumsPage, FramePage, ModifiersPage } from "./GdtBasics";
+import { DatumOrderPage, DatumShiftPage, PatternPage } from "./GdtLessons";
 import "./design.css";
 
 // GD&T explorer: an index of every callout, and a page per callout where you
@@ -77,7 +78,7 @@ export function GdtIndex() {
             <strong>Basic dimensions are exact.</strong> Boxed numbers have no tolerance of their own. They say where the true position or true profile is; the feature control frame says how far the part may stray from it.
           </li>
           <li>
-            <strong>Datums are read in order.</strong> The part sits on the primary, is pushed against the secondary, then slid to the tertiary. Changing the order changes the part that gets accepted.
+            <strong>Datums are read in order.</strong> The part sits on the primary, is pushed against the secondary, then slid to the tertiary. Changing the order changes the part that gets accepted. <Link to="/tools/gdt/datum-order">See it happen</Link>.
           </li>
         </ol>
       </section>
@@ -90,6 +91,9 @@ export function GdtRoute({ prefsApi }) {
   if (id === "frame") return <FramePage prefsApi={prefsApi} />;
   if (id === "datums") return <DatumsPage prefsApi={prefsApi} />;
   if (id === "modifiers") return <ModifiersPage prefsApi={prefsApi} />;
+  if (id === "datum-shift") return <DatumShiftPage prefsApi={prefsApi} />;
+  if (id === "patterns") return <PatternPage prefsApi={prefsApi} />;
+  if (id === "datum-order") return <DatumOrderPage prefsApi={prefsApi} />;
   const c = calloutById[id];
   if (!c) return <GdtIndex />;
   return <CalloutPage key={id} c={c} prefsApi={prefsApi} />;

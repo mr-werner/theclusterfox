@@ -34,7 +34,7 @@ export default function ToolsPage() {
 
   return (
     <main className="tools-page tf">
-      <AppBar appId="toolfox" />
+      <AppBar appId="toolfox" backTo={toolsParent} />
       <div className="tf-shell">
         <aside className="tf-side" aria-label="Engineer ToolFox sections">
           <Link to="/tools" className="tf-brand">
@@ -102,6 +102,23 @@ export default function ToolsPage() {
       {paletteOpen && <Palette onClose={() => setPaletteOpen(false)} />}
     </main>
   );
+}
+
+/**
+ * The page above any Engineer ToolFox page, for the back button when the
+ * page was opened directly: a calculator goes to its category, a table to
+ * all reference data, a GD&T callout to the explorer, and so on up.
+ */
+function toolsParent({ pathname }) {
+  const parts = pathname.replace(/^\/tools\/?/, "").split("/").filter(Boolean);
+  const [kind, id] = parts;
+  const builder = BUILDERS.find((b) => b.path === pathname.replace(/\/+$/, ""));
+  if (builder) return `/tools/c/${builder.cat}`;
+  if (kind === "calc" && id) return calcById[id] ? `/tools/c/${calcById[id].cat}` : "/tools";
+  if (kind === "data" && id) return "/tools/data";
+  if (kind === "gdt" && id) return "/tools/gdt";
+  if (kind === "convert" && id) return "/tools/convert";
+  return "/tools";
 }
 
 /** Remember a builder page in "Recently used". */

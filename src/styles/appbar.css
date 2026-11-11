@@ -275,3 +275,57 @@
     clip: rect(0 0 0 0);
   }
 }
+
+/* Back: one step back inside the app, since apps run in their own window
+   without the browser's back button. */
+.appbar-back {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  height: 36px;
+  margin-right: -4px;
+  padding: 0 12px 0 6px;
+  border: 1px solid var(--ab-line);
+  border-radius: 999px;
+  color: var(--ab-fg);
+  background: transparent;
+  font: 600 0.84rem/1 "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.appbar-back:hover {
+  border-color: var(--ab-accent);
+}
+
+.appbar-back:focus-visible {
+  outline: 2px solid var(--ab-accent);
+  outline-offset: 2px;
+}
+
+.appbar-back:active {
+  background: var(--ab-line);
+}
+
+@media (max-width: 600px) {
+  .appbar-back {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .appbar-back span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  /* With back showing, the app's name gives way first on a phone. */
+  .appbar.has-back {
+    gap: 10px;
+  }
+}

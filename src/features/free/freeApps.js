@@ -437,6 +437,7 @@ const categories = [
       { name: "iVysílání", alt: "Netflix", url: "https://www.ceskatelevize.cz/ivysilani/", mark: "ČT", color: "#0053a0", description: "Czech public TV on demand, with films, series, fairy tales and live channels." },
       { name: "Cont.ar", alt: "Netflix", url: "https://www.cont.ar/", mark: "Co", color: "#00a3e0", description: "Argentina's public streaming platform with series, films, documentaries and live TV." },
       { name: "SABC+", alt: "Netflix / DStv", url: "https://sabc-plus.com/", mark: "S+", color: "#0b4ea2", description: "South African public TV and radio: live channels, local series and news." },
+      { name: "ERTFLIX", alt: "Netflix", url: "https://www.ertflix.gr/", mark: "ER", color: "#00539f", description: "Greek public TV on demand, with series, films, documentaries and live channels." },
     ],
   },
   {
@@ -527,6 +528,7 @@ const categories = [
       { name: "RTP Antena", alt: "SiriusXM", url: "https://www.rtp.pt/play/direto/antena1", mark: "A1", color: "#004b8d", description: "Portuguese public radio: Antena 1, Antena 2 classical and Antena 3, live." },
       { name: "mujRozhlas", alt: "Spotify / Audible", url: "https://www.mujrozhlas.cz/", mark: "ČR", color: "#ed2e38", description: "Czech Radio stations, podcasts, radio plays and audiobook readings." },
       { name: "Radio Nacional", alt: "SiriusXM", url: "https://www.radionacional.com.ar/", mark: "RN", color: "#0072bc", description: "Argentine public radio, including folk, classical and Rock & Pop stations, live." },
+      { name: "ERTecho", alt: "Spotify / SiriusXM", url: "https://www.ertecho.gr/", mark: "Ec", color: "#00539f", description: "Greek public radio stations and podcasts in one app." },
     ],
   },
   {
@@ -560,6 +562,7 @@ const categories = [
       { name: "Biblioteca Nacional Digital", alt: "Kindle Unlimited / archives", url: "https://bndigital.bnportugal.gov.pt/", mark: "BN", color: "#6a1b2d", description: "National Library of Portugal digital collection of books, maps and manuscripts." },
       { name: "Arquivo.pt", alt: "paid web archives", url: "https://arquivo.pt/", mark: "Aq", color: "#1f5f8b", description: "Public web archive with billions of saved pages since 1996, searchable by text." },
       { name: "Národní digitální knihovna", alt: "Kindle Unlimited / archives", url: "https://www.ndk.cz/", mark: "NK", color: "#7a1f2b", description: "National Library of the Czech Republic digitized books, papers and maps." },
+      { name: "Openbook.gr", alt: "Kindle Unlimited", url: "https://www.openbook.gr/", mark: "Ob", color: "#c0392b", description: "Free, legal Greek e-books, from classics to new authors who share their work." },
     ],
   },
   {
@@ -787,6 +790,7 @@ const categories = [
       { name: "Teanglann", alt: "paid dictionaries", url: "https://www.teanglann.ie/en/", mark: "Te", color: "#167a3e", description: "Official Irish dictionaries with grammar and native-speaker audio." },
       { name: "Te Aka Māori Dictionary", alt: "paid dictionaries", url: "https://maoridictionary.co.nz/", mark: "TA", color: "#8b2a1e", description: "Free Māori to English dictionary with example sentences and audio." },
       { name: "VivA Afrikaans", alt: "paid dictionaries", url: "https://viva-afrikaans.org/", mark: "Vi", color: "#e67e22", description: "Free Afrikaans dictionaries and language tools from a nonprofit." },
+      { name: "Portal for the Greek Language", alt: "paid dictionaries / Babbel", url: "https://www.greek-language.gr/", mark: "ΠΓ", color: "#1f5aa6", description: "Greek dictionaries, grammar and learning resources from the Centre for the Greek Language." },
     ],
   },
 ];

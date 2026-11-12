@@ -453,6 +453,10 @@ export const freeAppDetails = {
   "SABC+": { limits: ["region"], note: "Free account needed; most content is South Africa only." },
   Siyavula: { ...OS, limits: ["freeTier"], note: "Textbooks are openly licensed; full practice needs a paid plan." },
   "VivA Afrikaans": { note: "Free nonprofit dictionary portal; no account needed." },
+  ERTFLIX: { limits: ["region"], note: "Public and free; some shows and live TV are Greece only." },
+  ERTecho: { note: "Public radio and podcasts, available worldwide." },
+  "Openbook.gr": { note: "Free downloads shared with authors' permission; no account needed." },
+  "Portal for the Greek Language": { note: "Free public resource from a Ministry of Education centre." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -746,4 +750,8 @@ export const freeAppCountries = {
   "SABC+": "South Africa",
   Siyavula: "South Africa",
   "VivA Afrikaans": "South Africa",
+  ERTFLIX: "Greece",
+  ERTecho: "Greece",
+  "Openbook.gr": "Greece",
+  "Portal for the Greek Language": "Greece",
 };

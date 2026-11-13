@@ -457,6 +457,10 @@ export const freeAppDetails = {
   ERTecho: { note: "Public radio and podcasts, available worldwide." },
   "Openbook.gr": { note: "Free downloads shared with authors' permission; no account needed." },
   "Portal for the Greek Language": { note: "Free public resource from a Ministry of Education centre." },
+  "CNTV Play": { note: "Free from Chile's National Television Council; no ads." },
+  "Radio Universidad de Chile": { note: "Live public university radio, available worldwide." },
+  "Biblioteca Pública Digital": { limits: ["libraryCard", "region"], note: "Free account for residents of Chile." },
+  "Memoria Chilena": { note: "Free public archive from the National Library of Chile." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -754,4 +758,8 @@ export const freeAppCountries = {
   ERTecho: "Greece",
   "Openbook.gr": "Greece",
   "Portal for the Greek Language": "Greece",
+  "CNTV Play": "Chile",
+  "Radio Universidad de Chile": "Chile",
+  "Biblioteca Pública Digital": "Chile",
+  "Memoria Chilena": "Chile",
 };

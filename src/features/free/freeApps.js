@@ -438,6 +438,7 @@ const categories = [
       { name: "Cont.ar", alt: "Netflix", url: "https://www.cont.ar/", mark: "Co", color: "#00a3e0", description: "Argentina's public streaming platform with series, films, documentaries and live TV." },
       { name: "SABC+", alt: "Netflix / DStv", url: "https://sabc-plus.com/", mark: "S+", color: "#0b4ea2", description: "South African public TV and radio: live channels, local series and news." },
       { name: "ERTFLIX", alt: "Netflix", url: "https://www.ertflix.gr/", mark: "ER", color: "#00539f", description: "Greek public TV on demand, with series, films, documentaries and live channels." },
+      { name: "CNTV Play", alt: "Netflix", url: "https://www.cntvplay.cl/", mark: "CN", color: "#d62e2e", description: "Chile's free public platform for Chilean films, series, documentaries and kids shows." },
     ],
   },
   {
@@ -529,6 +530,7 @@ const categories = [
       { name: "mujRozhlas", alt: "Spotify / Audible", url: "https://www.mujrozhlas.cz/", mark: "ČR", color: "#ed2e38", description: "Czech Radio stations, podcasts, radio plays and audiobook readings." },
       { name: "Radio Nacional", alt: "SiriusXM", url: "https://www.radionacional.com.ar/", mark: "RN", color: "#0072bc", description: "Argentine public radio, including folk, classical and Rock & Pop stations, live." },
       { name: "ERTecho", alt: "Spotify / SiriusXM", url: "https://www.ertecho.gr/", mark: "Ec", color: "#00539f", description: "Greek public radio stations and podcasts in one app." },
+      { name: "Radio Universidad de Chile", alt: "SiriusXM", url: "https://radio.uchile.cl/", mark: "RU", color: "#00427a", description: "University public radio with news, culture and Chilean music, live and on demand." },
     ],
   },
   {
@@ -563,6 +565,8 @@ const categories = [
       { name: "Arquivo.pt", alt: "paid web archives", url: "https://arquivo.pt/", mark: "Aq", color: "#1f5f8b", description: "Public web archive with billions of saved pages since 1996, searchable by text." },
       { name: "Národní digitální knihovna", alt: "Kindle Unlimited / archives", url: "https://www.ndk.cz/", mark: "NK", color: "#7a1f2b", description: "National Library of the Czech Republic digitized books, papers and maps." },
       { name: "Openbook.gr", alt: "Kindle Unlimited", url: "https://www.openbook.gr/", mark: "Ob", color: "#c0392b", description: "Free, legal Greek e-books, from classics to new authors who share their work." },
+      { name: "Biblioteca Pública Digital", alt: "Kindle Unlimited / Audible", url: "https://www.bpdigital.cl/", mark: "BP", color: "#e94e1b", description: "Chile's free digital public library with e-books and audiobooks to borrow." },
+      { name: "Memoria Chilena", alt: "paid archives", url: "https://www.memoriachilena.gob.cl/", mark: "MC", color: "#5b2c6f", description: "National Library of Chile collection of digitized books, photos and documents." },
     ],
   },
   {

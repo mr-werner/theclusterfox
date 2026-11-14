@@ -461,6 +461,11 @@ export const freeAppDetails = {
   "Radio Universidad de Chile": { note: "Live public university radio, available worldwide." },
   "Biblioteca Pública Digital": { limits: ["libraryCard", "region"], note: "Free account for residents of Chile." },
   "Memoria Chilena": { note: "Free public archive from the National Library of Chile." },
+  "ERR Jupiter": { limits: ["region"], note: "Public and ad-free; some films and series are Estonia only." },
+  "Eesti Raadio": { note: "Live public radio, available worldwide." },
+  DIGAR: { note: "Free archive; some newer works are viewable only at the library." },
+  Keeleklikk: { note: "Free course funded by Estonia's Ministry of Education; free account." },
+  "Sõnaveeb": { note: "Free public portal from the Institute of the Estonian Language." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -762,4 +767,9 @@ export const freeAppCountries = {
   "Radio Universidad de Chile": "Chile",
   "Biblioteca Pública Digital": "Chile",
   "Memoria Chilena": "Chile",
+  "ERR Jupiter": "Estonia",
+  "Eesti Raadio": "Estonia",
+  DIGAR: "Estonia",
+  Keeleklikk: "Estonia",
+  "Sõnaveeb": "Estonia",
 };

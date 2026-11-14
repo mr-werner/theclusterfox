@@ -439,6 +439,7 @@ const categories = [
       { name: "SABC+", alt: "Netflix / DStv", url: "https://sabc-plus.com/", mark: "S+", color: "#0b4ea2", description: "South African public TV and radio: live channels, local series and news." },
       { name: "ERTFLIX", alt: "Netflix", url: "https://www.ertflix.gr/", mark: "ER", color: "#00539f", description: "Greek public TV on demand, with series, films, documentaries and live channels." },
       { name: "CNTV Play", alt: "Netflix", url: "https://www.cntvplay.cl/", mark: "CN", color: "#d62e2e", description: "Chile's free public platform for Chilean films, series, documentaries and kids shows." },
+      { name: "ERR Jupiter", alt: "Netflix", url: "https://jupiter.err.ee/", mark: "JU", color: "#1e3a8a", description: "Estonian public TV and radio on demand, with dramas, films and kids shows." },
     ],
   },
   {
@@ -531,6 +532,7 @@ const categories = [
       { name: "Radio Nacional", alt: "SiriusXM", url: "https://www.radionacional.com.ar/", mark: "RN", color: "#0072bc", description: "Argentine public radio, including folk, classical and Rock & Pop stations, live." },
       { name: "ERTecho", alt: "Spotify / SiriusXM", url: "https://www.ertecho.gr/", mark: "Ec", color: "#00539f", description: "Greek public radio stations and podcasts in one app." },
       { name: "Radio Universidad de Chile", alt: "SiriusXM", url: "https://radio.uchile.cl/", mark: "RU", color: "#00427a", description: "University public radio with news, culture and Chilean music, live and on demand." },
+      { name: "Eesti Raadio", alt: "SiriusXM", url: "https://eestiraadio.err.ee/", mark: "ER", color: "#1e3a8a", description: "Estonian public radio stations, from Vikerraadio to Klassikaraadio, live." },
     ],
   },
   {
@@ -567,6 +569,7 @@ const categories = [
       { name: "Openbook.gr", alt: "Kindle Unlimited", url: "https://www.openbook.gr/", mark: "Ob", color: "#c0392b", description: "Free, legal Greek e-books, from classics to new authors who share their work." },
       { name: "Biblioteca Pública Digital", alt: "Kindle Unlimited / Audible", url: "https://www.bpdigital.cl/", mark: "BP", color: "#e94e1b", description: "Chile's free digital public library with e-books and audiobooks to borrow." },
       { name: "Memoria Chilena", alt: "paid archives", url: "https://www.memoriachilena.gob.cl/", mark: "MC", color: "#5b2c6f", description: "National Library of Chile collection of digitized books, photos and documents." },
+      { name: "DIGAR", alt: "Kindle Unlimited / archives", url: "https://www.digar.ee/", mark: "DI", color: "#2f6f4f", description: "National Library of Estonia digital archive of books, papers and maps." },
     ],
   },
   {
@@ -795,6 +798,8 @@ const categories = [
       { name: "Te Aka Māori Dictionary", alt: "paid dictionaries", url: "https://maoridictionary.co.nz/", mark: "TA", color: "#8b2a1e", description: "Free Māori to English dictionary with example sentences and audio." },
       { name: "VivA Afrikaans", alt: "paid dictionaries", url: "https://viva-afrikaans.org/", mark: "Vi", color: "#e67e22", description: "Free Afrikaans dictionaries and language tools from a nonprofit." },
       { name: "Portal for the Greek Language", alt: "paid dictionaries / Babbel", url: "https://www.greek-language.gr/", mark: "ΠΓ", color: "#1f5aa6", description: "Greek dictionaries, grammar and learning resources from the Centre for the Greek Language." },
+      { name: "Keeleklikk", alt: "Babbel", url: "https://www.keeleklikk.ee/", mark: "KK", color: "#0072ce", description: "Free beginner Estonian course with videos, taught from English or Russian." },
+      { name: "Sõnaveeb", alt: "paid dictionaries", url: "https://sonaveeb.ee/", mark: "Sõ", color: "#0072ce", description: "Official Estonian dictionary portal with meanings, forms and pronunciation." },
     ],
   },
 ];

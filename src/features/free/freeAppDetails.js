@@ -466,6 +466,11 @@ export const freeAppDetails = {
   DIGAR: { note: "Free archive; some newer works are viewable only at the library." },
   Keeleklikk: { note: "Free course funded by Estonia's Ministry of Education; free account." },
   "Sõnaveeb": { note: "Free public portal from the Institute of the Estonian Language." },
+  "RÚV": { limits: ["region"], note: "Public and free; many shows are Iceland only." },
+  "RÚV Radio": { note: "Live public radio and podcasts, available worldwide." },
+  "Tímarit.is": { note: "Free public archive from the National and University Library of Iceland." },
+  "Icelandic Online": { note: "Free self-study courses; a free account saves your progress." },
+  "Málið.is": { note: "Free public portal from the Árni Magnússon Institute." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -772,4 +777,9 @@ export const freeAppCountries = {
   DIGAR: "Estonia",
   Keeleklikk: "Estonia",
   "Sõnaveeb": "Estonia",
+  "RÚV": "Iceland",
+  "RÚV Radio": "Iceland",
+  "Tímarit.is": "Iceland",
+  "Icelandic Online": "Iceland",
+  "Málið.is": "Iceland",
 };

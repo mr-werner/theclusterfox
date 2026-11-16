@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { REMINDERS, dayReminders, defaultReminderSettings, normalizeReminderSettings } from '../model/reminders.js';
 import { normalizeData } from '../state/clocastStore.js';
+import { parsePlaceSummary } from '../../../services/weather/openMeteo.js';
 import {
   bestAltitude,
   cloudBaseFt,
@@ -176,5 +177,16 @@ const best = bestAltitude(first, 180, { elevationFt: profile.elevationFt, altitu
 assert.equal(best.altitudeFt, 18000, 'flying south, the strongest north wind behind you wins');
 
 assert.equal(hourNearest(profile, new Date(seconds[1] * 1000 + 600_000)), profile.hours[1], 'nearest hour to an ETA');
+
+// Reminders open in full only when asked for.
+assert.equal(normalizeReminderSettings({}).showFirst, false, 'reminders start as a notification');
+assert.equal(normalizeReminderSettings({ showFirst: true }).showFirst, true, 'show-first setting is kept');
+
+// Quick look for saved places.
+assert.deepEqual(
+  parsePlaceSummary({ current: { temperature_2m: 12, weather_code: 3, is_day: 1 }, daily: { temperature_2m_max: [15], temperature_2m_min: [4] } }),
+  { temp: 12, high: 15, low: 4, code: 3, isDay: true }
+);
+assert.equal(parsePlaceSummary({}), null, 'an empty place comes back null');
 
 console.log('reminders and winds aloft: all checks passed');

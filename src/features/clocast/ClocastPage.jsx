@@ -11,6 +11,9 @@ import ProfilePanel from "./components/ProfilePanel";
 import WeatherReport from "./components/WeatherReport";
 import WhyPanel from "./components/WhyPanel";
 import RemindersPanel from "./components/RemindersPanel";
+import ReminderNotice from "./components/ReminderNotice";
+import PlaceBar from "./components/PlaceBar";
+import { dayReminders } from "./model/reminders";
 import SkyLayer from "./components/SkyLayer";
 import AlertBanner from "./components/AlertBanner";
 import { skyFor } from "./model/sky";
@@ -133,6 +136,22 @@ export default function ClocastPage() {
   const lateNow = dayIndex === 0 && (next24[0]?.localDay !== dayKeys[0] || next24[0]?.localHour > 21);
   const reminderIndex = lateNow && dayKeys.length > 1 ? 1 : dayIndex;
 
+  const reminderDay = dayKeys[reminderIndex];
+  const reminders = useMemo(
+    () =>
+      reminderDay
+        ? dayReminders({ hours: weather.hours, days: weather.days, day: reminderDay, settings: data.reminders, place, units, profile, tolerance, notBefore: reminderIndex === 0 ? now : 0 })
+        : [],
+    [weather, reminderDay, reminderIndex, data.reminders, place, units, profile, tolerance, now]
+  );
+  const reminderLabel = reminderDay ? dayWord(reminderIndex, reminderDay) : "today";
+  // The reminders arrive as a notification unless someone asked to see them in full.
+  const [remindersOpen, setRemindersOpen] = useState(() => data.reminders.showFirst || window.location.hash === "#reminders");
+  const openReminders = () => {
+    if (tab !== "today") setParams({});
+    setRemindersOpen(open => (tab === "today" ? !open : true));
+  };
+
   const plan = useMemo(() => {
     if (!place || !picked.length) return null;
     return planOutfit(picked, place, attire.activity, {
@@ -153,59 +172,52 @@ export default function ClocastPage() {
       <AppBar appId="clocast" />
 
       <div className="cc-shell">
-        {ready && <AlertBanner place={place} />}
-
-        {!ready && (
-        <header className="cc-hero">
-          <div className="cc-logo" aria-hidden="true">
-            <CloudSun size={26} />
-          </div>
-          <div>
-            <p className="cc-eyebrow">SKYFOX</p>
-            <h1>Plan your day around the weather.</h1>
+        {!place && (
+          <>
+            <header className="cc-hero">
+              <div className="cc-logo" aria-hidden="true">
+                <CloudSun size={26} />
+              </div>
+              <div>
+                <p className="cc-eyebrow">SKYFOX</p>
+                <h1>Plan your day around the weather.</h1>
+                <p className="cc-muted">Search for a town or use your location to see the forecast and what to wear.</p>
+              </div>
+            </header>
+            <section className="cc-panel cc-controls" aria-label="Pick a place">
+              <LocationPicker
+                place={place}
+                savedPlaces={data.savedPlaces}
+                onPick={setPlace}
+                onToggleSaved={toggleSavedPlace}
+                actions={
+                  <span className="cc-segment cc-units" role="group" aria-label="Units">
+                    {[["us", "°F"], ["metric", "°C"]].map(([value, label]) => (
+                      <button key={value} type="button" aria-pressed={units === value} onClick={() => update({ units: value })}>
+                        {label}
+                      </button>
+                    ))}
+                  </span>
+                }
+              />
+            </section>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
-          </div>
-        </header>
+          </>
         )}
 
-        {ready && tab === "today" && (
-          <WeatherReport
-            forecast={weather}
-            units={units}
-            place={place}
-            dayIndex={dayIndex}
-            next24={next24}
-            airNow={forecast.air?.current}
-            onPickDay={setDayIndex}
-            plan={plan}
-            attire={attire}
-            attireWhen={attireWhen}
-            onAttire={id => update({ attire: id })}
-            layers={data.hourlyLayers}
-            onLayers={hourlyLayers => update({ hourlyLayers })}
-            onUnits={value => update({ units: value })}
-            mapLayers={data.mapLayers}
-            onMapLayers={mapLayers => update({ mapLayers })}
-          />
-        )}
-
-        <section className="cc-panel cc-controls" aria-label="Place and time">
-          <LocationPicker
+        {place && (
+          <PlaceBar
+            key={place.id}
             place={place}
             savedPlaces={data.savedPlaces}
+            units={units}
             onPick={setPlace}
             onToggleSaved={toggleSavedPlace}
-            actions={
-              !ready && <span className="cc-segment cc-units" role="group" aria-label="Units">
-                {[["us", "°F"], ["metric", "°C"]].map(([value, label]) => (
-                  <button key={value} type="button" aria-pressed={units === value} onClick={() => update({ units: value })}>
-                    {label}
-                  </button>
-                ))}
-              </span>
-            }
+            reminderCount={ready ? reminders.length : 0}
+            onReminders={ready ? openReminders : null}
+            remindersOpen={remindersOpen && tab === "today"}
           />
-        </section>
+        )}
 
         {ready && (
           <nav className="cc-tabs" aria-label="SkyFox">
@@ -231,12 +243,40 @@ export default function ClocastPage() {
           </nav>
         )}
 
-        {!place && (
-          <section className="cc-panel cc-empty">
-            <CloudSun size={36} aria-hidden="true" />
-            <h2>Pick a place to get started</h2>
-            <p className="cc-muted">Search for a town or use your location to see the forecast and what to wear.</p>
-          </section>
+        {ready && <AlertBanner place={place} />}
+
+        {ready && tab === "today" &&
+          (remindersOpen ? (
+            <RemindersPanel
+              list={reminders}
+              dayLabel={reminderLabel}
+              settings={data.reminders}
+              onChange={next => update({ reminders: next })}
+              onClose={() => setRemindersOpen(false)}
+            />
+          ) : (
+            <ReminderNotice list={reminders} dayLabel={reminderLabel} onOpen={() => setRemindersOpen(true)} />
+          ))}
+
+        {ready && tab === "today" && (
+          <WeatherReport
+            forecast={weather}
+            units={units}
+            place={place}
+            dayIndex={dayIndex}
+            next24={next24}
+            airNow={forecast.air?.current}
+            onPickDay={setDayIndex}
+            plan={plan}
+            attire={attire}
+            attireWhen={attireWhen}
+            onAttire={id => update({ attire: id })}
+            layers={data.hourlyLayers}
+            onLayers={hourlyLayers => update({ hourlyLayers })}
+            onUnits={value => update({ units: value })}
+            mapLayers={data.mapLayers}
+            onMapLayers={mapLayers => update({ mapLayers })}
+          />
         )}
 
         {place && loading && (
@@ -289,19 +329,6 @@ export default function ClocastPage() {
 
         {ready && tab === "today" && (
           <>
-            <RemindersPanel
-              forecast={weather}
-              day={dayKeys[reminderIndex]}
-              dayLabel={dayWord(reminderIndex, dayKeys[reminderIndex])}
-              place={place}
-              units={units}
-              profile={profile}
-              tolerance={tolerance}
-              settings={data.reminders}
-              now={now}
-              onChange={reminders => update({ reminders })}
-            />
-
             <ProfilePanel
               profile={profile}
               units={units}

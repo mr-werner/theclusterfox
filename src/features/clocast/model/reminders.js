@@ -27,7 +27,7 @@ export const remindersById = new Map(REMINDERS.map(r => [r.id, r]));
 
 /** The settings someone starts with. */
 export function defaultReminderSettings() {
-  return { on: REMINDERS.filter(r => r.on).map(r => r.id), airSensitive: false };
+  return { on: REMINDERS.filter(r => r.on).map(r => r.id), airSensitive: false, showFirst: false };
 }
 
 /** Cleans a stored reminder setting, falling back to the defaults. */
@@ -37,6 +37,8 @@ export function normalizeReminderSettings(value) {
   return {
     on: Array.isArray(value.on) ? REMINDER_IDS.filter(id => value.on.includes(id)) : base.on,
     airSensitive: value.airSensitive === true,
+    // Open the full reminders when SkyFox opens, instead of the notification.
+    showFirst: value.showFirst === true,
   };
 }
 
@@ -117,12 +119,20 @@ export function dayReminders({ hours = [], days = [], day, settings, place = nul
     }
 
     if (id === "clothing" && place) {
+      // Dress for the daylight still ahead; the evening gets its own note
+      // when it needs a warmer outfit, so a cold night doesn't turn a warm
+      // afternoon into a parka day.
       const window = later.filter(h => h.localHour >= 9 && h.localHour <= 18);
-      const rows = window.length ? window : awake;
+      const lit = window.filter(h => h.isDay);
+      const rows = lit.length ? lit : window.length ? window : awake;
       const activity = activitiesById.get("errands");
       if (!activity) continue;
-      const plan = planOutfit(rows, place, activity, { profile, tolerance, formatTemp: temp });
+      const options = { profile, tolerance, formatTemp: temp };
+      const plan = planOutfit(rows, place, activity, options);
       if (!plan) continue;
+      const evening = awake.filter(h => !h.isDay && h.localHour >= 15);
+      const night = rows === lit && evening.length ? planOutfit(evening, place, activity, options) : null;
+      const eveningOutfit = night && night.outfit.level > plan.outfit.level ? night.outfit.name.toLowerCase() : null;
       const layers = plan.outfit.items
         .map(g => garments[g])
         .filter(g => g && !g.hidden && ["top", "outer", "legs"].includes(g.region))
@@ -132,7 +142,7 @@ export function dayReminders({ hours = [], days = [], day, settings, place = nul
         id,
         plan.warnings.some(w => w.tone === "danger" || w.tone === "warn") ? "caution" : "info",
         `Wear: ${plan.outfit.name.toLowerCase()}`,
-        `${capitalize(layers.join(", "))}. Feels like ${temp(plan.summary.feelsLow)} to ${temp(plan.summary.feelsHigh)}${bring.length ? `. Bring ${bring.join(", ")}` : ""}.`
+        `${capitalize(layers.join(", "))}. Feels like ${temp(plan.summary.feelsLow)} to ${temp(plan.summary.feelsHigh)}${bring.length ? `. Bring ${bring.join(", ")}` : ""}.${eveningOutfit ? ` After dark it calls for ${eveningOutfit}, so take a warm layer if you'll be out late.` : ""}`
       );
     }
 

@@ -426,3 +426,74 @@ export function simpleBeamItems({ support, load, L, a, P, w }) {
   return items;
 }
 
+
+// ---------------------------------------------------------------------------
+// Stress in a section under load: bending, axial force and shear together.
+// ---------------------------------------------------------------------------
+
+/** Width of solid material across the section at height y (metres from the bottom). */
+export function sectionWidthAt(shape, d, y) {
+  const o = sectionOutline(shape, d);
+  // Even-odd crossings of a horizontal line over every polygon, so a hole drawn
+  // as its own polygon (the box tube) comes out of the width.
+  const xs = [];
+  for (const poly of o.polys || []) {
+    for (let i = 0; i < poly.length; i++) {
+      const [x1, y1] = poly[i];
+      const [x2, y2] = poly[(i + 1) % poly.length];
+      if ((y1 <= y && y2 > y) || (y2 <= y && y1 > y)) xs.push(x1 + ((y - y1) / (y2 - y1)) * (x2 - x1));
+    }
+  }
+  xs.sort((a, b) => a - b);
+  let w = 0;
+  for (let i = 0; i + 1 < xs.length; i += 2) w += xs[i + 1] - xs[i];
+  for (const c of o.circles || []) {
+    const dy = y - c.cy;
+    if (Math.abs(dy) >= c.r) continue;
+    const chord = 2 * Math.sqrt(c.r * c.r - dy * dy);
+    w += c.hole ? -chord : chord;
+  }
+  return Math.max(0, w);
+}
+
+/**
+ * Stresses from a bending moment M about the x axis (+ sags: top in compression),
+ * an axial force P (+ pulls) and a vertical shear V, with σ(y) = P/A − M (y − yc)/Iₓ
+ * and τ(y) = V Q(y) / (Iₓ t(y)). Returns the profile across the depth for drawing,
+ * the extreme values and the largest von Mises stress, √(σ² + 3τ²).
+ */
+export function sectionStress(shape, d, { M = 0, P = 0, V = 0 } = {}, n = 600) {
+  const s = section(shape, d);
+  const o = sectionOutline(shape, d);
+  if (!s || !(s.A > 0) || !(o.h > 0)) return null;
+  const yc = s.yc ?? o.h / 2;
+  const sigma = (y) => P / s.A - (M * (y - yc)) / s.Ix;
+  // Q(y) = first moment of the area above y about the centroid, built from the top down.
+  const dy = o.h / n;
+  const rows = [];
+  let Q = 0;
+  for (let k = n; k >= 0; k--) {
+    const y = k * dy;
+    const t = sectionWidthAt(shape, d, Math.min(o.h - dy * 1e-3, Math.max(dy * 1e-3, y)));
+    rows.push({ y, t, Q });
+    if (k > 0) {
+      const ym = y - dy / 2;
+      Q += sectionWidthAt(shape, d, ym) * (ym - yc) * dy;
+    }
+  }
+  rows.reverse();
+  let tauMax = 0, yTau = yc, vm = 0, yVm = o.h;
+  const tMin = o.h * 1e-3;
+  for (const r of rows) {
+    const tau = r.t > tMin ? Math.abs((V * r.Q) / (s.Ix * r.t)) : 0;
+    r.sigma = sigma(r.y);
+    r.tau = tau;
+    if (tau > tauMax) (tauMax = tau), (yTau = r.y);
+    const e = Math.sqrt(r.sigma ** 2 + 3 * tau ** 2);
+    if (e > vm) (vm = e), (yVm = r.y);
+  }
+  const sTop = sigma(o.h), sBot = sigma(0);
+  // Where the stress crosses zero (the neutral axis moves off the centroid under axial load).
+  const yZero = M !== 0 ? yc + (P / s.A) * (s.Ix / M) : null;
+  return { props: s, h: o.h, yc, sTop, sBot, sAxial: P / s.A, tauMax, yTau, vm, yVm, yZero, rows };
+}

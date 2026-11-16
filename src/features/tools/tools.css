@@ -3644,3 +3644,304 @@ g:focus-visible > .dg-mass {
 .ld-heat-total strong {
   font-size: 1.4rem;
 }
+
+/* ── Lockable values on a drawing ── */
+.dg-num-wrap {
+  position: relative;
+  display: inline-block;
+}
+.dg-num-wrap .dg-num {
+  padding-right: 26px;
+}
+.dg-lock {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--tf-muted);
+  cursor: pointer;
+}
+.dg-lock:hover {
+  background: var(--tf-surface-3);
+  color: #fff;
+}
+.dg-lock[aria-pressed="true"] {
+  background: #ffc764;
+  color: #1a1408;
+}
+.dg-num.is-locked {
+  border-style: dashed;
+  border-color: rgba(255, 199, 100, 0.7);
+}
+.dg-num.is-locked input {
+  color: #e8dcc0;
+  cursor: not-allowed;
+}
+.dg-lock-all {
+  white-space: nowrap;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 11px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 10px;
+  background: rgba(13, 17, 16, 0.9);
+  color: #dfe5e2;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.dg-lock-all.is-on {
+  border-color: #ffc764;
+  color: #ffd98f;
+}
+
+/* ── Edges you can drag (section properties) ── */
+.dg-edge {
+  outline: none;
+}
+.dg-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+.dg-edge-line {
+  fill: none;
+  stroke: var(--tf-cat);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.dg-edge-grip {
+  fill: var(--tf-cat);
+  stroke: #0f1312;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tf-cat) 70%, transparent));
+}
+.dg-edge:hover .dg-edge-line,
+.dg-edge:focus-visible .dg-edge-line,
+.dg-edge.is-live .dg-edge-line {
+  opacity: 1;
+}
+.dg-edge.is-live .dg-edge-line,
+.dg-edge.is-live .dg-edge-grip {
+  stroke: #ffc764;
+}
+.dg-edge.is-live .dg-edge-grip {
+  fill: #ffc764;
+}
+.dg-edge.is-locked .dg-edge-line {
+  opacity: 0.9;
+  stroke: #ffc764;
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
+
+/* ── Load the section ── */
+.dg-loads {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--tf-line);
+}
+.dg-loads-head h3 {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+}
+.dg-loads-head p {
+  margin: 0;
+}
+.dg-loads-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) minmax(260px, 1fr) minmax(220px, 280px);
+  gap: 14px;
+  align-items: start;
+}
+.dg-loads-in {
+  display: grid;
+  gap: 8px;
+}
+.dg-loads-in .dg-num,
+.dg-loads-in .dg-pick {
+  width: 100%;
+  box-sizing: border-box;
+}
+.dg-loads-empty {
+  align-self: center;
+  text-align: center;
+}
+.dg-stress {
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  justify-self: center;
+}
+.dg-stress-h {
+  fill: var(--tf-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.dg-stress-axis {
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1;
+}
+.dg-stress-na {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-dasharray: 5 4;
+}
+.dg-stress-t {
+  fill: rgba(255, 138, 122, 0.45);
+  stroke: #ff8a7a;
+  stroke-width: 1.5;
+}
+.dg-stress-c {
+  fill: rgba(92, 200, 255, 0.4);
+  stroke: #5cc8ff;
+  stroke-width: 1.5;
+}
+.dg-stress-s {
+  fill: rgba(198, 166, 255, 0.35);
+  stroke: #c6a6ff;
+  stroke-width: 1.5;
+}
+.dg-stress-val {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.dg-stress-val.is-t,
+.dg-stress-tick.is-t {
+  fill: #ff9d90;
+}
+.dg-stress-val.is-c,
+.dg-stress-tick.is-c {
+  fill: #7fd4ff;
+}
+.dg-stress-val.is-s {
+  fill: #d4bcff;
+}
+.dg-stress-tick {
+  fill: var(--tf-muted);
+  font-size: 10px;
+}
+.dg-loads-out {
+  display: grid;
+  gap: 10px;
+}
+.dg-fos {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: 12px;
+  background: var(--tf-surface-2);
+}
+.dg-fos span {
+  color: var(--tf-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.dg-fos strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.7rem;
+}
+.dg-fos small {
+  color: var(--tf-muted);
+}
+.dg-fos.is-ok {
+  border-color: rgba(123, 224, 160, 0.55);
+}
+.dg-fos.is-ok strong {
+  color: #8be6ae;
+}
+.dg-fos.is-warn {
+  border-color: rgba(255, 199, 100, 0.6);
+}
+.dg-fos.is-warn strong {
+  color: #ffd98f;
+}
+.dg-fos.is-bad {
+  border-color: rgba(255, 127, 107, 0.7);
+}
+.dg-fos.is-bad strong {
+  color: #ff9d90;
+}
+.dg-sens ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0;
+  padding: 0;
+  list-style: none;
+}
+.dg-sens li {
+  display: grid;
+  grid-template-columns: 1fr auto auto 14px;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 0.86rem;
+}
+.dg-sens li.is-locked {
+  opacity: 0.6;
+}
+.dg-sens strong.is-good {
+  color: #8be6ae;
+}
+.dg-sens em {
+  color: var(--tf-muted);
+  font-style: normal;
+}
+.dg-sens p {
+  margin: 0;
+}
+.dg-beam-link {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, var(--tf-cat) 60%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tf-cat) 14%, transparent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dg-beam-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@media (max-width: 900px) {
+  .dg-loads-grid {
+    grid-template-columns: 1fr;
+  }
+  .dg-loads-in {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+.dg-beam-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--tf-line);
+  border-radius: 12px;
+  background: var(--tf-surface-2);
+}
+.dg-beam-section p {
+  margin: 2px 0 0;
+}

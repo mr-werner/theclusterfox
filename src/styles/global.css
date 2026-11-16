@@ -33,6 +33,7 @@
   --cookfox: #a8c69a;
   --growfox: #7cc576;
   --flyfox: #4c8dff;
+  --medicfox: #5b9dff;
 
   --max-width: 1180px;
 }
@@ -386,6 +387,17 @@ select {
       145deg,
       #4c8dff,
       #0f2a66
+    );
+}
+
+.app-icon--medicfox {
+  color: #061430;
+
+  background:
+    linear-gradient(
+      145deg,
+      #d4e5ff,
+      #3d7fe6
     );
 }
 

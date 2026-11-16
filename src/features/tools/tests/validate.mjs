@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { DIMS, convert, toSI, fromSI, parseNumber, fmt, CONVERTER_DIMS, defaultUnit } from "../model/units.js";
 import { frictionFactor } from "../model/math.js";
 import { standardAtmosphere, psychrometrics, satPressure } from "../model/air.js";
-import { solveBeam, section, solveFreeBeam, parseBeamModel, stringifyBeamModel } from "../model/structures.js";
+import { solveBeam, section, sectionStress, solveFreeBeam, parseBeamModel, stringifyBeamModel } from "../model/structures.js";
 import { defaultsOf, run, applyPreset, matchingPreset, toParams, fromParams } from "../model/engine.js";
 import { fluids } from "../calcs/fluids.js";
 import { heat } from "../calcs/heat.js";
@@ -120,6 +120,18 @@ near(section("tee", { b: 0.1, h: 0.1, tf: 0.01, tw: 0.01 }).Ix, 180.0044e-8, 1e-
 // Channel: symmetric about x, so Iₓ is the I-beam formula with the flanges moved to one side.
 near(section("channel", { b: 0.05, h: 0.1, tf: 0.008, tw: 0.006 }).Ix, section("ibeam", { b: 0.05, h: 0.1, tf: 0.008, tw: 0.006 }).Ix, 1e-9, "channel Ix = I-beam Ix");
 near(section("triangle", { b: 0.1, h: 0.1 }).Ix, (0.1 * 0.1 ** 3) / 36, 1e-12, "triangle I");
+// Stress in a loaded section.
+{
+  const r = sectionStress("rect", { b: 0.05, h: 0.1 }, { M: 1000, V: 1000 });
+  near(r.sTop, -1000 / ((0.05 * 0.1 ** 2) / 6), 1e-6, "rect: top fibre in compression under sagging moment");
+  near(r.sBot, 1000 / ((0.05 * 0.1 ** 2) / 6), 1e-6, "rect: bottom fibre in tension");
+  near(r.tauMax, (1.5 * 1000) / 0.005, 1e-3, "rect: τmax = 1.5 V/A");
+  near(sectionStress("round", { D: 0.1 }, { V: 1000 }).tauMax, ((4 / 3) * 1000) / ((Math.PI * 0.1 ** 2) / 4), 2e-3, "round: τmax = 4/3 V/A");
+  near(sectionStress("triangle", { b: 0.1, h: 0.1 }, { V: 1000 }).tauMax, (1.5 * 1000) / 0.005, 1e-3, "triangle: τmax = 1.5 V/A at mid-height");
+  const ax = sectionStress("rect", { b: 0.05, h: 0.1 }, { P: 5000 });
+  near(ax.sTop, 5000 / 0.005, 1e-9, "rect: axial stress P/A");
+  near(result("section-properties", "fos", { M: 1000, V: 0, P: 0, Sy: 250e6 }), 250e6 / 12e6, 1e-6, "section: safety factor on yield");
+}
 near(section("hex", { s: 0.02 }).A, (Math.sqrt(3) / 2) * 0.02 ** 2, 1e-12, "hex area");
 
 // Beam builder (stiffness method) against closed-form beams.

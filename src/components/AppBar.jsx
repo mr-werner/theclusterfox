@@ -12,8 +12,9 @@ import themes from "../app/appThemes.json";
 import "../styles/appbar.css";
 
 // The top bar every ClusterFox original wears instead of the site header.
-// The app's own name sits on the left, styled by that app. The ClusterFox
-// account sits on the right, so every app is plainly signed in to the
+// The app's own name sits on the left, styled by that app. On the right the
+// ClusterFox fox takes you back to the home screen, and your name next to it
+// opens your ClusterFox account, so every app is plainly signed in to the
 // same account and saves its settings there.
 //
 // Once you are past an app's start screen a back button sits at the far
@@ -126,6 +127,10 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
         </button>
       )}
 
+      <a href="/" className="appbar-home" onClick={goHome} aria-label="ClusterFox home" title="ClusterFox home">
+        <img src="/clusterfox-logo.png" alt="" className="appbar-fox" />
+      </a>
+
       <div className="appbar-account" ref={menuRef}>
         {loading ? null : isAuthenticated ? (
           <>
@@ -137,7 +142,6 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
               aria-haspopup="menu"
               title="Your ClusterFox account"
             >
-              <img src="/clusterfox-logo.png" alt="" className="appbar-fox" />
               <span className="appbar-avatar" aria-hidden="true">{initial}</span>
               <span className="appbar-user">{user?.name || "Account"}</span>
             </button>
@@ -154,9 +158,6 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
                 <Link to="/account" className="appbar-menu-item" role="menuitem" onClick={() => setOpen(false)}>
                   ClusterFox account
                 </Link>
-                <a href="/" className="appbar-menu-item" role="menuitem" onClick={goHome}>
-                  Back to The ClusterFox
-                </a>
                 <button type="button" className="appbar-menu-item appbar-menu-out" role="menuitem" onClick={handleLogout}>
                   Log out
                 </button>
@@ -165,7 +166,6 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
           </>
         ) : (
           <Link to={withNext("/login", here)} className="appbar-signin">
-            <img src="/clusterfox-logo.png" alt="" className="appbar-fox" />
             <span>Sign in</span>
           </Link>
         )}

@@ -226,7 +226,7 @@ function WhereOnProperty({ g, plant }) {
   return (
     <div className="gf-where-block">
       <div className="gf-where-map">
-        <YardMap yard={yard} grid={yardGrid} latitude={sunLat} fit={fit} spots={data.spots} units={data.prefs.units} label={`Map of your yard showing where ${plant.name} grows best`} />
+        <YardMap yard={yard} mode="fit" grid={yardGrid} latitude={sunLat} fit={fit} spots={data.spots} units={data.prefs.units} label={`Map of your yard showing where ${plant.name} grows best`} />
         <div className="gf-legend gf-legend--map" aria-label="Legend">
           <span>
             <i className="gf-ym-key gf-ym-key--best" aria-hidden="true" /> Best spot

@@ -73,7 +73,7 @@ function Section({ v }) {
 }
 
 /** A section outline drawn to scale, centered on its bounding box, with optional centroidal axes. */
-export function SectionShape({ shape, dims, cx, cy, size, className, axes, minWall = 1.5 }) {
+export function SectionShape({ shape, dims, cx, cy, size, className, axes, minWall = 1.5, fill }) {
   const o = sectionOutline(shape, dims);
   if (!(o.w > 0 && o.h > 0)) return null;
   const k = size / Math.max(o.w, o.h);
@@ -89,7 +89,7 @@ export function SectionShape({ shape, dims, cx, cy, size, className, axes, minWa
   const gx = X(props?.xc ?? o.w / 2), gy = Y(props?.yc ?? o.h / 2);
   return (
     <g>
-      <path d={d} fillRule="evenodd" className={className} />
+      <path d={d} fillRule="evenodd" className={className} style={fill ? { fill } : undefined} />
       {axes && (
         <g className="tf-section-axes">
           <line x1={gx - axes} x2={gx + axes} y1={gy} y2={gy} className="tf-section-axis" />

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { Lock, LockOpen } from "lucide-react";
 import { DIMS, fromSI, toSI, fmtInput, parseNumber } from "../model/units";
 import ZoomPan from "../components/ZoomPan";
 
@@ -49,8 +50,24 @@ export function At({ x, y, anchor = "c", children, className = "" }) {
   );
 }
 
-/** A compact number + unit box that lives on the drawing. */
-export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact, field, unitText }) {
+/**
+ * A compact number + unit box that lives on the drawing. Pass `onLock` to give it a
+ * padlock: while `locked`, the value can't be typed (and drag handles should leave it alone).
+ */
+export function Num(props) {
+  const { onLock, locked, label, field } = props;
+  if (!onLock) return <NumBox {...props} />;
+  return (
+    <span className={`dg-num-wrap ${locked ? "is-locked" : ""}`} data-lock-field={field}>
+      <NumBox {...props} />
+      <button type="button" className="dg-lock" onClick={onLock} aria-pressed={Boolean(locked)} aria-label={locked ? `Unlock ${label}` : `Lock ${label}`} title={locked ? "Locked: tap to allow changes" : "Lock this value so nothing changes it"}>
+        {locked ? <Lock size={12} aria-hidden="true" /> : <LockOpen size={12} aria-hidden="true" />}
+      </button>
+    </span>
+  );
+}
+
+function NumBox({ label, dim, value, unit, onValue, onUnit, wide, compact, field, unitText, locked }) {
   const [text, setText] = useState("");
   const [editing, setEditing] = useState(false);
   const shown = Number.isFinite(value) ? fmtInput(fromSI(value, dim, unit), 5) : text;
@@ -59,7 +76,7 @@ export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact, f
   // `unitText` shows the unit as plain text (no picker) to keep a box small.
   const fixedUnit = unitText ? units.find((u) => u.id === unit)?.label : units[0]?.label;
   return (
-    <label className={`dg-num ${bad ? "is-bad" : ""} ${wide ? "is-wide" : ""} ${compact ? "is-compact" : ""}`} data-field={field}>
+    <label className={`dg-num ${bad ? "is-bad" : ""} ${wide ? "is-wide" : ""} ${compact ? "is-compact" : ""} ${locked ? "is-locked" : ""}`} data-field={field}>
       <span className="dg-num-label">{label}</span>
       <span className="dg-num-row">
         <input
@@ -67,8 +84,10 @@ export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact, f
           autoComplete="off"
           spellCheck="false"
           value={editing ? text : shown}
+          readOnly={Boolean(locked)}
           size={Math.max(3, Math.min(8, (editing ? text : shown).length + 1))}
           onFocus={(e) => {
+            if (locked) return;
             setText(shown);
             setEditing(true);
             requestAnimationFrame(() => e.target.select());
@@ -80,7 +99,7 @@ export function Num({ label, dim, value, unit, onValue, onUnit, wide, compact, f
             onValue(Number.isFinite(n) ? toSI(n, dim, unit) : NaN);
           }}
           onKeyDown={(e) => {
-            if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+            if (locked || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
             e.preventDefault();
             const n = parseNumber(text);
             if (!Number.isFinite(n)) return;

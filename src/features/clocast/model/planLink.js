@@ -28,5 +28,7 @@ export function launchTargets() {
     { id: "today", title: "Today's forecast and what to wear", href: "/clocast" },
     { id: "plan", title: "Plan time outside", href: "/clocast?tab=plan" },
     { id: "coach", title: "Training coach", href: "/clocast?tab=coach" },
+    { id: "reminders", title: "Daily reminders", href: "/clocast#reminders" },
+    { id: "aloft", title: "Winds aloft (aviation)", href: "/clocast?tab=aloft" },
   ];
 }

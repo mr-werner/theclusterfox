@@ -1,6 +1,8 @@
 // Everything SkyFox (once called CloCast) remembers lives in one document. It is kept in this
 // browser for everyone, and mirrored to the account when signed in.
 
+import { defaultReminderSettings, normalizeReminderSettings } from "../model/reminders.js";
+
 export const STORAGE_KEY = "clocast-data-v1";
 export const MAX_SAVED_PLACES = 8;
 export const MAP_LAYERS = ["rain", "clouds", "wind", "fires"];
@@ -29,6 +31,10 @@ export function emptyData() {
     // Training goals: { id, activityId, perWeek, minutes, timeOfDay, updatedAt }
     goals: [],
     deletedGoalIds: [],
+    // Daily reminders PlanFox shows: { on: [reminder ids], airSensitive }.
+    reminders: defaultReminderSettings(),
+    // Pilot view: adds the Aloft tab with winds at altitude.
+    aviation: false,
     updatedAt: null,
     // Which account this browser last synced with (null = signed out data).
     syncedUserId: null,
@@ -119,6 +125,8 @@ export function normalizeData(value) {
     deletedPlanIds: cleanTombstones(value.deletedPlanIds),
     goals: cleanList(value.goals, cleanGoal),
     deletedGoalIds: cleanTombstones(value.deletedGoalIds),
+    reminders: normalizeReminderSettings(value.reminders),
+    aviation: value.aviation === true,
     updatedAt: value.updatedAt ?? null,
     syncedUserId: value.syncedUserId ?? null,
   };

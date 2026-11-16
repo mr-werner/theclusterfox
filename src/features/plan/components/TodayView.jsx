@@ -7,6 +7,7 @@ import { addDays, formatTime, longDate, parseDay, relativeDay } from "../model/d
 import { money } from "../model/entries";
 import { canMove, CHECKABLE, dueToday, parseQuickAdd } from "../model/tasks";
 import { AppEntry, LaunchButton } from "./AppLinks";
+import RemindersCard from "./RemindersCard";
 
 const DRAG_TYPE = "application/x-planfox-item";
 const NEXT_PRIORITY = { normal: "high", high: "low", low: "normal" };
@@ -198,7 +199,7 @@ function FromApps({ entries, onLaunch }) {
   );
 }
 
-export default function TodayView({ today, selected, items, entriesByDay, forecastByDay, units, showWeather, onAdd, onToggleDone, onEdit, onMove, onSelect, onLaunch }) {
+export default function TodayView({ today, selected, items, entriesByDay, forecastByDay, units, showWeather, reminders = null, onAdd, onToggleDone, onEdit, onMove, onSelect, onLaunch }) {
   const tasks = useMemo(() => dueToday(items, today), [items, today]);
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i)), [today]);
   const open = tasks.filter(t => !t.done);
@@ -226,6 +227,8 @@ export default function TodayView({ today, selected, items, entriesByDay, foreca
           </button>
         </div>
       </header>
+
+      {reminders && <RemindersCard reminders={reminders.list} label={reminders.label} empty={`Nothing to remember ${reminders.when}: no strong sun, rain or bad air on the way.`} />}
 
       <FromApps entries={fromApps} onLaunch={onLaunch} />
 

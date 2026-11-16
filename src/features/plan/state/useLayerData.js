@@ -64,12 +64,13 @@ export function useLayerData(data, from, to) {
   const today = todayKey();
   const short = to <= addDays(from, 62);
 
-  const home = useKeyed(layers.weather || layers.wear || layers.car || layers.garden || layers.training ? placeKey(place) : null, signal =>
+  const home = useKeyed(layers.weather || layers.wear || layers.reminders || layers.car || layers.garden || layers.training ? placeKey(place) : null, signal =>
     fetchForecast(place, { signal })
   );
 
-  // Air quality covers about five days and feeds the training scores.
-  const air = useKeyed(layers.weather || layers.training ? placeKey(place) : null, signal => fetchAirQuality(place, { signal }));
+  // Air quality covers about five days and feeds the training scores
+  // and the air quality reminder.
+  const air = useKeyed(layers.weather || layers.training || layers.reminders ? placeKey(place) : null, signal => fetchAirQuality(place, { signal }));
   const forecast = useMemo(() => (home.value && air.value ? { ...home.value, hours: withAirQuality(home.value.hours, air.value) } : home.value), [home.value, air.value]);
 
   const alerts = useKeyed(layers.alerts && inUnitedStates(place) ? placeKey(place) : null, signal => fetchAlerts(place, { signal }));

@@ -26,6 +26,8 @@ import { THEMES, togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
 import { fareCurrency, useLayerData } from "./state/useLayerData";
 import { useAppItems } from "./state/useAppLinks";
+import { useSkyFoxReminders } from "./state/useSkyFoxReminders";
+import { dayReminders } from "../clocast/model/reminders";
 import { appById } from "./model/appInfo";
 import "./applinks.css";
 import "./plan.css";
@@ -195,6 +197,17 @@ export default function PlanPage() {
     [appItems, data.layers, data.teams, from, to, alerts, sessions, instances, holidays, games, layerData.movies, layerData.releases, layerData.feedEvents, layerData.nearbyEvents, layerData.trips]
   );
   const forecastByDay = useMemo(() => new Map((forecast?.days ?? []).map(d => [d.day, d])), [forecast]);
+
+  // Sunscreen, umbrella, air quality and the rest, as picked in SkyFox.
+  const skyfox = useSkyFoxReminders();
+  // After 9 PM today's are spent, so the Today page looks at tomorrow.
+  const todayReminders = useMemo(() => {
+    if (!data.layers.reminders || !forecast || !data.place) return null;
+    const late = new Date(now).getHours() >= 21;
+    const day = late ? addDays(today, 1) : today;
+    const list = dayReminders({ hours: forecast.hours, days: forecast.days, day, settings: skyfox.settings, place: data.place, units: data.units, profile: skyfox.profile, tolerance: skyfox.tolerance, notBefore: late ? 0 : now });
+    return { list, label: late ? "TOMORROW'S REMINDERS" : "TODAY'S REMINDERS", when: late ? "tomorrow" : "today" };
+  }, [data.layers.reminders, forecast, data.place, data.units, skyfox, today, now]);
 
   // The heads-up list always looks at the next two weeks (and anything
   // left undone in the last month), whatever is on screen.
@@ -544,6 +557,7 @@ export default function PlanPage() {
                 forecastByDay={forecastByDay}
                 units={data.units}
                 showWeather={data.layers.weather}
+                reminders={todayReminders}
                 onAdd={quickAdd}
                 onToggleDone={toggleDone}
                 onEdit={openEdit}
@@ -624,6 +638,7 @@ export default function PlanPage() {
         <div className="pf-drawer" role="dialog" aria-modal="true" aria-label="Day details">
           <button type="button" className="pf-drawer-scrim" aria-label="Close day details" onClick={() => setDayOpen(false)} />
           <DayPanel
+                skyfox={skyfox}
                 onClose={() => setDayOpen(false)}
                 key={selected}
                 day={selected}

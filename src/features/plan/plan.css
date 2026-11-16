@@ -30,6 +30,7 @@
   --l-nearby: #ff8fd0;
   --l-flights: #5fd4ff;
   --l-wear: #6cc6f2;
+  --l-reminders: #f2b84e;
   --l-car: #f2c14e;
   --l-garden: #a8d65c;
 }
@@ -54,6 +55,7 @@
 .pf-l-nearby { --l: var(--l-nearby); }
 .pf-l-flights { --l: var(--l-flights); }
 .pf-l-wear { --l: var(--l-wear); }
+.pf-l-reminders { --l: var(--l-reminders); }
 .pf-l-car { --l: var(--l-car); }
 .pf-l-garden { --l: var(--l-garden); }
 
@@ -1900,4 +1902,60 @@ button.pf-entry-main:hover .pf-entry-title {
   .pf-trip-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Daily reminders from SkyFox */
+.pf-reminders > svg {
+  color: var(--l-reminders);
+}
+
+.pf-reminder-list {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-reminder {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.pf-reminder > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--pf-muted);
+}
+
+.pf-reminder.is-caution > svg {
+  color: var(--pf-caution, #f2c14e);
+}
+
+.pf-reminder.is-warn > svg {
+  color: var(--pf-warn, #f27a6c);
+}
+
+.pf-reminder-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.pf-reminder-text {
+  margin: 1px 0 0;
+  color: var(--pf-muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.pf-reminder-edit {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--pf-muted);
+  font-size: 0.82rem;
+}
+
+.pf-today .pf-reminders {
+  margin: 0 0 16px;
 }

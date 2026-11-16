@@ -1957,3 +1957,238 @@ button.cc-strip-cell:hover .cc-strip-bar span {
     grid-row: 2;
   }
 }
+
+/* ---- Tabs with the aviation switch ---- */
+
+.cc-tabs {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+.cc-tabs .cc-aviation-switch {
+  padding: 0 12px;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.cc-tabs .cc-aviation-switch[aria-pressed="true"] {
+  color: var(--text, #f4f1ea);
+}
+
+/* A small on/off track, used by the aviation switch and reminder picker. */
+.cc-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 160ms ease;
+}
+
+.cc-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 160ms ease;
+}
+
+[aria-pressed="true"] > .cc-switch {
+  background: var(--cc-accent);
+}
+
+[aria-pressed="true"] > .cc-switch::after {
+  transform: translateX(12px);
+  background: var(--cc-accent-ink);
+}
+
+/* ---- Daily reminders ---- */
+
+.cc-reminders {
+  display: grid;
+  gap: 14px;
+}
+
+.cc-reminders-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.cc-reminders-head h2 {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+}
+
+.cc-reminders-head .cc-muted {
+  margin: 0;
+}
+
+.cc-reminders-head .cc-btn {
+  text-decoration: none;
+}
+
+.cc-reminders-clear {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  color: var(--cc-muted);
+}
+
+.cc-reminders-clear svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--cc-great);
+}
+
+.cc-reminder-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cc-reminder {
+  --tone: var(--cc-accent);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--cc-line);
+  border-radius: 16px;
+  background: var(--cc-surface-2);
+}
+
+.cc-reminder.is-caution { --tone: var(--cc-fair); }
+.cc-reminder.is-warn { --tone: var(--cc-poor); }
+
+.cc-reminder-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+}
+
+.cc-reminder-title {
+  margin: 0;
+  font-weight: 800;
+}
+
+.cc-reminder-text {
+  margin: 2px 0 0;
+  color: var(--cc-muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.cc-reminder-pick summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.cc-reminder-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cc-reminder-option {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--cc-line);
+  border-radius: 14px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cc-reminder-option > svg {
+  flex: 0 0 auto;
+  color: var(--cc-muted);
+}
+
+.cc-reminder-option[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--cc-accent) 50%, transparent);
+  background: var(--cc-accent-soft);
+}
+
+.cc-reminder-option[aria-pressed="true"] > svg {
+  color: var(--cc-accent);
+}
+
+.cc-reminder-option > span:nth-child(2) {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-reminder-option .cc-muted {
+  font-size: 0.8rem;
+}
+
+.cc-reminder-sensitive {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 12px;
+  color: var(--cc-muted);
+  font-size: 0.88rem;
+}
+
+.cc-reminder-sensitive input {
+  margin-top: 3px;
+  accent-color: var(--cc-accent);
+}
+
+/* The shared winds-aloft panel, in SkyFox's glass. */
+.cc .wa {
+  --wa-surface: var(--cc-surface);
+  --wa-surface-2: var(--cc-surface-2);
+  --wa-line: var(--cc-line);
+  --wa-muted: var(--cc-muted);
+  --wa-accent: var(--cc-accent);
+  --wa-radius: var(--cc-radius);
+  box-shadow: 0 10px 40px rgba(4, 16, 30, 0.22);
+}
+
+@media (max-width: 560px) {
+  .cc-tabs button {
+    flex-direction: column;
+    gap: 2px;
+    min-height: 48px;
+    font-size: 0.78rem;
+  }
+
+  .cc-tabs .cc-aviation-switch {
+    padding: 0 6px;
+    font-size: 0.72rem;
+  }
+
+  .cc-reminders-head .cc-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

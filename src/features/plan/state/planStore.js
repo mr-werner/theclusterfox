@@ -18,6 +18,7 @@ const MAX_TEAMS = 30;
 export const LAYERS = [
   { id: "weather", name: "Weather", group: "Outside", source: "Open-Meteo, 14 days ahead" },
   { id: "wear", name: "What to wear", group: "Outside", source: "SkyFox clothing model" },
+  { id: "reminders", name: "Daily reminders", group: "Outside", source: "Sunscreen, sunglasses, umbrella, air quality and more, picked in SkyFox" },
   { id: "alerts", name: "Severe weather alerts", group: "Outside", source: "National Weather Service (US only)" },
   { id: "car", name: "Car checks", group: "Outside", source: "From the forecast" },
   { id: "garden", name: "Gardening", group: "Outside", source: "From the forecast, plus monthly jobs" },
@@ -47,12 +48,12 @@ export const NEARBY_KINDS = [
 export const RADII = [10, 25, 50];
 
 // Short labels for the layer bar.
-const SHORT = { apps: "Apps", nearby: "Nearby", flights: "Flights", alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
+const SHORT = { reminders: "Reminders", apps: "Apps", nearby: "Nearby", flights: "Flights", alerts: "Alerts", wear: "Wear", car: "Car", garden: "Garden", events: "Events", deadlines: "Deadlines", feeds: "Linked", holidays: "Holidays", movies: "Movies", games: "Games" };
 for (const layer of LAYERS) if (SHORT[layer.id]) layer.short = SHORT[layer.id];
 
 // Quick setups: each switches on the layers that fit a way of planning.
 export const PRESETS = [
-  { id: "everyday", name: "Everyday life", hint: "Weather, what to wear, car checks, bills, closures", layers: ["weather", "alerts", "wear", "car", "events", "tasks", "bills", "holidays"] },
+  { id: "everyday", name: "Everyday life", hint: "Weather, what to wear, car checks, bills, closures", layers: ["weather", "alerts", "wear", "reminders", "car", "events", "tasks", "bills", "holidays"] },
   { id: "training", name: "Training", hint: "Best times to train outside, what to wear for it", layers: ["weather", "wear", "training", "events"] },
   { id: "family", name: "School & family", hint: "Deadlines, school calendars, holidays, tasks", layers: ["events", "tasks", "deadlines", "feeds", "holidays", "weather", "wear"] },
   { id: "fan", name: "Sports fan", hint: "Your teams' games and traffic near stadiums", layers: ["sports", "events", "weather"] },
@@ -101,7 +102,7 @@ export const REPEATS = [
 ];
 
 // New calendars start small; quick setup and the layer bar add the rest.
-const STARTING_LAYERS = ["weather", "alerts", "wear", "events", "tasks", "apps", "holidays"];
+const STARTING_LAYERS = ["weather", "alerts", "wear", "reminders", "events", "tasks", "apps", "holidays"];
 const DEFAULT_LAYERS = Object.fromEntries(LAYERS.map(l => [l.id, STARTING_LAYERS.includes(l.id)]));
 
 export function emptyData() {

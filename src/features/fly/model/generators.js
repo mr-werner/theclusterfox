@@ -4,7 +4,7 @@
 // Each generator makes a question in the same shape as the static bank.
 
 import { densityAltitude, norm, pad3, pressureAltitude, windTriangle } from "./nav.js";
-import { fbCode } from "./windsAloft.js";
+import { fdCode } from "../../../services/weather/windsAloft.js";
 
 /** A small seeded random generator (mulberry32), so tests can repeat a question. */
 export function rng(seed = Date.now()) {
@@ -210,7 +210,7 @@ export const GENERATORS = [
       const dir = int(r, 1, 36) * 10;
       const kt = alt >= 30000 && r() < 0.5 ? int(r, 100, 160) : int(r, 8, 85);
       const temp = Math.round(15 - (2 * alt) / 1000 + int(r, -6, 6));
-      const code = fbCode({ dir, kt, tempC: temp }, alt);
+      const code = fdCode({ dir, speedKt: kt, tempC: temp }, alt);
       const right = `${pad3(dir)}° true at ${kt} knots, ${temp} °C`;
       const naive = kt >= 100 ? `${code.slice(0, 2)}0° true at ${Number(code.slice(2, 4))} knots, ${temp} °C` : `${pad3(norm(dir + 180))}° true at ${kt} knots, ${temp} °C`;
       const { choices, answer } = shuffle(r, right, [naive, `${pad3(dir)}° magnetic at ${kt} knots, ${-temp} °C`]);
@@ -300,6 +300,21 @@ export const GENERATORS = [
     },
   },
 ];
+
+/** Decode a winds-aloft group like "7319" or "2725-08" back to { dir, kt, tempC }. */
+export function decodeFb(code, altFt = 9000) {
+  const m = /^(\d{2})(\d{2})([+-]?\d{2})?$/.exec(String(code).trim());
+  if (!m) return null;
+  let d = Number(m[1]);
+  let s = Number(m[2]);
+  const t = m[3] ? (/^[+-]/.test(m[3]) ? Number(m[3]) : altFt > 24000 ? -Number(m[3]) : Number(m[3])) : null;
+  if (d === 99 && s === 0) return { dir: null, kt: 0, tempC: t };
+  if (d > 36) {
+    d -= 50;
+    s += 100;
+  }
+  return { dir: d * 10, kt: s, tempC: t };
+}
 
 /** A fresh question from a generator, with an id unique to its numbers. */
 export function makeQuestion(gen, seed) {

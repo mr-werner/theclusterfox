@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowUp, LocateFixed, Snowflake } from "lucide-react";
 
 import { fetchMetars, fetchStations, fetchTafs } from "../api";
-import { FB_ALTITUDES, fbRows, fetchWindsAloft, freezingLevel, windAt } from "../model/windsAloft";
+import { FD_ALTITUDES_FT, fdRows, fetchWindsAloft, windAt } from "../../../services/weather/windsAloft";
 import { pad3 } from "../model/nav";
 import { AirportSearch, Cat, ErrorNote, Loading, MetarCard } from "./ui";
 import { fmtAlt, fmtTime, zulu } from "./format";
@@ -10,7 +10,12 @@ import { fmtAlt, fmtTime, zulu } from "./format";
 // Winds aloft for any spot: the classic FB table for the hour you pick,
 // an hour-by-hour grid, the freezing level, and the nearest airport's
 // METAR and TAF.
-const ALTS = [...FB_ALTITUDES.slice(0, 4), 15000, ...FB_ALTITUDES.slice(4)].sort((a, b) => a - b);
+const ALTS = [...FD_ALTITUDES_FT.slice(0, 4), 15000, ...FD_ALTITUDES_FT.slice(4)].sort((a, b) => a - b);
+// The shared module's wind shape ({ speedKt }) in the short form this screen uses.
+const windHere = (hour, alt, elevationFt) => {
+  const w = windAt(hour, alt, { elevationFt });
+  return w ? { dir: w.dir, kt: w.speedKt, tempC: w.tempC } : null;
+};
 const speedClass = kt => (kt < 10 ? "fy-s0" : kt < 20 ? "fy-s1" : kt < 35 ? "fy-s2" : kt < 55 ? "fy-s3" : kt < 80 ? "fy-s4" : "fy-s5");
 
 export default function WindsTab({ f }) {
@@ -28,8 +33,8 @@ export default function WindsTab({ f }) {
     const ctl = new AbortController();
     setProfile(null);
     setError(null);
-    fetchWindsAloft([{ latitude: place.lat, longitude: place.lon }], { hours: 48, signal: ctl.signal })
-      .then(([p]) => {
+    fetchWindsAloft({ latitude: place.lat, longitude: place.lon }, { hours: 48, signal: ctl.signal })
+      .then(p => {
         setProfile(p);
         const now = Date.now();
         const i = p.hours.findIndex(h => +h.time >= now - 30 * 60000);
@@ -60,8 +65,11 @@ export default function WindsTab({ f }) {
   }, [place, attempt]);
 
   const hour = profile?.hours[hourIdx] ?? null;
-  const rows = useMemo(() => (hour ? fbRows(hour, profile.elevationFt, ALTS) : []), [hour, profile]);
-  const fzl = hour ? freezingLevel(hour.levels, hour.surface.tempC, profile.elevationFt) : null;
+  const rows = useMemo(
+    () => (hour ? fdRows(hour, { elevationFt: profile.elevationFt, altitudes: ALTS }).filter(r => r.wind).map(r => ({ altFt: r.altitudeFt, dir: r.wind.dir, kt: r.wind.speedKt, tempC: r.wind.tempC, code: r.code })) : []),
+    [hour, profile]
+  );
+  const fzl = hour?.freezingLevelFt ?? null;
   // Every third hour for the grid.
   const gridHours = useMemo(() => (profile ? profile.hours.filter((h, i) => i >= hourIdx && (i - hourIdx) % 3 === 0).slice(0, 10) : []), [profile, hourIdx]);
 
@@ -158,7 +166,7 @@ export default function WindsTab({ f }) {
                     ))}
                     <tr className="is-surface">
                       <th>Surface</th>
-                      <td>{hour.surface.kt === null ? "—" : `${pad3(hour.surface.dir)}° ${Math.round(hour.surface.kt)} kt`}</td>
+                      <td>{hour.surface.speedKt === null ? "—" : `${pad3(hour.surface.dir ?? 0)}° ${Math.round(hour.surface.speedKt)} kt`}</td>
                       <td>{hour.surface.tempC === null ? "—" : `${Math.round(hour.surface.tempC)}°C`}</td>
                       <td />
                     </tr>
@@ -168,7 +176,7 @@ export default function WindsTab({ f }) {
               <WindProfile hour={hour} elevationFt={profile.elevationFt} fzl={fzl} />
             </div>
             <p className="fy-note">
-              <Snowflake size={14} aria-hidden="true" /> Freezing level: <strong>{fzl === null ? "above 39,000 ft" : fzl <= profile.elevationFt + 200 ? "at the surface" : fmtAlt(Math.round(fzl / 100) * 100)}</strong>
+              <Snowflake size={14} aria-hidden="true" /> Freezing level: <strong>{fzl === null ? "not available" : fzl <= profile.elevationFt + 200 ? "at the surface" : fmtAlt(Math.round(fzl / 100) * 100)}</strong>
               {" · "}Model forecast from Open-Meteo; check the official winds-aloft forecast on aviationweather.gov before you fly.
             </p>
           </section>
@@ -190,7 +198,8 @@ export default function WindsTab({ f }) {
                     <tr key={alt}>
                       <th>{(alt / 1000).toFixed(0)}k</th>
                       {gridHours.map(h => {
-                        const w = windAt(h.levels, alt);
+                        const w = windHere(h, alt, profile.elevationFt);
+                        if (!w) return <td key={+h.time}>—</td>;
                         return (
                           <td key={+h.time} className={`fy-cell ${speedClass(w.kt)}`} title={`${pad3(w.dir)}° at ${Math.round(w.kt)} kt, ${Math.round(w.tempC)}°C`}>
                             <span className="fy-arrow" style={{ transform: `rotate(${w.dir + 180}deg)` }} aria-hidden="true">
@@ -263,7 +272,10 @@ function WindProfile({ hour, elevationFt, fzl }) {
   const bottom = Math.max(0, Math.floor(elevationFt / 1000) * 1000);
   const y = alt => H - 20 - ((alt - bottom) / (top - bottom)) * (H - 40);
   const pts = [];
-  for (let a = Math.max(bottom + 1000, 1000); a <= top; a += 1000) pts.push({ a, ...windAt(hour.levels, a) });
+  for (let a = Math.max(bottom + 1000, 1000); a <= top; a += 1000) {
+    const w = windHere(hour, a, elevationFt);
+    if (w) pts.push({ a, ...w });
+  }
   const maxKt = Math.max(40, ...pts.map(p => p.kt));
   const x = kt => 40 + (kt / maxKt) * (W - 60);
   const tx = t => 40 + ((t + 60) / 90) * (W - 60);

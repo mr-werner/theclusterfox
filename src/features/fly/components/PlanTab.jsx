@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowDown, ArrowUp, BookmarkPlus, Fuel, Plane, Plus, Route, Trash2, Wind } from "lucide-react";
 
 import { fetchHazards, fetchMetars, fetchMetarsInBox, fetchTafs } from "../api";
-import { fetchWindsAloft } from "../model/windsAloft";
+import { fetchWindsAloft } from "../../../services/weather/windsAloft";
 import { airportsAlong, bestStop, corridorBoxes, courseDeg, distanceNm, fmtMinutes, fuelStops, hazardsOnRoute, isNight, pad3, planFlight, reserveMinutes, samplePoints } from "../model/nav";
 import { AIRCRAFT_PRESETS } from "../state/flyStore";
 import FlyMap from "./FlyMap";
@@ -61,15 +61,20 @@ export default function PlanTab({ f, openFlight }) {
     const signal = ctl.signal;
     setRes(r => (r.routeKey === routeKey ? { ...r, state: "loading" } : { state: "loading" }));
     setSaved(false);
-    const step = Math.max(20, total / 40);
-    const samples = samplePoints(route, step);
+    // The shared winds-aloft request takes up to 50 points.
+    let step = Math.max(20, total / 40);
+    let samples = samplePoints(route, step);
+    while (samples.length > 50) {
+      step *= 1.25;
+      samples = samplePoints(route, step);
+    }
     const hoursAhead = (departMs - Date.now()) / 3600000;
     const estHours = total / Math.max(60, aircraft.tas - 30);
     const windHours = Math.ceil(Math.max(0, hoursAhead) + estHours + 3);
 
     (async () => {
       const ids = route.map(p => p.id).filter(id => /^[A-Z0-9]{4}$/.test(id));
-      const winds = windHours <= 380 ? fetchWindsAloft(samples, { hours: windHours, signal }).catch(e => (e.name === "AbortError" ? Promise.reject(e) : null)) : Promise.resolve(null);
+      const winds = windHours <= 72 ? fetchWindsAloft(samples.map(p => ({ latitude: p.lat, longitude: p.lon })), { hours: windHours, signal }).catch(e => (e.name === "AbortError" ? Promise.reject(e) : null)) : Promise.resolve(null);
       const boxes = corridorBoxes(route, 25, 3).slice(0, 10);
       const along = Promise.all(boxes.map(b => fetchMetarsInBox(b, { signal }).catch(() => []))).then(list => {
         const seen = new Set();
@@ -263,7 +268,7 @@ export default function PlanTab({ f, openFlight }) {
             <Stat icon={Route} label="Distance" value={`${Math.round(plan.totalNm)} nm`} />
             <Stat icon={Plane} label="Time en route" value={fmtMinutes(plan.totalMin)} sub={`Arrive ${fmtTime(plan.arriveAt, { weekday: "short" })}`} />
             <Stat icon={Fuel} label="Fuel" value={`${plan.fuelGal.toFixed(1)} gal`} sub={plan.fuelLeftGal >= (aircraft.gph * reserveMinutes(night)) / 60 ? `${plan.fuelLeftGal.toFixed(1)} gal left on landing` : "Needs a fuel stop"} warn={stops.length > 0} />
-            <Stat icon={Wind} label="Average wind effect" value={(() => { const d = (plan.totalNm / plan.totalMin) * 60 - aircraft.tas; return `${d >= 0 ? "+" : "−"}${Math.abs(Math.round(d))} kt`; })()} sub={res.profiles ? `at ${fmtAlt(data.altitudeFt)}` : (departMs - Date.now()) / 3600000 > 370 ? "No wind forecast that far out" : "Wind forecast unavailable right now"} />
+            <Stat icon={Wind} label="Average wind effect" value={(() => { const d = (plan.totalNm / plan.totalMin) * 60 - aircraft.tas; return `${d >= 0 ? "+" : "−"}${Math.abs(Math.round(d))} kt`; })()} sub={res.profiles ? `at ${fmtAlt(data.altitudeFt)}` : (departMs - Date.now()) / 3600000 + plan.totalMin / 60 > 70 ? "No wind forecast that far out" : "Wind forecast unavailable right now"} />
           </section>
 
           <section className="fy-card fy-map-card">

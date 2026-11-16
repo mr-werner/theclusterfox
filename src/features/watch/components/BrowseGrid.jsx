@@ -11,6 +11,25 @@ const MAX_PAGES = 5;
 const MAX_SEEDS = 10;
 // Lists kept on this device rather than fetched.
 const LOCAL = ["favorites", "watchlist", "watched"];
+// Lists narrowed to the viewer's services when they've picked any.
+const BY_SERVICE = ["mine", "hot", "classics"];
+
+// A recommendation shelf: one page of a browse list.
+function useShelf(list, region, providerIds) {
+  const key = `${list}|${region}|${providerIds.join(",")}`;
+  const [shelf, setShelf] = useState({ key: null, items: [] });
+  useEffect(() => {
+    const controller = new AbortController();
+    const [id, place, ids] = key.split("|");
+    browseTitles(id, place, { providers: ids ? ids.split(",") : [], signal: controller.signal })
+      .then(items => setShelf({ key, items }))
+      .catch(error => {
+        if (error.name !== "AbortError") setShelf({ key, items: [] });
+      });
+    return () => controller.abort();
+  }, [key]);
+  return shelf.key === key ? shelf.items : [];
+}
 
 function firstList(data) {
   if (data.favorites.length) return "foryou";
@@ -42,7 +61,7 @@ export default function BrowseGrid({ data, update, onOpen }) {
       ? list
       : list === "foryou"
         ? `foryou|${seedKey}`
-        : `${list}|${data.region}|${genre}|${list === "mine" ? providerIds.join(",") : ""}`;
+        : `${list}|${data.region}|${genre}|${BY_SERVICE.includes(list) ? providerIds.join(",") : ""}`;
   const [state, setState] = useState({ key: null, items: [], page: 0, error: "", code: "", more: false });
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -76,7 +95,7 @@ export default function BrowseGrid({ data, update, onOpen }) {
     setLoadingMore(true);
     try {
       const next = state.page + 1;
-      const items = await browseTitles(list, data.region, { genre, providers: list === "mine" ? providerIds : [], page: next });
+      const items = await browseTitles(list, data.region, { genre, providers: BY_SERVICE.includes(list) ? providerIds : [], page: next });
       const seen = new Set(state.items.map(i => `${i.type}-${i.id}`));
       setState(current => ({
         ...current,
@@ -98,6 +117,13 @@ export default function BrowseGrid({ data, update, onOpen }) {
   const featured = !isLocal && !loading ? (unseen[0] ?? all[0] ?? null) : null;
   const items = featured ? all.filter(i => i !== featured) : all;
   const listName = lists.find(l => l.id === list)?.name ?? "";
+  const hot = useShelf("hot", data.region, providerIds);
+  const classics = useShelf("classics", data.region, providerIds);
+  const onYours = hasServices ? " on your services" : "";
+  const seeAll = id => () => {
+    setListId(id);
+    setGenreId("");
+  };
 
   function pickForMe() {
     const pool = unseen.length ? unseen : all;
@@ -114,12 +140,19 @@ export default function BrowseGrid({ data, update, onOpen }) {
           update={update}
           onOpen={onOpen}
           onPick={all.length > 1 ? pickForMe : null}
-          badge={list === "mine" ? "Top pick on your services" : `Top of ${listName}`}
+          badge={list === "mine" ? "Top pick on your services" : `Top of ${listName}${BY_SERVICE.includes(list) ? onYours : ""}`}
         />
       )}
 
       {list !== "watchlist" && (
         <PosterRow title="Up next on your watchlist" items={data.watchlist} onOpen={onOpen} onSeeAll={() => setListId("watchlist")} />
+      )}
+
+      {list !== "hot" && (
+        <PosterRow title={`Hot right now${onYours}`} items={hot} onOpen={onOpen} onSeeAll={seeAll("hot")} seeAllLabel="See all" />
+      )}
+      {list !== "classics" && (
+        <PosterRow title={`Classics${onYours}`} items={classics} onOpen={onOpen} onSeeAll={seeAll("classics")} seeAllLabel="See all" />
       )}
 
       <div className="wf-browse-head">
@@ -161,6 +194,12 @@ export default function BrowseGrid({ data, update, onOpen }) {
         </ul>
       )}
 
+      {(list === "hot" || list === "classics") && (
+        <p className="wf-note">
+          {list === "hot" ? "New movies and shows with fresh episodes, by what people are watching" : "Highly rated favorites from 15 or more years ago"}
+          {hasServices ? ", on the services you picked." : ". Pick your services to see only what you can stream."}
+        </p>
+      )}
       {list === "foryou" && (
         <p className="wf-note">Picked from titles people who liked your favorites also enjoyed. The more you favorite, the better it gets.</p>
       )}

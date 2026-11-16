@@ -1,7 +1,7 @@
 import { Film, Tv } from "lucide-react";
 
 /** A shelf of posters that scrolls sideways. */
-export default function PosterRow({ title, items, onOpen, onSeeAll }) {
+export default function PosterRow({ title, items, onOpen, onSeeAll, seeAllLabel }) {
   if (!items.length) return null;
   return (
     <section className="wf-row" aria-label={title}>
@@ -9,7 +9,7 @@ export default function PosterRow({ title, items, onOpen, onSeeAll }) {
         <h2>{title}</h2>
         {onSeeAll && (
           <button type="button" className="wf-link-btn" onClick={onSeeAll}>
-            See all {items.length}
+            {seeAllLabel ?? `See all ${items.length}`}
           </button>
         )}
       </div>

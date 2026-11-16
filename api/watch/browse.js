@@ -1,4 +1,4 @@
-import { genresById, interleave, isRegion, parseSearchResult } from "../../src/services/watch/parse.js";
+import { discoverFilters, genresById, interleave, isRegion, parseSearchResult } from "../../src/services/watch/parse.js";
 import { sendError, tmdb } from "./_tmdb.js";
 
 const STREAMING = "flatrate|free|ads";
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
   const genre = req.query.genre ? genresById.get(String(req.query.genre)) : null;
 
-  if (!["trending", "movies", "shows", "mine"].includes(list)) {
+  if (!["trending", "movies", "shows", "mine", "hot", "classics"].includes(list)) {
     return res.status(400).json({ error: "Unknown list." });
   }
 
@@ -45,6 +45,7 @@ export default async function handler(req, res) {
       language: "en-US",
       page: String(page),
       ...(genre ? { with_genres: String(genre[type]) } : {}),
+      ...discoverFilters(list, type),
       ...extra,
     }).then((data) => (data.results ?? []).map((item) => parseSearchResult(item, type)).filter(Boolean));
   };
@@ -67,8 +68,11 @@ export default async function handler(req, res) {
       results = await discover("movie");
     } else if (list === "shows") {
       results = await discover("tv");
-    } else {
+    } else if (list === "mine") {
       results = await both({ with_watch_providers: providers.join("|") });
+    } else {
+      // Hot right now and classics: on the viewer's services when they've picked any.
+      results = await both(providers.length ? { with_watch_providers: providers.join("|") } : {});
     }
 
     res.setHeader("Cache-Control", "s-maxage=21600, stale-while-revalidate=86400");

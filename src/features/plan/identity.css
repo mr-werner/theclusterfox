@@ -1812,10 +1812,13 @@
 
 .pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-chip,
 .pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-home,
 .pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-chip,
 .pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-home,
 .pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-chip,
-.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-signin {
+.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-home {
   border-color: var(--pf-line-strong);
 }
 

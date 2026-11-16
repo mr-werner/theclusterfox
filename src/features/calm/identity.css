@@ -139,7 +139,8 @@
 }
 
 .cm[data-theme="light"] .appbar[data-app="calmfox"] .appbar-chip,
-.cm[data-theme="light"] .appbar[data-app="calmfox"] .appbar-signin {
+.cm[data-theme="light"] .appbar[data-app="calmfox"] .appbar-signin,
+.cm[data-theme="light"] .appbar[data-app="calmfox"] .appbar-home {
   border-color: var(--cm-line-strong);
 }
 

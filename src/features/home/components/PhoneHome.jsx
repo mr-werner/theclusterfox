@@ -7,14 +7,18 @@ import FreeAppIcon from "../../free/FreeAppIcon";
 import { isOriginalKey, keyId } from "../state/homeStore";
 import { useTileGestures } from "../useTileGestures";
 import AppLink from "./AppLink";
+import FeaturedPlan from "./FeaturedPlan";
 import OriginalIcon from "./OriginalIcon";
 import SyncNote from "./SyncNote";
 
 const sameSection = (a, b) => isOriginalKey(a) === isOriginalKey(b);
 
-function PhoneTile({ label, editing, dragging, onRemove, gestureProps, children }) {
+function PhoneTile({ label, editing, dragging, onRemove, gestureProps, feature = false, children }) {
   return (
-    <div className={`phone-tile ${editing ? "is-editing" : ""} ${dragging ? "is-dragging" : ""}`} {...gestureProps}>
+    <div
+      className={`phone-tile ${feature ? "phone-tile--feature" : ""} ${editing ? "is-editing" : ""} ${dragging ? "is-dragging" : ""}`}
+      {...gestureProps}
+    >
       {children}
       {editing && (
         <button
@@ -89,12 +93,27 @@ export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }
         <span>Search apps & alternatives</span>
       </button>
 
-      <section className="phone-section" aria-label="ClusterFox Originals">
-        <h2 className="phone-section-label">ClusterFox Originals</h2>
-        <div className="phone-grid">
+      <section className="phone-section" aria-label="Recommended ClusterFox apps">
+        <h2 className="phone-section-label">Recommended for you</h2>
+        <div className="phone-grid phone-original-grid">
           {originalKeys.map(key => {
             const app = originalsById.get(keyId(key));
             const label = app.fullName ?? app.subtitle;
+            if (app.id === "planfox") {
+              return (
+                <PhoneTile
+                  key={key}
+                  label={label}
+                  editing={editing}
+                  dragging={draggingKey === key}
+                  onRemove={() => home.remove(key)}
+                  gestureProps={tileProps(key)}
+                  feature
+                >
+                  <FeaturedPlan app={app} phone />
+                </PhoneTile>
+              );
+            }
             return (
               <PhoneTile
                 key={key}

@@ -8,6 +8,7 @@ import FreeAppIcon from "../../free/FreeAppIcon";
 import { isOriginalKey, keyId } from "../state/homeStore";
 import { useTileGestures } from "../useTileGestures";
 import AppLink from "./AppLink";
+import FeaturedPlan from "./FeaturedPlan";
 import OriginalIcon from "./OriginalIcon";
 import SyncNote from "./SyncNote";
 import HomeSearch from "./HomeSearch";
@@ -98,17 +99,25 @@ export default function DesktopHome({ home, alts, originalsById, onWantAlts, onA
       <section className="apps-section home-originals">
         <div className="section-heading">
           <div>
-            <p className="section-label">MADE HERE</p>
-            <h2>ClusterFox Originals</h2>
+            <p className="section-label">CLUSTERFOX ORIGINALS</p>
+            <h2>Recommended for you</h2>
           </div>
           <span className="app-count">
             {originalKeys.length} {originalKeys.length === 1 ? "app" : "apps"}
           </span>
         </div>
 
-        <div className="app-grid">
+        <div className="app-grid home-original-grid">
           {originalKeys.map(key => {
             const app = originalsById.get(keyId(key));
+            if (app.id === "planfox") {
+              return (
+                <div key={key} className={`${tileClass(key)} home-tile--feature`} {...tileProps(key)}>
+                  <FeaturedPlan app={app} />
+                  {editing && <RemoveBadge label={app.subtitle} onRemove={() => home.remove(key)} />}
+                </div>
+              );
+            }
             return (
               <div key={key} className={tileClass(key)} {...tileProps(key)}>
                 <AppLink app={app} className="app-tile" draggable={false} aria-label={`Open ${app.fullName ?? app.subtitle}`}>

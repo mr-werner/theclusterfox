@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Snowflake, Check, ChevronRight, Sprout, CalendarCheck2, ThermometerSun } from "lucide-react";
 import { PLANTS, plantsById } from "../data/plants";
 import { dayTasks, isFrostHardy } from "../model/care";
 import { isPlantableNow, nextWindows, ACTIONS } from "../model/calendar";
 import { seasonsAround, zoneLabel, zoneRangeF, describeClimate } from "../model/climate";
 import { addDays, doyLabel, niceDate, shortDate, weekdayShort, yearOf } from "../model/dates";
-import { fetchLowForecast } from "../../../services/garden/climateApi";
+import { useForecast } from "../state/useForecast";
+import { LawnTips } from "./Upkeep";
+import { areaOf } from "../model/upkeep";
 import { PlaceSetup, ClimateStatus } from "./SettingsSheet";
 import { PlantArt, RatingBadge } from "./ui";
 import { tempText } from "./format";
@@ -18,6 +20,7 @@ export default function TodayTab({ g }) {
       {g.taskParam && <FocusTask g={g} />}
       <ClimateCard g={g} />
       <FrostWatch g={g} />
+      <LawnCard g={g} />
       <Week g={g} />
       <PlantNow g={g} />
       {!data.garden.length && (
@@ -121,18 +124,28 @@ function ClimateCard({ g }) {
   );
 }
 
+// The lawn you drew on the yard map: this week's watering, mowing and weeds.
+function LawnCard({ g }) {
+  const lawns = (g.data.yard?.objects ?? []).filter(o => o.kind === "lawn" && plantsById.has(o.plantId));
+  if (!lawns.length) return null;
+  const grass = plantsById.get(lawns[0].plantId);
+  const area = lawns.filter(o => o.plantId === grass.id).reduce((n, o) => n + areaOf(o), 0);
+  return (
+    <section className="gf-card gf-lawn-card">
+      <div className="gf-card-head">
+        <h2>Your lawn this week</h2>
+        <button type="button" className="gf-link" onClick={() => g.switchTab("yard")}>
+          {grass.name}
+        </button>
+      </div>
+      <LawnTips g={g} grass={grass} areaSqm={area} compact />
+    </section>
+  );
+}
+
 function FrostWatch({ g }) {
   const { data, climate } = g;
-  const [days, setDays] = useState(null);
-  const place = data.place;
-  useEffect(() => {
-    if (!place) return undefined;
-    const controller = new AbortController();
-    fetchLowForecast(place, { signal: controller.signal })
-      .then(setDays)
-      .catch(() => setDays(null));
-    return () => controller.abort();
-  }, [place]);
+  const days = useForecast(data.place);
   const tender = useMemo(
     () => [...new Set(data.garden.filter(e => e.status === "growing").map(e => plantsById.get(e.plantId)).filter(p => (!p.zones && !isFrostHardy(p)) || (p.zones && p.zones[0] > Math.floor(climate.zone))).map(p => p.name))],
     [data.garden, climate.zone]

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { dayTargets, profileReady } from "../model/body.js";
 import { workoutsByDay } from "../model/training.js";
-import { addDays, cookSchedule, dayLabel, dayTotals, groceries, weekDays } from "../model/planner.js";
+import { addDays, cookSchedule, dayLabel, dayTotals, groceries, quickSpend, weekDays } from "../model/planner.js";
 
 /**
  * Everything the planner screens show for one week: the days, workouts and
@@ -26,6 +26,8 @@ export function usePlanner(data, linked, start) {
     const cooksAll = cookSchedule(plan, [...lookback, ...days], profile.people);
     const cooks = cooksAll.filter(c => c.day >= from);
     const shop = groceries(cooks, getRecipe, cook.pantry);
+    const quick = quickSpend(plan, days, profile.people);
+    const spend = Math.round((shop.total + quick.grabCost + quick.outCost) * 100) / 100;
 
     const totals = days.map(d => dayTotals(plan[d], getRecipe));
     const planned = days.filter(d => Object.keys(plan[d]?.slots ?? {}).length > 0);
@@ -46,6 +48,8 @@ export function usePlanner(data, linked, start) {
       ready,
       cooks,
       shop,
+      quick,
+      spend,
       totals,
       plannedDays: planned.length,
       avgKcal: avg("kcal"),

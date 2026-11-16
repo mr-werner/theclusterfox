@@ -14,9 +14,9 @@ export const apps = [
   },
   {
     id: "f4t",
-    name: "F4T",
-    subtitle: "Fuel 4 Thought",
-    description: "Meals • Groceries • Budget",
+    name: "Fuel",
+    subtitle: "FuelFox",
+    description: "Meals • Portions • Budget",
     path: "/f4t",
     icon: Flame,
     accent: "f4t",

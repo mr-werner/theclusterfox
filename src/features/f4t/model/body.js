@@ -25,6 +25,60 @@ export const GOALS = {
 // Pounds a week. Losing faster than about 1% of body weight a week costs muscle.
 export const RATES = { lose: [0.5, 1, 1.5, 2], gain: [0.25, 0.5, 1], maintain: [0] };
 
+// --- Your usual day -----------------------------------------------------------
+// How big each meal usually is and how you usually get it. The planner
+// splits the day's calories by size and fills each meal the way you eat it.
+
+export const MEALS = ["breakfast", "lunch", "dinner", "snack"];
+export const MEAL_NAMES = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack: "Snacks" };
+// Typical share of the day for a regular-sized meal, before sizing.
+const BASE_SHARE = { breakfast: 0.25, lunch: 0.3, dinner: 0.35, snack: 0.1 };
+
+export const SIZES = {
+  skip: { name: "Skip it", weight: 0 },
+  light: { name: "Light", weight: 0.35 },
+  regular: { name: "Regular", weight: 1 },
+  big: { name: "Big", weight: 1.7 },
+};
+
+export const HOWS = {
+  cook: { name: "Cook", blurb: "A CookFox recipe, cooked that day" },
+  prep: { name: "Meal prep", blurb: "Cooked ahead in a batch" },
+  out: { name: "Eat out", blurb: "Restaurant or takeout, with ordering tips" },
+  grab: { name: "Grab & go", blurb: "No cooking: coffee, yogurt, a wrap" },
+};
+
+const meal = (size, how) => ({ size, how });
+export const DAY_PRESETS = {
+  three: { name: "Three meals", day: { breakfast: meal("regular", "grab"), lunch: meal("regular", "prep"), dinner: meal("regular", "cook"), snack: meal("light", "grab") } },
+  night: { name: "Coffee, skip lunch, big dinner", day: { breakfast: meal("light", "grab"), lunch: meal("skip", "grab"), dinner: meal("big", "cook"), snack: meal("light", "grab") } },
+  noBreakfast: { name: "Skip breakfast", day: { breakfast: meal("skip", "grab"), lunch: meal("regular", "prep"), dinner: meal("big", "cook"), snack: meal("light", "grab") } },
+  onTheGo: { name: "Busy, eat out a lot", day: { breakfast: meal("light", "out"), lunch: meal("regular", "out"), dinner: meal("regular", "cook"), snack: meal("light", "grab") } },
+  grazer: { name: "Small meals and snacks", day: { breakfast: meal("regular", "grab"), lunch: meal("light", "grab"), dinner: meal("regular", "cook"), snack: meal("big", "grab") } },
+};
+
+// Before the usual day existed, every meal was cooked (or prepped) at regular size.
+const legacyDay = style => Object.fromEntries(MEALS.map(m => [m, meal("regular", style === "prep" ? "prep" : "cook")]));
+
+function cleanDay(day, style) {
+  const base = legacyDay(style);
+  if (!day || typeof day !== "object") return base;
+  return Object.fromEntries(
+    MEALS.map(m => {
+      const d = day[m] ?? {};
+      return [m, { size: SIZES[d.size] ? d.size : base[m].size, how: HOWS[d.how] ? d.how : base[m].how }];
+    })
+  );
+}
+
+/** Each meal's share of the day's calories, from how big it usually is. */
+export function mealShares(profile) {
+  const day = profile?.day ?? legacyDay();
+  const raw = Object.fromEntries(MEALS.map(m => [m, BASE_SHARE[m] * SIZES[day[m].size].weight]));
+  const total = Object.values(raw).reduce((a, b) => a + b, 0) || 1;
+  return Object.fromEntries(MEALS.map(m => [m, raw[m] / total]));
+}
+
 export function emptyProfile() {
   return {
     sex: null, // "male" | "female" | null
@@ -39,6 +93,9 @@ export function emptyProfile() {
     style: "daily", // "daily" cooks most days, "prep" batch-cooks for the week
     prepDay: 6, // 0 = Monday ... 6 = Sunday
     heightUnit: "in", // "in" | "cm"
+    day: legacyDay("daily"), // your usual day, see DAY_PRESETS
+    daySet: false, // true once you've told us about your usual day
+    tips: true, // show the starting-out suggestions
   };
 }
 
@@ -61,6 +118,9 @@ export function cleanProfile(p) {
     style: p.style === "prep" ? "prep" : "daily",
     prepDay: isNum(p.prepDay, 0, 6) ? Math.round(p.prepDay) : 6,
     heightUnit: p.heightUnit === "cm" ? "cm" : "in",
+    day: cleanDay(p.day, p.style),
+    daySet: p.daySet === true,
+    tips: p.tips !== false,
   };
 }
 

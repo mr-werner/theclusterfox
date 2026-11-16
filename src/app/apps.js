@@ -1,4 +1,4 @@
-import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, PersonStanding, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
+import { Ambulance, CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, PersonStanding, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
 
 // PlanFox comes first: it is the calendar every other app feeds into, so it
 // leads the home screen.
@@ -16,7 +16,7 @@ export const apps = [
     id: "f4t",
     name: "F4T",
     subtitle: "Fuel 4 Thought",
-    description: "Food • Fitness • Science",
+    description: "Meals • Groceries • Budget",
     path: "/f4t",
     icon: Flame,
     accent: "f4t",
@@ -102,6 +102,15 @@ export const apps = [
     path: "/grow",
     icon: Sprout,
     accent: "growfox",
+  },
+  {
+    id: "medicfox",
+    name: "Medic",
+    subtitle: "MedicFox",
+    description: "EMR • EMT • AEMT • Paramedic",
+    path: "/medic",
+    icon: Ambulance,
+    accent: "medicfox",
   },
   {
     id: "bodyfox",

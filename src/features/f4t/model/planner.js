@@ -9,6 +9,9 @@ import { buyFor } from "../../cook/model/buying.js";
 import { addRecipeToList, shoppingAmount } from "../../cook/model/pantry.js";
 import { scaledLines } from "../../cook/model/recipe.js";
 import { pricePerUnit } from "../data/prices.js";
+import { EAT_OUT, GRAB, quickById } from "../data/quickFoods.js";
+import { mealShares } from "./body.js";
+import { handsFor, recipeHands } from "./portions.js";
 
 export const SLOTS = [
   { id: "breakfast", name: "Breakfast", share: 0.25, meals: ["breakfast"] },
@@ -71,11 +74,27 @@ export const allowedRecipes = (recipes, cookProfile) => recipes.filter(r => !har
 export function entryFacts(entry, getRecipe) {
   if (!entry) return null;
   if (entry.off) return { kcal: entry.off.kcal, protein: entry.off.protein ?? 0, carbs: 0, fat: 0, cost: 0, off: true };
+  const p = entry.portions;
+  if (entry.quickId) {
+    const q = quickById.get(entry.quickId);
+    if (!q) return null;
+    return { kcal: q.kcal * p, protein: q.protein * p, carbs: q.carbs * p, fat: q.fat * p, cost: q.cost * p, kind: q.kind, veg: (q.veg ?? 0) * p };
+  }
   const recipe = getRecipe(entry.recipeId);
   if (!recipe) return null;
   const f = recipeFacts(recipe);
-  const p = entry.portions;
-  return { kcal: f.kcal * p, protein: f.protein * p, carbs: f.carbs * p, fat: f.fat * p, cost: f.cost * p };
+  return { kcal: f.kcal * p, protein: f.protein * p, carbs: f.carbs * p, fat: f.fat * p, cost: f.cost * p, kind: "recipe" };
+}
+
+/** Hand portions for an entry, or null for an off-plan meal. */
+export function entryHands(entry, getRecipe) {
+  if (!entry || entry.off) return null;
+  const f = entryFacts(entry, getRecipe);
+  if (!f) return null;
+  if (entry.quickId) return handsFor(f, f.veg);
+  const recipe = getRecipe(entry.recipeId);
+  const one = recipeHands(recipe, recipeFacts(recipe));
+  return Object.fromEntries(Object.entries(one).map(([k, v]) => [k, Math.round(v * entry.portions * 2) / 2]));
 }
 
 /** What was planned for an entry, ignoring an off-plan swap. */
@@ -89,6 +108,24 @@ export function dayTotals(dayPlan, getRecipe) {
     for (const k of Object.keys(total)) total[k] += f[k];
   }
   return total;
+}
+
+// --- Grab & go and eating out ------------------------------------------------
+
+/** Grab-and-go or restaurant options for a slot, best fit first: [{ food, portions, score }]. */
+export function rankQuick(kind, slotId, { goal, proteinRatio = 0.25, costWeight = 0.2 }) {
+  const list = kind === "out" ? EAT_OUT : GRAB;
+  // Grab & go can stack (coffee plus a yogurt); restaurant meals come as served.
+  return list
+    .filter(f => f.slots.includes(slotId))
+    .map(f => {
+      const portions = kind === "out" ? 1 : Math.min(2, Math.max(1, Math.round(goal / Math.max(f.kcal, 1))));
+      const kcal = f.kcal * portions;
+      const fit = Math.abs(kcal - goal) / Math.max(goal, 60);
+      const proteinGap = Math.max(0, proteinRatio - (f.protein * 4) / Math.max(f.kcal, 1));
+      return { food: { ...f, kind }, portions, score: fit * 3 + proteinGap * 4 + costWeight * f.cost * portions * 0.05 };
+    })
+    .sort((a, b) => a.score - b.score);
 }
 
 // --- Filling the week --------------------------------------------------------
@@ -109,11 +146,11 @@ export function portionsFor(kcalPerServing, goal, max = 2.5) {
   if (!(kcalPerServing > 0)) return 1;
   return Math.min(max, Math.max(0.5, Math.round((goal / kcalPerServing) * 2) / 2));
 }
-const maxPortions = slotId => (slotId === "breakfast" || slotId === "snack" ? 2 : 2.5);
+const maxPortions = (slotId, size) => (size === "big" ? 3 : slotId === "breakfast" || slotId === "snack" ? 2 : 2.5);
 
-function score(recipe, { slotId, goal, proteinRatio, training, costWeight, favorites, random }) {
+function score(recipe, { slotId, size, goal, proteinRatio, training, costWeight, favorites, random }) {
   const f = recipeFacts(recipe);
-  const portions = portionsFor(f.kcal, goal, maxPortions(slotId));
+  const portions = portionsFor(f.kcal, goal, maxPortions(slotId, size));
   const kcal = f.kcal * portions;
   const fit = Math.abs(kcal - goal) / Math.max(goal, 1);
   const proteinPer100 = (f.protein * 4) / Math.max(f.kcal, 1);
@@ -152,6 +189,8 @@ function pick(candidates, ctx, avoid) {
  * Returns new day -> { slots } for the 7 days.
  */
 export function fillWeek({ days, targets, training, recipes, plan = {}, profile, people = 1, favorites = [], seed = 1, costWeight = 0.2, replace = false, defaultKcal = 2000 }) {
+  const shares = mealShares(profile);
+  const usual = profile?.day ?? Object.fromEntries(SLOTS.map(s => [s.id, { size: "regular", how: profile?.style === "prep" ? "prep" : "cook" }]));
   const random = seeded(seed);
   const fav = new Set(favorites);
   const bySlot = Object.fromEntries(SLOTS.map(s => [s.id, recipes.filter(r => s.meals.some(m => r.meals.includes(m)))]));
@@ -165,13 +204,13 @@ export function fillWeek({ days, targets, training, recipes, plan = {}, profile,
   const goalFor = (day, slot) => {
     const t = targets?.[day];
     const kcal = t?.kcal ?? defaultKcal;
-    return { slotId: slot.id, goal: kcal * slot.share, proteinRatio: t ? (t.protein * 4) / t.kcal : 0.25, training: Boolean(training?.[day]?.length) };
+    return { slotId: slot.id, size: usual[slot.id].size, goal: kcal * shares[slot.id], proteinRatio: t ? (t.protein * 4) / t.kcal : 0.25, training: Boolean(training?.[day]?.length) };
   };
 
   // Batch cooking: a few recipes each, cooked on the prep day and midweek.
   const rotation = {};
-  if (profile?.style === "prep") {
-    for (const slot of SLOTS) {
+  {
+    for (const slot of SLOTS.filter(s => usual[s.id].how === "prep" && usual[s.id].size !== "skip")) {
       const pool = bySlot[slot.id].filter(r => slot.id === "snack" || slot.id === "breakfast" || PREP_FRIENDLY(r));
       const usable = pool.length >= 2 ? pool : bySlot[slot.id];
       const ctx = { ...goalFor(days[0], slot), costWeight, favorites: fav, random };
@@ -194,15 +233,27 @@ export function fillWeek({ days, targets, training, recipes, plan = {}, profile,
       const ctx = { ...goalFor(day, slot), costWeight, favorites: fav, random };
       let recipe = null;
       let leftover = false;
+      const how = usual[slot.id].how;
+      if (usual[slot.id].size === "skip") continue;
 
-      if (profile?.style === "prep" && rotation[slot.id]?.length) {
+      if (how === "grab" || how === "out") {
+        const ranked = rankQuick(how, slot.id, ctx);
+        // A little variety: pick among the best few, and not yesterday's.
+        const yesterday = i > 0 ? out[days[i - 1]]?.slots?.[slot.id]?.quickId : null;
+        const top = ranked.filter(r => r.food.id !== yesterday).slice(0, how === "out" ? 5 : 3);
+        const choice = top[Math.floor(random() * top.length)] ?? ranked[0];
+        if (choice) slots[slot.id] = { quickId: choice.food.id, portions: choice.portions };
+        continue;
+      }
+
+      if (how === "prep" && rotation[slot.id]?.length) {
         // First half of the week is batch one, the rest is batch two.
         const batch = rotation[slot.id][i < 3 ? 0 : 1] ?? rotation[slot.id][0];
         recipe = batch;
         leftover = i !== 0 && i !== 3;
       } else if ((slot.id === "breakfast" || slot.id === "snack") && batches[slot.id]) {
         const b = batches[slot.id];
-        const portions = portionsFor(recipeFacts(b.recipe).kcal, ctx.goal, maxPortions(slot.id));
+        const portions = portionsFor(recipeFacts(b.recipe).kcal, ctx.goal, maxPortions(slot.id, usual[slot.id].size));
         if (b.days < 3 && b.keeps && b.used + portions * people <= b.recipe.servings + 0.01) {
           recipe = b.recipe;
           leftover = true;
@@ -210,7 +261,7 @@ export function fillWeek({ days, targets, training, recipes, plan = {}, profile,
       } else if (slot.id === "lunch" && i > 0) {
         // Cook dinner, take the leftovers for lunch the next day.
         const lastDinner = out[days[i - 1]]?.slots?.dinner;
-        const r = lastDinner && !lastDinner.leftover && !lastDinner.off ? recipes.find(x => x.id === lastDinner.recipeId) : null;
+        const r = lastDinner?.recipeId && !lastDinner.leftover && !lastDinner.off ? recipes.find(x => x.id === lastDinner.recipeId) : null;
         if (r && (r.tags ?? []).includes("leftover-friendly")) {
           recipe = r;
           leftover = true;
@@ -222,7 +273,7 @@ export function fillWeek({ days, targets, training, recipes, plan = {}, profile,
         recipe = pick(bySlot[slot.id], ctx, avoid);
       }
       if (!recipe) continue;
-      const portions = portionsFor(recipeFacts(recipe).kcal, ctx.goal, maxPortions(slot.id));
+      const portions = portionsFor(recipeFacts(recipe).kcal, ctx.goal, maxPortions(slot.id, usual[slot.id].size));
       slots[slot.id] = { recipeId: recipe.id, portions, ...(leftover ? { leftover: true } : {}) };
       recent[slot.id].push(recipe.id);
       if (slot.id === "breakfast" || slot.id === "snack") {
@@ -249,7 +300,7 @@ export function cookSchedule(plan, days, people = 1) {
   for (const day of days) {
     for (const slot of SLOTS) {
       const e = plan[day]?.slots?.[slot.id];
-      if (!e?.recipeId) continue;
+      if (!e?.recipeId || e.quickId) continue;
       let batch = e.leftover ? open.get(e.recipeId) : null;
       if (!batch) {
         batch = { day, recipeId: e.recipeId, exact: 0, eats: [] };
@@ -302,6 +353,31 @@ export function groceries(cooks, getRecipe, pantry = []) {
   return { items, total: sum(items.filter(i => !i.staple)), staples: sum(staples), stapleCount: staples.length, eatCost: cents(eatCost) };
 }
 
+/**
+ * Grab-and-go food and restaurant meals in a week of the plan:
+ *   { grab: [{ food, count, cost }], grabCost, out: [{ food, day, slot, cost }], outCost }
+ * Grab-and-go counts are portions for everyone eating.
+ */
+export function quickSpend(plan, days, people = 1) {
+  const grab = new Map();
+  const out = [];
+  for (const day of days) {
+    for (const slot of SLOTS) {
+      const e = plan[day]?.slots?.[slot.id];
+      const f = e?.quickId && !e.off ? quickById.get(e.quickId) : null;
+      if (!f) continue;
+      const n = e.portions * people;
+      if (f.kind === "out") out.push({ food: f, day, slot: slot.id, cost: cents(f.cost * n) });
+      else {
+        const cur = grab.get(f.id) ?? { food: f, count: 0, cost: 0 };
+        grab.set(f.id, { ...cur, count: cur.count + n, cost: cents(cur.cost + f.cost * n) });
+      }
+    }
+  }
+  const list = [...grab.values()].sort((a, b) => b.cost - a.cost);
+  return { grab: list, grabCost: cents(list.reduce((n, g) => n + g.cost, 0)), out, outCost: cents(out.reduce((n, o) => n + o.cost, 0)) };
+}
+
 /** The CookFox link that puts a whole schedule on its shopping list. */
 export function cookShopHref(cooks) {
   const servings = new Map();
@@ -314,12 +390,14 @@ export function cookShopHref(cooks) {
  * bill fits (or there's nothing cheaper). Returns { week, bill, fits }.
  */
 export function fillWithinBudget(args, { budget, people = 1, getRecipe, pantry = [] }) {
-  const weights = budget ? [0.2, 0.8, 2, 4, 8, 16] : [0.2];
+  // Past a point, cheaper means meals that no longer fit the day; stop there.
+  const weights = budget ? [0.2, 0.8, 2, 4] : [0.2];
   let best = null;
   for (const costWeight of weights) {
     const week = fillWeek({ ...args, people, costWeight });
     const merged = { ...args.plan, ...week };
-    const bill = groceries(cookSchedule(merged, args.days, people), getRecipe, pantry).total;
+    const quick = quickSpend(merged, args.days, people);
+    const bill = cents(groceries(cookSchedule(merged, args.days, people), getRecipe, pantry).total + quick.grabCost + quick.outCost);
     if (!best || bill < best.bill) best = { week, bill };
     if (!budget || bill <= budget) return { week, bill, fits: true };
   }
@@ -327,18 +405,18 @@ export function fillWithinBudget(args, { budget, people = 1, getRecipe, pantry =
 }
 
 /** Calorie and protein goals for one slot of a day. */
-export function slotGoal(target, slotId, defaultKcal = 2000) {
-  const share = slotsById.get(slotId)?.share ?? 0.25;
+export function slotGoal(target, slotId, defaultKcal = 2000, profile) {
+  const share = profile ? mealShares(profile)[slotId] || slotsById.get(slotId)?.share : slotsById.get(slotId)?.share ?? 0.25;
   const kcal = target?.kcal ?? defaultKcal;
   return { goal: kcal * share, proteinRatio: target ? (target.protein * 4) / target.kcal : 0.25 };
 }
 
 /** Recipes for a slot, best fit first: [{ recipe, portions, score }]. */
-export function rankForSlot(recipes, slotId, { goal, proteinRatio = 0.25, training = false, costWeight = 0.2, favorites = [] }) {
+export function rankForSlot(recipes, slotId, { goal, proteinRatio = 0.25, training = false, costWeight = 0.2, favorites = [], size = "regular" }) {
   const slot = slotsById.get(slotId);
   const pool = recipes.filter(r => slot.meals.some(m => r.meals.includes(m)) || (slotId === "lunch" && r.meals.includes("dinner")));
-  const ctx = { slotId, goal, proteinRatio, training, costWeight, favorites: new Set(favorites), random: () => 0.5 };
+  const ctx = { slotId, size, goal, proteinRatio, training, costWeight, favorites: new Set(favorites), random: () => 0.5 };
   return pool
-    .map(recipe => ({ recipe, score: score(recipe, ctx), portions: portionsFor(recipeFacts(recipe).kcal, goal, maxPortions(slotId)) }))
+    .map(recipe => ({ recipe, score: score(recipe, ctx), portions: portionsFor(recipeFacts(recipe).kcal, goal, maxPortions(slotId, size)) }))
     .sort((a, b) => a.score - b.score);
 }

@@ -13,6 +13,7 @@ import PlanTab from "./components/PlanTab";
 import GroceriesTab from "./components/GroceriesTab";
 import MeTab from "./components/MeTab";
 import OffPlanBar from "./components/OffPlanBar";
+import HandEstimate from "./components/HandEstimate";
 import { activityGroups } from "./data/activities";
 import { migratedSelections, resolveFavoriteKeys, starterSelections } from "./activityHelpers";
 import { useCountUp } from "./hooks/useCountUp";
@@ -269,17 +270,17 @@ export default function F4TPage() {
             <Utensils size={26} />
           </div>
           <div>
-            <p className="ff-eyebrow">FUEL 4 THOUGHT · DIET PLANNER</p>
-            <h1>Eat for your goal, your training and your budget.</h1>
+            <p className="ff-eyebrow">FUELFOX · EAT FOR YOUR DAY</p>
+            <h1>Eat well around the day you actually have.</h1>
             <p className="ff-hero-sub">
-              Plan the week’s meals from CookFox recipes, sized to your body and your LiftFox training days. Get the grocery list and what it costs.
-              Ate something else? See how far off plan it was, and what it takes to walk it off.
+              Tell FuelFox how you usually eat: coffee for breakfast, no lunch, a big dinner is fine. It plans around that with cooking, meal prep, eating out
+              or grab-and-go, sized to your body, your LiftFox training and your budget, with portions you can judge by hand.
             </p>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
         </header>
 
-        <nav className="fp-tabs" aria-label="Fuel 4 Thought">
+        <nav className="fp-tabs" aria-label="FuelFox">
           {TABS.map(t => (
             <button key={t.id} type="button" className={tab === t.id ? "is-active" : ""} aria-current={tab === t.id ? "page" : undefined} onClick={() => goTab(t.id)}>
               <t.icon size={17} aria-hidden="true" />
@@ -320,6 +321,7 @@ export default function F4TPage() {
           onLog={logOffPlan}
           canLog={meal.length > 0}
         />
+        <HandEstimate onAdd={addFood} />
         <div className="ff-layout">
           <section className="ff-panel" id="ff-meal" aria-labelledby="ff-meal-title">
             <div className="ff-panel-head">

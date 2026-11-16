@@ -134,7 +134,7 @@ export default function CookPage() {
     return next.filter(i => i.sources?.some(s => s.recipeId === r.id)).length;
   };
 
-  // Opened from the Fuel 4 Thought meal plan with ?shop=recipe:servings,...
+  // Opened from the FuelFox meal plan with ?shop=recipe:servings,...
   // Each recipe goes on the shopping list once (minus the pantry), then the
   // list opens.
   const shop = params.get("shop");

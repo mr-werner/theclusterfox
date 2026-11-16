@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChefHat, ChevronLeft, ChevronRight, Eraser, Sparkles, UserRound, Wand2 } from "lucide-react";
 
 import DayCard from "./DayCard";
+import StartPanel from "./StartPanel";
 import { addDays, dayLabel, fillWithinBudget, SLOTS } from "../model/planner.js";
 
 const fmt = n => Math.round(n).toLocaleString();
@@ -12,9 +13,11 @@ export default function PlanTab({ data, linked, week, start, today, onWeek, acti
   const { profile } = data;
   const { allowed, getRecipe, cook } = linked;
   const [note, setNote] = useState("");
-  const { days, targets, training, ready, cooks, shop } = week;
+  const { days, targets, training, ready, cooks } = week;
   const budget = profile.budget;
-  const emptySlots = days.reduce((n, d) => n + SLOTS.filter(s => !data.plan[d]?.slots?.[s.id]).length, 0);
+  const eaten = SLOTS.filter(s => profile.day?.[s.id]?.size !== "skip");
+  const allSlots = eaten.length * 7;
+  const emptySlots = days.reduce((n, d) => n + eaten.filter(s => !data.plan[d]?.slots?.[s.id]).length, 0);
 
   function fill(replace) {
     const seed = data.planSeed * 31 + Number(start.replaceAll("-", "")) % 997;
@@ -47,7 +50,8 @@ export default function PlanTab({ data, linked, week, start, today, onWeek, acti
     setNote("Cleared the rest of the week.");
   }
 
-  const over = budget && shop.total > budget;
+  const spend = week.spend;
+  const over = budget && spend > budget;
   const cookDays = [...new Set(cooks.map(c => c.day))];
 
   return (
@@ -67,15 +71,15 @@ export default function PlanTab({ data, linked, week, start, today, onWeek, acti
         <div className="fp-weekactions">
           {emptySlots > 0 && (
             <button type="button" className="ff-btn ff-btn-primary" onClick={() => fill(false)}>
-              <Wand2 size={16} /> {emptySlots === 28 ? "Plan my week" : `Fill ${emptySlots} empty meal${emptySlots === 1 ? "" : "s"}`}
+              <Wand2 size={16} /> {emptySlots === allSlots ? "Plan my week" : `Fill ${emptySlots} empty meal${emptySlots === 1 ? "" : "s"}`}
             </button>
           )}
-          {emptySlots < 28 && (
+          {emptySlots < allSlots && (
             <button type="button" className="ff-btn" onClick={() => fill(true)} title="Plans every meal from today on again">
               <Sparkles size={16} /> Re-plan
             </button>
           )}
-          {emptySlots < 28 && (
+          {emptySlots < allSlots && (
             <button type="button" className="ff-btn ff-btn-ghost" onClick={clearWeek}>
               <Eraser size={15} /> Clear
             </button>
@@ -96,12 +100,15 @@ export default function PlanTab({ data, linked, week, start, today, onWeek, acti
           <small>{week.avgProtein ? `aim for about ${fmt(week.avgProtein)} g` : "planned average"}</small>
         </div>
         <button type="button" className={`fp-stat is-button${over ? " is-over" : ""}`} onClick={() => goTab("shop")}>
-          <span>Groceries</span>
-          <strong>{cooks.length ? money(shop.total) : "–"}</strong>
-          <small>{budget ? (over ? `${money(shop.total - budget)} over your ${money(budget)} budget` : `within your ${money(budget)} budget`) : "estimate, see the list"}</small>
+          <span>Food spend</span>
+          <strong>{spend > 0 ? money(spend) : "–"}</strong>
+          <small>
+            {budget ? (over ? `${money(spend - budget)} over your ${money(budget)} budget` : `within your ${money(budget)} budget`) : "estimate, see Groceries"}
+            {week.quick.outCost > 0 ? ` · ${money(week.quick.outCost)} eating out` : ""}
+          </small>
           {budget > 0 && (
-            <span className="fp-meter" aria-hidden="true">
-              <span style={{ width: `${Math.min(100, (shop.total / budget) * 100)}%` }} />
+            <span className={`fp-meter${over ? " is-over" : ""}`} aria-hidden="true">
+              <span style={{ width: `${Math.min(100, (spend / budget) * 100)}%` }} />
             </span>
           )}
         </button>
@@ -133,6 +140,8 @@ export default function PlanTab({ data, linked, week, start, today, onWeek, acti
         </p>
       )}
 
+      <StartPanel profile={profile} targets={targets} days={days} training={training} actions={actions} goTab={goTab} />
+
       <div className="fp-days">
         {days.map(day => (
           <DayCard
@@ -148,6 +157,7 @@ export default function PlanTab({ data, linked, week, start, today, onWeek, acti
             favorites={cook.favorites}
             getRecipe={getRecipe}
             weightLbs={data.weightLbs}
+            profile={profile}
             onEntry={actions.setEntry}
             onAteElse={onAteElse}
             onAddWorkout={actions.addWorkout}

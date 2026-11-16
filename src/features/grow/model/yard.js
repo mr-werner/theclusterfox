@@ -12,7 +12,7 @@
 import { sunPosition, declination, lightFor } from "./sun.js";
 
 const RAD = Math.PI / 180;
-export const EXTENT = 16; // meters from the house center to the map edge
+export const EXTENT = 20; // meters from the map center to its edge (a lot about 130 ft across)
 export const CELL = 0.8; // meters per map patch
 const STEP = 0.25; // hours between sun samples
 const MIN_ALT = 10; // degrees: lower sun is weak and usually blocked by neighbors and trees beyond the map
@@ -24,10 +24,22 @@ export const OBJECT_KINDS = {
   shed: { name: "Shed or garage", h: 2.8, w: 3, d: 3, angle: 0 },
   // Extra blocks that make the house an L, T or U: an attached garage, an addition, a porch.
   wing: { name: "House wing", h: 4, w: 6, d: 6, angle: 0 },
+  // Ground cover: drawn on the map, casts no shade.
+  lawn: { name: "Lawn", ground: true, w: 10, d: 8, angle: 0 },
+  bed: { name: "Garden bed", ground: true, w: 4, d: 1.5, angle: 0 },
+  raised: { name: "Raised bed", ground: true, w: 2.4, d: 1.2, angle: 0 },
+  mulch: { name: "Mulch", ground: true, w: 3, d: 2, angle: 0, round: true },
+  rocks: { name: "Rocks", ground: true, w: 2, d: 1.5, angle: 0, round: true },
+  patio: { name: "Patio or path", ground: true, w: 4, d: 3, angle: 0 },
+  // A plant you already have, tied to a garden entry for its care schedule.
+  plant: { name: "Plant", ground: true, r: 0.5 },
 };
+export const isBoxKind = k => k === "shed" || k === "wing" || (OBJECT_KINDS[k]?.ground && k !== "plant");
+export const isTreeKind = k => k === "tree" || k === "evergreen";
 
 export function defaultYard() {
-  return { facing: 180, width: 12, depth: 9, height: 6, objects: [] };
+  // cx, cy: where the house sits on the map. turn: the compass direction at the top of the map.
+  return { facing: 180, width: 12, depth: 9, height: 6, cx: 0, cy: 0, turn: 0, objects: [] };
 }
 
 // Representative days for each season, by hemisphere.
@@ -52,7 +64,7 @@ export function dayLength(latitude, doy) {
 // { cx, cy, w (along the front), d (front to back), angle (deg, the front's
 // compass direction), h }.
 function boxes(yard) {
-  const list = [{ cx: 0, cy: 0, w: yard.width, d: yard.depth, angle: yard.facing, h: yard.height, house: true }];
+  const list = [{ cx: yard.cx ?? 0, cy: yard.cy ?? 0, w: yard.width, d: yard.depth, angle: yard.facing, h: yard.height, house: true }];
   for (const o of yard.objects) if (o.kind === "shed" || o.kind === "wing") list.push({ cx: o.x, cy: o.y, w: o.w, d: o.d, angle: o.angle, h: o.h });
   return list;
 }
@@ -142,7 +154,7 @@ function rayTree(o, px, py, dx, dy, tanAlt) {
   // The ray climbs; it hits the canopy if it is inside the canopy band
   // anywhere between entering and leaving the crown.
   if (near * tanAlt > o.h || far * tanAlt < bottom) return 0;
-  return o.kind === "evergreen" ? 1 : 0.85;
+  return o.block;
 }
 
 function sunlitFraction(yard, solids, px, py, alt, az) {
@@ -162,14 +174,16 @@ function sunlitFraction(yard, solids, px, py, alt, az) {
   return lit;
 }
 
-function solidsOf(yard) {
+// Leafy trees drop their leaves for winter: bare branches still block a third.
+function solidsOf(yard, season = "season") {
+  const leafOff = season === "winter";
   return {
     boxes: boxes(yard),
     fences: yard.objects.filter(o => o.kind === "fence").map(o => {
       const [a, b] = fenceEnds(o);
       return { ends: a, ends2: b, h: o.h };
     }),
-    trees: yard.objects.filter(o => o.kind === "tree" || o.kind === "evergreen"),
+    trees: yard.objects.filter(o => isTreeKind(o.kind)).map(o => ({ ...o, block: o.kind === "evergreen" ? 1 : leafOff ? 0.35 : 0.85 })),
   };
 }
 
@@ -187,7 +201,7 @@ function samples(latitude, days) {
 
 /** Direct-sun hours at one point, averaged over the season's days. */
 export function pointHours(yard, latitude, x, y, season = "season") {
-  const solids = solidsOf(yard);
+  const solids = solidsOf(yard, season);
   if (solids.boxes.some(b => insideBox(b, x, y))) return null;
   const days = SEASONS[season].days(latitude >= 0);
   let hours = 0;
@@ -202,7 +216,7 @@ export function pointHours(yard, latitude, x, y, season = "season") {
 export function sunGrid(yard, latitude, season = "season") {
   const n = Math.round((EXTENT * 2) / CELL);
   const hours = new Float32Array(n * n);
-  const solids = solidsOf(yard);
+  const solids = solidsOf(yard, season);
   const sun = samples(latitude, SEASONS[season].days(latitude >= 0));
   for (let row = 0; row < n; row++) {
     const y = EXTENT - (row + 0.5) * CELL;
@@ -218,6 +232,46 @@ export function sunGrid(yard, latitude, season = "season") {
     }
   }
   return { n, cell: CELL, extent: EXTENT, hours };
+}
+
+/** The season's middle day, for showing shadows at one moment. */
+export const seasonDay = (season, latitude) => {
+  const days = SEASONS[season].days(latitude >= 0);
+  return days[Math.floor(days.length / 2)];
+};
+
+/**
+ * Shadows at one moment, like a photo from above: { n, cell, extent, lit
+ * (0 shade … 1 full sun, NaN under buildings), alt, az } or null at night.
+ */
+export function shadowGrid(yard, latitude, season, hour) {
+  const { alt, az } = sunPosition(latitude, seasonDay(season, latitude), hour);
+  if (alt <= 0.5) return null;
+  const n = Math.round((EXTENT * 2) / CELL);
+  const lit = new Float32Array(n * n);
+  const solids = solidsOf(yard, season);
+  for (let row = 0; row < n; row++) {
+    const y = EXTENT - (row + 0.5) * CELL;
+    for (let col = 0; col < n; col++) {
+      const x = -EXTENT + (col + 0.5) * CELL;
+      lit[row * n + col] = solids.boxes.some(b => insideBox(b, x, y)) ? NaN : sunlitFraction(yard, solids, x, y, alt, az);
+    }
+  }
+  return { n, cell: CELL, extent: EXTENT, lit, alt, az };
+}
+
+/** Sunrise and sunset in solar hours (sun above 0.5°), for the time slider. */
+export function daylightHours(latitude, season) {
+  const doy = seasonDay(season, latitude);
+  let rise = null;
+  let set = null;
+  for (let t = 0; t <= 24; t += 0.25) {
+    if (sunPosition(latitude, doy, t).alt > 0.5) {
+      if (rise == null) rise = t;
+      set = t;
+    }
+  }
+  return rise == null ? null : { rise, set };
 }
 
 /** Light class at a map point from a grid. */
@@ -260,7 +314,7 @@ export function plantFit(grid, plant) {
 
 /** Plain-language spots on the map that fit: the sides of the house, measured. */
 export function houseSides(yard, latitude, season = "season") {
-  const solids = solidsOf(yard);
+  const solids = solidsOf(yard, season);
   const house = solids.boxes[0];
   const { ux, uy, vx, vy } = axes(house.angle);
   const off = 1.2; // a bed about 4 ft out from the wall
@@ -271,8 +325,8 @@ export function houseSides(yard, latitude, season = "season") {
     { id: "left", name: "Left side", u: 0, v: -(house.w / 2 + off), deg: (house.angle + 270) % 360 },
   ];
   return sides.map(s => {
-    const x = s.u * ux + s.v * vx;
-    const y = s.u * uy + s.v * vy;
+    const x = house.cx + s.u * ux + s.v * vx;
+    const y = house.cy + s.u * uy + s.v * vy;
     const hours = pointHours(yard, latitude, x, y, season);
     return { ...s, x, y, hours, light: lightFor(hours ?? 0), compass: compassName(s.deg) };
   });
@@ -281,36 +335,146 @@ export function houseSides(yard, latitude, season = "season") {
 const NAMES = ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"];
 export const compassName = deg => NAMES[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
 
+export const MAX_OBJECTS = 80;
+
 export function cleanYard(y) {
   const base = defaultYard();
   if (!y || typeof y !== "object") return base;
   const num = (v, min, max, d) => (Number.isFinite(v) && v >= min && v <= max ? v : d);
+  const str = v => (typeof v === "string" ? v.slice(0, 40) : null);
   const objects = (Array.isArray(y.objects) ? y.objects : [])
     .filter(o => o && typeof o === "object" && OBJECT_KINDS[o.kind] && typeof o.id === "string")
-    .slice(0, 40)
+    .filter(o => o.kind !== "plant" || typeof o.plantId === "string")
+    .slice(0, MAX_OBJECTS)
     .map(o => {
       const d = OBJECT_KINDS[o.kind];
-      return {
+      const out = {
         id: o.id.slice(0, 40),
         kind: o.kind,
         x: num(o.x, -EXTENT, EXTENT, 0),
         y: num(o.y, -EXTENT, EXTENT, 0),
-        h: num(o.h, 0.3, 40, d.h),
-        r: num(o.r, 0.3, 15, d.r ?? 0),
-        len: num(o.len, 0.5, 40, d.len ?? 0),
-        w: num(o.w, 0.5, 20, d.w ?? 0),
-        d: num(o.d, 0.5, 20, d.d ?? 0),
+        h: num(o.h, 0.3, 40, d.h ?? 0.3),
+        r: num(o.r, 0.1, 15, d.r ?? 0),
+        len: num(o.len, 0.5, 60, d.len ?? 0),
+        w: num(o.w, 0.3, 40, d.w ?? 0),
+        d: num(o.d, 0.3, 40, d.d ?? 0),
         angle: num(o.angle, -360, 360, 0),
       };
+      if (d.ground && o.kind !== "plant") out.round = typeof o.round === "boolean" ? o.round : Boolean(d.round);
+      if (o.kind === "plant" || o.kind === "lawn" || isTreeKind(o.kind)) {
+        out.plantId = str(o.plantId);
+        out.entryId = str(o.entryId);
+      }
+      return out;
     });
   return {
     facing: num(y.facing, 0, 359, base.facing),
     width: num(y.width, 3, 40, base.width),
     depth: num(y.depth, 3, 40, base.depth),
     height: num(y.height, 2, 20, base.height),
+    cx: num(y.cx, -EXTENT, EXTENT, 0),
+    cy: num(y.cy, -EXTENT, EXTENT, 0),
+    turn: num(y.turn, 0, 359, 0),
     objects,
   };
 }
+
+// ── Editing helpers (pure: they return a new yard) ─────────────
+
+const round1 = n => Math.round(n * 100) / 100;
+const clampMap = n => Math.max(-EXTENT, Math.min(EXTENT, round1(n)));
+const turnPoint = (x, y, cx, cy, deg) => {
+  const a = deg * RAD;
+  const dx = x - cx;
+  const dy = y - cy;
+  // Compass turn is clockwise on the map (x east, y north).
+  return [cx + dx * Math.cos(a) + dy * Math.sin(a), cy - dx * Math.sin(a) + dy * Math.cos(a)];
+};
+
+/** Move the house; its wings come along. */
+export function moveHouse(yard, cx, cy) {
+  const dx = cx - (yard.cx ?? 0);
+  const dy = cy - (yard.cy ?? 0);
+  return {
+    ...yard,
+    cx: clampMap(cx),
+    cy: clampMap(cy),
+    objects: yard.objects.map(o => (o.kind === "wing" ? { ...o, x: clampMap(o.x + dx), y: clampMap(o.y + dy) } : o)),
+  };
+}
+
+/** Turn the house to face a new way; its wings swing around with it. */
+export function turnHouse(yard, facing) {
+  const f = ((Math.round(facing) % 360) + 360) % 360;
+  const delta = f - yard.facing;
+  const cx = yard.cx ?? 0;
+  const cy = yard.cy ?? 0;
+  return {
+    ...yard,
+    facing: f,
+    objects: yard.objects.map(o => {
+      if (o.kind !== "wing") return o;
+      const [x, y] = turnPoint(o.x, o.y, cx, cy, delta);
+      return { ...o, x: clampMap(x), y: clampMap(y), angle: (((o.angle + delta) % 360) + 360) % 360 };
+    }),
+  };
+}
+
+// Common footprints, as wings placed against the main block (in its own axes:
+// u out of the front, v to the front's right).
+export const HOUSE_SHAPES = [
+  { id: "box", name: "Rectangle" },
+  { id: "L", name: "L shape" },
+  { id: "T", name: "T shape" },
+  { id: "U", name: "U shape" },
+  { id: "garage", name: "Attached garage" },
+];
+
+export function shapeHouse(yard, shape, newId) {
+  const W = yard.width;
+  const D = yard.depth;
+  const h = Math.max(2.5, yard.height - 1.5);
+  const parts = {
+    box: [],
+    L: [{ u: -(D / 2 + 3), v: W / 4, w: W / 2, d: 6 }],
+    T: [{ u: -(D / 2 + 3), v: 0, w: W / 3, d: 6 }],
+    U: [
+      { u: -(D / 2 + 3), v: W / 2 - W / 6, w: W / 3, d: 6 },
+      { u: -(D / 2 + 3), v: -(W / 2 - W / 6), w: W / 3, d: 6 },
+    ],
+    garage: [{ u: D / 2 - 3.5, v: W / 2 + 3.25, w: 6.5, d: 7, h: 3.2 }],
+  }[shape] ?? [];
+  const { ux, uy, vx, vy } = axes(yard.facing);
+  const cx = yard.cx ?? 0;
+  const cy = yard.cy ?? 0;
+  const keep = shape === "garage" ? yard.objects : yard.objects.filter(o => o.kind !== "wing");
+  const wings = parts.map(p => ({ id: newId(), kind: "wing", x: clampMap(cx + p.u * ux + p.v * vx), y: clampMap(cy + p.u * uy + p.v * vy), w: p.w, d: p.d, h: p.h ?? h, r: 0, len: 0, angle: yard.facing }));
+  return { ...yard, objects: [...keep, ...wings] };
+}
+
+/** A fence rebuilt from its two ends. */
+export function fenceFromEnds([ax, ay], [bx, by]) {
+  const len = Math.max(0.5, Math.hypot(bx - ax, by - ay));
+  const angle = ((Math.atan2(bx - ax, by - ay) / RAD) % 180 + 180) % 180;
+  return { x: round1((ax + bx) / 2), y: round1((ay + by) / 2), len: round1(len), angle: round1(angle) };
+}
+
+/** Where a point sits in an object's own axes (u toward its angle, v to the right). */
+export function localPoint(o, x, y) {
+  const { ux, uy, vx, vy } = axes(o.angle ?? 0);
+  const rx = x - o.x;
+  const ry = y - o.y;
+  return { u: rx * ux + ry * uy, v: rx * vx + ry * vy };
+}
+
+/** A map point from an object's own axes. */
+export function worldPoint(o, u, v) {
+  const { ux, uy, vx, vy } = axes(o.angle ?? 0);
+  return [o.x + u * ux + v * vx, o.y + u * uy + v * vy];
+}
+
+/** Compass bearing from (x0, y0) to (x1, y1). */
+export const bearing = (x0, y0, x1, y1) => ((Math.atan2(x1 - x0, y1 - y0) / RAD) % 360 + 360) % 360;
 
 /** Spots placed on the map take their light from it unless set by hand. */
 export function withMapLight(spots, grid) {
@@ -329,5 +493,5 @@ export function sidePoint(yard, side) {
   const u = { front: yard.depth / 2 + 1.2, back: -(yard.depth / 2 + 1.2), right: 0, left: 0, open: yard.depth / 2 + 7 }[side] ?? 0;
   const v = { right: yard.width / 2 + 1.2, left: -(yard.width / 2 + 1.2) }[side] ?? 0;
   const clamp = n => Math.max(-EXTENT + 0.5, Math.min(EXTENT - 0.5, Math.round(n * 10) / 10));
-  return { x: clamp(u * ux + v * vx), y: clamp(u * uy + v * vy) };
+  return { x: clamp((yard.cx ?? 0) + u * ux + v * vx), y: clamp((yard.cy ?? 0) + u * uy + v * vy) };
 }

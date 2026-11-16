@@ -64,11 +64,15 @@ export function useGrowData() {
     return id;
   }, [patch]);
   // The yard map: pass a patch for the house, or use the object helpers.
-  const setYard = useCallback(p => patch(d => ({ yard: { ...(d.yard ?? defaultYard()), ...p } })), [patch]);
+  // A patch for the house, or a function from the current yard to the next.
+  const setYard = useCallback(p => patch(d => {
+    const y = d.yard ?? defaultYard();
+    return { yard: typeof p === "function" ? p(y) : { ...y, ...p } };
+  }), [patch]);
   const addObject = useCallback((kind, at = {}) => {
     const id = newId();
     const k = OBJECT_KINDS[kind];
-    const size = { h: k.h, r: k.r ?? 0, len: k.len ?? 0, w: k.w ?? 0, d: k.d ?? 0, angle: k.angle ?? 0 };
+    const size = { h: k.h ?? 0.3, r: k.r ?? 0, len: k.len ?? 0, w: k.w ?? 0, d: k.d ?? 0, angle: k.angle ?? 0, ...(k.ground && kind !== "plant" ? { round: Boolean(k.round) } : {}) };
     patch(d => {
       const y = d.yard ?? defaultYard();
       return { yard: { ...y, objects: [...y.objects, { x: 0, y: 0, ...size, ...at, kind, id }] } };
@@ -114,6 +118,7 @@ export function useGrowData() {
     addSpot,
     setYard,
     addObject,
+    newId,
     updateObject,
     removeObject,
     updateSpot,

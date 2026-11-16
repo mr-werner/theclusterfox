@@ -26,6 +26,8 @@ const MathPage = lazy(() => import("./features/math/MathPage"));
 const CookPage = lazy(() => import("./features/cook/CookPage"));
 // GrowFox carries its plant library, so it loads on demand too.
 const GrowPage = lazy(() => import("./features/grow/GrowPage"));
+// MedicFox carries its knowledge base and skill sheets, so it loads on demand too.
+const MedicPage = lazy(() => import("./features/medic/MedicPage"));
 
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
@@ -67,6 +69,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <GrowPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/medic"
+                element={
+                    <Suspense fallback={null}>
+                        <MedicPage />
                     </Suspense>
                 }
             />

@@ -296,7 +296,8 @@ function F4TSummary({ userId }) {
     const data = loadData();
     const synced = data.syncedUserId === userId;
     const meals = synced ? data.meals.length : 0;
-    const favorites = synced && Array.isArray(data.favorites) ? data.favorites.length : 0;
+    const planned = synced ? Object.values(data.plan).filter(d => Object.keys(d.slots).length).length : 0;
+    const weighIns = synced ? data.weights.length : 0;
 
     return (
         <div className="account-app-placeholder">
@@ -304,8 +305,8 @@ function F4TSummary({ userId }) {
 
             <p>
                 {synced
-                    ? `Fuel 4 Thought: ${meals} saved ${meals === 1 ? "meal" : "meals"} and ${favorites} favorite ${favorites === 1 ? "activity" : "activities"}, synced to this account.`
-                    : "Fuel 4 Thought saves your meals, favorite activities, and weight here once you open it while logged in."}{" "}
+                    ? `Fuel 4 Thought: ${planned} planned ${planned === 1 ? "day" : "days"}, ${weighIns} ${weighIns === 1 ? "weigh-in" : "weigh-ins"} and ${meals} saved ${meals === 1 ? "meal" : "meals"}, synced to this account.`
+                    : "Fuel 4 Thought saves your meal plan, profile, weigh-ins and saved meals here once you open it while logged in."}{" "}
                 <Link to="/f4t">Open Fuel 4 Thought</Link>
             </p>
         </div>

@@ -134,6 +134,25 @@ export default function CookPage() {
     return next.filter(i => i.sources?.some(s => s.recipeId === r.id)).length;
   };
 
+  // Opened from the Fuel 4 Thought meal plan with ?shop=recipe:servings,...
+  // Each recipe goes on the shopping list once (minus the pantry), then the
+  // list opens.
+  const shop = params.get("shop");
+  useEffect(() => {
+    if (!shop) return;
+    const wanted = shop
+      .split(",")
+      .map(part => part.split(":"))
+      .map(([id, n]) => [recipesById.get(id), Math.min(96, Math.max(1, Math.round(Number(n) || 1)))])
+      .filter(([r]) => r)
+      .slice(0, 40);
+    if (wanted.length) {
+      store.setShopping(list => wanted.reduce((l, [r, n]) => P.addRecipeToList(l, applySwaps(r, custom[r.id]), n, { pantry: data.pantry }), list));
+    }
+    setParams({ tab: "shopping" }, { replace: true });
+    // Runs once per link; the list and pantry are read as they are now.
+  }, [shop]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const resume = id => {
     const s = data.sessions[id];
     go({ tab: fromTab, r: id, view: s?.phase === "cooking" ? "cook" : "prep" });

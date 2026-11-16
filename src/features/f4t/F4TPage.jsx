@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Bookmark, Cloud, CloudOff, History, HardDrive, LoaderCircle, Plus, RotateCcw, Utensils } from "lucide-react";
+import { Bookmark, CalendarDays, Cloud, CloudOff, History, HardDrive, LoaderCircle, NotebookPen, Plus, RotateCcw, ShoppingCart, UserRound, Utensils } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import ActivityExplorer from "./components/ActivityExplorer";
@@ -9,14 +9,35 @@ import FoodSearch from "./components/FoodSearch";
 import MealBar from "./components/MealBar";
 import MealItem from "./components/MealItem";
 import SavedMeals from "./components/SavedMeals";
+import PlanTab from "./components/PlanTab";
+import GroceriesTab from "./components/GroceriesTab";
+import MeTab from "./components/MeTab";
+import OffPlanBar from "./components/OffPlanBar";
 import { activityGroups } from "./data/activities";
 import { migratedSelections, resolveFavoriteKeys, starterSelections } from "./activityHelpers";
 import { useCountUp } from "./hooks/useCountUp";
 import { foodKey, formatCalories, LBS_PER_KG, mealCalories } from "./mealMath";
 import { loadDraft, saveDraft } from "./state/f4tStore";
 import { useF4TData } from "./state/useF4TData";
+import { useLinkedApps } from "./state/useLinkedApps";
+import { usePlanner } from "./state/usePlanner";
+import { fillWithinBudget, isDay, plannedFacts, toDay, weekStart } from "./model/planner.js";
 import "./f4t.css";
 import "./identity.css";
+import "./planner.css";
+
+const TABS = [
+  { id: "plan", name: "Plan", icon: CalendarDays },
+  { id: "shop", name: "Groceries", icon: ShoppingCart },
+  { id: "off", name: "Off plan", icon: NotebookPen },
+  { id: "me", name: "Me", icon: UserRound },
+];
+
+// The meal you'd be eating about now.
+function slotForNow() {
+  const hour = new Date().getHours();
+  return hour < 11 ? "breakfast" : hour < 15 ? "lunch" : hour < 17 ? "snack" : "dinner";
+}
 
 const groupsByKey = new Map(activityGroups.map(group => [group.key, group]));
 const starterPicks = starterSelections(activityGroups);
@@ -58,8 +79,10 @@ function SyncBadge({ status, isSignedIn }) {
 }
 
 export default function F4TPage() {
-  const { data, syncStatus, isSignedIn, setWeight, setFavorites, setSelection, saveMeal, deleteMeal, rememberFood } =
-    useF4TData();
+  const store = useF4TData();
+  const { data, syncStatus, isSignedIn, setWeight, setFavorites, setSelection, saveMeal, deleteMeal, rememberFood } = store;
+  const linked = useLinkedApps();
+  const [today] = useState(() => toDay(new Date()));
 
   const [meal, setMeal] = useState(() => withIds(loadDraft()));
   const [activeMealId, setActiveMealId] = useState(null);
@@ -139,11 +162,39 @@ export default function F4TPage() {
     setActiveMealId(saved.id);
     setSaveOpen(false);
     setSavedNote("");
+    if (tab !== "off") go({ tab: "off" });
     document.getElementById("ff-meal")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  // Opened from PlanFox with ?meal=<id>: load that saved meal once.
+  // Where you are: ?tab=plan|shop|off|me, ?week=<first day>, ?day=<day> (from
+  // PlanFox), and for the off-plan screen ?day=&slot= to compare against.
   const [params, setParams] = useSearchParams();
+  const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : params.get("meal") ? "off" : "plan";
+  const focusDay = isDay(params.get("day")) ? params.get("day") : null;
+  const start = isDay(params.get("week")) ? params.get("week") : weekStart(focusDay ?? today, data.profile);
+  const week = usePlanner(data, linked, start);
+  const offDay = focusDay ?? today;
+  const offSlot = ["breakfast", "lunch", "dinner", "snack"].includes(params.get("slot")) ? params.get("slot") : slotForNow();
+
+  const go = useCallback(
+    (next, { replace = false } = {}) => {
+      setParams(Object.fromEntries(Object.entries(next).filter(([, v]) => v !== undefined && v !== null && v !== "")), { replace });
+    },
+    [setParams]
+  );
+  const goTab = id => {
+    go({ tab: id === "plan" ? undefined : id, week: params.get("week") ?? undefined });
+    window.scrollTo({ top: 0 });
+  };
+
+  // Opened from PlanFox on a day: bring that day into view.
+  useEffect(() => {
+    if (tab !== "plan" || !focusDay) return;
+    const t = setTimeout(() => document.getElementById(`fp-day-${focusDay}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+    return () => clearTimeout(t);
+  }, [tab, focusDay]);
+
+  // Opened from PlanFox with ?meal=<id>: load that saved meal once.
   const linkedMeal = data.meals.find(m => m.id === params.get("meal")) ?? null;
   const [handledMealId, setHandledMealId] = useState(null);
   if (linkedMeal && linkedMeal.id !== handledMealId) {
@@ -152,8 +203,36 @@ export default function F4TPage() {
     setActiveMealId(linkedMeal.id);
   }
   useEffect(() => {
-    if (handledMealId && params.get("meal")) setParams({}, { replace: true });
+    if (handledMealId && params.get("meal")) setParams({ tab: "off" }, { replace: true });
   }, [handledMealId, params, setParams]);
+
+  // What the plate is compared with on the off-plan screen.
+  const plannedEntry = data.plan[offDay]?.slots?.[offSlot] ?? null;
+  const planned = plannedFacts(plannedEntry, linked.getRecipe);
+  const [burnMode, setBurnMode] = useState("extra");
+  const burnCalories = planned && burnMode === "extra" ? Math.max(0, totalCalories - planned.kcal) : totalCalories;
+
+  function logOffPlan() {
+    if (!meal.length) return;
+    const name = activeMeal?.name ?? (meal.length === 1 ? meal[0].name : `${meal[0].name} and ${meal.length - 1} more`);
+    const kcal = Math.round(totalCalories);
+    store.setEntry(offDay, offSlot, e => ({ recipeId: e?.recipeId ?? null, portions: e?.portions ?? 1, ...(e?.leftover ? { leftover: true } : {}), eaten: true, off: { name: name.slice(0, 80), kcal, protein: 0, items: meal.map(item => ({ ...item, id: undefined })) } }));
+    setSavedNote(`Logged as ${offSlot} on ${offDay === today ? "today" : new Date(`${offDay}T12:00`).toLocaleDateString(undefined, { weekday: "long" })}.`);
+  }
+
+  function ateElse(day, slot) {
+    go({ tab: "off", day, slot });
+    window.scrollTo({ top: 0 });
+  }
+
+  function replanCheaper() {
+    const result = fillWithinBudget(
+      { days: week.days.filter(d => d >= today), targets: week.targets, training: week.training, recipes: linked.allowed, plan: data.plan, profile: data.profile, favorites: linked.cook.favorites, seed: data.planSeed * 17 + 3, replace: true },
+      { budget: data.profile.budget, people: data.profile.people, getRecipe: linked.getRecipe, pantry: linked.cook.pantry }
+    );
+    store.setPlanDays(result.week);
+    store.nextSeed();
+  }
 
   function appendMeal(saved) {
     setMeal(current => [...current, ...withIds(saved.items)]);
@@ -190,16 +269,57 @@ export default function F4TPage() {
             <Utensils size={26} />
           </div>
           <div>
-            <p className="ff-eyebrow">FUEL 4 THOUGHT</p>
-            <h1>What does this meal look like in activity?</h1>
+            <p className="ff-eyebrow">FUEL 4 THOUGHT · DIET PLANNER</p>
+            <h1>Eat for your goal, your training and your budget.</h1>
             <p className="ff-hero-sub">
-              Build a plate, then see it as minutes of walking, cycling, dancing, or 1,100 other activities.
-              Food doesn’t have to be earned. This is just a different way to picture energy.
+              Plan the week’s meals from CookFox recipes, sized to your body and your LiftFox training days. Get the grocery list and what it costs.
+              Ate something else? See how far off plan it was, and what it takes to walk it off.
             </p>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
         </header>
 
+        <nav className="fp-tabs" aria-label="Fuel 4 Thought">
+          {TABS.map(t => (
+            <button key={t.id} type="button" className={tab === t.id ? "is-active" : ""} aria-current={tab === t.id ? "page" : undefined} onClick={() => goTab(t.id)}>
+              <t.icon size={17} aria-hidden="true" />
+              {t.name}
+            </button>
+          ))}
+        </nav>
+
+        {tab === "plan" && (
+          <PlanTab
+            data={data}
+            linked={linked}
+            week={week}
+            start={start}
+            today={today}
+            onWeek={next => go({ week: next })}
+            actions={store}
+            onAteElse={ateElse}
+            goTab={goTab}
+          />
+        )}
+        {tab === "shop" && <GroceriesTab data={data} week={week} linked={linked} onReplanCheaper={replanCheaper} goTab={goTab} />}
+        {tab === "me" && <MeTab data={data} today={today} actions={store} />}
+
+        {tab === "off" && (
+        <>
+        <OffPlanBar
+          day={offDay}
+          slot={offSlot}
+          entry={plannedEntry}
+          planned={planned}
+          getRecipe={linked.getRecipe}
+          total={totalCalories}
+          weightLbs={weightLbs}
+          mode={burnMode}
+          onMode={setBurnMode}
+          onPick={(day, slot) => go({ tab: "off", day, slot }, { replace: true })}
+          onLog={logOffPlan}
+          canLog={meal.length > 0}
+        />
         <div className="ff-layout">
           <section className="ff-panel" id="ff-meal" aria-labelledby="ff-meal-title">
             <div className="ff-panel-head">
@@ -304,31 +424,38 @@ export default function F4TPage() {
 
             <div className="ff-weight">
               <label htmlFor="ff-weight">Your weight</label>
-              <div className="ff-weight-row">
-                <input
-                  id="ff-weight"
-                  type="number"
-                  min="1"
-                  inputMode="decimal"
-                  placeholder={unit === "kg" ? "80" : "175"}
-                  value={weightText}
-                  onChange={event => handleWeight(event.target.value)}
-                />
-                <div className="ff-unit" role="group" aria-label="Weight unit">
-                  {["lbs", "kg"].map(option => (
-                    <button
-                      key={option}
-                      type="button"
-                      aria-pressed={unit === option}
-                      className={unit === option ? "is-active" : ""}
-                      onClick={() => switchUnit(option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
+              {data.weights.length ? (
+                <p className="fp-weight-read">
+                  <b>{Math.round((unit === "kg" ? weightLbs / LBS_PER_KG : weightLbs) * 10) / 10} {unit}</b>
+                  <button type="button" className="ff-link" onClick={() => goTab("me")}>Weigh in</button>
+                </p>
+              ) : (
+                <div className="ff-weight-row">
+                  <input
+                    id="ff-weight"
+                    type="number"
+                    min="1"
+                    inputMode="decimal"
+                    placeholder={unit === "kg" ? "80" : "175"}
+                    value={weightText}
+                    onChange={event => handleWeight(event.target.value)}
+                  />
+                  <div className="ff-unit" role="group" aria-label="Weight unit">
+                    {["lbs", "kg"].map(option => (
+                      <button
+                        key={option}
+                        type="button"
+                        aria-pressed={unit === option}
+                        className={unit === option ? "is-active" : ""}
+                        onClick={() => switchUnit(option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <small>Remembered for next time.</small>
+              )}
+              <small>Used for how long activities take. Track it over time in Me.</small>
             </div>
 
           </aside>
@@ -338,7 +465,7 @@ export default function F4TPage() {
           <CompareStrip
             groups={compareGroups}
             selections={selections}
-            calories={totalCalories}
+            calories={burnCalories}
             weightLbs={weightLbs}
             onSelect={setSelection}
             onBrowse={() => document.getElementById("ff-activities")?.scrollIntoView({ behavior: "smooth", block: "start" })}
@@ -350,7 +477,7 @@ export default function F4TPage() {
             groups={activityGroups}
             favoriteKeys={favoriteKeys}
             selections={selections}
-            calories={totalCalories}
+            calories={burnCalories}
             weightLbs={weightLbs}
             onToggleFavorite={toggleFavorite}
             onSelect={setSelection}
@@ -367,6 +494,8 @@ export default function F4TPage() {
             if (id === activeMealId) setActiveMealId(null);
           }}
         />
+        </>
+        )}
       </div>
     </main>
   );

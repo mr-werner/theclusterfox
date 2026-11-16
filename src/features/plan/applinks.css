@@ -15,6 +15,7 @@
 .pf [data-app="mathfox"] { --app: var(--mathfox); }
 .pf [data-app="cookfox"] { --app: var(--cookfox); }
 .pf [data-app="growfox"] { --app: var(--growfox, #7cc576); }
+.pf [data-app="medicfox"] { --app: var(--medicfox, #5b9dff); }
 
 .pf-app-mark {
   display: grid;

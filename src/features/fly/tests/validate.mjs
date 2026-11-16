@@ -2,9 +2,9 @@
 import assert from "node:assert/strict";
 
 import { ceilingFt, flightCategory, magVar, parseAirports, parseHazards, parseMetars, parseTraffic, visibilityMiles } from "../../../../api/fly/_parse.js";
-import { decodeFb, fbCode, fbRows, freezingLevel, parseWindsAloft, windAt } from "../model/windsAloft.js";
+import { fdCode } from "../../../services/weather/windsAloft.js";
 import { airportsAlong, courseDeg, densityAltitude, distanceNm, fuelStops, hazardsOnRoute, inPolygon, planFlight, samplePoints, windTriangle } from "../model/nav.js";
-import { GENERATORS, makeQuestion } from "../model/generators.js";
+import { decodeFb, GENERATORS, makeQuestion } from "../model/generators.js";
 import { QUESTIONS } from "../data/questions.js";
 import { EXAMS } from "../data/exams.js";
 import { TOPICS, topicsById } from "../data/topics.js";
@@ -19,51 +19,12 @@ const test = (name, fn) => {
 };
 const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg ?? ""} expected ${b} ± ${tol}, got ${a}`);
 
-test("winds-aloft codes encode and decode like the FB forecast", () => {
-  assert.equal(fbCode({ dir: 270, kt: 25, tempC: -8 }, 9000), "2725-08");
-  assert.equal(fbCode({ dir: 230, kt: 115, tempC: -52 }, 30000), "731552");
-  assert.equal(fbCode({ dir: 90, kt: 3, tempC: 5 }, 6000), "9900+05");
-  assert.equal(fbCode({ dir: 360, kt: 20, tempC: 10 }, 3000), "3620");
-  assert.deepEqual(decodeFb("7315", 30000), { dir: 230, kt: 115, tempC: null });
+test("winds-aloft codes decode back to what the shared module encodes", () => {
+  assert.equal(fdCode({ dir: 270, speedKt: 25, tempC: -8 }, 9000), "2725-08");
   assert.deepEqual(decodeFb("2725-08"), { dir: 270, kt: 25, tempC: -8 });
-  assert.equal(decodeFb("731552", 30000).tempC, -52);
-});
-
-const body = {
-  latitude: 40,
-  longitude: -105,
-  elevation: 1600,
-  utc_offset_seconds: 0,
-  hourly: {
-    time: [1800000000],
-    wind_speed_10m: [10], wind_direction_10m: [180], temperature_2m: [12],
-    wind_speed_850hPa: [20], wind_direction_850hPa: [350], temperature_850hPa: [8], geopotential_height_850hPa: [1500],
-    wind_speed_700hPa: [30], wind_direction_700hPa: [10], temperature_700hPa: [0], geopotential_height_700hPa: [3000],
-    wind_speed_500hPa: [50], wind_direction_500hPa: [270], temperature_500hPa: [-20], geopotential_height_500hPa: [5600],
-    wind_speed_1000hPa: [5], wind_direction_1000hPa: [90], temperature_1000hPa: [15], geopotential_height_1000hPa: [100],
-  },
-};
-
-test("winds aloft parse skips levels under the ground and interpolates by vector", () => {
-  const p = parseWindsAloft(body);
-  near(p.elevationFt, 5249, 1);
-  assert.deepEqual(p.hours[0].levels.map(l => l.hPa), [700, 500]); // 1000 and 850 hPa are underground
-  const lo = { altFt: 1000, dir: 350, kt: 20, tempC: 8 };
-  const hi = { altFt: 2000, dir: 10, kt: 20, tempC: 0 };
-  const mid = windAt([lo, hi], 1500);
-  assert.equal(mid.dir, 0, "350° and 010° average to north, not south");
-  near(mid.kt, 19.7, 0.2);
-  near(mid.tempC, 4, 0.01);
-  assert.deepEqual(windAt([lo, hi], 500), { dir: 350, kt: 20, tempC: 8 });
-  near(freezingLevel([lo, hi]), 2000, 1);
-  assert.equal(freezingLevel([{ altFt: 0, tempC: 10 }, { altFt: 9000, tempC: 1 }]), null);
-});
-
-test("the FB table leaves out levels within 1,500 ft of the ground", () => {
-  const hour = { levels: [{ altFt: 2000, dir: 200, kt: 10, tempC: 10 }, { altFt: 40000, dir: 270, kt: 100, tempC: -56 }] };
-  const rows = fbRows(hour, 5000);
-  assert.equal(rows[0].altFt, 9000);
-  assert.ok(rows.every(r => r.altFt - 5000 >= 1500));
+  assert.deepEqual(decodeFb("7315", 30000), { dir: 230, kt: 115, tempC: null });
+  assert.equal(decodeFb(fdCode({ dir: 230, speedKt: 115, tempC: -52 }, 30000), 30000).tempC, -52);
+  assert.equal(decodeFb("9900+05").kt, 0);
 });
 
 test("great-circle distance and course", () => {
@@ -102,6 +63,17 @@ test("a flight plan adds up legs, time and fuel, and flags fuel stops", () => {
   near(stops[0].alongNm, 460, 10);
   const shortPlan = planFlight({ waypoints: [a, { id: "C", lat: 30.5, lon: -97.5 }], aircraft: { tas: 120, gph: 9, usableGal: 40 }, altitudeFt: 5500, samples: samplePoints([a, { lat: 30.5, lon: -97.5 }], 30), profiles: null });
   assert.equal(fuelStops(shortPlan, { gph: 9, usableGal: 40 }).length, 0);
+});
+
+test("the planner reads winds from the shared winds-aloft profiles", () => {
+  const a = { id: "A", lat: 40, lon: -100 };
+  const b = { id: "B", lat: 40, lon: -98 };
+  const hour = { time: new Date(0), surface: { speedKt: null }, levels: [{ altitudeFt: 1000, speedKt: 20, dir: 270, tempC: 10 }, { altitudeFt: 20000, speedKt: 20, dir: 270, tempC: -20 }] };
+  const samples = samplePoints([a, b], 20);
+  const profiles = samples.map(() => ({ elevationFt: 0, hours: [hour] }));
+  const plan = planFlight({ waypoints: [a, b], aircraft: { tas: 100, gph: 8, usableGal: 40 }, altitudeFt: 5500, departAt: 0, samples, profiles });
+  near(plan.legs[0].gs, 120, 1, "a 20 kt tailwind on an eastbound leg");
+  near(plan.legs[0].wind.dir, 270, 1);
 });
 
 test("airports along the route and hazards it crosses", () => {

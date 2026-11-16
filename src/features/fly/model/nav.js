@@ -2,7 +2,7 @@
 // triangle, route legs, fuel stops and hazards along a route. Distances
 // are nautical miles, speeds knots, angles degrees true. Plain functions.
 
-import { windAt, nearestHour } from "./windsAloft.js";
+import { hourNearest, windAt } from "../../../services/weather/windsAloft.js";
 
 const R_NM = 3440.065; // mean Earth radius in nautical miles
 const RAD = Math.PI / 180;
@@ -200,8 +200,9 @@ export function planFlight({ waypoints, aircraft, altitudeFt, departAt, samples,
     if (dist < 0.01) continue;
     const tc = courseDeg(a, b);
     const profile = profiles?.[i];
-    const hour = profile ? nearestHour(profile, new Date(clock)) : null;
-    const wind = hour ? windAt(hour.levels, altitudeFt) : null;
+    const hour = profile ? hourNearest(profile, clock) : null;
+    const w = hour ? windAt(hour, altitudeFt, { elevationFt: profile.elevationFt }) : null;
+    const wind = w ? { dir: w.dir, kt: w.speedKt, tempC: w.tempC } : null;
     const tri = windTriangle(tc, tas, wind) ?? { heading: tc, wca: 0, gs: Math.max(20, tas - (wind?.kt ?? 0)) };
     const minutes = (dist / tri.gs) * 60;
     pieces.push({ leg: a.leg, dist, tc, wind, ...tri, minutes, from: clock, alongNm: a.alongNm });

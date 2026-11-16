@@ -29,7 +29,7 @@ export const DIAGRAMS = {
   },
   "tank-volume": { component: TankDiagram, fields: ["shape", "D", "L", "W", "H", "h"], hint: "Drag the level handle up and down; the level box lights up as it changes. Tap the handle or any box to type a value." },
   "pressure-drop": { component: PipeDiagram, fields: ["Q", "pipe", "D", "L", "fluid", "mat"], hint: "Drag the handle on the pipe to resize the bore, or type the flow and pipe size on the drawing. The flow lines speed up as velocity rises." },
-  "section-properties": { component: SectionDiagram, fields: ["shape", "b", "h", "D", "B", "H", "s", "t", "tf", "tw"], hint: "Drag the corner handle to resize the shape, or type each dimension where it sits on it." },
+  "section-properties": { component: SectionDiagram, fields: ["shape", "b", "h", "D", "B", "H", "s", "t", "tf", "tw", "M", "V", "P", "mat", "Sy"], hint: "Grab an edge and drag it: the top sets the height, a side the width, a flange's underside its thickness, a tube's bore its inside diameter. Tap the padlock on a size to freeze it. Load it below to see the stress." },
   "stress-strain": { component: AxialDiagram, fields: ["F", "A", "L", "mat"], hint: "Drag the force handle to pull harder; tap it to type the force. The bar changes colour as it nears yield." },
   buckling: { component: BucklingDiagram, fields: ["ends", "L", "I", "A", "mat"], hint: "Pick the end supports to see how the column bows." },
   "torque-power": { component: TorqueDiagram, fields: ["P", "n", "tau"], hint: "Type the motor's power and speed. The shaft spins faster as the speed goes up." },
@@ -38,7 +38,7 @@ export const DIAGRAMS = {
   spring: { component: SpringDiagram, fields: ["d", "Dm", "Na", "F"], hint: "Drag the plate on the loaded spring down to load it. The spring is drawn to scale: wire, coil size and deflection are real." },
   "energy-motion": { component: EnergyDiagram, fields: ["m", "v", "h"], hint: "Drag the block up or down to change its height; tap it to type one." },
   "building-loads": { component: LoadBuilder, fields: ["model", "loc"], always: true, hint: "Pick where the building is to set the worst-case winter and summer weather, then add each room with its walls, windows, roof, people, lights and equipment. Setpoints and the rest are under More settings." },
-  "pump-system": { component: PumpSystemDiagram, fields: ["Q", "fluid", "model", "src", "srcP", "zs", "dst", "zd", "dstP"], always: true, hint: "Build the system in flow order: supply, suction runs, pump, discharge runs, destination. Tap a pipe in the sketch to jump to it. Pinch, use the buttons or ctrl+scroll to zoom, and tap Fit to see it all." },
+  "pump-system": { component: PumpSystemDiagram, fields: ["Q", "fluid", "model", "src", "srcP", "zs", "dst", "zd", "dstP"], always: true, hint: "Build the system in flow order: supply, suction runs, pump, discharge runs, destination. Tap any pipe, tank or piece of equipment on the sketch to edit all its settings right there; its card below lights up too. Pinch, use the buttons or ctrl+scroll to zoom, and tap Fit to see it all." },
   "fan-system": { component: FanSystemBuilder, fields: ["Q", "model"], always: true, hint: "Draw the path the air takes, from intake to the farthest outlet. Start with a duct run, a fitting and a component, then add or delete from there. Site elevation, temperature and the fan curve are under More settings." },
   slope: { component: SlopeDiagram, fields: ["rise", "run"], hint: "Drag the top corner to change the rise; tap it to type one." },
 };

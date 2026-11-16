@@ -607,3 +607,94 @@
 .ps-report .ps-r-fig.is-chart svg text {
   fill: #000 !important;
 }
+
+/* Docked editor for whatever was tapped on the drawing */
+.ps-zoom {
+  position: relative;
+}
+.ps-inspector {
+  position: absolute;
+  z-index: 5;
+  top: 50px;
+  right: 10px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  width: min(300px, calc(100% - 20px));
+  max-height: calc(100% - 60px);
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid var(--tf-cat);
+  border-radius: 12px;
+  background: rgba(13, 17, 16, 0.97);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+.ps-inspector header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.ps-inspector header button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--tf-surface-3);
+  color: #e6ebe8;
+}
+.ps-inspector-body {
+  display: grid;
+  gap: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+.ps-inspector .dg-num,
+.ps-inspector .dg-pick,
+.ps-inspector .dg-pills {
+  width: 100%;
+  box-sizing: border-box;
+}
+.ps-inspector-text input {
+  padding: 2px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 0.92rem;
+}
+.ps-inspector p {
+  margin: 0;
+}
+.ps-inspector .ps-fits {
+  margin: 0;
+}
+@media (max-width: 640px) {
+  .ps-inspector {
+    top: auto;
+    bottom: 8px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 70%;
+  }
+}
+.ps-eq-grab {
+  fill: transparent;
+}
+.ps-equip.is-moving {
+  opacity: 0.3;
+}
+.ps-ghost-eq {
+  opacity: 0.75;
+}
+.ps-ghost-eq.is-ok {
+  opacity: 1;
+}
+.ps-ghost-eq .ps-eq-body {
+  stroke: #ffc764;
+  stroke-width: 2.5;
+}

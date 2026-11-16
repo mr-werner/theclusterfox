@@ -1,6 +1,17 @@
 import { CalendarRange, Plane, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
 
+// PlanFox comes first: it is the calendar every other app feeds into, so it
+// leads the home screen.
 export const apps = [
+  {
+    id: "planfox",
+    name: "Plan",
+    subtitle: "PlanFox",
+    description: "Calendar • Weather • Life",
+    path: "/plan",
+    icon: CalendarRange,
+    accent: "planfox",
+  },
   {
     id: "f4t",
     name: "F4T",
@@ -36,15 +47,6 @@ export const apps = [
     path: "/sports",
     icon: Trophy,
     accent: "scorefox",
-  },
-  {
-    id: "planfox",
-    name: "Plan",
-    subtitle: "PlanFox",
-    description: "Calendar • Weather • Life",
-    path: "/plan",
-    icon: CalendarRange,
-    accent: "planfox",
   },
   {
     id: "liftfox",

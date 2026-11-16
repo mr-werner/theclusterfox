@@ -1,4 +1,4 @@
-import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
+import { Ambulance, CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
 
 export const apps = [
   {
@@ -100,5 +100,14 @@ export const apps = [
     path: "/grow",
     icon: Sprout,
     accent: "growfox",
+  },
+  {
+    id: "medicfox",
+    name: "Medic",
+    subtitle: "MedicFox",
+    description: "EMR • EMT • AEMT • Paramedic",
+    path: "/medic",
+    icon: Ambulance,
+    accent: "medicfox",
   },
 ];

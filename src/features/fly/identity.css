@@ -1,0 +1,17 @@
+/* FlyFox identity: the shared ClusterFox app bar in night-cockpit navy
+   with sectional-chart blue and a squared, instrument-panel name. */
+
+.appbar[data-app="flyfox"] {
+  --ab-bg: rgba(8, 16, 31, 0.88);
+  --ab-fg: #e8eef9;
+  --ab-muted: #8fa1bf;
+  --ab-line: rgba(140, 175, 255, 0.14);
+  --ab-accent: #4c8dff;
+  --ab-accent-ink: #04122b;
+  --ab-font: "Space Grotesk", sans-serif;
+  --ab-name-size: 1.12rem;
+  --ab-name-weight: 700;
+  --ab-name-spacing: 0.02em;
+  --ab-radius: 8px;
+  --ab-menu-bg: #101c33;
+}

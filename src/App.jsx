@@ -26,6 +26,8 @@ const MathPage = lazy(() => import("./features/math/MathPage"));
 const CookPage = lazy(() => import("./features/cook/CookPage"));
 // GrowFox carries its plant library, so it loads on demand too.
 const GrowPage = lazy(() => import("./features/grow/GrowPage"));
+// FlyFox carries its question bank and study notes, so it loads on demand too.
+const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
@@ -67,6 +69,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <GrowPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/fly"
+                element={
+                    <Suspense fallback={null}>
+                        <FlyPage />
                     </Suspense>
                 }
             />

@@ -1,4 +1,4 @@
-import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
+import { CalendarRange, Plane, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
 
 export const apps = [
   {
@@ -100,5 +100,14 @@ export const apps = [
     path: "/grow",
     icon: Sprout,
     accent: "growfox",
+  },
+  {
+    id: "flyfox",
+    name: "Fly",
+    subtitle: "FlyFox",
+    description: "Winds aloft • Flight plans • Pilot study",
+    path: "/fly",
+    icon: Plane,
+    accent: "flyfox",
   },
 ];

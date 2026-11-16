@@ -32,6 +32,7 @@
   --mathfox: #ff8ac2;
   --cookfox: #a8c69a;
   --growfox: #7cc576;
+  --flyfox: #4c8dff;
 
   --max-width: 1180px;
 }
@@ -374,6 +375,17 @@ select {
       145deg,
       #4f9a4a,
       #1f4f2a
+    );
+}
+
+.app-icon--flyfox {
+  color: #eaf2ff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #4c8dff,
+      #0f2a66
     );
 }
 

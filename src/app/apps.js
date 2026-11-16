@@ -1,4 +1,4 @@
-import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
+import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, PersonStanding, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
 
 export const apps = [
   {
@@ -100,5 +100,14 @@ export const apps = [
     path: "/grow",
     icon: Sprout,
     accent: "growfox",
+  },
+  {
+    id: "bodyfox",
+    name: "Body",
+    subtitle: "BodyFox",
+    description: "Anatomy • 3D • Explore",
+    path: "/body",
+    icon: PersonStanding,
+    accent: "bodyfox",
   },
 ];

@@ -30,6 +30,8 @@ const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 // MedicFox carries its knowledge base and skill sheets, so it loads on demand too.
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
+// BodyFox brings three.js and its 3D body, so it loads on demand too.
+const BodyPage = lazy(() => import("./features/body/BodyPage"));
 
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
@@ -103,6 +105,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <ToolsPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/body"
+                element={
+                    <Suspense fallback={null}>
+                        <BodyPage />
                     </Suspense>
                 }
             />

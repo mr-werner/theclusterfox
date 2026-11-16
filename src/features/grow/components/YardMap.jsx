@@ -15,7 +15,8 @@ import { plantsById } from "../data/plants";
 
 const E = EXTENT;
 const FT = 3.28084;
-const MAX_ZOOM = 5;
+const START_ZOOM = E / 20; // opens framed on the middle 40 m; zoom out for the whole lot
+const MAX_ZOOM = 7;
 
 // One SVG path per class, with runs of equal cells merged into strips.
 function layers(n, cell, classOf) {
@@ -90,7 +91,7 @@ export default function YardMap({ yard, latitude, mode = "hours", grid = null, m
   const svg = useRef(null);
   const world = useRef(null);
   const [drag, setDrag] = useState(null);
-  const [view, setView] = useState({ zoom: 1, px: 0, py: 0 });
+  const [view, setView] = useState({ zoom: START_ZOOM, px: 0, py: 0 });
   const turn = yard.turn ?? 0;
   const zoom = view.zoom;
   const size = (E * 2) / zoom;
@@ -233,7 +234,7 @@ export default function YardMap({ yard, latitude, mode = "hours", grid = null, m
   const sel = selected === "house" ? houseTarget : shown.objects.find(o => o.id === selected) ?? null;
   const hs = 0.42 * Math.max(0.6, 1.4 / zoom); // handle radius, about the same size on screen
   const scale = scaleBar(size, units);
-  const labelsOn = zoom >= 1.5;
+  const labelsOn = zoom >= 2.1;
 
   return (
     <div className={`gf-ym-wrap${editable ? " is-editable" : ""}`}>
@@ -445,10 +446,10 @@ function clampView(v) {
 function scaleBar(size, units) {
   const want = size / 5;
   if (units === "metric") {
-    const m = [1, 2, 5, 10, 20].reduce((a, b) => (Math.abs(b - want) < Math.abs(a - want) ? b : a));
+    const m = [1, 2, 5, 10, 20, 50].reduce((a, b) => (Math.abs(b - want) < Math.abs(a - want) ? b : a));
     return { len: m, text: `${m} m` };
   }
-  const ft = [5, 10, 20, 40, 60].reduce((a, b) => (Math.abs(b / FT - want) < Math.abs(a / FT - want) ? b : a));
+  const ft = [5, 10, 20, 40, 60, 100].reduce((a, b) => (Math.abs(b / FT - want) < Math.abs(a / FT - want) ? b : a));
   return { len: ft / FT, text: `${ft} ft` };
 }
 

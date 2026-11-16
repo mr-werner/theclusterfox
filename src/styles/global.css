@@ -32,8 +32,9 @@
   --mathfox: #ff8ac2;
   --cookfox: #a8c69a;
   --growfox: #7cc576;
-  --medicfox: #5b9dff;
   --bodyfox: #3fd0c9;
+  --flyfox: #4c8dff;
+  --medicfox: #5b9dff;
 
   --max-width: 1180px;
 }
@@ -379,14 +380,14 @@ select {
     );
 }
 
-.app-icon--bodyfox {
-  color: #e9fffc;
+.app-icon--flyfox {
+  color: #eaf2ff;
 
   background:
     linear-gradient(
       145deg,
-      #2f9e98,
-      #0f3a3d
+      #4c8dff,
+      #0f2a66
     );
 }
 
@@ -398,6 +399,17 @@ select {
       145deg,
       #d4e5ff,
       #3d7fe6
+    );
+}
+
+.app-icon--bodyfox {
+  color: #e9fffc;
+
+  background:
+    linear-gradient(
+      145deg,
+      #2f9e98,
+      #0f3a3d
     );
 }
 

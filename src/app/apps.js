@@ -5,7 +5,7 @@ export const apps = [
     id: "f4t",
     name: "F4T",
     subtitle: "Fuel 4 Thought",
-    description: "Food • Fitness • Science",
+    description: "Meals • Groceries • Budget",
     path: "/f4t",
     icon: Flame,
     accent: "f4t",

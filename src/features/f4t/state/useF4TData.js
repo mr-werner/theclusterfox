@@ -10,6 +10,7 @@ import {
   saveData,
   toRemote,
 } from "./f4tStore";
+import { cleanProfile } from "../model/body.js";
 
 const PUSH_DELAY_MS = 1200;
 
@@ -139,9 +140,77 @@ export function useF4TData() {
     }));
   }, [update]);
 
+  // --- Diet planner ---
+
+  const setProfile = useCallback(patch => {
+    update(current => ({ profile: cleanProfile({ ...current.profile, ...patch }) }));
+  }, [update]);
+
+  // One weigh-in per day. The latest one is the weight everything else uses.
+  const logWeight = useCallback((day, lbs) => {
+    const at = new Date().toISOString();
+    update(current => {
+      const weights = [...current.weights.filter(w => w.day !== day), { day, lbs, at }].sort((a, b) => a.day.localeCompare(b.day));
+      return { weights, weightLbs: weights.at(-1).lbs };
+    });
+  }, [update]);
+
+  const deleteWeight = useCallback(day => {
+    const at = new Date().toISOString();
+    update(current => {
+      const weights = current.weights.filter(w => w.day !== day);
+      return { weights, deletedWeights: [...current.deletedWeights, { day, at }].slice(-200), weightLbs: weights.at(-1)?.lbs ?? current.weightLbs };
+    });
+  }, [update]);
+
+  // days: { day: { slots } } replaces those days of the plan.
+  const setPlanDays = useCallback(days => {
+    const at = new Date().toISOString();
+    update(current => {
+      const plan = { ...current.plan };
+      for (const [day, d] of Object.entries(days)) plan[day] = { slots: d.slots ?? {}, updatedAt: at };
+      return { plan };
+    });
+  }, [update]);
+
+  // entry: an entry, a function (entry) => entry, or null to clear the slot.
+  const setEntry = useCallback((day, slotId, entry) => {
+    const at = new Date().toISOString();
+    update(current => {
+      const slots = { ...(current.plan[day]?.slots ?? {}) };
+      const next = typeof entry === "function" ? entry(slots[slotId] ?? null) : entry;
+      if (next) slots[slotId] = next;
+      else delete slots[slotId];
+      return { plan: { ...current.plan, [day]: { slots, updatedAt: at } } };
+    });
+  }, [update]);
+
+  const addWorkout = useCallback(({ day, preset, minutes }) => {
+    const now = new Date().toISOString();
+    update(current => ({ workouts: [...current.workouts, { id: crypto.randomUUID(), day, preset, minutes, updatedAt: now }] }));
+  }, [update]);
+
+  const removeWorkout = useCallback(id => {
+    const at = new Date().toISOString();
+    update(current => ({
+      workouts: current.workouts.filter(w => w.id !== id),
+      deletedWorkoutIds: [...current.deletedWorkoutIds, { id, at }].slice(-200),
+    }));
+  }, [update]);
+
+  const nextSeed = useCallback(() => update(current => ({ planSeed: (current.planSeed % 100000) + 1 })), [update]);
+
   return {
     data,
     syncStatus,
+    setProfile,
+    logWeight,
+    deleteWeight,
+    setPlanDays,
+    setEntry,
+    addWorkout,
+    removeWorkout,
+    nextSeed,
     isSignedIn: Boolean(userId),
     setWeight,
     setFavorites,

@@ -471,6 +471,11 @@ export const freeAppDetails = {
   "Tímarit.is": { note: "Free public archive from the National and University Library of Iceland." },
   "Icelandic Online": { note: "Free self-study courses; a free account saves your progress." },
   "Málið.is": { note: "Free public portal from the Árni Magnússon Institute." },
+  "RTVCPlay": { limits: ["region"], note: "Public and free; some live sports and films are Colombia only." },
+  "Radio Nacional de Colombia": { note: "Live public radio and podcasts from RTVC, available worldwide." },
+  "Radiónica": { note: "Live public radio from RTVC, available worldwide." },
+  "Biblioteca Virtual Banrepcultural": { note: "Free public collection from the Banco de la República." },
+  "Colombia Aprende": { note: "Free public portal from Colombia's Ministry of Education." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -782,4 +787,9 @@ export const freeAppCountries = {
   "Tímarit.is": "Iceland",
   "Icelandic Online": "Iceland",
   "Málið.is": "Iceland",
+  "RTVCPlay": "Colombia",
+  "Radio Nacional de Colombia": "Colombia",
+  "Radiónica": "Colombia",
+  "Biblioteca Virtual Banrepcultural": "Colombia",
+  "Colombia Aprende": "Colombia",
 };

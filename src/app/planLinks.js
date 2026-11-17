@@ -32,6 +32,7 @@ export const PLAN_LINKS = [
   { app: "growfox", storageKey: "growfox-data-v1", load: () => import("../features/grow/model/planLink.js") },
   { app: "flyfox", storageKey: "flyfox-data-v1", load: () => import("../features/fly/model/planLink.js") },
   { app: "trailfox", storageKey: "trailfox-data-v1", load: () => import("../features/hike/model/planLink.js") },
+  { app: "fretfox", storageKey: "fretfox-data-v1", load: () => import("../features/guitar/model/planLink.js") },
   { app: "snowfox", storageKey: "snowfox-data-v1", load: () => import("../features/snow/model/planLink.js") },
   { app: "keysfox", storageKey: "keysfox-data-v1", load: () => import("../features/keys/model/planLink.js") },
   { app: "climbfox", storageKey: "climbfox-data-v1", load: () => import("../features/climb/model/planLink.js") },

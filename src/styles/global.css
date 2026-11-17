@@ -35,6 +35,7 @@
   --bodyfox: #3fd0c9;
   --studyfox: #ffd84a;
   --trailfox: #e0a15e;
+  --fretfox: #e8a45a;
   --snowfox: #1769d1;
   --keysfox: #f2b544;
   --flyfox: #4c8dff;
@@ -557,6 +558,17 @@ select {
       145deg,
       #f08a4b,
       #9c3414
+    );
+}
+
+.app-icon--fretfox {
+  color: #1a1210;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd9a8,
+      #c9622e
     );
 }
 

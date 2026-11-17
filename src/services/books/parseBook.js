@@ -20,10 +20,10 @@ const STYLE = { i: "i", em: "i", cite: "i", var: "i", dfn: "i", b: "b", strong: 
 const VERSE = /\b(poem|poetry|stanza|verse|lg|song|z3998:poem|z3998:verse|z3998:song|z3998:hymn)\b/i;
 
 const NAMED = {
-  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", mdash: "—", ndash: "–", lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”",
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0", mdash: "—", ndash: "–", lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”",
   hellip: "…", laquo: "«", raquo: "»", middot: "·", bull: "•", copy: "©", reg: "®", deg: "°", pound: "£", euro: "€", cent: "¢", sect: "§",
   para: "¶", dagger: "†", Dagger: "‡", times: "×", divide: "÷", frac12: "½", frac14: "¼", frac34: "¾", sup1: "¹", sup2: "²", sup3: "³",
-  thinsp: " ", ensp: " ", emsp: " ", zwnj: "", zwj: "", shy: "", prime: "′", Prime: "″", larr: "←", rarr: "→", iexcl: "¡", iquest: "¿",
+  thinsp: "\u2009", ensp: "\u2002", emsp: "\u2003", zwnj: "", zwj: "", shy: "", prime: "′", Prime: "″", larr: "←", rarr: "→", iexcl: "¡", iquest: "¿",
   aelig: "æ", AElig: "Æ", oelig: "œ", OElig: "Œ", szlig: "ß", ccedil: "ç", Ccedil: "Ç", ntilde: "ñ", Ntilde: "Ñ", oslash: "ø", Oslash: "Ø", aring: "å", Aring: "Å", eth: "ð", thorn: "þ",
 };
 for (const [base, ch] of Object.entries({ a: "aàáâãäāă", e: "eèéêëēĕ", i: "iìíîïīĭ", o: "oòóôõöōŏ", u: "uùúûüūŭ", y: "yỳýŷÿ" })) {
@@ -118,7 +118,7 @@ export function parseHtml(html, base) {
     if (skipping()) return;
     let t = decodeEntities(raw);
     if (!inPre) {
-      t = t.replace(/[\s ]+/g, m => (m.includes(" ") && !/[\n\r\t ]/.test(m) ? " " : " "));
+      t = t.replace(/[\s\u00a0]+/g, m => (m.includes("\u00a0") && !/[\n\r\t ]/.test(m) ? "\u00a0" : " "));
       if (!text || /[ \n]$/.test(text)) t = t.replace(/^ /, "");
     }
     text += t;
@@ -243,7 +243,7 @@ const HEADING = /^(chapter|book|part|act|scene|stave|letter|volume|canto|section
 
 /** { blocks, start, end } from a plain-text Gutenberg file. */
 export function parseText(raw) {
-  const lines = raw.replace(/\r\n?/g, "\n").replace(/^﻿/, "").split("\n");
+  const lines = raw.replace(/\r\n?/g, "\n").replace(/^\ufeff/, "").split("\n");
   let startLine = lines.findIndex(l => /^\*\*\*\s*START OF (THE|THIS) PROJECT GUTENBERG/i.test(l));
   let endLine = lines.findIndex(l => /^\*\*\*\s*END OF (THE|THIS) PROJECT GUTENBERG/i.test(l));
   if (startLine < 0) startLine = -1;
@@ -268,8 +268,8 @@ export function parseText(raw) {
       blocks.push({ t: "h", l: 2, x: single });
       return;
     }
-    const short = trimmed.filter(l => l.length < 58).length;
-    const verse = trimmed.length >= 2 && short >= trimmed.length - 1 && !/[.!?"”]$/.test(trimmed[trimmed.length - 2] ?? ".");
+    // Prose is wrapped near 70 characters; lines that all stop well short are verse.
+    const verse = trimmed.length >= 2 && trimmed.slice(0, -1).every(l => l.length < 55);
     blocks.push(verse ? { t: "p", x: trimmed.join("\n"), v: 1 } : { t: "p", x: single });
   };
   lines.forEach((line, i) => {

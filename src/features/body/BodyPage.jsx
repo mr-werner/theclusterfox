@@ -11,6 +11,7 @@ import { LAYERS, baseName, displayName, layerById, mirrorOf, searchParts, search
 import { liftGroupFor, liftHref, partsInGroup } from "./model/liftLink";
 import { KINDS, kindInfo } from "./data/kinds";
 import { noteFor } from "./data/notes";
+import AddToStudy from "../../components/AddToStudy";
 import { muscleName } from "../lift/data/muscles";
 import "./body.css";
 import "./identity.css";
@@ -548,6 +549,12 @@ function PartInfo({ part, parts, isolated, onClose, onFocus, onHide, onIsolate, 
           </button>
         )}
       </div>
+      {part.layer !== "skin" && (
+        <div className="bf-study">
+          <small>Learn the {layer.name.toLowerCase()}</small>
+          <AddToStudy app="bodyfox" deck={part.layer} title={layer.name} compact />
+        </div>
+      )}
 
       {group && (
         <div className="bf-lift">

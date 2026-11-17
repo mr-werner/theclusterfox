@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { PLANTS, TYPES } from "../data/plants";
+import AddToStudy from "../../../components/AddToStudy";
 import { cadence } from "../model/care";
 import { isPlantableNow } from "../model/calendar";
 import { PlantArt, RatingBadge, SunNeeds } from "./ui";
@@ -72,6 +73,7 @@ export default function PlantsTab({ g }) {
       <div className="gf-plants-head">
         <h1>Plants {climate ? "for your area" : ""}</h1>
         <p className="gf-hint">{climate ? "Sorted from easiest to hardest to keep alive where you live." : "Set your place to see how each one does where you live."}</p>
+        <AddToStudy app="growfox" deck={type || "kinds"} title={type ? TYPES.find(t => t.id === type)?.name ?? "Plants" : "Sort plants by kind"} />
       </div>
       <div className="gf-toolbar">
         <div className="gf-search">

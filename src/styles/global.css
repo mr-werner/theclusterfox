@@ -33,6 +33,7 @@
   --cookfox: #a8c69a;
   --growfox: #7cc576;
   --bodyfox: #3fd0c9;
+  --studyfox: #ffd84a;
   --flyfox: #4c8dff;
   --medicfox: #5b9dff;
 
@@ -410,6 +411,17 @@ select {
       145deg,
       #2f9e98,
       #0f3a3d
+    );
+}
+
+.app-icon--studyfox {
+  color: #2a1636;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff1a8,
+      #f5b93a
     );
 }
 

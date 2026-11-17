@@ -1,0 +1,20 @@
+/* StudyFox identity: a late-night study desk. Deep plum ink, cream index
+   cards with a red top rule and blue lines, and a highlighter-yellow
+   accent. A bookish serif for names, a very readable sans for everything
+   you have to learn, and a handwritten note here and there. */
+@import url("https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Caveat:wght@600;700&display=swap");
+
+.appbar[data-app="studyfox"] {
+  --ab-bg: rgba(27, 19, 34, 0.9);
+  --ab-fg: #f6eef8;
+  --ab-muted: #bca9c6;
+  --ab-line: rgba(255, 216, 74, 0.14);
+  --ab-accent: #ffd84a;
+  --ab-accent-ink: #2a1636;
+  --ab-font: "Young Serif", Georgia, serif;
+  --ab-name-size: 1.3rem;
+  --ab-name-weight: 400;
+  --ab-name-spacing: 0;
+  --ab-radius: 6px;
+  --ab-menu-bg: #241a2e;
+}

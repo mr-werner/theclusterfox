@@ -9,7 +9,7 @@ const MAX_TOMBSTONES = 200;
 export function emptyData() {
   return {
     version: 1,
-    prefs: { muscles: [], goal: "size", minutes: 45, gear: [], level: 1, unit: "lb", restSound: true },
+    prefs: { muscles: [], goal: "size", minutes: 45, gear: [], level: 1, unit: "lb", restSound: true, favorites: [] },
     // The workout being followed right now (see model/generate.js).
     current: null,
     // Finished workouts: { id, date, title, goal, minutes, muscles, setsDone, setsTotal, loads, planId, sessionId, updatedAt }
@@ -56,6 +56,8 @@ function cleanPrefs(prefs) {
     level: [1, 2, 3].includes(prefs.level) ? prefs.level : base.level,
     unit: prefs.unit === "kg" ? "kg" : "lb",
     restSound: prefs.restSound !== false,
+    // Starred exercises, by id.
+    favorites: [...new Set(strings(prefs.favorites))].slice(0, 300),
   };
 }
 

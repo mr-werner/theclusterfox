@@ -26,7 +26,7 @@
   --watchfox: #c79bff;
   --scorefox: #d7f34a;
   --planfox: #f5c451;
-  --liftfox: #ff7a6b;
+  --liftfox: #ff2d20;
   --toolfox: #4fd8c4;
   --calmfox: #9aa8ff;
   --mathfox: #ff8ac2;
@@ -326,13 +326,13 @@ select {
 }
 
 .app-icon--liftfox {
-  color: #2e0904;
+  color: #fff;
 
   background:
     linear-gradient(
       145deg,
-      #ffc2b8,
-      #f0604f
+      #ff6a4d,
+      #c80d06
     );
 }
 

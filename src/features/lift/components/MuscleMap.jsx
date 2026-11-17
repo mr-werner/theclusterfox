@@ -1,6 +1,17 @@
-import { useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 
 import { BACK_SHAPES, BODY_HALF, FRONT_SHAPES, HEAD, muscleName, muscles, REGIONS } from "../data/muscles";
+
+// three.js loads only for the picker; old browsers keep the flat drawing.
+const MuscleChooser3D = lazy(() => import("./MuscleChooser3D"));
+
+function hasWebGL2() {
+  try {
+    return typeof document !== "undefined" && Boolean(document.createElement("canvas").getContext("webgl2"));
+  } catch {
+    return false;
+  }
+}
 
 const MIRROR = "translate(200 0) scale(-1 1)";
 
@@ -38,14 +49,25 @@ function Body({ title, shapes, selected, hovered, onHover, onToggle }) {
 /** A front and back body to tap muscles on, plus buttons for the same. */
 export default function MuscleMap({ selected, onToggle, onSet }) {
   const [hovered, setHovered] = useState(null);
+  const [use3d, setUse3d] = useState(hasWebGL2);
   const shared = { selected, hovered, onHover: setHovered, onToggle };
+  const flat = (
+    <div className="lm-figures">
+      <Body title="Front" shapes={FRONT_SHAPES} {...shared} />
+      <Body title="Back" shapes={BACK_SHAPES} {...shared} />
+    </div>
+  );
+  const fail = useCallback(() => setUse3d(false), []);
 
   return (
-    <div className="lm-map">
-      <div className="lm-figures">
-        <Body title="Front" shapes={FRONT_SHAPES} {...shared} />
-        <Body title="Back" shapes={BACK_SHAPES} {...shared} />
-      </div>
+    <div className={`lm-map ${use3d ? "lm-map--3d" : ""}`}>
+      {use3d ? (
+        <Suspense fallback={<div className="lm-3d" />}>
+          <MuscleChooser3D selected={selected} onToggle={onToggle} hovered={hovered} onHover={setHovered} onFail={fail} />
+        </Suspense>
+      ) : (
+        flat
+      )}
 
       <div className="lm-picks">
         {REGIONS.map(region => {

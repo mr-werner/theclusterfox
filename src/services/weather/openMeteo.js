@@ -69,7 +69,9 @@ export async function searchPlaces(query, { signal } = {}) {
  * gust m/s, precipProb %, precip mm, code (WMO), uv, isDay, global,
  * directNormal, diffuse (W/m²), windDir (degrees, from), dewPoint °C, cloud %.
  */
-export async function fetchForecast({ latitude, longitude }, { signal } = {}) {
+// pastDays adds that many days before today (ClimbFox uses it to see
+// whether yesterday's rain has left the rock wet).
+export async function fetchForecast({ latitude, longitude }, { signal, pastDays = 0 } = {}) {
   const params = new URLSearchParams({
     latitude: latitude.toFixed(4),
     longitude: longitude.toFixed(4),
@@ -81,6 +83,7 @@ export async function fetchForecast({ latitude, longitude }, { signal } = {}) {
     timeformat: "unixtime",
     forecast_days: "14",
   });
+  if (pastDays > 0) params.set("past_days", String(Math.min(7, Math.round(pastDays))));
   const response = await fetch(`${FORECAST_URL}?${params}`, { signal });
   if (!response.ok) throw new Error("The weather service isn't responding. Try again in a moment.");
   return parseForecast(await response.json());

@@ -274,7 +274,7 @@ export default function F4TPage() {
             <h1>Eat well around the day you actually have.</h1>
             <p className="ff-hero-sub">
               Tell FuelFox how you usually eat: coffee for breakfast, no lunch, a big dinner is fine. It plans around that with cooking, meal prep, eating out
-              or grab-and-go, sized to your body, your LiftFox training and your budget, with portions you can judge by hand.
+              or grab-and-go, sized to your body, your LiftFox and PaceFox training and your budget, with portions you can judge by hand.
             </p>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>

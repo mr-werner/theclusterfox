@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  ChevronUp, Crosshair, Dumbbell, Eye, EyeOff, Layers, Loader2, RotateCcw, Scan, Search, SlidersHorizontal, Undo2, X,
+  ChevronDown, ChevronRight, ChevronUp, Crosshair, Dumbbell, Eye, EyeOff, Layers, Loader2, RotateCcw, Scan, Search, SlidersHorizontal, Undo2, X,
 } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import AnatomyViewer from "./viewer/AnatomyViewer";
 import { openInApp } from "../../lib/launchApp";
-import { LAYERS, baseName, displayName, layerById, mirrorOf, searchParts, searchStructures, sideOf } from "./model/parts";
+import { LAYERS, displayName, layerById, mirrorOf, searchParts, searchStructures, sideOf } from "./model/parts";
 import { liftGroupFor, liftHref, partsInGroup } from "./model/liftLink";
-import { KINDS, kindInfo } from "./data/kinds";
-import { noteFor } from "./data/notes";
+import { buildSystems } from "./model/systems";
+import { LEVELS, explain } from "./data/explain";
 import AddToStudy from "../../components/AddToStudy";
 import { muscleName } from "../lift/data/muscles";
 import "./body.css";
@@ -20,6 +20,14 @@ const STORE_KEY = "bodyfox-view-v1";
 const DEFAULT_MODES = { skin: "off", muscles: "solid", skeleton: "solid", organs: "off", vessels: "off", nervous: "off" };
 const MODE_ORDER = ["solid", "ghost", "off"];
 const MODE_LABEL = { solid: "Show", ghost: "See-through", off: "Off" };
+// The layers that sit over each layer and hide it.
+const COVERS = {
+  muscles: ["skin"],
+  skeleton: ["skin"],
+  organs: ["skin", "muscles"],
+  vessels: ["skin", "muscles"],
+  nervous: ["skin", "muscles", "skeleton"],
+};
 
 // Quick places to fly to, in body space (metres, the body's right side is -x).
 const REGIONS = [
@@ -45,7 +53,12 @@ function readSaved() {
     if (!raw) return null;
     const modes = { ...DEFAULT_MODES };
     for (const l of LAYERS) if (MODE_ORDER.includes(raw.modes?.[l.id])) modes[l.id] = raw.modes[l.id];
-    return { modes, detail: raw.detail === "high" || raw.detail === "light" ? raw.detail : "auto" };
+    return {
+      modes,
+      detail: raw.detail === "high" || raw.detail === "light" ? raw.detail : "auto",
+      sex: raw.sex === "female" ? "female" : "male",
+      level: LEVELS.some(l => l.id === raw.level) ? raw.level : "bio",
+    };
   } catch {
     return null;
   }
@@ -80,6 +93,12 @@ export default function BodyPage() {
   const [loadError, setLoadError] = useState(null);
   const [modes, setModes] = useState(saved?.modes ?? DEFAULT_MODES);
   const [detail, setDetail] = useState(saved?.detail ?? "auto");
+  const [sex, setSex] = useState(saved?.sex ?? "male");
+  const [level, setLevel] = useState(saved?.level ?? "bio");
+  const [offGroups, setOffGroups] = useState([]); // system keys switched off
+  const [openLayers, setOpenLayers] = useState([]); // layers with their systems shown
+  const [openGroups, setOpenGroups] = useState([]);
+  const sexRef = useRef(sex);
   const [status, setStatus] = useState({});
   const [selected, setSelected] = useState(null);
   const [hover, setHover] = useState(null);
@@ -96,11 +115,11 @@ export default function BodyPage() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ modes, detail }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ modes, detail, sex, level }));
     } catch {
       // Private mode: the view simply isn't remembered.
     }
-  }, [modes, detail]);
+  }, [modes, detail, sex, level]);
 
   // The parts list: names, layers and where each part sits.
   useEffect(() => {
@@ -116,6 +135,24 @@ export default function BodyPage() {
 
   const parts = index?.parts ?? null;
   const partsById = useMemo(() => new Map((parts ?? []).map(p => [p.id, p])), [parts]);
+  // The parts of the body being shown: some exist only in the male or female body.
+  const bodyParts = useMemo(() => {
+    const code = sex === "female" ? "f" : "m";
+    return parts ? parts.filter(p => !p.sex || p.sex === code) : null;
+  }, [parts, sex]);
+  const systems = useMemo(() => (bodyParts ? buildSystems(bodyParts) : null), [bodyParts]);
+  const offIds = useMemo(() => {
+    if (!systems) return [];
+    const keys = new Set(offGroups);
+    const ids = [];
+    for (const groups of Object.values(systems)) {
+      for (const g of groups) {
+        if (keys.has(g.key)) ids.push(...g.ids);
+        else for (const sub of g.subs) if (keys.has(sub.key)) ids.push(...sub.ids);
+      }
+    }
+    return ids;
+  }, [systems, offGroups]);
 
   const onSelect = useCallback(part => {
     setSelected(part);
@@ -128,6 +165,7 @@ export default function BodyPage() {
     const viewer = new AnatomyViewer(stageRef.current, {
       parts,
       lite,
+      sex: sexRef.current,
       onSelect,
       onHover: (part, x, y) => setHover(part ? { part, x, y } : null),
       onLayerStatus: (id, s) => {
@@ -172,13 +210,18 @@ export default function BodyPage() {
   }, [explode]);
 
   useEffect(() => {
+    sexRef.current = sex;
+    viewerRef.current?.setSex(sex);
+  }, [sex, parts, lite]);
+
+  useEffect(() => {
     const v = viewerRef.current;
     if (!v) return;
-    v.hidden = new Set(hidden);
+    v.hidden = new Set([...hidden, ...offIds]);
     v.isolated = isolated ? new Set(isolated.ids) : null;
     v.select(selected);
     v.refreshAll();
-  }, [hidden, isolated, selected, parts, lite]);
+  }, [hidden, offIds, isolated, selected, parts, lite]);
 
   const turnOn = useCallback(layerId => {
     setModes(m => (m[layerId] === "off" ? { ...m, [layerId]: "solid" } : m));
@@ -190,7 +233,15 @@ export default function BodyPage() {
 
   const choose = useCallback(part => {
     turnOn(part.layer);
+    // Make what covers it see-through, so you can see it.
+    const cover = COVERS[part.layer] ?? [];
+    setModes(m => {
+      const next = { ...m };
+      for (const id of cover) if (next[id] === "solid") next[id] = "ghost";
+      return next;
+    });
     setHidden(h => h.filter(id => id !== part.id));
+    setOffGroups([]);
     onSelect(part);
     setQuery("");
     setPanelOpen(false);
@@ -208,7 +259,7 @@ export default function BodyPage() {
       if (linkPart && partsById.has(linkPart)) {
         choose(partsById.get(linkPart));
       } else if (linkGroup) {
-        const group = partsInGroup(parts, linkGroup);
+        const group = partsInGroup(bodyParts, linkGroup);
         if (group.length) {
           turnOn("muscles");
           setIsolated({ label: muscleName(linkGroup), ids: group.map(p => p.id) });
@@ -217,10 +268,50 @@ export default function BodyPage() {
       }
       setParams({}, { replace: true });
     });
-  }, [parts, partsById, linkPart, linkGroup, choose, turnOn, focusParts, setParams]);
+  }, [parts, bodyParts, partsById, linkPart, linkGroup, choose, turnOn, focusParts, setParams]);
 
-  const results = useMemo(() => (parts && query.trim() ? searchParts(parts, query, 30) : []), [parts, query]);
-  const structures = useMemo(() => (parts ? searchStructures(parts, query) : []), [parts, query]);
+  const results = useMemo(() => (bodyParts && query.trim() ? searchParts(bodyParts, query, 30) : []), [bodyParts, query]);
+  const structures = useMemo(() => (bodyParts ? searchStructures(bodyParts, query) : []), [bodyParts, query]);
+
+  function changeSex(next) {
+    setSex(next);
+    const code = next === "female" ? "f" : "m";
+    if (selected?.sex && selected.sex !== code) onSelect(null);
+    if (isolated) setIsolated(null);
+  }
+
+  // Systems: switch a group (or one of its smaller groups) off and on.
+  function toggleGroup(group, sub) {
+    setOffGroups(prev => {
+      const off = new Set(prev);
+      if (!sub) {
+        if (off.has(group.key)) {
+          off.delete(group.key);
+          for (const s of group.subs) off.delete(s.key);
+        } else {
+          off.add(group.key);
+        }
+      } else if (off.has(group.key)) {
+        // Turning one piece back on inside a switched-off group: the rest stay off.
+        off.delete(group.key);
+        for (const s of group.subs) if (s.key !== sub.key) off.add(s.key);
+      } else if (off.has(sub.key)) {
+        off.delete(sub.key);
+      } else {
+        off.add(sub.key);
+      }
+      return [...off];
+    });
+  }
+
+  function showGroup(name, ids) {
+    const list = ids.map(id => partsById.get(id)).filter(Boolean);
+    // Anything switched off in this layer comes back, so the group shows.
+    if (list.length) setOffGroups(prev => prev.filter(k => !k.startsWith(`${list[0].layer}/`)));
+    showStructure({ name, parts: list });
+  }
+
+  const toggleIn = setter => id => setter(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
 
   function showStructure(structure) {
     const layersNeeded = [...new Set(structure.parts.map(p => p.layer))];
@@ -255,7 +346,7 @@ export default function BodyPage() {
       setIsolated(null);
       return;
     }
-    const mirror = mirrorOf(selected, parts);
+    const mirror = mirrorOf(selected, bodyParts);
     setIsolated({ label: displayName(selected.name), ids: [selected.id, ...(mirror ? [mirror.id] : [])] });
     // Peel the skin away so the part shows through.
     setModes(m => ({ ...m, skin: m.skin === "solid" ? "ghost" : m.skin }));
@@ -263,6 +354,7 @@ export default function BodyPage() {
 
   function resetAll() {
     setHidden([]);
+    setOffGroups([]);
     setIsolated(null);
     setExplode(0);
     onSelect(null);
@@ -330,6 +422,16 @@ export default function BodyPage() {
           </section>
 
           <section className="bf-sec">
+            <div className="bf-body-row">
+              <h2 className="bf-h">Body</h2>
+              <div className="bf-seg bf-seg-sex" role="radiogroup" aria-label="Male or female body">
+                {[["male", "Male"], ["female", "Female"]].map(([id, name]) => (
+                  <button key={id} type="button" role="radio" aria-checked={sex === id} className={sex === id ? "is-on" : ""} onClick={() => changeSex(id)}>
+                    {name}
+                  </button>
+                ))}
+              </div>
+            </div>
             <h2 className="bf-h">
               <Layers size={15} aria-hidden="true" /> Layers
             </h2>
@@ -337,8 +439,10 @@ export default function BodyPage() {
               {LAYERS.map(l => {
                 const mode = modes[l.id];
                 const st = status[l.id];
+                const groups = systems?.[l.id] ?? [];
+                const open = openLayers.includes(l.id);
                 return (
-                  <li key={l.id} className={`bf-layer is-${mode}`}>
+                  <li key={l.id} className={`bf-layer is-${mode}${open ? " is-open" : ""}`}>
                     <button type="button" className="bf-layer-name" onClick={() => cycleMode(l.id)} title={`${l.name}: ${MODE_LABEL[mode]}. Tap to change.`}>
                       <span className="bf-swatch" style={{ "--c": l.color }} aria-hidden="true" />
                       <span className="bf-layer-text">
@@ -364,6 +468,23 @@ export default function BodyPage() {
                         </button>
                       ))}
                     </div>
+                    {groups.length > 1 && (
+                      <button type="button" className="bf-sys-toggle" onClick={() => toggleIn(setOpenLayers)(l.id)} aria-expanded={open}>
+                        {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+                        {open ? "Hide systems" : `Systems (${groups.length})`}
+                      </button>
+                    )}
+                    {open && (
+                      <SystemTree
+                        groups={groups}
+                        off={offGroups}
+                        openGroups={openGroups}
+                        dim={mode === "off"}
+                        onToggle={toggleGroup}
+                        onOpen={toggleIn(setOpenGroups)}
+                        onShow={showGroup}
+                      />
+                    )}
                   </li>
                 );
               })}
@@ -423,7 +544,7 @@ export default function BodyPage() {
           </section>
 
           <p className="bf-credit bf-more">
-            3D anatomy from <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noreferrer">BodyParts3D</a>, © The Database Center for Life Science, CC BY 4.0. Simplified for the web. For learning, not for diagnosis.
+            3D anatomy from <a href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/" target="_blank" rel="noreferrer">BodyParts3D</a>, © The Database Center for Life Science, CC BY 4.0. Female organs from the <a href="https://humanatlas.io/3d-reference-library" target="_blank" rel="noreferrer">NIH Human Reference Atlas</a>, CC BY 4.0. Simplified for the web. For learning, not for diagnosis.
           </p>
         </aside>
 
@@ -481,7 +602,9 @@ export default function BodyPage() {
         {selected && (
           <PartInfo
             part={selected}
-            parts={parts}
+            parts={bodyParts}
+            level={level}
+            onLevel={setLevel}
             isolated={Boolean(isolated)}
             onClose={() => onSelect(null)}
             onFocus={() => focusParts([selected])}
@@ -496,19 +619,54 @@ export default function BodyPage() {
   );
 }
 
-// A general write-up for parts the data doesn't classify.
-function fallbackKind(part, base) {
-  if (part.layer === "muscles") return /tendon/.test(base) ? null : KINDS["muscle organ"];
-  if (part.layer === "vessels") return /vein|venous|sinus/.test(base) ? KINDS["systemic vein"] : /arter|aorta|trunk|arch/.test(base) ? KINDS["systemic artery"] : null;
-  if (part.layer === "nervous" && /nerve/.test(base)) return KINDS.nerve;
-  if (part.layer === "skeleton" && /ligament/.test(base)) return KINDS.ligament;
-  return null;
+function SystemTree({ groups, off, openGroups, dim, onToggle, onOpen, onShow }) {
+  const offSet = new Set(off);
+  const Eyes = ({ on, label, onClick }) => (
+    <button type="button" className={`bf-sys-eye${on ? "" : " is-off"}`} onClick={onClick} aria-pressed={on} aria-label={`${on ? "Hide" : "Show"} ${label}`} title={on ? "Hide" : "Show"}>
+      {on ? <Eye size={14} /> : <EyeOff size={14} />}
+    </button>
+  );
+  return (
+    <ul className={`bf-sys${dim ? " is-dim" : ""}`}>
+      {groups.map(g => {
+        const gOn = !offSet.has(g.key);
+        const open = openGroups.includes(g.key);
+        return (
+          <li key={g.key}>
+            <div className="bf-sys-row">
+              <Eyes on={gOn} label={g.name} onClick={() => onToggle(g)} />
+              <button type="button" className="bf-sys-name" onClick={() => onShow(g.name, g.ids)} title={`Show only the ${g.name.toLowerCase()}`}>
+                {g.name} <small>{g.ids.length}</small>
+              </button>
+              {g.subs.length > 1 && (
+                <button type="button" className="bf-icon-btn bf-sys-more" onClick={() => onOpen(g.key)} aria-expanded={open} aria-label={`${open ? "Hide" : "Show"} parts of ${g.name}`}>
+                  {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                </button>
+              )}
+            </div>
+            {open && g.subs.length > 1 && (
+              <ul className="bf-sys bf-sys-sub">
+                {g.subs.map(sub => (
+                  <li key={sub.key}>
+                    <div className="bf-sys-row">
+                      <Eyes on={gOn && !offSet.has(sub.key)} label={sub.name} onClick={() => onToggle(g, sub)} />
+                      <button type="button" className="bf-sys-name" onClick={() => onShow(sub.name, sub.ids)} title={`Show only the ${sub.name.toLowerCase()}`}>
+                        {sub.name} <small>{sub.ids.length}</small>
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
-function PartInfo({ part, parts, isolated, onClose, onFocus, onHide, onIsolate, onChoose, onLift }) {
-  const base = baseName(part.name);
-  const kind = kindInfo(part.kind) ?? fallbackKind(part, base);
-  const note = noteFor(base);
+function PartInfo({ part, parts, level, onLevel, isolated, onClose, onFocus, onHide, onIsolate, onChoose, onLift }) {
+  const info = explain(part, level);
   const layer = layerById.get(part.layer);
   const side = sideOf(part.name);
   const mirror = useMemo(() => mirrorOf(part, parts), [part, parts]);
@@ -520,17 +678,24 @@ function PartInfo({ part, parts, isolated, onClose, onFocus, onHide, onIsolate, 
         <span className="bf-tag" style={{ "--c": layer.color }}>
           {layer.name}
         </span>
-        {kind && <span className="bf-tag is-plain">{kind.label}</span>}
+        {info.kindLabel && level !== "kid" && <span className="bf-tag is-plain">{info.kindLabel}</span>}
         <button type="button" className="bf-icon-btn bf-close" onClick={onClose} aria-label="Close">
           <X size={18} />
         </button>
       </div>
       <h2 className="bf-info-name">{displayName(part.name)}</h2>
       {side && <p className="bf-info-side">On the body's {side} side</p>}
-      <div className="bf-info-body">
-        {note && <p>{note}</p>}
-        {kind && (!note || part.layer === "muscles") && <p className={note ? "bf-info-kind" : ""}>{kind.text}</p>}
-        {!note && !kind && <p>Part of the {layer.name.toLowerCase()}. {layer.blurb}.</p>}
+      <div className="bf-levels bf-seg" role="radiogroup" aria-label="How much detail">
+        {LEVELS.map(l => (
+          <button key={l.id} type="button" role="radio" aria-checked={level === l.id} className={level === l.id ? "is-on" : ""} onClick={() => onLevel(l.id)} title={l.blurb}>
+            {l.name}
+          </button>
+        ))}
+      </div>
+      <div className={`bf-info-body is-${level}`}>
+        <p>{info.lead}</p>
+        {info.more && <p className="bf-info-kind">{info.more}</p>}
+        {info.context && <p className="bf-info-where">{info.context}</p>}
       </div>
 
       <div className="bf-actions">

@@ -204,6 +204,7 @@
 
 .bf-layer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 6px 6px 6px 8px;
@@ -324,6 +325,131 @@
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+}
+
+/* Male / female */
+
+.bf-body-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bf-body-row .bf-h {
+  margin: 0;
+}
+
+.bf-seg-sex button {
+  min-width: 64px;
+}
+
+/* Systems inside a layer */
+
+.bf-sys-toggle {
+  display: inline-flex;
+  flex-basis: calc(100% - 32px);
+  align-items: center;
+  gap: 4px;
+  margin: -6px 0 0 26px;
+  padding: 2px 6px;
+  color: var(--bf-muted);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  font-size: 0.76rem;
+}
+
+.bf-sys-toggle:hover {
+  color: var(--bf-ink);
+}
+
+.bf-sys {
+  flex-basis: 100%;
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0 0 2px 24px;
+  list-style: none;
+}
+
+.bf-sys.is-dim {
+  opacity: 0.55;
+}
+
+.bf-sys-sub {
+  padding: 0 0 4px 22px;
+}
+
+.bf-sys-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+}
+
+.bf-sys-eye {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 26px;
+  color: var(--bf-accent);
+  background: none;
+  border: 0;
+  border-radius: 7px;
+}
+
+.bf-sys-eye.is-off {
+  color: var(--bf-faint);
+}
+
+.bf-sys-eye:hover,
+.bf-sys-name:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.bf-sys-name {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  color: var(--bf-ink);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 7px;
+  font-size: 0.86rem;
+}
+
+.bf-sys-name small {
+  margin-left: 4px;
+  color: var(--bf-faint);
+  font-size: 0.74rem;
+}
+
+.bf-sys-more {
+  flex: none;
+}
+
+/* Explanation level */
+
+.bf-levels {
+  display: flex;
+  margin-top: 12px;
+}
+
+.bf-levels button {
+  flex: 1;
+}
+
+.bf-info-body.is-kid {
+  font-size: 1.02rem;
+}
+
+.bf-info-where {
+  color: var(--bf-faint);
+  font-size: 0.78rem;
 }
 
 /* Take apart */
@@ -759,6 +885,12 @@
     order: -1;
   }
 
+  .bf-side:not(.is-open) .bf-body-row,
+  .bf-side:not(.is-open) .bf-sys-toggle,
+  .bf-side:not(.is-open) .bf-sys {
+    display: none;
+  }
+
   .bf-layers {
     display: flex;
     gap: 6px;
@@ -801,6 +933,31 @@
 
   .bf-layer.is-solid .bf-chip-mode {
     display: none;
+  }
+
+  /* Controls opened up: the layers become a list again, with their systems. */
+  .bf-side.is-open .bf-layers {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .bf-side.is-open .bf-layer {
+    padding: 4px 6px 4px 8px;
+    border-radius: 12px;
+  }
+
+  .bf-side.is-open .bf-layer .bf-seg {
+    display: inline-flex;
+  }
+
+  .bf-side.is-open .bf-chip-mode {
+    display: none;
+  }
+
+  .bf-sys-row {
+    min-height: 36px;
   }
 
   .bf-apart-ends {

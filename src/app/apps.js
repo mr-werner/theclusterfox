@@ -90,6 +90,7 @@ export const apps = [
     path: "/pace",
     icon: Activity,
     accent: "pacefox",
+    category: "health",
   },
   {
     id: "toolfox",
@@ -112,6 +113,7 @@ export const apps = [
     path: "/fluids",
     icon: Droplets,
     accent: "fluids",
+    category: "work",
   },
   {
     id: "heat",
@@ -121,6 +123,7 @@ export const apps = [
     path: "/heat",
     icon: Flame,
     accent: "heat",
+    category: "work",
   },
   {
     id: "hvac",
@@ -130,6 +133,7 @@ export const apps = [
     path: "/hvac",
     icon: Wind,
     accent: "hvac",
+    category: "work",
   },
   {
     id: "mechanics",
@@ -139,6 +143,7 @@ export const apps = [
     path: "/mechanics",
     icon: Cog,
     accent: "mechanics",
+    category: "work",
   },
   {
     id: "electrical",
@@ -148,6 +153,7 @@ export const apps = [
     path: "/electrical",
     icon: Zap,
     accent: "electrical",
+    category: "work",
   },
   {
     id: "manufacturing",
@@ -157,6 +163,7 @@ export const apps = [
     path: "/manufacturing",
     icon: DraftingCompass,
     accent: "manufacturing",
+    category: "work",
   },
   {
     id: "calmfox",
@@ -236,6 +243,7 @@ export const apps = [
     path: "/study",
     icon: GraduationCap,
     accent: "studyfox",
+    category: "learn",
   },
   {
     id: "beaconfox",
@@ -245,6 +253,7 @@ export const apps = [
     path: "/beacon",
     icon: Flashlight,
     accent: "beaconfox",
+    category: "outdoors",
   },
   {
     id: "roadfox",
@@ -254,5 +263,6 @@ export const apps = [
     path: "/road",
     icon: CarFront,
     accent: "roadfox",
+    category: "outdoors",
   },
 ];

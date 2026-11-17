@@ -1,0 +1,28 @@
+{
+  "id": "/electrical",
+  "name": "Electrical",
+  "short_name": "Electrical",
+  "start_url": "/electrical",
+  "scope": "/electrical",
+  "display": "standalone",
+  "background_color": "#14130a",
+  "theme_color": "#14130a",
+  "icons": [
+    {
+      "src": "/apps/electrical-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/electrical-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/electrical-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

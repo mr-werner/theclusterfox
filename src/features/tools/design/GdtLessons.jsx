@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../nav";
 import { ArrowLeft, ArrowRight, Check, Volume2, X } from "lucide-react";
 import { BASICS } from "./gdtModel";
 import { FrameSvg, SymbolPath, FrameBox } from "./Frame";

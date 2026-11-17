@@ -1,0 +1,28 @@
+{
+  "id": "/manufacturing",
+  "name": "Design & Manufacturing",
+  "short_name": "Design",
+  "start_url": "/manufacturing",
+  "scope": "/manufacturing",
+  "display": "standalone",
+  "background_color": "#211709",
+  "theme_color": "#211709",
+  "icons": [
+    {
+      "src": "/apps/manufacturing-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/manufacturing-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/manufacturing-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

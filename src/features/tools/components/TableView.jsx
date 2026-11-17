@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../nav";
 import { ArrowDown, ArrowUp, Check, Download, Search, Star } from "lucide-react";
 import { tableById, categoryById } from "../registry";
 import { defaultUnit, fromSI, toSI, unitLabel, fmt, fmtInput, parseNumber } from "../model/units";

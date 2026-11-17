@@ -1,0 +1,151 @@
+/* A discipline app (Fluids & Piping, Electrical, ...) is the ToolFox drafting
+   sheet recolored: its own paper, grid and accent. ToolsPage sets --d-bg,
+   --d-accent and --d-grid ("r, g, b") from disciplines.js. */
+
+.tf.tf-discipline {
+  --tf-accent: var(--d-accent);
+  --tf-accent-ink: #120d06;
+  --tf-surface: color-mix(in srgb, var(--d-bg) 82%, rgb(var(--d-grid)) 8%);
+  --tf-surface-2: color-mix(in srgb, var(--d-bg) 76%, rgb(var(--d-grid)) 12%);
+  --tf-surface-3: color-mix(in srgb, var(--d-bg) 70%, rgb(var(--d-grid)) 16%);
+  --tf-line: rgba(var(--d-grid), 0.16);
+  --tf-line-strong: rgba(var(--d-grid), 0.32);
+  --tf-muted: color-mix(in srgb, rgb(var(--d-grid)) 55%, #c8ccd0);
+
+  background-color: var(--d-bg);
+  background-image:
+    linear-gradient(rgba(var(--d-grid), 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--d-grid), 0.09) 1px, transparent 1px),
+    linear-gradient(rgba(var(--d-grid), 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--d-grid), 0.04) 1px, transparent 1px);
+}
+
+.tf.tf-discipline option,
+.tf.tf-discipline optgroup {
+  background-color: var(--d-bg);
+}
+
+.tf-discipline .tf-brand-mark {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--d-accent) 45%, #fff), var(--d-accent));
+}
+
+/* The app bar takes the discipline's colors too. */
+.tf-discipline .appbar {
+  --ab-bg: color-mix(in srgb, var(--d-bg) 92%, transparent);
+  --ab-line: rgba(var(--d-grid), 0.22);
+  --ab-accent: var(--d-accent);
+  --ab-accent-ink: #120d06;
+  --ab-font: "IBM Plex Sans Condensed", sans-serif;
+  --ab-name-case: uppercase;
+  --ab-name-spacing: 0.08em;
+  --ab-radius: 2px;
+}
+
+.tf-side-out {
+  margin-top: 6px;
+  border-top: 1px solid var(--tf-line);
+  border-radius: 0 0 10px 10px;
+  padding-top: 12px;
+}
+
+/* Profession kits */
+.tf-job-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tf-job-note {
+  margin: -4px 0 12px;
+  color: var(--tf-muted);
+  font-size: 0.9rem;
+}
+
+.tf-block-more {
+  margin-left: auto;
+  color: var(--tf-accent);
+  font-family: var(--tf-mono, inherit);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.tf-block-more:hover {
+  text-decoration: underline;
+}
+
+.tf-job-pick {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid var(--tf-line-strong);
+  border-radius: var(--tf-radius, 8px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.tf-job-pick:hover {
+  border-color: var(--tf-accent);
+}
+
+.tf-job-pick.is-on {
+  border-color: transparent;
+  background: var(--tf-accent);
+  color: var(--tf-accent-ink);
+  font-weight: 600;
+}
+
+/* Panels and cards take the discipline's paper instead of ToolFox blue. */
+.tf-discipline .tf-hero {
+  background: color-mix(in srgb, var(--d-bg) 86%, transparent) !important;
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--d-bg) 90%, transparent), inset 0 0 0 5px var(--tf-line);
+}
+
+.tf-discipline .tf-card,
+.tf-discipline .tf-cat-card,
+.tf-discipline .tf-tool-card,
+.tf-discipline .tf-table-card {
+  background: color-mix(in srgb, var(--tf-surface) 90%, transparent) !important;
+}
+
+.tf-discipline .tf-cat-card:hover,
+.tf-discipline .tf-tool-card:hover {
+  box-shadow: 0 0 0 1px var(--tf-accent), 0 0 24px rgba(var(--d-grid), 0.18);
+}
+
+.tf-discipline .tf-primary {
+  background:
+    repeating-linear-gradient(0deg, rgba(var(--d-grid), 0.05) 0 1px, transparent 1px 4px),
+    linear-gradient(135deg, rgba(var(--d-grid), 0.16), color-mix(in srgb, var(--d-bg) 40%, transparent)) !important;
+  box-shadow: inset 0 0 0 1px rgba(var(--d-grid), 0.35);
+}
+
+.tf-discipline .tf-primary-value output {
+  color: color-mix(in srgb, var(--d-accent) 25%, #fff);
+  text-shadow: 0 0 18px rgba(var(--d-grid), 0.4);
+}
+
+.tf-discipline .tf-export-btn,
+.tf-discipline .tf-titleblock {
+  background: color-mix(in srgb, var(--d-bg) 80%, transparent);
+}
+
+.tf-disc-title {
+  justify-content: flex-start;
+}
+
+/* Long discipline names wrap in the sidebar instead of being cut off. */
+.tf-discipline .tf-brand-text > span {
+  white-space: normal;
+  line-height: 1.1;
+}
+
+.tf-discipline .tf-input-row,
+.tf-discipline .tf-select,
+.tf.tf-discipline .tf-field select,
+.tf-discipline .tf-formulas code {
+  background: color-mix(in srgb, var(--d-bg) 70%, #000 10%);
+}

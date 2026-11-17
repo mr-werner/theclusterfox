@@ -17,6 +17,12 @@
 .pf [data-app="growfox"] { --app: var(--growfox, #7cc576); }
 .pf [data-app="flyfox"] { --app: var(--flyfox, #4c8dff); }
 .pf [data-app="medicfox"] { --app: var(--medicfox, #5b9dff); }
+.pf [data-app="fluids"] { --app: var(--fluids); }
+.pf [data-app="heat"] { --app: var(--heat); }
+.pf [data-app="hvac"] { --app: var(--hvac); }
+.pf [data-app="mechanics"] { --app: var(--mechanics); }
+.pf [data-app="electrical"] { --app: var(--electrical); }
+.pf [data-app="manufacturing"] { --app: var(--manufacturing); }
 
 .pf-app-mark {
   display: grid;

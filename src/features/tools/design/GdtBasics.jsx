@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../nav";
 import { Check, TriangleAlert, Volume2 } from "lucide-react";
 import { CALLOUTS, GROUPS, HOLE, PIN, bonusFor, calloutById, inSize, virtualCondition } from "./gdtModel";
 import { FrameBox } from "./Frame";

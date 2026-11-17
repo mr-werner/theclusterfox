@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { Link } from "../nav";
+import { useToolsBase } from "../navBase";
+import { canonical } from "../paths";
 import { Check, FolderPlus, RefreshCw, X } from "lucide-react";
 import { useProjects } from "../state/useProjects";
 
@@ -31,6 +34,7 @@ const writeLast = (id) => {
 export default function SaveToProject({ tool, getReport, getPath, className = "tf-export-btn", label = "Save to project" }) {
   const api = useProjects();
   const location = useLocation();
+  const { base } = useToolsBase();
   // Where this page was opened from, if from a project. Read once: the page rewrites its URL as you type.
   const [origin] = useState(() => location.state?.projectItem || null);
   const originProject = origin ? api.byId(origin.projectId) : null;
@@ -44,7 +48,7 @@ export default function SaveToProject({ tool, getReport, getPath, className = "t
     return () => clearTimeout(t);
   }, [done]);
 
-  const path = () => (getPath ? getPath() : `${window.location.pathname}${window.location.search}`);
+  const path = () => (getPath ? getPath() : canonical(`${window.location.pathname}${window.location.search}`, base));
 
   function updateOrigin() {
     api.updateItem(originProject.id, originItem.id, { path: path(), report: getReport() });

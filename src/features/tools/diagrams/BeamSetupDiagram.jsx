@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../navBase";
 import { ArrowRight } from "lucide-react";
 import BeamDiagram from "./BeamDiagram";
 import BeamBuilderDiagram from "./BeamBuilderDiagram";

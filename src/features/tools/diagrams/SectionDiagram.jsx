@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "../navBase";
 import { ArrowRight, Lock, LockOpen } from "lucide-react";
 import { Canvas, At, Num, Pills, Pick, Badge, DimLine } from "./kit";
 import { show, tidy, clamp } from "./helpers";

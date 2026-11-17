@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
+import { HomeLabel, Link } from "../nav";
+import { useNavigate } from "../navBase";
 import { ArrowDown, ArrowLeft, ArrowUp, Copy, Download, ExternalLink, FolderOpen, FolderPlus, Printer, Trash2, Upload } from "lucide-react";
 import { useProjects } from "../state/useProjects";
 import { exportProject, headline } from "../model/projects";
@@ -70,7 +72,7 @@ export function ProjectsIndex() {
     <div className="tf-category tf-projects">
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          <ArrowLeft size={15} aria-hidden="true" /> Engineer ToolFox
+          <ArrowLeft size={15} aria-hidden="true" /> <HomeLabel />
         </Link>
         <div className="tf-title-row">
           <h1>Projects</h1>

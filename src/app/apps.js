@@ -1,4 +1,4 @@
-import { Ambulance, CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
+import { Ambulance, CalendarRange, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flower2, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
 // PlanFox comes first: it is the calendar every other app feeds into, so it
 // leads the home screen.
@@ -66,6 +66,62 @@ export const apps = [
     path: "/tools",
     icon: Wrench,
     accent: "toolfox",
+  },
+  // The ToolFox disciplines, each also its own app. They show the same
+  // tools as ToolFox (see src/features/tools/disciplines.js).
+  {
+    id: "fluids",
+    name: "Fluids",
+    subtitle: "Fluids & Piping",
+    description: "Pipes • Pumps • Flow",
+    path: "/fluids",
+    icon: Droplets,
+    accent: "fluids",
+  },
+  {
+    id: "heat",
+    name: "Heat",
+    subtitle: "Heat & Energy",
+    description: "Conduction • Exchangers • Fuel",
+    path: "/heat",
+    icon: Flame,
+    accent: "heat",
+  },
+  {
+    id: "hvac",
+    name: "HVAC",
+    subtitle: "Air & HVAC",
+    description: "Psychrometrics • Ducts • Loads",
+    path: "/hvac",
+    icon: Wind,
+    accent: "hvac",
+  },
+  {
+    id: "mechanics",
+    name: "Mechanics",
+    subtitle: "Mechanics & Structures",
+    description: "Beams • Frames • Bolts",
+    path: "/mechanics",
+    icon: Cog,
+    accent: "mechanics",
+  },
+  {
+    id: "electrical",
+    name: "Electrical",
+    subtitle: "Electrical",
+    description: "Ohm's law • Wire • Power",
+    path: "/electrical",
+    icon: Zap,
+    accent: "electrical",
+  },
+  {
+    id: "manufacturing",
+    name: "Design",
+    subtitle: "Design & Manufacturing",
+    description: "GD&T • Processes • Machines",
+    path: "/manufacturing",
+    icon: DraftingCompass,
+    accent: "manufacturing",
   },
   {
     id: "calmfox",

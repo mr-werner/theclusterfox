@@ -1,0 +1,28 @@
+{
+  "id": "/jump",
+  "name": "JumpFox",
+  "short_name": "JumpFox",
+  "start_url": "/jump",
+  "scope": "/jump",
+  "display": "standalone",
+  "background_color": "#08151f",
+  "theme_color": "#08151f",
+  "icons": [
+    {
+      "src": "/apps/jumpfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/jumpfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/jumpfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -31,6 +31,7 @@ export const PLAN_LINKS = [
   { app: "toolfox", storageKey: "toolfox-prefs-v1", load: () => import("../features/tools/model/planLink.js") },
   { app: "growfox", storageKey: "growfox-data-v1", load: () => import("../features/grow/model/planLink.js") },
   { app: "flyfox", storageKey: "flyfox-data-v1", load: () => import("../features/fly/model/planLink.js") },
+  { app: "jumpfox", storageKey: "jumpfox-data-v1", load: () => import("../features/jump/model/planLink.js") },
   { app: "medicfox", storageKey: "medicfox-data-v1", load: () => import("../features/medic/model/planLink.js") },
 ];
 

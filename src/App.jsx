@@ -29,6 +29,8 @@ const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 // FlyFox carries its question bank and study notes, so it loads on demand too.
 const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 // MedicFox carries its knowledge base and skill sheets, so it loads on demand too.
+// JumpFox carries drop zones, skills diagrams and the logbook, so it loads on demand too.
+const JumpPage = lazy(() => import("./features/jump/JumpPage"));
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
 const BodyPage = lazy(() => import("./features/body/BodyPage"));
@@ -81,6 +83,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <FlyPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/jump"
+                element={
+                    <Suspense fallback={null}>
+                        <JumpPage />
                     </Suspense>
                 }
             />

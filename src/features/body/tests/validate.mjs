@@ -8,6 +8,8 @@ import { KINDS, kindInfo } from "../data/kinds.js";
 import { noteFor } from "../data/notes.js";
 import { muscles } from "../../lift/data/muscles.js";
 import { decodeLayer } from "../viewer/loadLayer.js";
+import { buildSystems, systemOf } from "../model/systems.js";
+import { LEVELS, explain } from "../data/explain.js";
 
 let passed = 0;
 const test = async (name, fn) => {
@@ -32,6 +34,7 @@ await test("every layer has parts and a model file, light and full", () => {
 
 await test("the whole body stays small enough for phones", () => {
   const size = suffix => LAYERS.reduce((s, l) => s + fs.statSync(new URL(`${l.id}${suffix}.bin`, root)).size, 0);
+  // (The female skin replaces the male one, so one body is still this size.)
   assert.ok(size("") < 4 * 1024 * 1024, `full body is ${size("")} bytes`);
   assert.ok(size("-lite") < 1.2 * 1024 * 1024, `light body is ${size("-lite")} bytes`);
 });
@@ -167,6 +170,37 @@ await test("LiftFox: muscles map to LiftFox's own groups", () => {
   assert.equal(liftGroupFor(byName("Right femur")), null, "bones aren't trained");
   for (const g of LIFT_GROUPS) assert.ok(partsInGroup(parts, g).length > 0, `no muscles for ${g}`);
   assert.equal(liftHref("lowerBack"), "/lift?muscles=lowerBack");
+});
+
+await test("male and female bodies: each has its own parts and skin", () => {
+  assert.ok(fs.existsSync(new URL("skin-female.bin", root)) && fs.existsSync(new URL("skin-female-lite.bin", root)));
+  for (const name of ["Body of uterus", "Right ovary", "Left ovary", "Vagina", "Right mammary gland", "Left mammary gland"]) {
+    assert.equal(byName(name)?.sex, "f", `${name} is female-only`);
+  }
+  for (const name of ["Prostate", "Right testis", "Glans penis"]) assert.equal(byName(name)?.sex, "m", `${name} is male-only`);
+  assert.equal(byName("Right femur").sex, undefined, "bones are shared");
+  // The uterus sits inside the pelvis.
+  const pelvis = unionBox([byName("Right hip bone").box, byName("Left hip bone").box]);
+  const [lo, hi] = byName("Body of uterus").box;
+  const c = [0, 1, 2].map(a => (lo[a] + hi[a]) / 2);
+  for (let a = 0; a < 3; a++) assert.ok(c[a] > pelvis[0][a] && c[a] < pelvis[1][a], "uterus inside the pelvis");
+});
+
+await test("systems: every part lands in a named group of its layer", () => {
+  const tree = buildSystems(parts);
+  assert.equal(systemOf(byName("Right femur")).group, "legs");
+  assert.equal(systemOf(byName("Long head of right biceps brachii")).sub, "upper-arm");
+  assert.equal(systemOf(byName("Liver")).group, "digestive");
+  assert.equal(systemOf(byName("Body of uterus")).sub, "female");
+  for (const l of LAYERS) {
+    const n = tree[l.id].reduce((s, g) => s + g.ids.length, 0);
+    assert.equal(n, parts.filter(p => p.layer === l.id).length, `${l.id}: all parts grouped`);
+  }
+});
+
+await test("explanations: every part has text at every level", () => {
+  for (const p of parts) for (const lvl of LEVELS) assert.ok(explain(p, lvl.id).lead.length > 20, `${p.name} @ ${lvl.id}`);
+  assert.notEqual(explain(byName("Right femur"), "kid").lead, explain(byName("Right femur"), "bio").lead);
 });
 
 console.log(`\n${passed} BodyFox checks passed`);

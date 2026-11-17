@@ -109,12 +109,14 @@ export default class AnatomyViewer {
    * @param {object} opts
    * @param {Array} opts.parts every part from index.json
    * @param {boolean} opts.lite load the lighter models (phones)
+   * @param {"male"|"female"} opts.sex which body to show
    * @param {(ref) => void} opts.onSelect a part was tapped (null for empty space)
    * @param {(ref, x, y) => void} opts.onHover
    * @param {(layerId, status) => void} opts.onLayerStatus "loading" | "ready" | "error"
    */
-  constructor(container, { parts, lite = false, baseUrl = "/anatomy", onSelect, onHover, onLayerStatus }) {
+  constructor(container, { parts, lite = false, sex = "male", baseUrl = "/anatomy", onSelect, onHover, onLayerStatus }) {
     this.container = container;
+    this.sex = sex;
     this.parts = parts;
     this.lite = lite;
     this.baseUrl = baseUrl;
@@ -183,9 +185,13 @@ export default class AnatomyViewer {
     if (!layer || layer.mesh) return layer;
     if (!layer.loading) {
       this.onLayerStatus?.(id, "loading");
-      layer.loading = fetchLayer(`${this.baseUrl}/${id}${this.lite ? "-lite" : ""}.bin`)
+      const file = this.fileFor(id);
+      layer.loading = fetchLayer(`${this.baseUrl}/${file}${this.lite ? "-lite" : ""}.bin`)
         .then(data => {
           if (this.disposed) return;
+          // The body was switched while this loaded; the other file is coming.
+          if (file !== this.fileFor(id)) return;
+          layer.file = file;
           this.buildLayer(layer, data);
           this.onLayerStatus?.(id, "ready");
         })
@@ -241,6 +247,42 @@ export default class AnatomyViewer {
     this.refreshLayer(layer);
   }
 
+  /** The model file for a layer: only the skin differs between the bodies. */
+  fileFor(id) {
+    return id === "skin" && this.sex === "female" ? "skin-female" : id;
+  }
+
+  /** Switch between the male and female body. */
+  async setSex(sex) {
+    if (sex === this.sex) return;
+    this.sex = sex;
+    for (const layer of this.layers.values()) {
+      const stale = layer.mesh ? layer.file !== this.fileFor(layer.def.id) : layer.loading && layer.def.id === "skin";
+      if (!stale) continue;
+      if (layer.mesh) this.dropLayer(layer);
+      layer.loading = null;
+      if (layer.mode !== "off") this.ensureLayer(layer.def.id).then(() => this.refreshLayer(layer)).catch(() => {});
+    }
+    if (this.selected && !this.partShown(this.selected)) this.selected = null;
+    this.refreshAll();
+  }
+
+  /** Does this part exist in the body being shown? */
+  partShown(part) {
+    return !part.sex || part.sex === (this.sex === "female" ? "f" : "m");
+  }
+
+  dropLayer(layer) {
+    this.scene.remove(layer.mesh, layer.ghost);
+    this.pickScene.remove(layer.pick);
+    layer.mesh.geometry.dispose();
+    for (const m of [layer.mesh, layer.ghost, layer.pick]) m.material.dispose();
+    layer.colorTex.dispose();
+    layer.fxTex.dispose();
+    layer.mesh = layer.ghost = layer.pick = null;
+    layer.loading = null;
+  }
+
   // ---------- What is shown ----------
 
   /** mode: "solid" | "ghost" | "off" */
@@ -252,7 +294,7 @@ export default class AnatomyViewer {
   }
 
   stateOf(layer, part) {
-    if (layer.mode === "off" || this.hidden.has(part.id)) return HIDDEN;
+    if (layer.mode === "off" || this.hidden.has(part.id) || !this.partShown(part)) return HIDDEN;
     if (this.isolated) return this.isolated.has(part.id) ? SOLID : layer.mode === "off" ? HIDDEN : GHOST;
     return layer.mode === "ghost" ? GHOST : SOLID;
   }

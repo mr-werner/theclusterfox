@@ -1,3 +1,4 @@
+import Parachute from "../components/icons/Parachute.js";
 import { Activity, Ambulance, CalendarRange, CarFront, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, Guitar, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
 // The home screen groups apps into these, in this order. PlanFox is the hub

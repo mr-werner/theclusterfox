@@ -1,0 +1,18 @@
+/* FretFox identity: a sunburst guitar under stage light. Rosewood dark,
+   copper strings and brass frets, a chunky grotesque name like a headstock decal. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap");
+
+.appbar[data-app="fretfox"] {
+  --ab-bg: rgba(26, 18, 16, 0.9);
+  --ab-fg: #f4ead9;
+  --ab-muted: #b8a58c;
+  --ab-line: rgba(232, 164, 90, 0.16);
+  --ab-accent: #e8a45a;
+  --ab-accent-ink: #1a1210;
+  --ab-font: "Bricolage Grotesque", "Space Grotesk", sans-serif;
+  --ab-name-size: 1.3rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: -0.01em;
+  --ab-radius: 10px;
+  --ab-menu-bg: #24170f;
+}

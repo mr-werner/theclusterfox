@@ -348,7 +348,9 @@ function leadEvents(song, level) {
 function fingerstyleEvents(song, bars, level) {
   const sigBeats = barBeats(song.sig);
   // Melody stays on the top four strings so the thumb has the bass strings.
-  const melody = melodyOf(song).map(n => ({ ...n, midi: fitRange(n.midi) }));
+  const raw = melodyOf(song);
+  const shift = bestOctave(raw.map(n => n.midi));
+  const melody = raw.map(n => ({ ...n, midi: fitRange(n.midi + shift) }));
   const lifted = melody.map(n => ({ ...n, midi: n.midi < 50 ? n.midi + 12 : n.midi }));
   const placed = assignFingers(placeNotes(lifted, { avoidStrings: [0, 1] }));
   const events = placed.map(n => ({ id: evId(), kind: "note", t: n.beat, d: n.beats, notes: [{ string: n.string, fret: n.fret, finger: n.finger, midi: n.midi }] }));

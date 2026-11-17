@@ -8,8 +8,8 @@
 //   /api/plan/snow    live lift status (Liftie) and SNOTEL snow sensors, which
 //                     don't allow browser requests
 
-import { searchPlaces } from "../../services/weather/openMeteo";
-import { M_PER_FT, canadaLevel, inGeometry } from "./model/snow";
+import { searchPlaces } from "../../services/weather/openMeteo.js";
+import { M_PER_FT, canadaLevel, inGeometry } from "./model/snow.js";
 
 const FORECAST = "https://api.open-meteo.com/v1/forecast";
 const HOURLY = [
@@ -34,7 +34,7 @@ async function json(url, init, failText) {
     response = await fetch(url, init);
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    throw new Error(failText);
+    throw new Error(failText, { cause: error });
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
@@ -89,7 +89,7 @@ export async function fetchMountain({ lat, lon, base, summit }, { signal } = {})
   });
   const body = await json(`${FORECAST}?${params}`, { signal }, "The mountain forecast isn't responding. Try again in a moment.");
   const [b, s] = Array.isArray(body) ? body : [body, body];
-  return { base: parseHours(b), summit: parseHours(s), timezone: s.timezone, gridElevFt: Number.isFinite(s.elevation) ? s.elevation / M_PER_FT : null };
+  return { fetchedAt: Date.now(), base: parseHours(b), summit: parseHours(s), timezone: s.timezone, gridElevFt: Number.isFinite(s.elevation) ? s.elevation / M_PER_FT : null };
 }
 
 /** One spot (backcountry) at one elevation: hours[]. */

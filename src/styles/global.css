@@ -34,6 +34,7 @@
   --growfox: #7cc576;
   --bodyfox: #3fd0c9;
   --flyfox: #4c8dff;
+  --snowfox: #1769d1;
   --medicfox: #5b9dff;
 
   --max-width: 1180px;
@@ -388,6 +389,18 @@ select {
       145deg,
       #4c8dff,
       #0f2a66
+    );
+}
+
+.app-icon--snowfox {
+  color: #0c1c2e;
+
+  background:
+    linear-gradient(
+      160deg,
+      #ffffff,
+      #a9d1ff 55%,
+      #1769d1
     );
 }
 

@@ -30,6 +30,8 @@ const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 // MedicFox carries its knowledge base and skill sheets, so it loads on demand too.
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
+// SnowFox carries its resort list and maps, so it loads on demand too.
+const SnowPage = lazy(() => import("./features/snow/SnowPage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
 const BodyPage = lazy(() => import("./features/body/BodyPage"));
 
@@ -81,6 +83,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <FlyPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/snow"
+                element={
+                    <Suspense fallback={null}>
+                        <SnowPage />
                     </Suspense>
                 }
             />

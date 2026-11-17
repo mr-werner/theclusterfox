@@ -92,9 +92,12 @@ export default function Notes({ data, onJump, onBrowse }) {
                   }}
                 >
                   {m.kind === "bm" ? (
-                    <span className="bx-note-bm">
-                      <Bookmark size={15} aria-hidden="true" /> {m.label || "Bookmark"}
-                    </span>
+                    <>
+                      <span className="bx-note-bm">
+                        <Bookmark size={15} aria-hidden="true" /> {m.label || "Bookmark"}
+                      </span>
+                      {m.text && <blockquote className="is-bm">{m.text.length > 160 ? `${m.text.slice(0, 157)}…` : m.text}</blockquote>}
+                    </>
                   ) : (
                     <blockquote>{m.text}</blockquote>
                   )}

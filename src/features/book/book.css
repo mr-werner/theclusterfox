@@ -702,6 +702,10 @@
   line-height: 1.55;
   white-space: pre-line;
 }
+.bx-note blockquote.is-bm {
+  color: var(--bx-muted);
+  font-size: 0.88rem;
+}
 .bx-note-text {
   display: flex;
   gap: 7px;
@@ -1009,7 +1013,8 @@
   inset: 0;
   z-index: 80;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
 }
 .bx-reader.is-scroll {
@@ -1041,7 +1046,8 @@
 }
 .bx-r-title {
   display: flex;
-  flex: 1;
+  flex: 1 1 0;
+  overflow: hidden;
   flex-direction: column;
   align-items: center;
   min-width: 0;
@@ -1067,6 +1073,7 @@
 }
 .bx-r-tools {
   display: flex;
+  flex: none;
   gap: 2px;
 }
 .bx-r-icon {

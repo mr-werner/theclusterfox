@@ -35,6 +35,7 @@
   --bodyfox: #3fd0c9;
   --flyfox: #4c8dff;
   --medicfox: #5b9dff;
+  --keysfox: #f2b544;
 
   --max-width: 1180px;
 }
@@ -388,6 +389,17 @@ select {
       145deg,
       #4c8dff,
       #0f2a66
+    );
+}
+
+.app-icon--keysfox {
+  color: #f6e7c4;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3a2c1c,
+      #0e0c0b
     );
 }
 

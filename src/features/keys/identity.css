@@ -1,0 +1,19 @@
+/* KeysFox identity: a practice room after dark. Black lacquer, ivory keys,
+   a brass lamp for the right hand and cool teal for the left, and an
+   engraved serif name like the maker's mark on a fallboard. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Noto+Music&display=swap");
+
+.appbar[data-app="keysfox"] {
+  --ab-bg: rgba(14, 12, 11, 0.9);
+  --ab-fg: #f3ead8;
+  --ab-muted: rgba(243, 234, 216, 0.6);
+  --ab-line: rgba(217, 164, 65, 0.16);
+  --ab-accent: #f2b544;
+  --ab-accent-ink: #1a1206;
+  --ab-font: "Fraunces", Georgia, serif;
+  --ab-name-size: 1.4rem;
+  --ab-name-weight: 700;
+  --ab-name-spacing: 0.01em;
+  --ab-radius: 10px;
+  --ab-menu-bg: #191512;
+}

@@ -293,5 +293,6 @@ export const apps = [
     path: "/piano",
     icon: Piano,
     accent: "keysfox",
+    category: "learn",
   },
 ];

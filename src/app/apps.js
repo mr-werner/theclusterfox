@@ -283,5 +283,6 @@ export const apps = [
     path: "/snow",
     icon: MountainSnow,
     accent: "snowfox",
+    category: "outdoors",
   },
 ];

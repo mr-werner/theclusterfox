@@ -1,0 +1,28 @@
+{
+  "id": "/piano",
+  "name": "KeysFox",
+  "short_name": "KeysFox",
+  "start_url": "/piano",
+  "scope": "/piano",
+  "display": "standalone",
+  "background_color": "#0e0c0b",
+  "theme_color": "#0e0c0b",
+  "icons": [
+    {
+      "src": "/apps/pianofox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/pianofox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/pianofox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

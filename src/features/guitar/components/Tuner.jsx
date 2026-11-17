@@ -6,7 +6,7 @@ import { startMic, micSupported } from "../../../lib/music/pitch.js";
 import { createSynth } from "../../../lib/music/synth.js";
 import { noteName } from "../../../lib/music/theory.js";
 
-export const TUNINGS = [
+const TUNINGS = [
   { id: "standard", name: "Standard (E A D G B E)", notes: [40, 45, 50, 55, 59, 64] },
   { id: "half-down", name: "Half step down (Eb)", notes: [39, 44, 49, 54, 58, 63] },
   { id: "drop-d", name: "Drop D (D A D G B E)", notes: [38, 45, 50, 55, 59, 64] },
@@ -62,7 +62,7 @@ export default function Tuner() {
   const angle = Math.max(-50, Math.min(50, cents)) * 1.6;
 
   return (
-    <section className="ff-tuner">
+    <section className="frx-tuner">
       <select value={tuning.id} onChange={e => setTuning(TUNINGS.find(t => t.id === e.target.value))} aria-label="Tuning">
         {TUNINGS.map(t => (
           <option key={t.id} value={t.id}>
@@ -70,21 +70,21 @@ export default function Tuner() {
           </option>
         ))}
       </select>
-      <div className={`ff-dial ${inTune ? "is-in" : ""}`}>
+      <div className={`frx-dial ${inTune ? "is-in" : ""}`}>
         <svg viewBox="0 0 220 130" aria-hidden="true">
           <path d="M20 120 A 90 90 0 0 1 200 120" fill="none" stroke="rgba(239,230,214,0.15)" strokeWidth="10" />
           <path d="M101 31 A 90 90 0 0 1 119 31" fill="none" stroke="#57e389" strokeWidth="10" />
           <line x1="110" y1="120" x2="110" y2="40" stroke={inTune ? "#57e389" : "#e8a45a"} strokeWidth="4" strokeLinecap="round" transform={`rotate(${reading ? angle : 0} 110 120)`} style={{ transition: "transform 120ms" }} />
           <circle cx="110" cy="120" r="7" fill="#e8a45a" />
         </svg>
-        <div className="ff-dial-note">{target != null ? noteName(target, { octave: false }) : "–"}</div>
-        <div className="ff-dial-cents">{reading ? (inTune ? "In tune" : `${cents > 0 ? "+" : ""}${cents} cents · ${cents > 0 ? "loosen" : "tighten"}`) : on ? "Play one string" : "Tap Start to listen"}</div>
+        <div className="frx-dial-note">{target != null ? noteName(target, { octave: false }) : "–"}</div>
+        <div className="frx-dial-cents">{reading ? (inTune ? "In tune" : `${cents > 0 ? "+" : ""}${cents} cents · ${cents > 0 ? "loosen" : "tighten"}`) : on ? "Play one string" : "Tap Start to listen"}</div>
       </div>
-      <button type="button" className="ff-btn" onClick={toggle} disabled={!micSupported()}>
+      <button type="button" className="frx-btn" onClick={toggle} disabled={!micSupported()}>
         {on ? <MicOff size={16} aria-hidden="true" /> : <Mic size={16} aria-hidden="true" />} {on ? "Stop" : "Start tuner"}
       </button>
-      {error && <p className="ff-error">{error}</p>}
-      <div className="ff-strings">
+      {error && <p className="frx-error">{error}</p>}
+      <div className="frx-strings">
         {tuning.notes.map((n, i) => (
           <button
             key={i}
@@ -101,7 +101,7 @@ export default function Tuner() {
           </button>
         ))}
       </div>
-      <p className="ff-small">Tap a string to hear the note it should be. Strings are numbered from the thin high string (1) to the thick low one (6).</p>
+      <p className="frx-small">Tap a string to hear the note it should be. Strings are numbered from the thin high string (1) to the thick low one (6).</p>
     </section>
   );
 }

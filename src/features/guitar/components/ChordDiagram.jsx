@@ -9,22 +9,22 @@ export default function ChordDiagram({ shape, name, size = 120, onClick }) {
   const high = Math.max(...(played.length ? played : [1]));
   const base = high > 4 ? low : 1;
   const W = 100;
-  const H = 120;
+  const H = 128;
   const left = 16;
   const right = 86;
-  const top = 26;
+  const top = 34;
   const rows = 4;
   const fretH = 20;
   const sx = s => left + ((right - left) * s) / 5;
   const fy = f => top + (f - base + 0.5) * fretH;
   const Tag = onClick ? "button" : "div";
   return (
-    <Tag type={onClick ? "button" : undefined} className="ff-diagram" onClick={onClick} style={{ width: size }} aria-label={`${name ?? shape.name} chord`}>
+    <Tag type={onClick ? "button" : undefined} className="frx-diagram" onClick={onClick} style={{ width: size }} aria-label={`${name ?? shape.name} chord`}>
       <svg viewBox={`0 0 ${W} ${H}`}>
-        <text x={W / 2} y="12" className="ff-diagram-name">
+        <text x={W / 2} y="12" className="frx-diagram-name">
           {name ?? shape.name}
         </text>
-        {base === 1 ? <rect x={left} y={top - 3} width={right - left} height="3.5" fill="#efe6d6" /> : <text x={right + 4} y={top + 13} className="ff-diagram-base">{base}fr</text>}
+        {base === 1 ? <rect x={left} y={top - 3} width={right - left} height="3.5" fill="#efe6d6" /> : <text x={right + 4} y={top + 13} className="frx-diagram-base">{base}fr</text>}
         {Array.from({ length: rows + 1 }, (_, i) => (
           <line key={i} x1={left} x2={right} y1={top + i * fretH} y2={top + i * fretH} stroke="rgba(239,230,214,0.4)" strokeWidth="1" />
         ))}
@@ -36,7 +36,7 @@ export default function ChordDiagram({ shape, name, size = 120, onClick }) {
         )}
         {shape.frets.map((f, s) =>
           f < 0 ? (
-            <text key={s} x={sx(s)} y={top - 7} className="ff-diagram-mark">
+            <text key={s} x={sx(s)} y={top - 7} className="frx-diagram-mark">
               ×
             </text>
           ) : f === 0 ? (
@@ -44,7 +44,7 @@ export default function ChordDiagram({ shape, name, size = 120, onClick }) {
           ) : (
             <g key={s}>
               <circle cx={sx(s)} cy={fy(f)} r="6.6" fill={fingerColor(shape.fingers[s])} />
-              <text x={sx(s)} y={fy(f) + 3.4} className="ff-diagram-finger">
+              <text x={sx(s)} y={fy(f) + 3.4} className="frx-diagram-finger">
                 {shape.fingers[s]}
               </text>
             </g>

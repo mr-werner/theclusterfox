@@ -15,12 +15,14 @@ function staffStep(midi) {
   return octave * 7 + LETTER_STEP[written % 12] - (4 * 7 + 2); // 0 = E4, the bottom line
 }
 
-export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
+export default function ScoreStrip({ timeline, player, staff: staffPref = true, onSeek }) {
   const group = useRef(null);
   const wrap = useRef(null);
   const head = useRef(140);
   const startX = 30;
   const { events, bars, start, end, barLen, sig } = timeline;
+  // Notation only when there are single notes to write (strums use chord names and arrows).
+  const staff = staffPref && events.some(e => e.kind !== "strum");
   const width = startX + (end - start) * PPB + 400;
 
   const rows = useMemo(() => {
@@ -62,7 +64,7 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
 
   return (
     <div
-      className="ff-score"
+      className="frx-score"
       ref={wrap}
       onClick={e => {
         if (!onSeek) return;
@@ -76,15 +78,15 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
           {/* Bars */}
           {bars.map(b => (
             <g key={b.index}>
-              <line x1={xOf(b.start) - 6} x2={xOf(b.start) - 6} y1={staff ? staffTop : tabTop} y2={stringY(0)} className="ff-bar" />
-              <text x={xOf(b.start) - 2} y={(staff ? staffTop : tabTop) - 4} className="ff-barnum">
+              <line x1={xOf(b.start) - 6} x2={xOf(b.start) - 6} y1={staff ? staffTop : tabTop} y2={stringY(0)} className="frx-bar" />
+              <text x={xOf(b.start) - 2} y={(staff ? staffTop : tabTop) - 4} className="frx-barnum">
                 {b.index + 1}
               </text>
             </g>
           ))}
-          <line x1={xOf(end) - 6} x2={xOf(end) - 6} y1={staff ? staffTop : tabTop} y2={stringY(0)} className="ff-bar ff-bar-end" />
+          <line x1={xOf(end) - 6} x2={xOf(end) - 6} y1={staff ? staffTop : tabTop} y2={stringY(0)} className="frx-bar frx-bar-end" />
           {chordMarks.map((c, i) => (
-            <text key={i} x={xOf(c.t)} y={chordY} className="ff-chordname">
+            <text key={i} x={xOf(c.t)} y={chordY} className="frx-chordname">
               {c.name}
             </text>
           ))}
@@ -92,7 +94,7 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
           {staff && (
             <g>
               {[0, 1, 2, 3, 4].map(i => (
-                <line key={i} x1={0} x2={width} y1={staffTop + i * staffGap} y2={staffTop + i * staffGap} className="ff-staffline" />
+                <line key={i} x1={0} x2={width} y1={staffTop + i * staffGap} y2={staffTop + i * staffGap} className="frx-staffline" />
               ))}
               {staffNotes.map((n, i) => {
                 const step = staffStep(n.midi);
@@ -106,17 +108,17 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
                 return (
                   <g key={`${n.id}-${i}`}>
                     {ledgers.map(ly => (
-                      <line key={ly} x1={x - 8} x2={x + 8} y1={ly} y2={ly} className="ff-staffline" />
+                      <line key={ly} x1={x - 8} x2={x + 8} y1={ly} y2={ly} className="frx-staffline" />
                     ))}
                     {SHARP.has((n.midi + 12) % 12) && (
-                      <text x={x - 15} y={y + 4} className="ff-acc">
+                      <text x={x - 15} y={y + 4} className="frx-acc">
                         ♯
                       </text>
                     )}
-                    <ellipse cx={x} cy={y} rx="5.2" ry="4" transform={`rotate(-20 ${x} ${y})`} fill={hollow ? "none" : "currentColor"} stroke="currentColor" strokeWidth="1.4" className="ff-head" />
-                    {n.d < 4 && <line x1={up ? x + 4.6 : x - 4.6} x2={up ? x + 4.6 : x - 4.6} y1={y} y2={up ? y - 26 : y + 26} stroke="currentColor" strokeWidth="1.2" className="ff-head" />}
-                    {n.d <= 0.5 && <path d={up ? `M${x + 4.6} ${y - 26} q 7 6 5 14` : `M${x - 4.6} ${y + 26} q 7 -6 5 -14`} fill="none" stroke="currentColor" strokeWidth="1.4" className="ff-head" />}
-                    {[0.75, 1.5, 3].includes(n.d) && <circle cx={x + 9} cy={y} r="1.6" fill="currentColor" className="ff-head" />}
+                    <ellipse cx={x} cy={y} rx="5.2" ry="4" transform={`rotate(-20 ${x} ${y})`} fill={hollow ? "none" : "currentColor"} stroke="currentColor" strokeWidth="1.4" className="frx-head" />
+                    {n.d < 4 && <line x1={up ? x + 4.6 : x - 4.6} x2={up ? x + 4.6 : x - 4.6} y1={y} y2={up ? y - 26 : y + 26} stroke="currentColor" strokeWidth="1.2" className="frx-head" />}
+                    {n.d <= 0.5 && <path d={up ? `M${x + 4.6} ${y - 26} q 7 6 5 14` : `M${x - 4.6} ${y + 26} q 7 -6 5 -14`} fill="none" stroke="currentColor" strokeWidth="1.4" className="frx-head" />}
+                    {[0.75, 1.5, 3].includes(n.d) && <circle cx={x + 9} cy={y} r="1.6" fill="currentColor" className="frx-head" />}
                   </g>
                 );
               })}
@@ -125,15 +127,15 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
 
           {/* Tab */}
           {[0, 1, 2, 3, 4, 5].map(s => (
-            <line key={s} x1={0} x2={width} y1={stringY(s)} y2={stringY(s)} className="ff-tabline" />
+            <line key={s} x1={0} x2={width} y1={stringY(s)} y2={stringY(s)} className="frx-tabline" />
           ))}
-          <text x={4} y={tabTop + tabGap * 2.6} className="ff-tabclef">
+          <text x={4} y={tabTop + tabGap * 2.6} className="frx-tabclef">
             T
           </text>
-          <text x={4} y={tabTop + tabGap * 3.6} className="ff-tabclef">
+          <text x={4} y={tabTop + tabGap * 3.6} className="frx-tabclef">
             A
           </text>
-          <text x={4} y={tabTop + tabGap * 4.6} className="ff-tabclef">
+          <text x={4} y={tabTop + tabGap * 4.6} className="frx-tabclef">
             B
           </text>
           {events.map(e =>
@@ -141,8 +143,8 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
               ? null
               : e.notes.map(n => (
                   <g key={`${e.id}-${n.string}`}>
-                    <rect x={xOf(e.t) - 1} y={stringY(n.string) - 7} width={n.fret > 9 ? 16 : 10} height="14" rx="3" className="ff-tabbg" />
-                    <text x={xOf(e.t) + (n.fret > 9 ? 7 : 4)} y={stringY(n.string) + 4.5} className="ff-tabnum" style={{ fill: fingerColor(n.finger) }}>
+                    <rect x={xOf(e.t) - 1} y={stringY(n.string) - 7} width={n.fret > 9 ? 16 : 10} height="14" rx="3" className="frx-tabbg" />
+                    <text x={xOf(e.t) + (n.fret > 9 ? 7 : 4)} y={stringY(n.string) + 4.5} className="frx-tabnum" style={{ fill: n.fret === 0 ? "#1a1210" : fingerColor(n.finger) }}>
                       {n.fret}
                     </text>
                   </g>
@@ -154,11 +156,11 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
             .map(e => (
               <g key={e.id}>
                 {e.notes.map(n => (
-                  <text key={n.string} x={xOf(e.t) + 4} y={stringY(n.string) + 4} className="ff-tabnum ff-tabnum-dim">
+                  <text key={n.string} x={xOf(e.t) + 4} y={stringY(n.string) + 4} className="frx-tabnum frx-tabnum-dim">
                     {n.fret}
                   </text>
                 ))}
-                <text x={xOf(e.t) + 4} y={strumY} className={`ff-arrow ${e.dir === "U" ? "is-up" : ""}`}>
+                <text x={xOf(e.t) + 4} y={strumY} className={`frx-arrow ${e.dir === "U" ? "is-up" : ""}`}>
                   {e.dir === "U" ? "↑" : "↓"}
                 </text>
               </g>
@@ -169,14 +171,14 @@ export default function ScoreStrip({ timeline, player, staff = true, onSeek }) {
             const inBar = (((t % barLen) + barLen) % barLen) / slotLen;
             const label = sig === "6/8" ? String(Math.round(inBar) + 1) : inBar % 2 === 0 ? String(inBar / 2 + 1) : "&";
             return (
-              <text key={i} x={xOf(t) + 4} y={strumY + 17} className={`ff-count ${label === "&" ? "is-and" : ""}`}>
+              <text key={i} x={xOf(t) + 4} y={strumY + 17} className={`frx-count ${label === "&" ? "is-and" : ""}`}>
                 {label}
               </text>
             );
           })}
         </g>
       </svg>
-      <div className="ff-playhead" style={{ left: "min(180px, 28%)" }} aria-hidden="true" />
+      <div className="frx-playhead" style={{ left: "min(180px, 28%)" }} aria-hidden="true" />
     </div>
   );
 }

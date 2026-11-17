@@ -7,6 +7,15 @@ import { createSynth } from "../../../lib/music/synth.js";
 import { accuracy } from "../../../lib/music/practice.js";
 import { frameMatches } from "../model/listen.js";
 
+function currentIndex(events, beat) {
+  let idx = -1;
+  for (let i = 0; i < events.length; i++) {
+    if (events[i].t <= beat + 0.05) idx = i;
+    else break;
+  }
+  return idx;
+}
+
 const EARLY = 0.2; // seconds before a note that still counts
 const LATE = 0.35; // seconds after
 
@@ -28,8 +37,11 @@ export function usePlayer(timeline, { speed, sound, metronome, backing, wait, lo
   const frames = useRef([]); // recent input frames { at (perf ms), frame }
   const listening = useRef(false);
   const played = useRef(0); // seconds actually played this visit
-  const opts = useRef({});
-  opts.current = { speed, sound, metronome, backing, wait, loop, onFinish };
+  const opts = useRef({ speed, sound, metronome, backing, wait, loop, onFinish });
+  useEffect(() => {
+    opts.current = { speed, sound, metronome, backing, wait, loop, onFinish };
+  }, [speed, sound, metronome, backing, wait, loop, onFinish]);
+  const tickRef = useRef(null);
 
   const events = timeline.events;
   const spb = useCallback(() => 60 / (timeline.bpm * opts.current.speed), [timeline.bpm]);
@@ -99,14 +111,6 @@ export function usePlayer(timeline, { speed, sound, metronome, backing, wait, lo
     [events, spb, timeline]
   );
 
-  const findCurrent = beat => {
-    let idx = -1;
-    for (let i = 0; i < events.length; i++) {
-      if (events[i].t <= beat + 0.05) idx = i;
-      else break;
-    }
-    return idx;
-  };
 
   const stop = useCallback(
     (finished = false) => {
@@ -203,7 +207,7 @@ export function usePlayer(timeline, { speed, sound, metronome, backing, wait, lo
     }
 
     beatRef.current = beat;
-    const idx = findCurrent(beat);
+    const idx = currentIndex(events, beat);
     setCurrent(c => (c === idx ? c : idx));
     emit();
 
@@ -211,9 +215,11 @@ export function usePlayer(timeline, { speed, sound, metronome, backing, wait, lo
       stop(true);
       return;
     }
-    raf.current = requestAnimationFrame(tick);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    raf.current = requestAnimationFrame(tickRef.current);
   }, [events, timeline.end, spb, scheduleRange, emit, stop, countStats]);
+  useEffect(() => {
+    tickRef.current = tick;
+  }, [tick]);
 
   const play = useCallback(
     async (fromBeat = beatRef.current) => {
@@ -251,12 +257,11 @@ export function usePlayer(timeline, { speed, sound, metronome, backing, wait, lo
         synth.current?.stopAll();
       }
       beatRef.current = b;
-      setCurrent(findCurrent(b));
+      setCurrent(currentIndex(events, b));
       emit();
       if (wasPlaying) play(b);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [timeline, emit, play]
+    [timeline, events, emit, play]
   );
 
   /** In wait mode, step past the note you're stuck on. */
@@ -280,15 +285,19 @@ export function usePlayer(timeline, { speed, sound, metronome, backing, wait, lo
   }, []);
 
   // A new song, part or level starts from the top.
+  const [seen, setSeen] = useState(timeline);
+  if (seen !== timeline) {
+    setSeen(timeline);
+    setPlaying(false);
+    setCurrent(-1);
+    setStats({ hit: 0, missed: 0 });
+  }
   useEffect(() => {
     cancelAnimationFrame(raf.current);
     raf.current = 0;
     synth.current?.stopAll();
     judged.current = new Map();
     beatRef.current = timeline.start;
-    setPlaying(false);
-    setCurrent(-1);
-    setStats({ hit: 0, missed: 0 });
     emit();
   }, [timeline, emit]);
 

@@ -12,7 +12,9 @@ export function useInput(onFrame) {
   const [level, setLevel] = useState(0);
   const stopRef = useRef(null);
   const cb = useRef(onFrame);
-  cb.current = onFrame;
+  useEffect(() => {
+    cb.current = onFrame;
+  }, [onFrame]);
   const held = useRef(new Set());
 
   const stop = useCallback(() => {

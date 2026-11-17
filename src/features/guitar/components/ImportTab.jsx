@@ -69,30 +69,30 @@ export default function ImportTab({ store, onOpen }) {
   };
 
   return (
-    <section className="ff-import">
-      <div className="ff-importcard">
+    <section className="frx-import">
+      <div className="frx-importcard">
         <h2>
           <FileMusic size={18} aria-hidden="true" /> A music file or recording
         </h2>
         <p>MIDI (.mid) and sheet music (MusicXML .musicxml / .mxl) work best. A recording (mp3, wav, m4a) is turned into a rough melody and chords; it works best with one clear instrument or voice.</p>
-        <label className="ff-drop">
+        <label className="frx-drop">
           <Upload size={20} aria-hidden="true" />
           <span>{busy || "Choose a file"}</span>
           <input type="file" accept=".mid,.midi,.musicxml,.xml,.mxl,audio/*" onChange={e => onFile(e.target.files?.[0])} />
         </label>
         {parsed && (
-          <div className="ff-trackpick">
+          <div className="frx-trackpick">
             <label>
               Title
               <input value={title} onChange={e => setTitle(e.target.value)} maxLength={120} />
             </label>
-            <p className="ff-small">Which part is the tune? The chords are worked out from every part.</p>
+            <p className="frx-small">Which part is the tune? The chords are worked out from every part.</p>
             {parsed.data.tracks.map((t, i) => {
               const lo = Math.min(...t.notes.map(n => n.midi));
               const hi = Math.max(...t.notes.map(n => n.midi));
               return (
-                <label key={i} className={`ff-track ${track === i ? "is-on" : ""}`}>
-                  <input type="radio" name="ff-track" checked={track === i} onChange={() => setTrack(i)} />
+                <label key={i} className={`frx-track ${track === i ? "is-on" : ""}`}>
+                  <input type="radio" name="frx-track" checked={track === i} onChange={() => setTrack(i)} />
                   <b>{t.name || `Part ${i + 1}`}</b>
                   <span>
                     {t.notes.length} notes · {noteName(lo)}–{noteName(hi)}
@@ -100,20 +100,20 @@ export default function ImportTab({ store, onOpen }) {
                 </label>
               );
             })}
-            <button type="button" className="ff-btn" onClick={() => save(songFromNoteData(parsed.data, { melodyTrack: track, title, source: parsed.source }))}>
+            <button type="button" className="frx-btn" onClick={() => save(songFromNoteData(parsed.data, { melodyTrack: track, title, source: parsed.source }))}>
               Add to my songs
             </button>
           </div>
         )}
       </div>
 
-      <div className="ff-importcard">
+      <div className="frx-importcard">
         <h2>Guitar tab</h2>
         <p>Paste six-line tab (e|--0--2--|). Plain-text tab has no rhythm, so notes are spaced by how far apart they're written.</p>
         <textarea value={tabText} onChange={e => setTabText(e.target.value)} rows={7} spellCheck="false" placeholder={"e|-----0-----|\nB|---1---1---|\nG|-0-------2-|\nD|-----------|\nA|-3---------|\nE|-----------|"} />
         <button
           type="button"
-          className="ff-btn"
+          className="frx-btn"
           disabled={!tabText.trim()}
           onClick={() => {
             setError("");
@@ -128,11 +128,11 @@ export default function ImportTab({ store, onOpen }) {
         </button>
       </div>
 
-      <div className="ff-importcard">
+      <div className="frx-importcard">
         <h2>Chord sheet</h2>
         <p>Paste chords over lyrics, or ChordPro like [G]Amazing [C]grace. Each chord gets one bar; lyrics aren't kept.</p>
         <textarea value={chordText} onChange={e => setChordText(e.target.value)} rows={5} placeholder={"G        C        G\nD        G"} />
-        <div className="ff-row">
+        <div className="frx-row">
           <input placeholder="Title" value={sheet.title} onChange={e => setSheet(s => ({ ...s, title: e.target.value }))} maxLength={120} />
           <select value={sheet.sig} onChange={e => setSheet(s => ({ ...s, sig: e.target.value }))} aria-label="Time signature">
             <option>4/4</option>
@@ -143,7 +143,7 @@ export default function ImportTab({ store, onOpen }) {
         </div>
         <button
           type="button"
-          className="ff-btn"
+          className="frx-btn"
           disabled={!chordText.trim()}
           onClick={() => {
             setError("");
@@ -158,19 +158,19 @@ export default function ImportTab({ store, onOpen }) {
         </button>
       </div>
 
-      {error && <p className="ff-error" role="alert">{error}</p>}
+      {error && <p className="frx-error" role="alert">{error}</p>}
 
       {data.songs.length > 0 && (
-        <div className="ff-importcard">
+        <div className="frx-importcard">
           <h2>Your songs</h2>
-          <ul className="ff-mine">
+          <ul className="frx-mine">
             {data.songs.map(s => (
               <li key={s.id}>
-                <button type="button" className="ff-linkbtn" onClick={() => onOpen(s.id)}>
+                <button type="button" className="frx-linkbtn" onClick={() => onOpen(s.id)}>
                   {s.title}
                 </button>
                 <span>{s.by}</span>
-                <button type="button" className="ff-ghost" aria-label={`Delete ${s.title}`} onClick={() => deleteSong(s.id)}>
+                <button type="button" className="frx-ghost" aria-label={`Delete ${s.title}`} onClick={() => deleteSong(s.id)}>
                   <Trash2 size={15} />
                 </button>
               </li>
@@ -179,10 +179,10 @@ export default function ImportTab({ store, onOpen }) {
         </div>
       )}
 
-      <div className="ff-importcard">
+      <div className="frx-importcard">
         <h2>Free music to bring in</h2>
         <p>Public-domain music you're free to download. Get the MIDI or MusicXML file and add it above.</p>
-        <ul className="ff-sources">
+        <ul className="frx-sources">
           {FREE_SOURCES.map(s => (
             <li key={s.href}>
               <a href={s.href} target="_blank" rel="noreferrer">
@@ -192,7 +192,7 @@ export default function ImportTab({ store, onOpen }) {
             </li>
           ))}
         </ul>
-        <p className="ff-small">Only add music you have the right to use. Most popular songs are copyrighted; your imports stay in your own account.</p>
+        <p className="frx-small">Only add music you have the right to use. Most popular songs are copyrighted; your imports stay in your own account.</p>
       </div>
     </section>
   );

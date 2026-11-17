@@ -21,7 +21,7 @@ export default function Library({ data, onOpen }) {
   const minutes = Math.round(data.history.reduce((a, h) => a + h.minutes, 0));
   return (
     <section>
-      <div className="ff-stats">
+      <div className="frx-stats">
         <div>
           <strong>{all.length}</strong>
           <span>songs & exercises</span>
@@ -35,15 +35,15 @@ export default function Library({ data, onOpen }) {
           <span>minutes played</span>
         </div>
       </div>
-      <div className="ff-filters" role="tablist">
+      <div className="frx-filters" role="tablist">
         {FILTERS.map(f => (
           <button key={f.id} type="button" role="tab" aria-selected={filter === f.id} className={filter === f.id ? "is-on" : ""} onClick={() => setFilter(f.id)}>
             {f.name}
           </button>
         ))}
       </div>
-      {!list.length && <p className="ff-empty">No songs here yet. Import a MIDI file, sheet music, tab or chords from the Import tab.</p>}
-      <div className="ff-songs">
+      {!list.length && <p className="frx-empty">No songs here yet. Import a MIDI file, sheet music, tab or chords from the Import tab.</p>}
+      <div className="frx-songs">
         {list.map(s => (
           <SongCard key={s.id} song={s} best={data.best[s.id]} onOpen={onOpen} />
         ))}
@@ -54,39 +54,43 @@ export default function Library({ data, onOpen }) {
 
 function SongCard({ song, best, onOpen }) {
   const parts = partsFor(song);
-  let chords = [];
-  try {
-    chords = song.chords ? buildTimeline(song, { part: "rhythm", level: "medium" }).chordsUsed : [];
-  } catch {
-    chords = [];
-  }
+  const chords = chordsOf(song);
   const top = best ? Math.max(...Object.values(best)) : null;
   return (
-    <article className="ff-card">
-      <div className="ff-card-top">
-        <span className="ff-dots" aria-label={`Difficulty ${song.level} of 3`}>
+    <article className="frx-card">
+      <div className="frx-card-top">
+        <span className="frx-dots" aria-label={`Difficulty ${song.level} of 3`}>
           {[1, 2, 3].map(i => (
             <i key={i} className={i <= song.level ? "is-on" : ""} />
           ))}
         </span>
-        {top != null && <span className="ff-best">{top}%</span>}
+        {top != null && <span className="frx-best">{top}%</span>}
       </div>
       <h3>{song.title}</h3>
-      <p className="ff-by">{song.by}</p>
+      <p className="frx-by">{song.by}</p>
       {chords.length > 0 && (
-        <p className="ff-chips">
+        <p className="frx-chips">
           {chords.slice(0, 7).map(c => (
             <span key={c}>{c}</span>
           ))}
         </p>
       )}
-      <div className="ff-card-actions">
+      <div className="frx-card-actions">
         {parts.map(p => (
-          <button key={p.id} type="button" className="ff-btn ff-btn-sm" onClick={() => onOpen(song.id, p.id)}>
+          <button key={p.id} type="button" className="frx-btn frx-btn-sm" onClick={() => onOpen(song.id, p.id)}>
             <Play size={13} aria-hidden="true" /> {p.name}
           </button>
         ))}
       </div>
     </article>
   );
+}
+
+function chordsOf(song) {
+  if (!song.chords) return [];
+  try {
+    return buildTimeline(song, { part: "rhythm", level: "medium" }).chordsUsed;
+  } catch {
+    return [];
+  }
 }

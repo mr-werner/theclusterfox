@@ -53,19 +53,19 @@ export default function GuitarPage() {
   const planTitle = song ? `Guitar: ${song.title}` : "Guitar practice";
 
   return (
-    <div className="ff">
+    <div className="frx">
       <AppBar appId="fretfox" planTitle={planTitle} />
-      <div className="ff-wrap">
+      <div className="frx-wrap">
         {song ? (
           <Practice key={song.id} song={song} store={store} part={params.get("part")} level={params.get("level")} onBack={() => setParams({})} onPick={pick} />
         ) : (
           <>
-            <header className="ff-hero">
-              <p className="ff-kicker">Learn guitar by playing</p>
+            <header className="frx-hero">
+              <p className="frx-kicker">Learn guitar by playing</p>
               <h1>Watch the notes fall. Play them for real.</h1>
               <p>Falling notes, tab and sheet music side by side, with every finger shown on the neck. Slow it down, loop the hard bit, and let FretFox listen through your mic.</p>
             </header>
-            <nav className="ff-tabs" aria-label="FretFox sections">
+            <nav className="frx-tabs" aria-label="FretFox sections">
               {TABS.map(t => (
                 <button key={t.id} type="button" className={tab === t.id ? "is-on" : ""} aria-current={tab === t.id ? "page" : undefined} onClick={() => setParams(t.id === "songs" ? {} : { tab: t.id })}>
                   <t.icon size={16} aria-hidden="true" />
@@ -78,7 +78,7 @@ export default function GuitarPage() {
             {tab === "strums" && <StrumsTab />}
             {tab === "tuner" && <Tuner />}
             {tab === "import" && <ImportTab store={store} onOpen={openSong} />}
-            {songId && !song && <p className="ff-error">That song isn't here. It may have been imported on another device.</p>}
+            {songId && !song && <p className="frx-error">That song isn't here. It may have been imported on another device.</p>}
           </>
         )}
       </div>

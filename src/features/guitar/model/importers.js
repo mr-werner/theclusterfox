@@ -128,7 +128,7 @@ export function withBeats(parsed) {
   };
 }
 
-const TAB_LINE = /^\s*([eBGDAEbgda])?\s*[|:]?([-0-9|hpbrsx\/\\~()<>*.^ ]{4,})\|?\s*$/;
+const TAB_LINE = /^\s*([eBGDAEbgda])?\s*[|:]?([-0-9|hpbrsx/\\~()<>*.^ ]{4,})\|?\s*$/;
 
 /**
  * Six-line ASCII tab -> tab entries [string, fret, beat, beats]. Spacing

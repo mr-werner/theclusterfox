@@ -75,6 +75,11 @@ export default function Highway({ timeline, player, lefty = false }) {
         void rel;
       }
 
+      // Notes stop at the line instead of sliding under the string names.
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, w, hitY + 8);
+      ctx.clip();
       // Events, far ones first so near ones draw on top.
       const evs = timeline.events.filter(e => e.t + e.d >= beat - 0.6 && e.t <= beat + AHEAD + 0.5);
       for (let i = evs.length - 1; i >= 0; i--) {
@@ -144,6 +149,7 @@ export default function Highway({ timeline, player, lefty = false }) {
         }
       }
 
+      ctx.restore();
       // The line you play on.
       ctx.fillStyle = "rgba(232,164,90,0.16)";
       ctx.fillRect(pad, hitY - 3, w - pad * 2, 6);
@@ -165,7 +171,7 @@ export default function Highway({ timeline, player, lefty = false }) {
     };
   }, [timeline, player, lefty]);
 
-  return <canvas ref={canvas} className="ff-highway" aria-label="Falling notes. Each circle is a note: the number is the fret, the color is the finger." role="img" />;
+  return <canvas ref={canvas} className="frx-highway" aria-label="Falling notes. Each circle is a note: the number is the fret, the color is the finger." role="img" />;
 }
 
 function roundRect(ctx, x, y, w, h, r) {

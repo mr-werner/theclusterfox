@@ -1,5 +1,5 @@
 // Standard MIDI File (.mid) reader shared by the music apps.
-//   parseMidi(arrayBuffer) -> { title, tempo, timeSig, tracks: [{ name, channel, program, notes: [{ midi, start, dur, vel, beat, beats }] }] }
+//   parseMidi(arrayBuffer) -> { title, tempo, timeSig, key (fifths or null), tracks: [{ name, channel, program, notes: [{ midi, start, dur, vel, beat, beats }] }] }
 // start/dur are seconds (following every tempo change), beat/beats are
 // quarter notes. Drum tracks (channel 10) are dropped.
 import { beatsToSeconds } from "./musicXml.js";
@@ -50,6 +50,7 @@ export function parseMidi(buffer) {
 
   const tempoMap = [];
   let timeSig = null;
+  let key = null;
   let title = null;
   const out = [];
 
@@ -78,7 +79,7 @@ export function parseMidi(buffer) {
     };
     while (r.pos < end) {
       tick += r.vlq();
-      let b = r.u8();
+      const b = r.u8();
       if (b === 0xff) {
         const type = r.u8();
         const n = r.vlq();
@@ -90,6 +91,10 @@ export function parseMidi(buffer) {
           const den = 2 ** r.u8();
           r.skip(n - 2);
           timeSig ??= [num, den];
+        } else if (type === 0x59 && n === 2) {
+          const sf = r.u8();
+          r.skip(1);
+          key ??= sf > 127 ? sf - 256 : sf;
         } else if (type === 0x03) {
           name = r.text(n).trim() || name;
           if (format !== 1 || t === 0) title ??= name;
@@ -106,7 +111,6 @@ export function parseMidi(buffer) {
         d1 = r.u8();
       } else {
         d1 = b; // running status
-        b = status;
       }
       const kind = status & 0xf0;
       const ch = status & 0x0f;
@@ -139,7 +143,7 @@ export function parseMidi(buffer) {
     tr.notes.sort((a, b) => a.start - b.start || a.midi - b.midi);
   }
   if (title && out.some(tr => tr.name === title) && out.length > 1) title = null;
-  return { title, tempo: Math.round(bpm), timeSig: timeSig ?? [4, 4], tracks: out };
+  return { title, tempo: Math.round(bpm), timeSig: timeSig ?? [4, 4], key, tracks: out };
 }
 
 /** Write a simple type-0 MIDI file from [{ midi, beat, beats, vel }] (for tests and export). */

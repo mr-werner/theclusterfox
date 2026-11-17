@@ -1,6 +1,6 @@
 import { num, choice, preset, out, text } from "./define.js";
 import { G } from "../model/units.js";
-import { solveBeam, section, solveFreeBeam, parseBeamModel, stringifyBeamModel, simpleBeamItems } from "../model/structures.js";
+import { solveBeam, section, sectionStress, solveFreeBeam, parseBeamModel, stringifyBeamModel, simpleBeamItems } from "../model/structures.js";
 import { MATERIALS } from "../data/materials.js";
 import { BOLT_SIZES, BOLT_GRADES, NUT_FACTORS } from "../data/electrical.js";
 
@@ -126,8 +126,13 @@ export const mechanics = [
       num("t", "Wall thickness", "smallLength", 0.005, { min: 0, when: (v) => has(v, "tube", "rhs", "angle") }),
       num("tf", "Flange thickness", "smallLength", 0.008, { min: 0, when: (v) => has(v, "ibeam", "tee", "channel") }),
       num("tw", "Web thickness", "smallLength", 0.005, { min: 0, when: (v) => has(v, "ibeam", "tee", "channel") }),
-      preset("mat", "Material (for weight)", MATERIALS.map((m) => ({ label: m.name, set: { rho: m.rho } }))),
+      num("M", "Bending moment (+ sags: top in compression)", "moment", 1000),
+      num("V", "Shear force", "force", 2000),
+      num("P", "Axial force (+ pulls, − pushes)", "force", 0),
+      preset("mat", "Material", MATERIALS.map((m) => ({ label: m.name, set: m.Sy ? { rho: m.rho, Sy: m.Sy } : { rho: m.rho } }))),
       num("rho", "Density", "density", 7850, { min: 0 }),
+      num("Sy", "Yield strength (for the safety factor)", "stress", 250e6, { min: 0 }),
+      text("lock", "Locked dimensions", "", { hidden: true }),
     ],
     compute: (v) => {
       const s = section(v.shape, v);
@@ -150,10 +155,25 @@ export const mechanics = [
       if (s.xc !== undefined && Math.abs(s.xc - (v.b || 0) / 2) > 1e-12) results.push(out("xc", "Centroid from left", "smallLength", s.xc));
       results.push(out("J", "Torsion constant J", "inertia", s.J));
       results.push(out("wt", "Weight per length", "linearMass", s.A * v.rho));
-      return { results, visual: { type: "section", shape: v.shape, dims: v, props: s } };
+      const warnings = [];
+      const loaded = [v.M, v.V, v.P].some((x) => Number.isFinite(x) && x !== 0);
+      const st = loaded ? sectionStress(v.shape, v, { M: v.M || 0, V: v.V || 0, P: v.P || 0 }) : null;
+      if (st) {
+        results.push(out("sTop", "Stress at the top edge (+ tension)", "stress", st.sTop));
+        results.push(out("sBot", "Stress at the bottom edge (+ tension)", "stress", st.sBot));
+        results.push(out("tau", "Largest shear stress", "stress", st.tauMax));
+        results.push(out("vm", "Largest combined stress (von Mises)", "stress", st.vm));
+        if (v.Sy > 0 && st.vm > 0) {
+          const fos = v.Sy / st.vm;
+          results.push(out("fos", "Safety factor on yield", "none", fos));
+          if (fos < 1) warnings.push("The combined stress is above yield: this section would bend permanently under these loads. Make it deeper, thicker or stronger.");
+          else if (fos < 1.5) warnings.push(`The safety factor is only ${fos.toFixed(2)}. Most designs want 1.5 or more on yield.`);
+        }
+      }
+      return { results, warnings, visual: { type: "section", shape: v.shape, dims: v, props: s, stress: st } };
     },
-    formula: ["Rectangle: I = b h³ / 12", "Round: I = π D⁴ / 64,  J = π D⁴ / 32", "Built-up shapes: I = Σ (I₀ + A d²)   (parallel axis)", "S = I / c   (c = distance to extreme fibre)", "r = √(I / A)", "I_min = (Iₓ + I_y)/2 − √(((Iₓ − I_y)/2)² + Iₓᵧ²)"],
-    about: "The moment of inertia measures how well a shape resists bending: material far from the center counts most, which is why I-beams and tubes are efficient. The section modulus turns a bending moment into a stress; for shapes that aren't symmetric (tee, channel, angle, triangle) it uses the fibre farthest from the centroid, which gives the larger stress. Angles bend most easily about a tilted principal axis, so their least moment of inertia is lower than both Iₓ and I_y; use it for buckling. Corners are taken as sharp, so rolled shapes with root fillets come out slightly lighter than the catalogue.",
+    formula: ["Rectangle: I = b h³ / 12", "Round: I = π D⁴ / 64,  J = π D⁴ / 32", "Built-up shapes: I = Σ (I₀ + A d²)   (parallel axis)", "S = I / c   (c = distance to extreme fibre)", "r = √(I / A)", "I_min = (Iₓ + I_y)/2 − √(((Iₓ − I_y)/2)² + Iₓᵧ²)", "σ(y) = P / A − M (y − ȳ) / Iₓ", "τ(y) = V Q(y) / (Iₓ t(y))", "σ_vm = √(σ² + 3τ²),  FoS = S_y / σ_vm"],
+    about: "The moment of inertia measures how well a shape resists bending: material far from the center counts most, which is why I-beams and tubes are efficient. The section modulus turns a bending moment into a stress; for shapes that aren't symmetric (tee, channel, angle, triangle) it uses the fibre farthest from the centroid, which gives the larger stress. Angles bend most easily about a tilted principal axis, so their least moment of inertia is lower than both Iₓ and I_y; use it for buckling. Corners are taken as sharp, so rolled shapes with root fillets come out slightly lighter than the catalogue. With loads on it, bending stress grows straight-line from zero at the neutral axis to its peak at the edge farthest away, which is why depth matters so much more than width; shear peaks near the neutral axis, in the web. The combined (von Mises) check is a first look for ductile metals; it ignores stress concentrations, local buckling of thin flanges and webs, and lateral-torsional buckling of long beams.",
     related: ["beam", "buckling"],
   },
   {

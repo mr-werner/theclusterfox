@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node src/app/tests/planLinks.mjs && node src/app/tests/appBack.mjs && node src/features/f4t/tests/validate.mjs && node src/features/clocast/tests/validate.mjs && node src/features/watch/tests/validate.mjs && node src/features/sports/tests/validate.mjs && node src/features/sports/tests/feeds.mjs && node src/features/plan/tests/validate.mjs && node src/features/lift/tests/validate.mjs && node src/features/tools/tests/validate.mjs && node src/features/tools/tests/frame.mjs && node src/features/tools/tests/design.mjs && node src/features/tools/tests/projects.mjs && node src/features/calm/tests/validate.mjs && node src/features/math/tests/validate.mjs && node src/features/cook/tests/validate.mjs && node src/features/cook/tests/stores.mjs && node src/features/home/tests/validate.mjs && node src/features/grow/tests/validate.mjs",
+    "test": "node src/app/tests/planLinks.mjs && node src/app/tests/appBack.mjs && node src/features/f4t/tests/validate.mjs && node src/features/f4t/tests/planner.mjs && node src/features/clocast/tests/validate.mjs && node src/features/clocast/tests/reminders.mjs && node src/features/watch/tests/validate.mjs && node src/features/sports/tests/validate.mjs && node src/features/sports/tests/feeds.mjs && node src/features/plan/tests/validate.mjs && node src/features/lift/tests/validate.mjs && node src/features/tools/tests/validate.mjs && node src/features/tools/tests/frame.mjs && node src/features/tools/tests/design.mjs && node src/features/tools/tests/projects.mjs && node src/features/calm/tests/validate.mjs && node src/features/math/tests/validate.mjs && node src/features/cook/tests/validate.mjs && node src/features/cook/tests/stores.mjs && node src/features/home/tests/validate.mjs && node src/features/grow/tests/validate.mjs && node src/features/medic/tests/validate.mjs && node src/features/fly/tests/validate.mjs && node src/features/body/tests/validate.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -17,7 +17,8 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",
-    "simple-icons": "^16.35.0"
+    "simple-icons": "^16.35.0",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -28,6 +29,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",
     "globals": "^17.12.0",
+    "meshoptimizer": "^1.3.0",
     "vite": "^8.3.0"
   }
 }

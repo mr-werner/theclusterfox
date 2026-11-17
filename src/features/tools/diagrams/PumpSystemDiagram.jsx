@@ -30,9 +30,11 @@ import "./pumpSystem.css";
 
 // Pump system builder: an elevation sketch of the whole system you can edit
 // directly. Drag tank levels, the tank outlet, pipe joints and equipment up and
-// down; drag equipment or valves from the palette onto a pipe to splice them in.
-// Every drag shows the value it changes, and tapping that value lets you type it.
-// The supply, each pipe run and the destination are also edited in cards below.
+// down; drag equipment sideways onto any pipe to move it there; drag equipment or
+// valves from the palette onto a pipe to splice them in. Tap anything on the
+// drawing to edit all of its settings right there. The supply, each pipe run and
+// the destination are also listed in cards below; tapping the drawing highlights
+// the matching card without scrolling to it.
 
 const VALVES = ["gate", "ball", "bfly", "globe", "swing", "el90"];
 const VALVE_GLYPH = new Set(["gate", "ball", "bfly", "plug", "globe", "angle", "swing", "lift", "tilt"]);
@@ -159,6 +161,7 @@ export default function PumpSystemDiagram({ calc, values: v, set, output, unit, 
 
       {vis && (
         <Sketch
+          v={v}
           vis={vis}
           sRuns={sRuns}
           dRuns={dRuns}
@@ -295,19 +298,30 @@ function CardButtons({ i, n, tag, ops }) {
   );
 }
 
-function useScrollWhenSelected(ref, selected) {
-  useEffect(() => {
-    if (selected) ref.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
-  }, [ref, selected]);
+/** Pipe type change that keeps the bore as close as the new type allows. */
+function kindPatch(run, id) {
+  const nk = pipeKind(id);
+  const { D } = runGeometry(run);
+  if (!nk.table) return { kind: id, D, eps: nk.eps, size: undefined };
+  const list = sizesFor(id);
+  const same = list.find((x) => x.size === run.size);
+  const near = list.reduce((b, x) => (Math.abs(x.ID - D) < Math.abs(b.ID - D) ? x : b), list[0]);
+  return { kind: id, size: (same || near).size };
+}
+
+/** A run's fittings with one more or one fewer of `id`. */
+function fitPatch(run, id, c) {
+  const fit = { ...run.fit };
+  if (c > 0) fit[id] = c;
+  else delete fit[id];
+  return { fit };
 }
 
 function EquipCard({ run, i, n, tag, side, ops, row, selected, setSel, unit, setUnit }) {
-  const ref = useRef(null);
-  useScrollWhenSelected(ref, selected);
   const up = (patch) => ops.update(i, patch);
   const useCv = run.cv > 0;
   return (
-    <article ref={ref} className={`ps-run is-equip ${selected ? "is-sel" : ""}`} onFocusCapture={() => setSel(`${side}${i}`)} onPointerDownCapture={() => setSel(`${side}${i}`)}>
+    <article className={`ps-run is-equip ${selected ? "is-sel" : ""}`} onFocusCapture={() => setSel(`${side}${i}`)} onPointerDownCapture={() => setSel(`${side}${i}`)}>
       <header className="ps-run-head">
         <span className="ps-tag is-equip">{tag}</span>
         <input className="ps-name" value={run.name} placeholder={runLabel(run)} onChange={(e) => up({ name: e.target.value.replace(/[|,*+~]/g, " ") })} aria-label={`${tag} name`} maxLength={40} />
@@ -354,32 +368,17 @@ function EquipCard({ run, i, n, tag, side, ops, row, selected, setSel, unit, set
 }
 
 function RunCard({ run, i, n, tag, side, ops, row, selected, setSel, unit, setUnit }) {
-  const ref = useRef(null);
-  useScrollWhenSelected(ref, selected);
   const k = pipeKind(run.kind);
   const sizes = sizesFor(run.kind);
   const up = (patch) => ops.update(i, patch);
   const len = (key, label, dim = "length") => <Num label={label} dim={dim} value={run[key]} unit={unit(dim)} onValue={(x) => Number.isFinite(x) && up({ [key]: x })} onUnit={(u) => setUnit(dim, u)} />;
 
-  const setKind = (id) => {
-    const nk = pipeKind(id);
-    const { D } = runGeometry(run);
-    if (!nk.table) return up({ kind: id, D, eps: nk.eps, size: undefined });
-    const list = sizesFor(id);
-    const same = list.find((s) => s.size === run.size);
-    const near = list.reduce((b, s) => (Math.abs(s.ID - D) < Math.abs(b.ID - D) ? s : b), list[0]);
-    up({ kind: id, size: (same || near).size });
-  };
+  const setKind = (id) => up(kindPatch(run, id));
   const fits = Object.entries(run.fit || {}).filter(([id, c]) => fittingById[id] && c > 0);
-  const setFit = (id, c) => {
-    const fit = { ...run.fit };
-    if (c > 0) fit[id] = c;
-    else delete fit[id];
-    up({ fit });
-  };
+  const setFit = (id, c) => up(fitPatch(run, id, c));
 
   return (
-    <article ref={ref} className={`ps-run ${selected ? "is-sel" : ""}`} onFocusCapture={() => setSel(`${side}${i}`)} onPointerDownCapture={() => setSel(`${side}${i}`)}>
+    <article className={`ps-run ${selected ? "is-sel" : ""}`} onFocusCapture={() => setSel(`${side}${i}`)} onPointerDownCapture={() => setSel(`${side}${i}`)}>
       <header className="ps-run-head">
         <span className="ps-tag">{tag}</span>
         <input className="ps-name" value={run.name} placeholder={runLabel(run)} onChange={(e) => up({ name: e.target.value.replace(/[|,*+~]/g, " ") })} aria-label={`${tag} name`} maxLength={40} />
@@ -488,7 +487,7 @@ function useWidth(ref) {
 }
 
 /** Zoomable box: the drawing always fits at 1×; zoom with buttons, pinch or ctrl+scroll. */
-function ZoomBox({ children, label, tools }) {
+function ZoomBox({ children, label, tools, overlay }) {
   const box = useRef(null);
   const [zoom, setZoom] = useState(1);
   const pts = useRef(new Map());
@@ -576,6 +575,7 @@ function ZoomBox({ children, label, tools }) {
           {children}
         </div>
       </div>
+      {overlay}
     </div>
   );
 }
@@ -674,7 +674,7 @@ const niceStep = (raw) => {
 };
 const signed = (z, lu) => `${z > 1e-9 ? "+" : ""}${show(Math.abs(z) < 1e-9 ? 0 : z, "length", lu)}`;
 
-function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, edit, canUndo, undo }) {
+function Sketch({ v, vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, edit, canUndo, undo }) {
   const wrap = useRef(null);
   const svgRef = useRef(null);
   const cw = useWidth(wrap);
@@ -683,8 +683,20 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
   const [range, setRange] = useState(null); // held steady while dragging
   const [hover, setHover] = useState(null); // drop target while placing or moving equipment
   const [dragging, setDragging] = useState(false);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditingState] = useState(false);
+  const [ghost, setGhost] = useState(null); // equipment following the pointer while it's moved
   const drag = useRef(null);
+  // One undo step per editing session: taken on the first change, not on opening.
+  const [snapTaken, setSnapTaken] = useState(false);
+  const setEditing = (on) => {
+    if (on) setSnapTaken(false);
+    setEditingState(on);
+  };
+  const changed = () => {
+    if (snapTaken) return;
+    setSnapTaken(true);
+    edit.snapshot();
+  };
   const justPlaced = useRef(false);
   const geo = layoutSystem(vis, sRuns, dRuns, W, H, range);
   const { sy, sLay, dLay, sZ, dZ, xSrc0, xSrc1, xPump, xDst0, xDst1, xEnd, yP } = geo;
@@ -744,18 +756,24 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
       setDragging(true);
     }
     const t = dr.target;
-    // Equipment dragged well sideways onto another pipe moves there instead.
-    if (t.t === "equip" && Math.abs(p.x - dr.x) > 36) {
-      const hit = hitPipe(geo, p.x, p.y, 30);
-      dr.drop = hit;
-      setHover(hit);
-      if (hit) {
+    // Equipment: a mostly sideways drag picks it up to move onto any pipe (it follows
+    // the pointer and the pipe under it lights up); a mostly up-down drag changes its
+    // elevation. Swinging well sideways during an up-down drag switches to moving.
+    if (t.t === "equip") {
+      const dx = p.x - dr.x,
+        dy = p.y - dr.y;
+      if (!dr.mode) dr.mode = Math.abs(dx) > Math.abs(dy) ? "move" : "lift";
+      if (dr.mode === "lift" && Math.abs(dx) > 40) {
+        dr.mode = "move";
         edit.save(dr.start.s, dr.start.d);
+      }
+      if (dr.mode === "move") {
+        const hit = hitPipe(geo, p.x, p.y, 44);
+        dr.drop = hit;
+        setHover(hit);
+        setGhost({ x: hit ? hit.x : p.x, y: hit ? hit.y : p.y, eq: listOf(t.side)[t.i]?.eq, side: t.side, i: t.i, to: hit ? tagOf(hit.side, hit.i) : null });
         return;
       }
-    } else if (dr.drop) {
-      dr.drop = null;
-      setHover(null);
     }
     applyDrag(t, snap(geo.zAt(p.y), e.shiftKey), dr.start);
   };
@@ -766,8 +784,18 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
     setDragging(false);
     setRange(null);
     setHover(null);
+    setGhost(null);
     const t = dr.target;
-    if (dr.moved && t.t === "equip" && dr.drop) {
+    // A tap without a drag opens everything about that item for editing.
+    if (!dr.moved) {
+      setEditing(true);
+      return;
+    }
+    if (t.t === "equip" && dr.mode === "move" && !dr.drop) {
+      edit.flash("Drop it on a pipe to move it there. Nothing changed.");
+      return;
+    }
+    if (t.t === "equip" && dr.drop) {
       const lists = { s: [...dr.start.s], d: [...dr.start.d] };
       const item = lists[t.side][t.i];
       const to = dr.drop;
@@ -857,7 +885,7 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
     if (placing?.armed || justPlaced.current) return;
     edit.setSel(`${side}${i}`);
     edit.setFocus({ t: "pipe", side, i });
-    setEditing(false);
+    setEditing(true);
   };
 
   // Keyboard: arrows nudge the focused handle, Enter opens the value.
@@ -941,16 +969,18 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
       cy = seg.ya;
     const on = sel === `${side}${i}`;
     const t = { t: "equip", side, i };
+    const moving = ghost && ghost.side === side && ghost.i === i;
     return (
       <g
         key={`${side}${i}`}
-        className={`ps-equip ${on ? "is-sel" : ""}`}
+        className={`ps-equip ${on ? "is-sel" : ""} ${moving ? "is-moving" : ""}`}
         data-h={JSON.stringify(t)}
         style={{ touchAction: "none" }}
-        aria-label={`${tagOf(side, i)}: ${r.name || runLabel(r)}. Drag up or down to change its elevation, or sideways onto another pipe to move it.`}
+        aria-label={`${tagOf(side, i)}: ${r.name || runLabel(r)}. Drag up or down to change its elevation, sideways onto any pipe to move it, or tap to edit it.`}
         aria-valuetext={show(seg.za, "length", lu)}
         {...nudge(t)}
       >
+        <rect x={cx - 26} y={cy - 36} width="52" height="58" className="ps-eq-grab" />
         <line x1={seg.xa} x2={seg.xb} y1={cy} y2={cy} className="ps-stub" />
         <EquipGlyph id={r.eq} cx={cx} cy={cy} />
         <text x={cx} y={cy - 21} textAnchor="middle" className="ps-label is-small">
@@ -1034,44 +1064,81 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
     );
   };
 
-  // ── The value chip ──
+  // ── The value chip, and everything about the item when it's opened ──
   const chip = focus ? chipFor(focus) : null;
   function chipFor(f) {
     const list = f.side ? listOf(f.side) : null;
     const Z = f.side === "s" ? sZ : dZ;
-    const setJoint = (side, k) => (z) => Number.isFinite(z) && edit.saveSide(side, moveJoint(listOf(side), side, k, z));
+    // Every change made in the editor is one undo step.
+    const ch = (fn) => (...args) => {
+      changed();
+      fn(...args);
+    };
+    const setJoint = (side, k) => ch((z) => Number.isFinite(z) && edit.saveSide(side, moveJoint(listOf(side), side, k, z)));
+    const elevation = (side, k, label = "Elevation above pump") =>
+      jointMovable(listOf(side), side, k) ? { kind: "num", label, dim: "length", value: (side === "s" ? sZ : dZ)[k], onValue: setJoint(side, k) } : null;
     const pipeNote = (side, i) => {
       const r = listOf(side)[i];
       return r && !isEquip(r) ? `${tagOf(side, i)} rise ${signed(r.dz, lu)} · ${show(r.L, "length", lu)} long` : null;
     };
+    const setV = (key) => ch((x) => (typeof x === "string" || Number.isFinite(x)) && edit.set(key, x));
     if (f.t === "zs" || f.t === "zd") {
       const z = f.t === "zs" ? zs : zd;
       const x = f.t === "zs" ? (xSrc0 + xSrc1) / 2 : (xDst0 + xDst1) / 2;
-      return { x, y: sy(z) - 16, title: f.t === "zs" ? "Supply level" : "Destination level", value: signed(z, lu), fields: [{ label: "Liquid level above pump", dim: "length", value: z, onValue: (x2) => Number.isFinite(x2) && edit.set(f.t, x2) }] };
+      const fields =
+        f.t === "zs"
+          ? [
+              { kind: "pills", label: "Supply type", value: v.src, onChange: setV("src"), options: [{ value: "open", label: "Open tank" }, { value: "closed", label: "Closed tank" }, { value: "main", label: "Water main" }] },
+              { kind: "num", label: "Liquid level above pump", dim: "length", value: z, onValue: setV("zs") },
+              v.src === "closed" && { kind: "num", label: "Pressure above liquid (gauge)", dim: "pressure", value: v.srcP, onValue: setV("srcP") },
+              elevation("s", 0, "Tank outlet height"),
+            ]
+          : [
+              { kind: "pills", label: "Destination type", value: v.dst, onChange: setV("dst"), options: [{ value: "tank", label: "Into a tank" }, { value: "free", label: "Open pipe end" }] },
+              { kind: "num", label: "Liquid level above pump", dim: "length", value: z, onValue: setV("zd") },
+              { kind: "num", label: "Pressure in tank (gauge)", dim: "pressure", value: v.dstP, onValue: setV("dstP") },
+              elevation("d", dRuns.length, "Pipe enters the tank at"),
+            ];
+      return { x, y: sy(z) - 16, title: f.t === "zs" ? "Supply" : "Destination", value: signed(z, lu), fields: fields.filter(Boolean) };
     }
     if (f.t === "joint") {
       if (!list || f.k > list.length) return null;
       const lay = f.side === "s" ? sLay : dLay;
       const x = f.k < list.length ? lay[f.k]?.xa : lay[f.k - 1]?.xb;
       if (x === undefined) return null;
-      const title = f.side === "s" && f.k === 0 ? (src === "main" ? "Tap height" : "Tank outlet") : f.side === "d" && f.k === list.length ? (dst === "tank" ? "Tank inlet" : "Pipe outlet") : `Joint ${tagOf(f.side, f.k - 1)}→${tagOf(f.side, f.k)}`;
+      const isMain = f.side === "s" && f.k === 0 && src === "main";
+      const isEnd = f.side === "d" && f.k === list.length;
+      const title = f.side === "s" && f.k === 0 ? (src === "main" ? "Water main" : "Tank outlet") : isEnd ? (dst === "tank" ? "Tank inlet" : "Pipe outlet") : `Joint ${tagOf(f.side, f.k - 1)}→${tagOf(f.side, f.k)}`;
       const notes = [f.k > 0 && pipeNote(f.side, f.k - 1), f.k < list.length && pipeNote(f.side, f.k)].filter(Boolean);
-      return { x, y: sy(Z[f.k]) - 14, title, value: signed(Z[f.k], lu), notes, fields: [{ label: "Elevation above pump", dim: "length", value: Z[f.k], onValue: setJoint(f.side, f.k) }] };
+      const fields = [
+        isMain && { kind: "num", label: "Pressure in the main (gauge)", dim: "pressure", value: v.mainP, onValue: setV("mainP") },
+        { kind: "num", label: isMain ? "Tap height above pump" : "Elevation above pump", dim: "length", value: Z[f.k], onValue: setJoint(f.side, f.k) },
+        isEnd && dst === "free" && { kind: "pills", label: "Destination type", value: v.dst, onChange: setV("dst"), options: [{ value: "tank", label: "Into a tank" }, { value: "free", label: "Open pipe end" }] },
+      ];
+      return { x, y: sy(Z[f.k]) - 14, title, value: signed(Z[f.k], lu), notes, fields: fields.filter(Boolean) };
     }
     if (f.t === "equip") {
       const r = list?.[f.i];
       if (!r || !isEquip(r)) return null;
       const seg = (f.side === "s" ? sLay : dLay)[f.i];
-      const up = (patch) => edit.saveSide(f.side, list.map((x, k) => (k === f.i ? { ...x, ...patch } : x)));
-      const fields = [{ label: "Elevation above pump", dim: "length", value: Z[f.i], onValue: setJoint(f.side, f.i) }];
-      fields.push(r.cv > 0 ? { label: "Cv", dim: "none", value: r.cv, onValue: (x2) => x2 > 0 && up({ cv: x2 }) } : { label: "Drop at design flow", dim: "pressure", value: r.dp, onValue: (x2) => Number.isFinite(x2) && up({ dp: Math.max(0, x2) }) });
+      const up = ch((patch) => edit.saveSide(f.side, list.map((x, k) => (k === f.i ? { ...x, ...patch } : x))));
+      const useCv = r.cv > 0;
+      const row = f.side === "s" ? s.sRows[f.i] : s.dRows[f.i];
       return {
         x: (seg.xa + seg.xb) / 2,
         y: seg.ya - 30,
-        title: r.name || equipmentById[r.eq]?.name,
+        title: `${tagOf(f.side, f.i)} · ${r.name || equipmentById[r.eq]?.name}`,
         value: signed(Z[f.i], lu),
-        notes: [r.cv > 0 ? `Cv ${fmt(r.cv, 3)}` : `${show(r.dp, "pressure", unit("pressure"))} at design flow`],
-        fields,
+        notes: [useCv ? `Cv ${fmt(r.cv, 3)}` : `${show(r.dp, "pressure", unit("pressure"))} at design flow`],
+        fields: [
+          { kind: "text", label: "Name", value: r.name, placeholder: runLabel(r), onChange: (x) => up({ name: x.replace(/[|,*+~]/g, " ").slice(0, 40) }) },
+          { kind: "select", label: "Equipment", value: r.eq, options: EQUIPMENT.map((q) => ({ value: q.id, label: q.name })), onChange: (id) => up({ eq: id, dp: equipmentById[id].dp, cv: 0 }) },
+          { kind: "pills", label: "Rate by", value: useCv ? "cv" : "dp", onChange: (x) => up(x === "cv" ? { cv: equipmentById[r.eq]?.cv || 50 } : { cv: 0 }), options: [{ value: "dp", label: "Pressure drop" }, { value: "cv", label: "Cv" }] },
+          useCv ? { kind: "num", label: "Cv (US gpm at 1 psi)", dim: "none", value: r.cv, onValue: (x) => x > 0 && up({ cv: x }) } : { kind: "num", label: "Pressure drop at design flow", dim: "pressure", value: r.dp, onValue: (x) => Number.isFinite(x) && up({ dp: Math.max(0, x) }) },
+          { kind: "num", label: "Elevation above pump", dim: "length", value: Z[f.i], onValue: setJoint(f.side, f.i) },
+        ],
+        readout: row ? [["Loss", show(row.h, "length", lu)], ["Drop", show(row.h * 9.80665 * v.rho, "pressure", unit("pressure"))]] : null,
+        hint: "Drag it sideways onto any pipe to move it there, or up and down to raise or lower it.",
         remove: () => {
           edit.snapshot();
           edit.saveSide(f.side, removeItem(list, f.i));
@@ -1084,7 +1151,9 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
       const r = list?.[f.i];
       if (!r || isEquip(r)) return null;
       const seg = (f.side === "s" ? sLay : dLay)[f.i];
-      const up = (patch) => edit.saveSide(f.side, list.map((x, k) => (k === f.i ? { ...x, ...patch } : x)));
+      const up = ch((patch) => edit.saveSide(f.side, list.map((x, k) => (k === f.i ? { ...x, ...patch } : x))));
+      const k = pipeKind(r.kind);
+      const row = f.side === "s" ? s.sRows[f.i] : s.dRows[f.i];
       return {
         x: (seg.xa + seg.xm) / 2,
         y: seg.ya - thick(r) / 2 - 24,
@@ -1092,9 +1161,18 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
         value: show(r.L, "length", lu),
         notes: [`Rise ${signed(r.dz, lu)}`],
         fields: [
-          { label: "Length", dim: "length", value: r.L, onValue: (x2) => Number.isFinite(x2) && x2 >= 0 && up({ L: x2 }) },
-          { label: "Rise (− for a drop)", dim: "length", value: r.dz, onValue: (x2) => Number.isFinite(x2) && up({ dz: x2 }) },
-        ],
+          { kind: "text", label: "Name", value: r.name, placeholder: runLabel(r), onChange: (x) => up({ name: x.replace(/[|,*+~]/g, " ").slice(0, 40) }) },
+          { kind: "select", label: "Pipe", value: r.kind, options: PIPE_KINDS.map((pk) => ({ value: pk.id, label: pk.name })), onChange: (id) => up(kindPatch(r, id)) },
+          k.table
+            ? { kind: "select", label: "Size", value: r.size, options: sizesFor(r.kind).map((x) => ({ value: x.size, label: `${x.size}″` })), onChange: (size) => up({ size }) }
+            : { kind: "num", label: "Inside diameter", dim: "smallLength", value: r.D, onValue: (x) => Number.isFinite(x) && x > 0 && up({ D: x }) },
+          !k.table && { kind: "num", label: "Roughness ε", dim: "smallLength", value: r.eps, onValue: (x) => Number.isFinite(x) && x >= 0 && up({ eps: x }) },
+          { kind: "num", label: "Length", dim: "length", value: r.L, onValue: (x) => Number.isFinite(x) && x >= 0 && up({ L: x }) },
+          { kind: "num", label: "Rise (− for a drop)", dim: "length", value: r.dz, onValue: (x) => Number.isFinite(x) && up({ dz: x }) },
+          { kind: "fits", run: r, setFit: (id, c) => up(fitPatch(r, id, c)) },
+          { kind: "num", label: "Extra pressure drop", dim: "pressure", value: r.dp || 0, onValue: (x) => Number.isFinite(x) && up({ dp: Math.max(0, x) }) },
+        ].filter(Boolean),
+        readout: row ? [["Velocity", show(row.v, "velocity", unit("velocity"))], ["Loss", show(row.h, "length", lu)], row.Re < 2300 ? ["Flow", "Laminar"] : null].filter(Boolean) : null,
         remove: () => {
           edit.snapshot();
           edit.saveSide(f.side, removeItem(list, f.i));
@@ -1145,10 +1223,14 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
         ) : note ? (
           <span>{note}</span>
         ) : (
-          <span className="tf-muted">Drag the dots, tank levels and equipment up or down. Tap a value to type it.</span>
+          <span className="tf-muted">Tap anything to edit it. Drag dots, tank levels and equipment up or down; drag equipment sideways onto another pipe to move it.</span>
         )}
       </div>
-      <ZoomBox label="Elevation sketch of the pump system" tools={tools}>
+      <ZoomBox
+        label="Elevation sketch of the pump system"
+        tools={tools}
+        overlay={chip && editing && !dragging && <Inspector chip={chip} unit={unit} setUnit={setUnit} onClose={() => (edit.setFocus(null), setEditing(false))} />}
+      >
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} role="group" aria-label="Side view of the pump system, drawn to true elevation" onPointerDown={onSvgDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={() => !drag.current && placing?.armed && setHover(null)}>
           <rect x="0" y="0" width={W} height={H} className="ps-bg" />
           <Backdrop geo={geo} lu={lu} />
@@ -1174,8 +1256,16 @@ function Sketch({ vis, sRuns, dRuns, unit, setUnit, sel, focus, placing, note, e
           </text>
           {handles}
           {hover && <circle cx={hover.x} cy={hover.y} r="11" className="ps-drop" />}
+          {ghost && (
+            <g className={`ps-ghost-eq ${ghost.to ? "is-ok" : ""}`} pointerEvents="none">
+              <EquipGlyph id={ghost.eq} cx={ghost.x} cy={ghost.y} />
+              <text x={ghost.x} y={ghost.y - 24} textAnchor="middle" className="ps-label is-small">
+                {ghost.to ? `Drop on ${ghost.to}` : "Drop on a pipe"}
+              </text>
+            </g>
+          )}
         </svg>
-        {chip && <ValueChip chip={chip} W={W} H={H} unit={unit} setUnit={setUnit} live={dragging} editing={editing && !dragging} setEditing={setEditing} snapshot={edit.snapshot} onClose={() => (edit.setFocus(null), setEditing(false))} />}
+        {chip && !ghost && !(editing && !dragging) && <ValueChip chip={chip} W={W} H={H} live={dragging} onOpen={() => setEditing(true)} />}
       </ZoomBox>
       {placing && !placing.armed && placing.moved && (
         <div className="ps-ghost" style={{ left: placing.cx, top: placing.cy }} aria-hidden="true">
@@ -1281,56 +1371,123 @@ function PaletteChip({ item, label, glyph, placing, setPlacing }) {
   );
 }
 
-/** The value being changed, shown on the drawing. Tap it to type a number. */
-function ValueChip({ chip, W, H, unit, setUnit, live, editing, setEditing, snapshot, onClose }) {
+/** The value being changed, shown on the drawing. Tap it to edit the item. */
+function ValueChip({ chip, W, H, live, onOpen }) {
   const below = chip.y < 90;
   const style = { left: `${clamp((chip.x / W) * 100, 8, 92)}%`, top: `${(clamp(chip.y, 0, H) / H) * 100}%` };
-  if (!editing) {
-    return (
-      <div className={`ps-chip-at ${below ? "is-below" : ""}`} style={style}>
-        <button
-          type="button"
-          className={`ps-value ${live ? "is-live" : ""}`}
-          onClick={() => {
-            snapshot();
-            setEditing(true);
-          }}
-          title="Tap to type a value"
-        >
-          <span className="ps-value-title">{chip.title}</span>
-          <strong>{chip.value}</strong>
-          <Pencil size={12} aria-hidden="true" />
-          {chip.notes?.length > 0 && <span className="ps-value-notes">{chip.notes.join(" · ")}</span>}
-        </button>
-      </div>
-    );
-  }
   return (
     <div className={`ps-chip-at ${below ? "is-below" : ""}`} style={style}>
-      <div className="ps-value-edit" role="dialog" aria-label={`Edit ${chip.title}`} onKeyDown={(e) => (e.key === "Escape" || e.key === "Enter") && setEditing(false)}>
-        <header>
-          <strong>{chip.title}</strong>
-          <button type="button" onClick={onClose} aria-label="Close">
-            <X size={14} />
-          </button>
-        </header>
-        {chip.fields.map((f, i) => (
-          <AutoFocus key={f.label} on={i === 0}>
-            <Num label={f.label} dim={f.dim} value={f.value} unit={f.dim === "none" ? "" : unit(f.dim)} onValue={f.onValue} onUnit={(u) => setUnit(f.dim, u)} />
-          </AutoFocus>
-        ))}
-        {chip.notes?.length > 0 && <p className="tf-muted tf-small">{chip.notes.join(" · ")}</p>}
-        <div className="ps-value-btns">
-          {chip.remove && (
-            <button type="button" className="is-danger" onClick={chip.remove}>
-              <Trash2 size={14} aria-hidden="true" /> Remove
-            </button>
-          )}
-          <button type="button" onClick={() => setEditing(false)}>
-            Done
-          </button>
-        </div>
+      <button type="button" className={`ps-value ${live ? "is-live" : ""}`} onClick={onOpen} title="Tap to edit">
+        <span className="ps-value-title">{chip.title}</span>
+        <strong>{chip.value}</strong>
+        <Pencil size={12} aria-hidden="true" />
+        {chip.notes?.length > 0 && <span className="ps-value-notes">{chip.notes.join(" · ")}</span>}
+      </button>
+    </div>
+  );
+}
+
+/** Everything about the tapped item, docked over the drawing so nothing scrolls away. */
+function Inspector({ chip, unit, setUnit, onClose }) {
+  const firstNum = chip.fields.findIndex((f) => f.kind === "num");
+  return (
+    <div className="ps-inspector" role="dialog" aria-label={`Edit ${chip.title}`} onKeyDown={(e) => e.key === "Escape" && onClose()}>
+      <header>
+        <strong>{chip.title}</strong>
+        <button type="button" onClick={onClose} aria-label="Close">
+          <X size={14} />
+        </button>
+      </header>
+      <div className="ps-inspector-body">
+        {chip.fields.map((f, i) => {
+          const key = `${f.kind}-${f.label || i}`;
+          if (f.kind === "num") {
+            return (
+              <AutoFocus key={key} on={i === firstNum}>
+                <Num label={f.label} dim={f.dim} value={f.value} unit={f.dim === "none" ? "" : unit(f.dim)} onValue={f.onValue} onUnit={(u) => setUnit(f.dim, u)} />
+              </AutoFocus>
+            );
+          }
+          if (f.kind === "text")
+            return (
+              <label key={key} className="dg-pick ps-inspector-text">
+                <span className="dg-num-label">{f.label}</span>
+                <input value={f.value || ""} placeholder={f.placeholder} maxLength={40} onChange={(e) => f.onChange(e.target.value)} />
+              </label>
+            );
+          if (f.kind === "select")
+            return (
+              <label key={key} className="dg-pick">
+                <span className="dg-num-label">{f.label}</span>
+                <select value={f.value} onChange={(e) => f.onChange(e.target.value)}>
+                  {f.options.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            );
+          if (f.kind === "pills") return <Pills key={key} label={f.label} value={f.value} onChange={f.onChange} options={f.options} />;
+          if (f.kind === "fits") return <FitEditor key={key} run={f.run} setFit={f.setFit} />;
+          return null;
+        })}
+        {chip.readout?.length > 0 && (
+          <p className="ps-run-out">
+            {chip.readout.map(([label, value]) => (
+              <span key={label}>
+                {label} <strong>{value}</strong>
+              </span>
+            ))}
+          </p>
+        )}
+        {chip.hint && <p className="tf-muted tf-small">{chip.hint}</p>}
+        {!chip.readout && chip.notes?.length > 0 && <p className="tf-muted tf-small">{chip.notes.join(" · ")}</p>}
       </div>
+      <div className="ps-value-btns">
+        {chip.remove && (
+          <button type="button" className="is-danger" onClick={chip.remove}>
+            <Trash2 size={14} aria-hidden="true" /> Remove
+          </button>
+        )}
+        <button type="button" onClick={onClose}>
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Fittings and valves on one pipe, with counts. */
+function FitEditor({ run, setFit }) {
+  const fits = Object.entries(run.fit || {}).filter(([id, c]) => fittingById[id] && c > 0);
+  return (
+    <div className="ps-fits" role="list" aria-label="Fittings and valves">
+      {fits.map(([id, c]) => (
+        <div key={id} role="listitem" className="ps-fit">
+          <span>{fittingById[id].name}</span>
+          <div className="ps-stepper">
+            <button type="button" onClick={() => setFit(id, c - 1)} aria-label={`One fewer ${fittingById[id].name}`}>
+              <Minus size={13} />
+            </button>
+            <strong aria-label="Count">{c}</strong>
+            <button type="button" onClick={() => setFit(id, c + 1)} aria-label={`One more ${fittingById[id].name}`}>
+              <Plus size={13} />
+            </button>
+          </div>
+        </div>
+      ))}
+      <label className="ps-fit-add">
+        <Plus size={14} aria-hidden="true" />
+        <select value="" onChange={(e) => e.target.value && setFit(e.target.value, (run.fit?.[e.target.value] || 0) + 1)} aria-label="Add a fitting or valve">
+          <option value="">Add a fitting or valve…</option>
+          {FITTINGS.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
+            </option>
+          ))}
+        </select>
+      </label>
     </div>
   );
 }
@@ -1338,7 +1495,9 @@ function ValueChip({ chip, W, H, unit, setUnit, live, editing, setEditing, snaps
 function AutoFocus({ on, children }) {
   const ref = useRef(null);
   useEffect(() => {
-    if (on) ref.current?.querySelector("input")?.focus();
+    // On a phone, don't throw the keyboard up just because something was tapped.
+    const touch = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+    if (on && !touch) ref.current?.querySelector("input")?.focus({ preventScroll: true });
   }, [on]);
   return <div ref={ref}>{children}</div>;
 }

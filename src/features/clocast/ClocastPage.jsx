@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CalendarDays, Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, RotateCcw, Sun, Target } from "lucide-react";
+import { CalendarDays, Cloud, CloudOff, CloudSun, HardDrive, LoaderCircle, Plane, RotateCcw, Sun, Target } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
+import WindsAloft from "../../components/weather/WindsAloft";
 import LocationPicker from "./components/LocationPicker";
 import Coach from "./components/Coach";
 import Planner from "./components/Planner";
 import ProfilePanel from "./components/ProfilePanel";
 import WeatherReport from "./components/WeatherReport";
 import WhyPanel from "./components/WhyPanel";
+import RemindersPanel from "./components/RemindersPanel";
 import SkyLayer from "./components/SkyLayer";
 import AlertBanner from "./components/AlertBanner";
 import { skyFor } from "./model/sky";
@@ -55,15 +57,28 @@ const TABS = [
   { id: "plan", name: "Planner", icon: CalendarDays },
   { id: "coach", name: "Coach", icon: Target },
 ];
+// Shown once the aviation switch is on.
+const ALOFT_TAB = { id: "aloft", name: "Aloft", icon: Plane };
+
+const dayWord = (index, key) =>
+  index === 0 ? "today" : index === 1 ? "tomorrow" : `on ${new Date(`${key}T12:00:00`).toLocaleDateString("en-US", { weekday: "long" })}`;
 
 export default function ClocastPage() {
   const { data, syncStatus, isSignedIn, update, setPlace, toggleSavedPlace, setProfile, savePlan, deletePlan, saveGoal, deleteGoal } =
     useClocastData();
   const [params, setParams] = useSearchParams();
-  const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : "today";
+  // A link straight to the Aloft tab shows it even before the switch is on.
+  const tabs = data.aviation || params.get("tab") === "aloft" ? [...TABS, ALOFT_TAB] : TABS;
+  const tab = tabs.some(t => t.id === params.get("tab")) ? params.get("tab") : "today";
   const openTab = id => {
     setParams(id === "today" ? {} : { tab: id });
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const toggleAviation = () => {
+    const next = !data.aviation;
+    update({ aviation: next });
+    if (next) setParams({ tab: "aloft" });
+    else if (tab === "aloft") setParams({});
   };
   const { place, units, profile, tolerance } = data;
   const activity = activitiesById.get(data.activityId) ?? activities[0];
@@ -113,6 +128,10 @@ export default function ClocastPage() {
     () => windowHours(weather.hours, dayKeys, { day: 0, part: "now", duration: 24 }),
     [weather.hours, dayKeys]
   );
+
+  // Late in the evening today's reminders are spent, so look at tomorrow.
+  const lateNow = dayIndex === 0 && (next24[0]?.localDay !== dayKeys[0] || next24[0]?.localHour > 21);
+  const reminderIndex = lateNow && dayKeys.length > 1 ? 1 : dayIndex;
 
   const plan = useMemo(() => {
     if (!place || !picked.length) return null;
@@ -190,7 +209,7 @@ export default function ClocastPage() {
 
         {ready && (
           <nav className="cc-tabs" aria-label="SkyFox">
-            {TABS.map(item => {
+            {tabs.map(item => {
               const Icon = item.icon;
               return (
                 <button key={item.id} type="button" aria-current={tab === item.id ? "page" : undefined} onClick={() => openTab(item.id)}>
@@ -199,6 +218,16 @@ export default function ClocastPage() {
                 </button>
               );
             })}
+            <button
+              type="button"
+              className="cc-aviation-switch"
+              aria-pressed={data.aviation}
+              onClick={toggleAviation}
+              title={data.aviation ? "Hide the aviation view" : "Show winds at altitude for pilots"}
+            >
+              <span className="cc-switch" aria-hidden="true" />
+              Aviation
+            </button>
           </nav>
         )}
 
@@ -256,8 +285,23 @@ export default function ClocastPage() {
           />
         )}
 
+        {ready && tab === "aloft" && <WindsAloft place={place} />}
+
         {ready && tab === "today" && (
           <>
+            <RemindersPanel
+              forecast={weather}
+              day={dayKeys[reminderIndex]}
+              dayLabel={dayWord(reminderIndex, dayKeys[reminderIndex])}
+              place={place}
+              units={units}
+              profile={profile}
+              tolerance={tolerance}
+              settings={data.reminders}
+              now={now}
+              onChange={reminders => update({ reminders })}
+            />
+
             <ProfilePanel
               profile={profile}
               units={units}

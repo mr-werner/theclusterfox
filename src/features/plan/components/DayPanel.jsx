@@ -8,6 +8,8 @@ import { aqiCategory, describeWeather } from "../../../services/weather/openMete
 import { formatTime, longDate, parseDay, relativeDay } from "../model/dates";
 import { GARDEN_MONTHS, dayDetails, trainingAdvice, trainingWindows, wearFor } from "../model/insights";
 import { AppEntry, LaunchButton } from "./AppLinks";
+import RemindersCard from "./RemindersCard";
+import { dayReminders } from "../../clocast/model/reminders";
 
 export const TIP_ICONS = { alert: TriangleAlert, car: Car, garden: Flower2, traffic: TrafficCone, rain: CloudRain, train: Dumbbell, swing: Thermometer, flight: Plane };
 const LAYER_LABEL = {
@@ -280,7 +282,7 @@ function OtherEntry({ entry, onOpen, onPlanTrip }) {
   );
 }
 
-export default function DayPanel({ onLaunch, onClose, onOpenDetail, onPlanTrip, onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
+export default function DayPanel({ skyfox, onLaunch, onClose, onOpenDetail, onPlanTrip, onLinkCalendar, day, today, now, onToggleSession, onOpenPlanner, planWindow, entries, tips, forecast, place, units, layers, awayForecasts, trainingActivityId, onTrainingActivity, onAdd, onEdit, onToggleDone }) {
   const [showAllMinor, setShowAllMinor] = useState(false);
   const hours = forecast?.hours ?? [];
   const weather = forecast?.days.find(d => d.day === day);
@@ -288,6 +290,21 @@ export default function DayPanel({ onLaunch, onClose, onOpenDetail, onPlanTrip, 
   const wear = layers.wear && inForecast && place ? wearFor(hours, day, place) : null;
   const windows = layers.training && inForecast && place ? trainingWindows(hours, day, place, { activityId: trainingActivityId, notBefore: day === today ? now : 0 }) : [];
   const details = inForecast ? dayDetails(hours, day) : null;
+  // The outfit already has its own card when "What to wear" is on.
+  const reminders =
+    layers.reminders && inForecast && place && skyfox
+      ? dayReminders({
+          hours,
+          days: forecast.days,
+          day,
+          settings: { ...skyfox.settings, on: skyfox.settings.on.filter(id => !(layers.wear && id === "clothing")) },
+          place,
+          units,
+          profile: skyfox.profile,
+          tolerance: skyfox.tolerance,
+          notBefore: day === today ? now : 0,
+        })
+      : [];
   const outdoor = activities.filter(a => a.mets >= 3);
 
   const plan = entries.filter(e => e.session);
@@ -338,6 +355,8 @@ export default function DayPanel({ onLaunch, onClose, onOpenDetail, onPlanTrip, 
       {layers.weather && !place && <p className="pf-note">Pick your town above to see weather, what to wear and the best times to be outside.</p>}
 
       <WearCard wear={wear} label="WHAT TO WEAR OUT AND ABOUT" />
+
+      <RemindersCard reminders={reminders} />
 
       {windows.length > 0 && (
         <div className="pf-card pf-train">

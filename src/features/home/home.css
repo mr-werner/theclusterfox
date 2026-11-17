@@ -1320,3 +1320,270 @@ body.sheet-open {
     gap: 16px 8px;
   }
 }
+
+/* ---------- PlanFox: the biggest tile, since every app feeds it ---------- */
+
+.home-original-grid {
+  grid-auto-flow: dense;
+}
+
+.home-tile--feature {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.plan-feature {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  height: 100%;
+  padding: 30px;
+  overflow: hidden;
+
+  border: 1px solid rgba(233, 169, 58, 0.35);
+  border-radius: 28px;
+
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255, 227, 161, 0.32), transparent 60%),
+    linear-gradient(160deg, #3a2a10 0%, #1d1710 55%, #151311 100%);
+  color: #fff6e4;
+
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.plan-feature:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 227, 161, 0.6);
+  box-shadow: 0 24px 60px rgba(233, 169, 58, 0.14);
+}
+
+.plan-feature-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.plan-feature .app-icon {
+  flex: none;
+  width: 112px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.plan-feature-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.plan-feature-title small {
+  color: #f3c46c;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.plan-feature-title strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.1rem;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.plan-feature-title span {
+  color: rgba(255, 246, 228, 0.65);
+  font-size: 0.88rem;
+}
+
+.plan-feature-blurb {
+  max-width: 34ch;
+  color: rgba(255, 246, 228, 0.82);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.plan-feature-feeds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.plan-feature-dot {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 30%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.plan-feature-cta {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+
+  padding: 11px 18px;
+  border-radius: 999px;
+
+  background: linear-gradient(145deg, #ffe3a1, #e9a93a);
+  color: #2b1c02;
+
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Phone: a full-width widget across the top row of the grid. */
+.phone-tile--feature {
+  grid-column: 1 / -1;
+}
+
+.plan-feature--phone {
+  gap: 14px;
+  padding: 16px;
+  border-radius: 24px;
+}
+
+.plan-feature--phone:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.plan-feature--phone:active {
+  transform: scale(0.98);
+}
+
+.plan-feature--phone .plan-feature-head {
+  gap: 14px;
+}
+
+.phone-tile .plan-feature .app-icon {
+  width: 60px;
+  max-width: none;
+}
+
+.plan-feature--phone .plan-feature-title strong {
+  font-size: 1.35rem;
+}
+
+.plan-feature--phone .plan-feature-title span {
+  font-size: 0.78rem;
+}
+
+.plan-feature--phone .plan-feature-feeds {
+  flex-wrap: nowrap;
+  gap: 5px;
+  margin-top: 0;
+  overflow: hidden;
+}
+
+.plan-feature--phone .plan-feature-dot {
+  flex: none;
+  width: 26px;
+  height: 26px;
+}
+
+.plan-feature--phone .plan-feature-cta {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 0;
+  background: none;
+  color: #f3c46c;
+  font-size: 0;
+}
+
+.plan-feature--phone .plan-feature-cta svg {
+  width: 20px;
+  height: 20px;
+}
+
+.phone-tile--feature .home-remove {
+  left: -6px;
+}
+
+@media (max-width: 900px) {
+  .plan-feature .app-icon {
+    width: 84px;
+  }
+
+  .plan-feature-title strong {
+    font-size: 1.6rem;
+  }
+}
+
+.plan-feature-sends {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.plan-feature-send {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 227, 161, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 246, 228, 0.04);
+}
+
+.plan-feature-send > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.plan-feature-send strong {
+  font-size: 0.9rem;
+}
+
+.plan-feature-send small {
+  overflow: hidden;
+  color: rgba(255, 246, 228, 0.6);
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-feature-send .plan-feature-dot {
+  flex: none;
+}
+
+.plan-feature-feeds--more {
+  align-items: center;
+}
+
+.plan-feature-feeds--more small {
+  flex-basis: 100%;
+  margin-bottom: 2px;
+  color: rgba(255, 246, 228, 0.55);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.plan-feature-feeds--more .plan-feature-dot {
+  width: 28px;
+  height: 28px;
+}
+
+@media (max-width: 1100px) {
+  .plan-feature-sends {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-feature-send:nth-child(n + 5) {
+    display: none;
+  }
+}

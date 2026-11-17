@@ -46,6 +46,7 @@
   --l-nearby: #cda4c0;
   --l-flights: #98c0d2;
   --l-wear: #9ab8cc;
+  --l-reminders: #e8b867;
   --l-car: #d4bd8c;
   --l-garden: #afc792;
 
@@ -1721,6 +1722,7 @@
   --l-nearby: #b0699a;
   --l-flights: #4f92ad;
   --l-wear: #5f8fb0;
+  --l-reminders: #b57d1f;
   --l-car: #a88b4a;
   --l-garden: #7d9a4f;
 }
@@ -1810,10 +1812,13 @@
 
 .pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-chip,
 .pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="linen"] .appbar[data-app="planfox"] .appbar-home,
 .pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-chip,
 .pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="sage"] .appbar[data-app="planfox"] .appbar-home,
 .pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-chip,
-.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-signin {
+.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-signin,
+.pf[data-theme="mist"] .appbar[data-app="planfox"] .appbar-home {
   border-color: var(--pf-line-strong);
 }
 

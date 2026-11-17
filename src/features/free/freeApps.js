@@ -441,6 +441,7 @@ const categories = [
       { name: "CNTV Play", alt: "Netflix", url: "https://www.cntvplay.cl/", mark: "CN", color: "#d62e2e", description: "Chile's free public platform for Chilean films, series, documentaries and kids shows." },
       { name: "ERR Jupiter", alt: "Netflix", url: "https://jupiter.err.ee/", mark: "JU", color: "#1e3a8a", description: "Estonian public TV and radio on demand, with dramas, films and kids shows." },
       { name: "RÚV", alt: "Netflix", url: "https://www.ruv.is/sjonvarp", mark: "RÚ", color: "#003da5", description: "Icelandic public TV, with Nordic dramas, documentaries and live channels." },
+      { name: "RTVCPlay", alt: "Netflix", url: "https://www.rtvcplay.co/", mark: "RT", color: "#e4002b", description: "Colombian public TV, with Señal Colombia series, documentaries and live channels." },
     ],
   },
   {
@@ -535,6 +536,8 @@ const categories = [
       { name: "Radio Universidad de Chile", alt: "SiriusXM", url: "https://radio.uchile.cl/", mark: "RU", color: "#00427a", description: "University public radio with news, culture and Chilean music, live and on demand." },
       { name: "Eesti Raadio", alt: "SiriusXM", url: "https://eestiraadio.err.ee/", mark: "ER", color: "#1e3a8a", description: "Estonian public radio stations, from Vikerraadio to Klassikaraadio, live." },
       { name: "RÚV Radio", alt: "SiriusXM", url: "https://www.ruv.is/utvarp", mark: "RÚ", color: "#003da5", description: "Icelandic public radio, including Rás 1 and Rás 2, live and on demand." },
+      { name: "Radio Nacional de Colombia", alt: "SiriusXM", url: "https://www.radionacional.co/", mark: "RN", color: "#f7b500", description: "Colombian public radio with news, culture and regional music, live and on demand." },
+      { name: "Radiónica", alt: "SiriusXM", url: "https://www.radionica.rocks/", mark: "Ra", color: "#e6007e", description: "Colombian public youth radio focused on rock, indie and new local music." },
     ],
   },
   {
@@ -573,6 +576,7 @@ const categories = [
       { name: "Memoria Chilena", alt: "paid archives", url: "https://www.memoriachilena.gob.cl/", mark: "MC", color: "#5b2c6f", description: "National Library of Chile collection of digitized books, photos and documents." },
       { name: "DIGAR", alt: "Kindle Unlimited / archives", url: "https://www.digar.ee/", mark: "DI", color: "#2f6f4f", description: "National Library of Estonia digital archive of books, papers and maps." },
       { name: "Tímarit.is", alt: "Newspapers.com", url: "https://timarit.is/", mark: "Tí", color: "#4a6fa5", description: "Free archive of digitized Icelandic, Faroese and Greenlandic newspapers." },
+      { name: "Biblioteca Virtual Banrepcultural", alt: "Scribd", url: "https://www.banrepcultural.org/biblioteca-virtual", mark: "BV", color: "#00457c", description: "Free digital library from Colombia's central bank, with books, maps and historic documents." },
     ],
   },
   {
@@ -768,6 +772,7 @@ const categories = [
       { name: "Aprende.org", alt: "Coursera / LinkedIn Learning", url: "https://aprende.org/", mark: "Ap", color: "#ef7d00", description: "Free Spanish-language courses in job skills, health and school subjects." },
       { name: "Educ.ar", alt: "paid tutoring sites", url: "https://www.educ.ar/", mark: "Ed", color: "#2c5aa0", description: "Argentina's public education portal with lessons, courses and teaching resources." },
       { name: "Siyavula", alt: "paid tutoring / textbooks", url: "https://www.siyavula.com/", mark: "Si", color: "#17a589", description: "Free open maths and science textbooks with practice for high school." },
+      { name: "Colombia Aprende", alt: "paid tutoring", url: "https://www.colombiaaprende.edu.co/", mark: "CA", color: "#3366cc", description: "Colombia's free national education portal, with lessons and resources for every school level." },
     ],
   },
   {

@@ -10,6 +10,7 @@ import HistoryTab from "./components/HistoryTab";
 import { generateWorkout, workoutTitle } from "./model/generate";
 import { nextSession, PLAN_GOALS, toIsoDay } from "./model/program";
 import { useLiftData } from "./state/useLiftData";
+import { musclesById } from "./data/muscles";
 import { withNext } from "../../lib/redirect";
 import "./lift.css";
 import "./identity.css";
@@ -114,6 +115,16 @@ export default function LiftPage() {
     // startSession and data are read once, when the link arrives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [linkPlan, linkSession, linkNext, data.plans.length, authLoading]);
+
+  // Opened from BodyFox: ?muscles=chest,triceps picks those muscle groups
+  // in the workout builder.
+  const linkMuscles = params.get("muscles");
+  useEffect(() => {
+    if (!linkMuscles) return;
+    const picked = linkMuscles.split(",").filter(id => musclesById.has(id));
+    if (picked.length) setPrefs({ muscles: picked });
+    setParams({}, { replace: true });
+  }, [linkMuscles, setPrefs, setParams]);
 
   const current = data.current;
 

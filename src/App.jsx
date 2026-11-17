@@ -26,6 +26,12 @@ const MathPage = lazy(() => import("./features/math/MathPage"));
 const CookPage = lazy(() => import("./features/cook/CookPage"));
 // GrowFox carries its plant library, so it loads on demand too.
 const GrowPage = lazy(() => import("./features/grow/GrowPage"));
+// FlyFox carries its question bank and study notes, so it loads on demand too.
+const FlyPage = lazy(() => import("./features/fly/FlyPage"));
+// MedicFox carries its knowledge base and skill sheets, so it loads on demand too.
+const MedicPage = lazy(() => import("./features/medic/MedicPage"));
+// BodyFox brings three.js and its 3D body, so it loads on demand too.
+const BodyPage = lazy(() => import("./features/body/BodyPage"));
 
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
@@ -71,6 +77,22 @@ export default function App() {
                 }
             />
             <Route
+                path="/fly"
+                element={
+                    <Suspense fallback={null}>
+                        <FlyPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/medic"
+                element={
+                    <Suspense fallback={null}>
+                        <MedicPage />
+                    </Suspense>
+                }
+            />
+            <Route
                 path="/math"
                 element={
                     <Suspense fallback={null}>
@@ -83,6 +105,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <ToolsPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/body"
+                element={
+                    <Suspense fallback={null}>
+                        <BodyPage />
                     </Suspense>
                 }
             />

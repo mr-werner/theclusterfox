@@ -1,11 +1,22 @@
-import { CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
+import { Ambulance, CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
 
+// PlanFox comes first: it is the calendar every other app feeds into, so it
+// leads the home screen.
 export const apps = [
+  {
+    id: "planfox",
+    name: "Plan",
+    subtitle: "PlanFox",
+    description: "Calendar • Weather • Life",
+    path: "/plan",
+    icon: CalendarRange,
+    accent: "planfox",
+  },
   {
     id: "f4t",
     name: "F4T",
     subtitle: "Fuel 4 Thought",
-    description: "Food • Fitness • Science",
+    description: "Meals • Groceries • Budget",
     path: "/f4t",
     icon: Flame,
     accent: "f4t",
@@ -36,15 +47,6 @@ export const apps = [
     path: "/sports",
     icon: Trophy,
     accent: "scorefox",
-  },
-  {
-    id: "planfox",
-    name: "Plan",
-    subtitle: "PlanFox",
-    description: "Calendar • Weather • Life",
-    path: "/plan",
-    icon: CalendarRange,
-    accent: "planfox",
   },
   {
     id: "liftfox",
@@ -100,5 +102,32 @@ export const apps = [
     path: "/grow",
     icon: Sprout,
     accent: "growfox",
+  },
+  {
+    id: "flyfox",
+    name: "Fly",
+    subtitle: "FlyFox",
+    description: "Winds aloft • Flight plans • Pilot study",
+    path: "/fly",
+    icon: Plane,
+    accent: "flyfox",
+  },
+  {
+    id: "medicfox",
+    name: "Medic",
+    subtitle: "MedicFox",
+    description: "EMR • EMT • AEMT • Paramedic",
+    path: "/medic",
+    icon: Ambulance,
+    accent: "medicfox",
+  },
+  {
+    id: "bodyfox",
+    name: "Body",
+    subtitle: "BodyFox",
+    description: "Anatomy • 3D • Explore",
+    path: "/body",
+    icon: PersonStanding,
+    accent: "bodyfox",
   },
 ];

@@ -843,3 +843,17 @@
     font-size: 1.7rem;
   }
 }
+
+.bf-study {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(160, 230, 222, 0.12);
+}
+
+.bf-study small {
+  opacity: 0.7;
+}

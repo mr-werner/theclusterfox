@@ -12,6 +12,7 @@ import TableView from "./components/TableView";
 import ConverterView from "./components/ConverterView";
 import FrameView from "./components/FrameView";
 import { GdtIndex, GdtRoute } from "./design/GdtView";
+import AddToStudy from "../../components/AddToStudy";
 import { MakeRoute } from "./design/MakeView";
 import { BASICS as GDT_BASICS, CALLOUTS as GDT_CALLOUTS } from "./design/gdtModel";
 import "./tools.css";
@@ -383,6 +384,7 @@ function CategoryRoute() {
             <cat.icon size={26} />
           </span>
           <h1>{cat.name}</h1>
+          <AddToStudy app="toolfox" deck={cat.id === "design" ? "gdt" : `calc-${cat.id}`} title={cat.id === "design" ? "GD&T symbols" : `${cat.name} formulas`} />
         </div>
         <p className="tf-lede">{cat.blurb}</p>
       </header>

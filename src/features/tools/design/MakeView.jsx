@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Link } from "../nav";
+import AddToStudy from "../../../components/AddToStudy";
 import { ArrowRight, ChevronDown, Cog, Factory, Route as RouteIcon, TriangleAlert } from "lucide-react";
 import { CHARS, FAMILIES, FEATURES, MATERIALS, PROCESSES, QUANTITIES, RA_STEPS, SHAPES, recommend } from "./processes";
 import { calloutById } from "./gdtModel";
@@ -32,6 +33,7 @@ function Head({ title, lede, tab }) {
       <Crumbs />
       <div className="tf-title-row">
         <h1>{title}</h1>
+        {tab === "lib" && <AddToStudy app="toolfox" deck="processes" title="Manufacturing processes" />}
       </div>
       <p className="tf-lede">{lede}</p>
       <nav className="gd-tabs" aria-label="Manufacturing">

@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 
 import { covers, EXAM_AREAS, levelById, rank } from "../data/levels";
 import { TOPICS } from "../data/knowledge";
+import AddToStudy from "../../../components/AddToStudy";
 
 const textOf = pt => (typeof pt === "string" ? pt : pt.t);
 const minOf = pt => (typeof pt === "string" ? "emr" : pt.min);
@@ -64,6 +65,9 @@ export default function LearnTab({ level }) {
                   </button>
                   {isOpen && (
                     <div className="mx-topic-body">
+                      <div className="mx-study-row">
+                        <AddToStudy app="medicfox" deck={t.id} title={t.title} />
+                      </div>
                       <ul className="mx-points">
                         {points.map(pt => (
                           <li key={textOf(pt)} className={minOf(pt) !== "emr" ? "is-level" : ""}>

@@ -12,6 +12,7 @@ import { DESIGN_HUE, lengthUnits, useTitle } from "./units";
 import { DatumsPage, FramePage, ModifiersPage } from "./GdtBasics";
 import { DatumOrderPage, DatumShiftPage, PatternPage } from "./GdtLessons";
 import "./design.css";
+import AddToStudy from "../../../components/AddToStudy";
 
 // GD&T explorer: an index of every callout, and a page per callout where you
 // edit the feature control frame and the part as made, and watch the drawing
@@ -25,6 +26,7 @@ export function GdtIndex() {
         <Crumbs />
         <div className="tf-title-row">
           <h1>GD&amp;T explorer</h1>
+          <AddToStudy app="toolfox" deck="gdt" title="GD&T symbols" />
         </div>
         <p className="tf-lede">
           Every geometric tolerance symbol, with a drawing you can change. Edit the callout or the part and see the tolerance zone move and the part pass or fail. Based on ASME Y14.5-2018; ISO 1101 works the same way for these.

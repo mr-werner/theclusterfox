@@ -23,6 +23,7 @@
 .pf [data-app="mechanics"] { --app: var(--mechanics); }
 .pf [data-app="electrical"] { --app: var(--electrical); }
 .pf [data-app="manufacturing"] { --app: var(--manufacturing); }
+.pf [data-app="studyfox"] { --app: var(--studyfox, #ffd84a); }
 
 .pf-app-mark {
   display: grid;

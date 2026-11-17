@@ -8,7 +8,8 @@ import { splitDays } from "../model/route";
 import { addDays } from "../state/roadStore";
 import { describeWeather } from "../../../services/weather/openMeteo";
 import RoadMap from "./RoadMap";
-import { directionsUrl, Loading, PlaceInput, placeUrl, THEME_ICONS } from "./ui";
+import { Loading, PlaceInput } from "./ui";
+import { directionsUrl, placeUrl, THEME_ICONS } from "./links";
 
 const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const today = () => {
@@ -41,7 +42,7 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
   const [focus, setFocus] = useState(null);
   const [explore, setExplore] = useState("scenic");
   const [towns, setTowns] = useState({});
-  const [weather, setWeather] = useState(null);
+  const [weatherFor, setWeatherFor] = useState({ key: null, list: null });
   const [savedId, setSavedId] = useState(null);
 
   const days = useMemo(() => (current ? splitDays(current.route, current.stops, data.hoursPerDay) : []), [current, data.hoursPerDay]);
@@ -67,17 +68,17 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
   const weatherSpots = start && to ? [...ends, to] : [];
   const weatherKey = `${start}|${endsKey}|${to?.id}`;
   useEffect(() => {
-    setWeather(null);
     if (!start || !weatherSpots.length) return undefined;
     const ahead = (Date.parse(`${start}T00:00:00`) - Date.now()) / 86400000;
     if (ahead > 15 || ahead < -2) return undefined;
     const ctl = new AbortController();
     fetchDailyWeather(weatherSpots, { signal: ctl.signal })
-      .then(setWeather)
+      .then(list => setWeatherFor({ key: weatherKey, list }))
       .catch(() => {});
     return () => ctl.abort();
   }, [weatherKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const weather = weatherFor.key === weatherKey ? weatherFor.list : null;
   const townFor = e => (e ? towns[`${e.lat.toFixed(2)},${e.lon.toFixed(2)}`] : null);
 
   const fit = useMemo(() => (current ? shrink(current.route.points, 200) : from && to ? [from, to] : []), [current, from, to]);

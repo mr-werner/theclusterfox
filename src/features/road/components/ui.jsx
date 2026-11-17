@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Footprints, Gauge, Landmark, LoaderCircle, LocateFixed, MapPin, Mountain, Search, Shuffle, UtensilsCrossed, X } from "lucide-react";
+import { LoaderCircle, LocateFixed, MapPin, Search, X } from "lucide-react";
 
 import { findPlaces } from "../api";
-
-export const THEME_ICONS = { fastest: Gauge, alt: Shuffle, scenic: Mountain, food: UtensilsCrossed, history: Landmark, outdoors: Footprints };
 
 /** Pick a city or town. Calls onPick({ id, name, region, lat, lon }). */
 export function PlaceInput({ label, value, onPick, allowHere, placeholder = "City or town" }) {
@@ -11,11 +9,13 @@ export function PlaceInput({ label, value, onPick, allowHere, placeholder = "Cit
   const [results, setResults] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
-  const [editing, setEditing] = useState(!value);
+  // Which place you asked to change; picking a new one ends the editing.
+  const [editingId, setEditingId] = useState(null);
+  const editing = !value || editingId === value.id;
+  const setEditing = on => setEditingId(on && value ? value.id : null);
   const ctl = useRef(null);
 
   useEffect(() => () => ctl.current?.abort(), []);
-  useEffect(() => setEditing(!value), [value?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function run(e) {
     e?.preventDefault();
@@ -117,13 +117,3 @@ export function Loading({ children = "Loading…" }) {
     </p>
   );
 }
-
-/** Google Maps turn-by-turn for a trip (it takes up to nine stops in between). */
-export function directionsUrl(from, to, stops = []) {
-  const ll = p => `${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;
-  const qs = new URLSearchParams({ api: "1", origin: ll(from), destination: ll(to), travelmode: "driving" });
-  if (stops.length) qs.set("waypoints", stops.slice(0, 9).map(ll).join("|"));
-  return `https://www.google.com/maps/dir/?${qs}`;
-}
-
-export const placeUrl = p => `https://www.google.com/maps/search/?api=1&query=${p.lat.toFixed(5)},${p.lon.toFixed(5)}`;

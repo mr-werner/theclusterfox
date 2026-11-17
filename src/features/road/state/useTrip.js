@@ -42,7 +42,7 @@ export function useTrip(from, to, saved) {
 
       const cum = cumulative(fastest.points);
       const total = fastest.miles;
-      let samples = sampleEvery(fastest.points, cum, Math.max(3, total / 120));
+      const samples = sampleEvery(fastest.points, cum, Math.max(3, total / 120));
       let places = [];
       try {
         places = placeAlong(await fetchPlacesAlong(samples, { signal }), fastest, 20).map(p => ({ ...p, baseMile: p.mile }));
@@ -63,7 +63,6 @@ export function useTrip(from, to, saved) {
           if (error.name === "AbortError") throw error;
         }
       }
-      samples = null;
       setState(s => ({ ...s, status: "done" }));
     } catch (error) {
       if (error.name === "AbortError") return;

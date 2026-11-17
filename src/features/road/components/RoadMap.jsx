@@ -43,7 +43,9 @@ export default function RoadMap({ fit = [], fitKey, routes = [], markers = [], h
   }, []);
 
   const fitRef = useRef(fit);
-  fitRef.current = fit;
+  useEffect(() => {
+    fitRef.current = fit;
+  });
   useEffect(() => {
     setView(fitView(fitRef.current, size.w, size.h));
   }, [fitKey, size.w > 0 && Math.round(size.w / 200), size.h]); // eslint-disable-line react-hooks/exhaustive-deps

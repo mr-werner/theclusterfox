@@ -1,0 +1,17 @@
+/* RoadFox identity: the shared ClusterFox app bar in night-asphalt with
+   center-line yellow and a highway-sign name. */
+
+.appbar[data-app="roadfox"] {
+  --ab-bg: rgba(20, 22, 24, 0.9);
+  --ab-fg: #f5f1e6;
+  --ab-muted: #a7a196;
+  --ab-line: rgba(255, 200, 60, 0.16);
+  --ab-accent: #ffc23c;
+  --ab-accent-ink: #1d1600;
+  --ab-font: "Overpass", "DM Sans", sans-serif;
+  --ab-name-size: 1.14rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: 0.01em;
+  --ab-radius: 10px;
+  --ab-menu-bg: #1d2023;
+}

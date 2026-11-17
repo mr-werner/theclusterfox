@@ -7,7 +7,8 @@ import shapes from "../data/stateShapes.json";
 import { cumulative, fmtMiles, locate, pointAt, sampleEvery, shrink } from "../model/geo";
 import { fuelCost, legRange, planStops, PLUGS, stopTargets, VEHICLE_PRESETS } from "../model/fuel";
 import RoadMap from "./RoadMap";
-import { Loading, placeUrl } from "./ui";
+import { Loading } from "./ui";
+import { placeUrl } from "./links";
 
 // A rough price for public DC fast charging, $/kWh, and how far a typical
 // EV goes on one kWh. Used only for the trip cost estimate.
@@ -20,7 +21,7 @@ export default function FuelTab({ store, current, goPlan }) {
   const ev = v.kind === "ev";
   const [prices, setPrices] = useState(null);
   const [priceError, setPriceError] = useState(null);
-  const [stations, setStations] = useState({ state: "idle", list: [], source: null });
+  const [found, setFound] = useState({ key: null, state: "idle", list: [], source: null });
 
   useEffect(() => {
     const ctl = new AbortController();
@@ -33,16 +34,17 @@ export default function FuelTab({ store, current, goPlan }) {
   const route = current?.route;
   const range = legRange(v);
   const targetsKey = route ? `${current.id}|${Math.round(route.miles)}|${v.kind}|${Math.round(range.next)}|${v.plug}` : "";
+  const needed = route ? stopTargets(route.miles, range).length : 0;
+  const stations = found.key === targetsKey ? found : { state: needed ? "loading" : "none", list: [], source: null };
+  const setStations = s => setFound({ ...s, key: targetsKey });
 
   // Stations near each spot you'll need one.
   useEffect(() => {
-    if (!route) return undefined;
+    if (!route || !needed) return undefined;
     const ctl = new AbortController();
     const signal = ctl.signal;
     const cum = cumulative(route.points);
     const targets = stopTargets(route.miles, range);
-    setStations({ state: targets.length ? "loading" : "none", list: [], source: null });
-    if (!targets.length) return undefined;
     const samples = sampleEvery(route.points, cum, Math.max(1, route.miles / 800));
     const place = list => list.map(s => ({ ...s, ...locate(samples, s) })).filter(s => s.off <= 3);
     (async () => {

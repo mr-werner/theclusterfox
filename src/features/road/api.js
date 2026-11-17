@@ -31,7 +31,7 @@ export async function fetchRoutes(points, { alternatives = false, signal } = {})
     response = await fetch(`${OSRM}${osrmPath(points, { alternatives })}`, { signal });
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    throw new Error("Couldn't reach the route service. Check your connection.");
+    throw new Error("Couldn't reach the route service. Check your connection.", { cause: error });
   }
   const body = await response.json().catch(() => ({}));
   if (body.code === "NoRoute") throw new Error("There's no road route between those places.");
@@ -90,7 +90,7 @@ async function api(path, init) {
     response = await fetch(`/api/road/${path}`, init);
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    throw new Error("Couldn't reach RoadFox's data service.");
+    throw new Error("Couldn't reach RoadFox's data service.", { cause: error });
   }
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body.error || "RoadFox's data service isn't responding.");

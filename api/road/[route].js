@@ -12,6 +12,7 @@
 // for real traffic. Gas answers are cached at the edge for hours, so EIA
 // sees very few requests either way.
 
+/* global process */
 import { parseNrelStation } from "../../src/features/road/model/fuel.js";
 
 const EIA = "https://api.eia.gov/v2/petroleum/pri/gnd/data/";

@@ -313,5 +313,6 @@ export const apps = [
     path: "/guitar",
     icon: Guitar,
     accent: "fretfox",
+    category: "learn",
   },
 ];

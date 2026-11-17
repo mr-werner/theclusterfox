@@ -1,7 +1,7 @@
 // MusicXML import (.musicxml / .xml and compressed .mxl), the format almost
 // every notation program exports and that free libraries like Mutopia and
 // MuseScore share. Result has the same shape as midi.js:
-//   { tempo, timeSig, title, tracks: [{ name, notes: [{ midi, start, dur, vel, staff, beat, beats }] }] }
+//   { tempo, timeSig, key (fifths or null), title, tracks: [{ name, notes: [{ midi, start, dur, vel, staff, beat, beats }] }] }
 // start/dur in seconds (at the written tempo), beat/beats in quarter notes,
 // staff 1 = upper (right hand on piano), 2 = lower (left hand).
 import { kid, kids, parseXml, textOf } from "./xml.js";
@@ -20,6 +20,7 @@ export function parseMusicXml(text) {
 
   let firstTempo = null;
   let timeSig = null;
+  let key = null;
   const tempoMap = []; // [{ beat, bpm }]
   const tracks = [];
 
@@ -38,6 +39,8 @@ export function parseMusicXml(text) {
           const d = Number(textOf(el, "divisions"));
           if (d > 0) divisions = d;
           const time = kid(el, "time");
+          const fifths = textOf(kid(el, "key"), "fifths");
+          if (fifths != null && key == null && Number.isInteger(Number(fifths))) key = Number(fifths);
           if (time && !timeSig) timeSig = [Number(textOf(time, "beats")) || 4, Number(textOf(time, "beat-type")) || 4];
         } else if (el.name === "direction" || el.name === "sound") {
           const sound = el.name === "sound" ? el : kid(el, "sound");
@@ -69,17 +72,17 @@ export function parseMusicXml(text) {
           const beat = measureStart + start / divisions;
           const beats = dur / divisions;
           const ties = kids(el, "tie").map(t => t.attrs.type);
-          const key = `${midi}:${staff}`;
-          const prev = open.get(key);
+          const tieKey = `${midi}:${staff}`;
+          const prev = open.get(tieKey);
           if (ties.includes("stop") && prev && Math.abs(prev.beat + prev.beats - beat) < 1e-6) {
             prev.beats += beats;
-            if (!ties.includes("start")) open.delete(key);
+            if (!ties.includes("start")) open.delete(tieKey);
             continue;
           }
           const dyn = Number(el.attrs.dynamics);
           const note = { midi, beat, beats, staff, vel: dyn > 0 ? Math.min(1, dyn / 127) : 0.75 };
           notes.push(note);
-          if (ties.includes("start")) open.set(key, note);
+          if (ties.includes("start")) open.set(tieKey, note);
         }
       }
       measureStart += Math.max(measureLen, pos) / divisions;
@@ -96,7 +99,7 @@ export function parseMusicXml(text) {
     }
     t.notes.sort((a, b) => a.start - b.start || a.midi - b.midi);
   }
-  return { title, tempo: bpm, timeSig: timeSig ?? [4, 4], tracks: tracks.filter(t => t.notes.length) };
+  return { title, tempo: bpm, timeSig: timeSig ?? [4, 4], key, tracks: tracks.filter(t => t.notes.length) };
 }
 
 /** A function beat -> seconds for a tempo map [{ beat, bpm }]. */

@@ -258,6 +258,8 @@
 .sf-lifts .is-hold i { background: var(--sf-warn); }
 .sf-lifts .is-scheduled i { background: var(--sf-accent); }
 
+.sf-liftie { display: block; width: 100%; height: 260px; border: 1px solid var(--sf-line); border-radius: 12px; background: #fff; }
+
 /* Snowpack */
 .sf-snotel { display: grid; gap: 8px; }
 .sf-snotel article { padding: 10px 12px; border-radius: 12px; background: var(--sf-panel-2); }

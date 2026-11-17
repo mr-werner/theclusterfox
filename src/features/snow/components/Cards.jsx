@@ -27,7 +27,11 @@ export function LiftsCard({ spot }) {
     >
       {!spot.liftie && <p className="sf-muted">Live lift status isn't tracked for {spot.name} yet. The resort's own page above has today's lifts and runs.</p>}
       {live.loading && <Loading text="Checking which lifts are spinning…" />}
-      {live.error && <Problem text={`${live.error} The official page above always has it.`} />}
+      {live.error && (
+        // Liftie turns away some server requests, but its widget loads fine
+        // in a person's own browser, so show that instead.
+        <iframe className="sf-liftie" title={`${spot.name} lift status`} src={`https://liftie.info/widget/resort/${spot.liftie}`} loading="lazy" referrerPolicy="no-referrer" />
+      )}
       {live.data && (
         <>
           <div className="sf-lift-sum">
@@ -66,9 +70,9 @@ export function LiftsCard({ spot }) {
               {all ? "Show fewer" : `Show all ${lifts.length} lifts`}
             </button>
           )}
-          <p className="sf-credit">Live status via Liftie, which reads the resort's own page.</p>
         </>
       )}
+      {(live.data || live.error) && <p className="sf-credit">Live status via Liftie, which reads the resort's own page.</p>}
       <p className="sf-note">
         <b>Lift lines:</b> no resort shares live wait times publicly (Vail shows some only inside its own app), so SnowFox can't show them. The crowd outlook above is an estimate from weekends, holidays and fresh snow.
       </p>

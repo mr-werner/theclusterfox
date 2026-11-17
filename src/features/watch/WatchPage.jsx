@@ -1,7 +1,8 @@
 import { Navigate, useSearchParams } from "react-router-dom";
-import { Clapperboard, MonitorPlay, Tv } from "lucide-react";
+import { Clapperboard, MonitorPlay, Popcorn, Tv } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
+import FreeMovies from "./components/FreeMovies";
 import ServicePicker from "./components/ServicePicker";
 import ShowSearch from "./components/ShowSearch";
 import { useWatchData } from "./state/useWatchData";
@@ -10,6 +11,7 @@ import "./identity.css";
 
 const TABS = [
   { id: "shows", name: "Movies & Shows", icon: Clapperboard },
+  { id: "free", name: "Free movies", icon: Popcorn },
   { id: "services", name: "Services", icon: Tv },
 ];
 
@@ -59,13 +61,15 @@ export default function WatchPage() {
         </nav>
 
         {tab === "shows" && <ShowSearch data={data} update={update} onPickServices={() => openTab("services")} initialOpen={linkedTitle} />}
+        {tab === "free" && <FreeMovies />}
         {tab === "services" && <ServicePicker data={data} update={update} />}
 
         <footer className="wf-credits">
           <p>
             Movie and show data and streaming listings from <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">TMDB</a> and{" "}
             <a href="https://www.justwatch.com" target="_blank" rel="noreferrer">JustWatch</a>. This product uses the TMDB API but is not
-            endorsed or certified by TMDB.
+            endorsed or certified by TMDB. Free movies are public domain films hosted by the{" "}
+            <a href="https://archive.org" target="_blank" rel="noreferrer">Internet Archive</a>.
           </p>
         </footer>
       </div>

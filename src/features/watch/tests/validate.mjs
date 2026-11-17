@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   canWatchNetwork, isBroadcastNetwork, mergeProviderLists, networksForServices, normalizeName,
-  genresById, interleave, myOffers, rankRecommendations, onMyServices, parseDetails, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
+  discoverFilters, genresById, interleave, myOffers, rankRecommendations, onMyServices, parseDetails, parseScoreboard, parseSearchResult, parseWatchProviders, splitByServices,
 } from '../../../services/watch/parse.js';
 import { directLinkFor, networkLink, parseWatchmodeSources, providerLink, serviceKey } from '../../../services/watch/links.js';
 import { firstSyncAction } from '../../../lib/syncDecision.js';
@@ -203,4 +203,18 @@ console.log('WatchFox checks passed');
   assert.equal(firstSyncAction({ userId: me, updatedAt: newer }, { doc: {}, updatedAt: old }, me), 'push');
   assert.equal(firstSyncAction({}, { doc: {}, updatedAt: old }, me), 'pull', 'never-stamped devices take the account copy');
   console.log('Account sync: first-sync decisions check out.');
+}
+
+// Recommendation lists: hot right now is recent, classics are old and well rated.
+{
+  const today = new Date('2026-11-16T12:00:00Z');
+  const hotMovie = discoverFilters('hot', 'movie', today);
+  assert.equal(hotMovie['primary_release_date.gte'], '2026-02-16');
+  assert.equal(hotMovie['primary_release_date.lte'], '2026-11-16');
+  assert.equal(discoverFilters('hot', 'tv', today)['air_date.gte'], '2026-09-16');
+  const classicShow = discoverFilters('classics', 'tv', today);
+  assert.equal(classicShow.sort_by, 'vote_average.desc');
+  assert.equal(classicShow['first_air_date.lte'], '2011-11-16');
+  assert.equal(discoverFilters('classics', 'movie', today)['primary_release_date.lte'], '2011-11-16');
+  assert.deepEqual(discoverFilters('trending', 'movie', today), {});
 }

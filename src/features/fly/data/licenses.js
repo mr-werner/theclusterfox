@@ -164,7 +164,7 @@ export const SCHOOL_TIPS = [
       "Book a discovery flight ($100–$250) at two schools and compare",
       "Get your FAA medical early (find an Aviation Medical Examiner on the FAA site) so nothing surprises you after you've paid for lessons",
       "Create an IACRA account for your student pilot certificate",
-      "Start studying for the knowledge test now — FlyFox's Study tab has practice tests",
+      "Start studying for the knowledge test now — PilotFox's Study tab has practice tests",
     ],
   },
   {

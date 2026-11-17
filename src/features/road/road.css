@@ -1,0 +1,442 @@
+@import url("https://fonts.googleapis.com/css2?family=Overpass:wght@600;700;800&display=swap");
+
+/* RoadFox: night asphalt, center-line yellow and highway-sign green, with
+   one color per kind of trip. */
+
+.rf {
+  --rf-bg: #141618;
+  --rf-panel: #1c1f22;
+  --rf-panel-2: #24282c;
+  --rf-line: rgba(255, 255, 255, 0.09);
+  --rf-text: #f5f1e6;
+  --rf-muted: #a7a196;
+  --rf-accent: #ffc23c;
+  --rf-accent-ink: #1d1600;
+  --rf-sign: #1f8f55;
+  --rf-warn: #ff8a6b;
+  --t-fastest: #9fb3c8;
+  --t-alt: #b49cff;
+  --t-scenic: #4fbf7a;
+  --t-food: #ff8a4c;
+  --t-history: #e0b062;
+  --t-outdoors: #4cb8e0;
+
+  min-height: 100vh;
+  color: var(--rf-text);
+  background:
+    radial-gradient(circle 700px at 90% -240px, rgba(255, 194, 60, 0.12), transparent),
+    radial-gradient(circle 520px at 0% 35%, rgba(31, 143, 85, 0.08), transparent),
+    var(--rf-bg);
+}
+
+.rf h1, .rf h2, .rf h3 {
+  font-family: "Overpass", "DM Sans", sans-serif;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.rf h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.1; }
+.rf h2 { font-size: 1.12rem; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.rf h2 small { color: var(--rf-muted); font-weight: 600; font-size: 0.82rem; font-family: "DM Sans", sans-serif; }
+.rf h3 { font-size: 1rem; }
+.rf p { margin: 0; line-height: 1.5; }
+.rf a { color: var(--rf-accent); }
+.rf-muted { color: var(--rf-muted); }
+.rf-small { font-size: 0.86rem; }
+.rf-kicker {
+  color: var(--rf-accent);
+  font-family: "Overpass", sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 6px !important;
+}
+
+/* Tabs */
+.rf-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  padding: 8px 12px;
+  background: rgba(20, 22, 24, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rf-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rf-tabs::-webkit-scrollbar { display: none; }
+.rf-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--rf-muted);
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.93rem;
+  cursor: pointer;
+}
+.rf-tabs button:hover { color: var(--rf-text); }
+.rf-tabs button.is-on { color: var(--rf-accent-ink); background: var(--rf-accent); }
+
+.rf-main { max-width: 1180px; margin: 0 auto; padding: 20px 16px 80px; display: grid; gap: 18px; }
+.rf-plan, .rf-fuel, .rf-games { display: grid; gap: 18px; min-width: 0; }
+
+/* Buttons and inputs */
+.rf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--rf-accent-ink);
+  background: var(--rf-accent);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rf-btn:hover { filter: brightness(1.06); }
+.rf-btn:disabled { opacity: 0.45; cursor: default; filter: none; }
+.rf-btn.is-small { padding: 6px 11px; font-size: 0.84rem; }
+.rf-btn.is-ghost { color: var(--rf-text); background: var(--rf-panel-2); border-color: var(--rf-line); }
+.rf-btn.is-go { padding: 12px 20px; font-size: 1rem; }
+.rf a.rf-btn { color: var(--rf-accent-ink); }
+.rf a.rf-btn.is-ghost { color: var(--rf-text); }
+.rf-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 0;
+  border-radius: 8px;
+  color: var(--rf-muted);
+  background: none;
+  cursor: pointer;
+}
+.rf-icon-btn:hover { color: var(--rf-text); background: var(--rf-panel-2); }
+.rf-icon-btn:disabled { opacity: 0.35; cursor: default; }
+.rf-link { border: 0; padding: 0; background: none; color: var(--rf-accent); font: inherit; text-decoration: underline; cursor: pointer; }
+.rf input, .rf select {
+  font: inherit;
+  color: var(--rf-text);
+  background: var(--rf-panel-2);
+  border: 1px solid var(--rf-line);
+  border-radius: 9px;
+  padding: 9px 11px;
+  min-width: 0;
+}
+.rf input[type="range"] { padding: 0; accent-color: var(--rf-accent); background: none; border: 0; }
+.rf input[type="date"] { color-scheme: dark; }
+.rf input:focus-visible, .rf select:focus-visible, .rf button:focus-visible, .rf a:focus-visible { outline: 2px solid var(--rf-accent); outline-offset: 2px; }
+
+.rf-spin { animation: rf-spin 0.9s linear infinite; }
+@keyframes rf-spin { to { transform: rotate(360deg); } }
+.rf-loading { display: flex; align-items: center; gap: 8px; color: var(--rf-muted); }
+.rf-note { padding: 10px 14px; border-radius: 10px; background: var(--rf-panel); border: 1px solid var(--rf-line); font-size: 0.92rem; }
+.rf-note.is-warn { border-color: rgba(255, 138, 107, 0.4); color: #ffd2c6; }
+
+/* Hero: where to */
+.rf-hero {
+  padding: 22px;
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 3px), rgba(255, 194, 60, 0.13) calc(50% - 3px), rgba(255, 194, 60, 0.13) calc(50% + 3px), transparent calc(50% + 3px)) 0 0 / 100% 46px,
+    linear-gradient(160deg, #23272b, #191b1e);
+  border: 1px solid var(--rf-line);
+  display: grid;
+  gap: 16px;
+}
+.rf-endpoints { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+.rf-swap {
+  width: 40px; height: 40px; margin-bottom: 2px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--rf-line);
+  background: var(--rf-panel-2);
+  color: var(--rf-text);
+  cursor: pointer;
+  transform: rotate(90deg);
+}
+.rf-swap:disabled { opacity: 0.4; }
+.rf-place { display: grid; gap: 6px; position: relative; min-width: 0; }
+.rf-place-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rf-muted); }
+.rf-place-value {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--rf-line);
+  background: var(--rf-sign);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55), inset 0 0 0 4px var(--rf-sign);
+}
+.rf-place-value strong { font-family: "Overpass", sans-serif; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rf-place-value span { opacity: 0.8; font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rf-search { display: flex; align-items: center; gap: 6px; padding: 3px 4px 3px 11px; border-radius: 10px; background: var(--rf-panel-2); border: 1px solid var(--rf-line); color: var(--rf-muted); }
+.rf-search input { flex: 1; border: 0; background: none; padding: 8px 2px; }
+.rf-search input:focus-visible { outline: none; }
+.rf-search:focus-within { border-color: var(--rf-accent); }
+.rf-results {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
+  margin: 4px 0 0; padding: 4px; list-style: none;
+  background: #23272b; border: 1px solid var(--rf-line); border-radius: 10px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+.rf-results button { display: flex; gap: 8px; align-items: baseline; width: 100%; padding: 9px 10px; border: 0; border-radius: 7px; background: none; color: var(--rf-text); font: inherit; text-align: left; cursor: pointer; }
+.rf-results button:hover { background: var(--rf-panel-2); }
+.rf-results span { color: var(--rf-muted); font-size: 0.86rem; }
+.rf-options { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; }
+.rf-options label { display: grid; gap: 6px; font-size: 0.86rem; color: var(--rf-muted); font-weight: 600; }
+.rf-hours { min-width: 200px; flex: 1; }
+.rf-options .rf-btn { margin-left: auto; }
+
+/* Intro */
+.rf-intro { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.rf-intro-card { padding: 16px; border-radius: 14px; background: var(--rf-panel); border: 1px solid var(--rf-line); border-top: 3px solid var(--tc, var(--rf-accent)); display: grid; gap: 6px; color: var(--rf-muted); font-size: 0.92rem; }
+.rf-intro-card svg { color: var(--tc); }
+.rf-intro-card h3 { color: var(--rf-text); }
+.rf-intro-note { grid-column: 1 / -1; }
+
+.rf-card--fastest { --tc: var(--t-fastest); }
+.rf-card--alt { --tc: var(--t-alt); }
+.rf-card--scenic { --tc: var(--t-scenic); }
+.rf-card--food { --tc: var(--t-food); }
+.rf-card--history { --tc: var(--t-history); }
+.rf-card--outdoors { --tc: var(--t-outdoors); }
+
+/* Route cards */
+.rf-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.rf-card {
+  display: grid; gap: 4px; align-content: start;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--rf-line);
+  border-left: 4px solid var(--tc, var(--rf-accent));
+  background: var(--rf-panel);
+  color: var(--rf-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+.rf-card:hover { background: var(--rf-panel-2); }
+.rf-card.is-on { background: color-mix(in srgb, var(--tc) 14%, var(--rf-panel)); border-color: var(--tc); box-shadow: 0 0 0 1px var(--tc); }
+.rf-card.is-pending { cursor: default; border-left-color: var(--rf-line); display: flex; align-items: center; }
+.rf-card-top { display: flex; align-items: center; gap: 8px; color: var(--tc); }
+.rf-card-top strong { color: var(--rf-text); font-family: "Overpass", sans-serif; }
+.rf-card-top em { margin-left: auto; font-size: 0.74rem; color: var(--rf-muted); font-style: normal; border: 1px solid var(--rf-line); border-radius: 99px; padding: 1px 7px; }
+.rf-card-nums { font-weight: 700; font-size: 1.02rem; }
+.rf-card-sub { color: var(--rf-muted); font-size: 0.85rem; }
+.rf-card-stops { color: var(--rf-muted); font-size: 0.8rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+/* Map */
+.rf-map { position: relative; overflow: hidden; border-radius: 16px; border: 1px solid var(--rf-line); background: #2a2d30; touch-action: none; user-select: none; }
+.rf-map-surface { position: absolute; inset: 0; cursor: grab; }
+.rf-map-surface:active { cursor: grabbing; }
+.rf-tile { position: absolute; max-width: none; filter: saturate(0.75) brightness(0.92); pointer-events: none; }
+.rf-map-svg { position: absolute; inset: 0; overflow: visible; }
+.rf-line polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.rf-line-casing { stroke: rgba(20, 22, 24, 0.55); stroke-width: 6; }
+.rf-line-core { stroke: #6f7a86; stroke-width: 3; }
+.rf-line.is-active .rf-line-casing { stroke: #141618; stroke-width: 10; }
+.rf-line.is-active .rf-line-core { stroke: #3a3f45; stroke-width: 6; }
+.rf-line-dash { stroke: var(--rf-accent); stroke-width: 2; stroke-dasharray: 7 7; }
+.rf-hit { fill: transparent; }
+.rf-pin { cursor: default; }
+.rf-pin[role="button"] { cursor: pointer; }
+.rf-pin-dot { stroke: #141618; stroke-width: 2.5; }
+.rf-pin--start .rf-pin-dot { fill: var(--rf-sign); stroke: #fff; }
+.rf-pin--end .rf-pin-dot { fill: #c8372d; stroke: #fff; }
+.rf-pin--stop .rf-pin-dot { fill: var(--rf-accent); }
+.rf-pin--stop.is-selected .rf-pin-dot { fill: #fff; stroke: var(--rf-accent); stroke-width: 4; }
+.rf-pin--night .rf-pin-dot { fill: #7b6cf6; stroke: #fff; stroke-width: 2; }
+.rf-pin--place .rf-pin-dot { fill: #fff; stroke: #141618; stroke-width: 2; opacity: 0.85; }
+.rf-pin--fuel .rf-pin-dot { fill: #ff8a4c; stroke: #fff; stroke-width: 2; }
+.rf-pin--ev .rf-pin-dot { fill: #4cb8e0; stroke: #fff; stroke-width: 2; }
+.rf-pin-label { font: 800 11px "Overpass", sans-serif; fill: #141618; pointer-events: none; }
+.rf-pin--start .rf-pin-label, .rf-pin--end .rf-pin-label { fill: #fff; }
+.rf-map-zoom { position: absolute; right: 10px; top: 10px; display: grid; gap: 4px; }
+.rf-map-zoom button { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--rf-line); background: rgba(28, 31, 34, 0.92); color: var(--rf-text); cursor: pointer; }
+.rf-map-credit { position: absolute; right: 6px; bottom: 4px; font-size: 0.7rem; color: #333 !important; background: rgba(255, 255, 255, 0.75); padding: 1px 5px; border-radius: 4px; text-decoration: none; }
+.rf-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--rf-muted); font-size: 0.82rem; margin-top: -8px !important; }
+.rf-key { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: -8px; vertical-align: middle; }
+.rf-key--stop { background: var(--rf-accent); }
+.rf-key--night { background: #7b6cf6; border-radius: 2px; transform: rotate(45deg); }
+.rf-key--place { background: #fff; }
+
+/* Panels */
+.rf-split { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.rf-panel { padding: 18px; border-radius: 16px; background: var(--rf-panel); border: 1px solid var(--rf-line); display: grid; gap: 12px; min-width: 0; }
+.rf-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.rf-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.rf-empty { justify-items: start; }
+
+/* Day by day */
+.rf-daylist { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.rf-daylist > li { border-left: 3px dashed rgba(255, 194, 60, 0.45); padding-left: 14px; display: grid; gap: 8px; }
+.rf-daylist > li.is-open { border-left-style: solid; border-left-color: var(--rf-accent); }
+.rf-day-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.rf-day-num { font-family: "Overpass", sans-serif; font-weight: 800; color: var(--rf-accent); }
+.rf-day-nums { font-size: 0.88rem; color: var(--rf-muted); }
+.rf-stops, .rf-nearby, .rf-fuelstops, .rf-trips { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rf-stops li, .rf-nearby li, .rf-fuelstops li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 10px;
+  border-radius: 11px;
+  background: var(--rf-panel-2);
+  border: 1px solid transparent;
+}
+.rf-stops li.is-focus, .rf-nearby li.is-focus { border-color: var(--rf-accent); }
+.rf-stop-num { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 0; display: grid; place-items: center; background: var(--rf-accent); color: var(--rf-accent-ink); font: 800 0.82rem "Overpass", sans-serif; cursor: pointer; }
+.rf-stop-body { display: grid; gap: 2px; flex: 1; min-width: 0; font-size: 0.9rem; }
+.rf-stop-body strong { font-size: 0.97rem; overflow-wrap: anywhere; }
+.rf-stop-links { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.84rem; }
+.rf-stop-links a { display: inline-flex; align-items: center; gap: 3px; text-decoration: none; }
+.rf-stop-links a:hover { text-decoration: underline; }
+.rf-night { background: rgba(123, 108, 246, 0.12) !important; }
+.rf-night > svg { color: #b3a9ff; margin-top: 3px; flex: none; }
+.rf-weather { display: inline-flex; align-items: center; gap: 5px; }
+.rf-chip { display: inline-block; padding: 0 7px; border-radius: 99px; font-size: 0.76rem; font-weight: 700; color: #141618; background: var(--rf-muted); }
+.rf-chip--scenic { background: var(--t-scenic); }
+.rf-chip--food { background: var(--t-food); }
+.rf-chip--history { background: var(--t-history); }
+.rf-chip--outdoors { background: var(--t-outdoors); }
+.rf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rf-chips button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; border: 1px solid var(--rf-line); background: var(--rf-panel-2); color: var(--rf-muted); font: inherit; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
+.rf-chips button.is-on { color: var(--rf-accent-ink); background: var(--rf-accent); border-color: var(--rf-accent); }
+.rf-nearby { max-height: 640px; overflow: auto; }
+
+/* Fuel */
+.rf-vehicles { display: flex; flex-wrap: wrap; gap: 6px; }
+.rf-vehicles button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--rf-line); background: var(--rf-panel-2); color: var(--rf-text); font: inherit; font-size: 0.88rem; cursor: pointer; }
+.rf-vehicles button.is-on { border-color: var(--rf-accent); box-shadow: inset 0 0 0 1px var(--rf-accent); color: var(--rf-accent); }
+.rf-fields { display: flex; flex-wrap: wrap; gap: 14px; }
+.rf-fields label { display: grid; grid-template-columns: auto auto; align-items: center; gap: 6px 8px; font-size: 0.88rem; color: var(--rf-muted); }
+.rf-fields label span { grid-column: 1 / -1; font-weight: 600; }
+.rf-fields input { width: 100px; }
+.rf-fields em { font-style: normal; }
+.rf-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.rf-stats div { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--rf-panel-2); }
+.rf-stats strong { font: 800 1.6rem "Overpass", sans-serif; color: var(--rf-accent); }
+.rf-stats span { color: var(--rf-muted); font-size: 0.86rem; }
+.rf-bystate { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rf-bystate li { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; padding: 7px 4px; border-bottom: 1px solid var(--rf-line); font-size: 0.9rem; }
+.rf-bystate li span { color: var(--rf-muted); text-align: right; }
+.rf-source { display: flex; gap: 6px; align-items: flex-start; }
+.rf-source svg { flex: none; margin-top: 3px; }
+.rf-fuel-icon { flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: rgba(255, 138, 76, 0.18); color: #ffb48c; }
+.rf-prices { display: grid; gap: 8px; width: 100%; margin-top: 8px; }
+
+/* Saved */
+.rf-trips li { display: flex; align-items: center; gap: 6px; }
+.rf-trip { flex: 1; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; border: 1px solid var(--rf-line); background: var(--rf-panel-2); color: var(--rf-text); font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.rf-trip:hover { border-color: var(--rf-accent); }
+.rf-trip > svg:first-child { color: var(--rf-accent); flex: none; }
+.rf-trip .rf-muted { display: inline-flex; gap: 5px; align-items: center; }
+
+/* Games */
+.rf-game-nav { justify-content: center; }
+.rf-progress { height: 8px; border-radius: 99px; background: var(--rf-panel-2); overflow: hidden; }
+.rf-progress span { display: block; height: 100%; background: var(--rf-accent); transition: width 0.25s; }
+.rf-plates { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+.rf-plates button {
+  position: relative; width: 100%;
+  display: grid; gap: 1px; justify-items: start;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--rf-line);
+  background: var(--rf-panel-2);
+  color: var(--rf-text);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.rf-plates button strong { font: 800 1.05rem "Overpass", sans-serif; letter-spacing: 0.06em; }
+.rf-plates button span { font-size: 0.78rem; color: var(--rf-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.rf-plates button.is-on { background: #f5f1e6; color: #1a1c1e; border-color: #f5f1e6; box-shadow: inset 0 0 0 2px #1f4f9e; }
+.rf-plates button.is-on span { color: #4a4d52; }
+.rf-onroute { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--rf-accent); }
+.rf-win { padding: 12px; border-radius: 12px; background: rgba(255, 194, 60, 0.15); color: var(--rf-accent); font-weight: 700; text-align: center; }
+.rf-bingo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-width: 620px; width: 100%; margin: 0 auto; }
+.rf-bingo button {
+  aspect-ratio: 1;
+  display: grid; place-items: center;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--rf-line);
+  background: var(--rf-panel-2);
+  color: var(--rf-text);
+  font: inherit; font-size: clamp(0.62rem, 2.3vw, 0.86rem); line-height: 1.15;
+  text-align: center; cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.rf-bingo button.is-on { background: rgba(255, 194, 60, 0.22); border-color: var(--rf-accent); }
+.rf-bingo button.is-line { background: var(--rf-accent); color: var(--rf-accent-ink); font-weight: 700; }
+.rf-bingo button.is-free { font-family: "Overpass", sans-serif; font-weight: 800; }
+.rf-alpha { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.rf-alpha li { display: grid; gap: 6px; padding: 12px; border-radius: 12px; background: var(--rf-panel-2); }
+.rf-alpha-name { display: flex; align-items: center; justify-content: space-between; }
+.rf-alpha-row { display: flex; align-items: center; gap: 10px; }
+.rf-letter { flex: none; width: 64px; height: 64px; border-radius: 14px; border: 0; background: var(--rf-sign); color: #fff; font: 800 2rem "Overpass", sans-serif; cursor: pointer; box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.6), inset 0 0 0 5px var(--rf-sign); }
+.rf-letter:disabled { background: var(--rf-accent); color: var(--rf-accent-ink); cursor: default; }
+.rf-alpha-track { display: flex; flex-wrap: wrap; gap: 3px; min-width: 0; }
+.rf-alpha-track i { font-style: normal; font: 700 0.74rem "Overpass", sans-serif; width: 18px; text-align: center; color: rgba(255, 255, 255, 0.25); }
+.rf-alpha-track i.is-on { color: var(--rf-accent); }
+.rf-addplayer { display: flex; gap: 8px; }
+.rf-addplayer input { flex: 1; max-width: 260px; }
+.rf-check { display: inline-flex; align-items: center; gap: 8px; color: var(--rf-muted); font-size: 0.9rem; }
+.rf-question { font: 700 1.3rem "Overpass", sans-serif; }
+.rf-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.rf-choices button { padding: 14px; border-radius: 12px; border: 1px solid var(--rf-line); background: var(--rf-panel-2); color: var(--rf-text); font: inherit; font-weight: 600; cursor: pointer; }
+.rf-choices button:hover:not(:disabled) { border-color: var(--rf-accent); }
+.rf-choices button.is-right { background: rgba(79, 191, 122, 0.25); border-color: var(--t-scenic); }
+.rf-choices button.is-wrong { background: rgba(255, 138, 107, 0.2); border-color: var(--rf-warn); }
+.rf-choices button:disabled { opacity: 0.45; }
+.rf-after { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-weight: 700; }
+.rf-bigcard {
+  min-height: 220px;
+  display: grid; place-items: center; gap: 12px;
+  padding: 28px;
+  border-radius: 18px;
+  border: 0;
+  background: linear-gradient(150deg, var(--rf-sign), #12603a);
+  color: #fff;
+  font: 700 clamp(1.15rem, 3vw, 1.6rem) / 1.35 "Overpass", sans-serif;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.6), inset 0 0 0 6px #157046;
+}
+.rf-bigcard em { font: 500 0.82rem "DM Sans", sans-serif; opacity: 0.75; }
+
+@media (max-width: 860px) {
+  .rf-split { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .rf-main { padding: 14px 12px 70px; }
+  .rf-hero { padding: 16px; }
+  .rf-endpoints { grid-template-columns: 1fr; }
+  .rf-swap { justify-self: center; transform: none; margin: -4px 0; }
+  .rf-options .rf-btn { width: 100%; margin-left: 0; }
+  .rf-options label:first-child { flex: 1; }
+  .rf-cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
+  .rf-cards .rf-card { flex: 0 0 78%; scroll-snap-align: start; }
+  .rf-tabs button { padding: 8px 12px; }
+  .rf-panel { padding: 14px; }
+  .rf-bystate li { grid-template-columns: 1fr auto; }
+  .rf-bystate li span:last-child { grid-column: 1 / -1; text-align: left; }
+}

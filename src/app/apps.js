@@ -303,5 +303,6 @@ export const apps = [
     path: "/hike",
     icon: MountainSnow,
     accent: "trailfox",
+    category: "outdoors",
   },
 ];

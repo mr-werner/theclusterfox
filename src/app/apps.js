@@ -1,4 +1,4 @@
-import { Activity, Ambulance, CalendarRange, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flower2, GraduationCap, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
+import { Activity, Ambulance, CalendarRange, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
 // PlanFox comes first: it is the calendar every other app feeds into, so it
 // leads the home screen.
@@ -203,5 +203,14 @@ export const apps = [
     path: "/study",
     icon: GraduationCap,
     accent: "studyfox",
+  },
+  {
+    id: "beaconfox",
+    name: "Beacon",
+    subtitle: "BeaconFox",
+    description: "SOS • Flashlight • Morse",
+    path: "/beacon",
+    icon: Flashlight,
+    accent: "beaconfox",
   },
 ];

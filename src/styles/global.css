@@ -35,6 +35,7 @@
   --bodyfox: #3fd0c9;
   --studyfox: #ffd84a;
   --flyfox: #4c8dff;
+  --beaconfox: #ffb020;
   --pacefox: #ff4d8d;
   --medicfox: #5b9dff;
   --fluids: #5cc8ff;
@@ -484,6 +485,17 @@ select {
       145deg,
       #ff4d8d,
       #ffb547
+    );
+}
+
+.app-icon--beaconfox {
+  color: #1a1203;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd36b,
+      #e08a00
     );
 }
 

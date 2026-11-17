@@ -32,6 +32,8 @@ const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 // MedicFox carries its knowledge base and skill sheets, so it loads on demand too.
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
+// BeaconFox is saved for offline use on its own, so it is its own chunk.
+const BeaconPage = lazy(() => import("./features/beacon/BeaconPage"));
 // PaceFox carries its plan builder and live recorder, so it loads on demand too.
 const PacePage = lazy(() => import("./features/pace/PacePage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
@@ -155,6 +157,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <StudyPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/beacon"
+                element={
+                    <Suspense fallback={null}>
+                        <BeaconPage />
                     </Suspense>
                 }
             />

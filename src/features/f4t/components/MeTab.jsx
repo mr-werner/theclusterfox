@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Scale, Target, Trash2, TrendingDown, TrendingUp, Minus as Flat } from "lucide-react";
 
 import WeightChart from "./WeightChart";
+import UsualDay from "./UsualDay";
+import { HandGuide } from "./StartPanel";
 import { ACTIVITY, CM_PER_IN, daysToGoal, dayTargets, GOALS, LBS_PER_KG, profileReady, RATES, restingCalories, weeklyChange, weightFeedback } from "../model/body.js";
 import { dayLabel } from "../model/planner.js";
 
@@ -234,21 +236,12 @@ export default function MeTab({ data, today, actions }) {
           </div>
 
           <div className="fp-field">
-            <span className="fp-label">How you like to cook</span>
-            <div className="fp-cards fp-cards-2">
-              <button type="button" aria-pressed={profile.style === "daily"} className={profile.style === "daily" ? "is-active" : ""} onClick={() => set({ style: "daily" })}>
-                <strong>Cook most days</strong>
-                <small>Fresh dinners, with leftovers for the next day’s lunch.</small>
-              </button>
-              <button type="button" aria-pressed={profile.style === "prep"} className={profile.style === "prep" ? "is-active" : ""} onClick={() => set({ style: "prep" })}>
-                <strong>Meal prep</strong>
-                <small>Cook in two big batches a week and eat from the fridge.</small>
-              </button>
-            </div>
-            {profile.style === "prep" && (
+            <span className="fp-label">Your usual day <small>(the plan fits around it)</small></span>
+            <UsualDay day={profile.day} onChange={day => set({ day, daySet: true })} />
+            {Object.values(profile.day).some(m => m.how === "prep" && m.size !== "skip") && (
               <label className="fp-inline" htmlFor="fp-prepday">
                 Prep day
-                <select id="fp-prepday" value={profile.prepDay} onChange={e => set({ prepDay: Number(e.target.value) })}>
+                <select id="fp-prepday" value={profile.prepDay} onChange={e => set({ prepDay: Number(e.target.value), style: "prep" })}>
                   {WEEKDAYS.map((d, i) => (
                     <option key={d} value={i}>{d}</option>
                   ))}
@@ -281,6 +274,11 @@ export default function MeTab({ data, today, actions }) {
           ) : (
             <p className="fp-fine">Add your year born, height and a weigh-in to see your daily targets.</p>
           )}
+        </div>
+
+        <div className="fp-field fp-me-hands">
+          <span className="fp-label">A day in hand portions</span>
+          <HandGuide target={restDay} />
         </div>
       </section>
     </div>

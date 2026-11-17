@@ -5,6 +5,7 @@ import { PRICES } from "../data/prices.js";
 import * as B from "../model/body.js";
 import * as P from "../model/planner.js";
 import * as T from "../model/training.js";
+import * as H from "../model/portions.js";
 import { mergeData, normalizeData } from "../state/f4tStore.js";
 import { planItems } from "../model/planLink.js";
 
@@ -73,10 +74,54 @@ check("a filled week is sized to the target and follows the CookFox profile", ()
 });
 
 check("meal prep cooks in two batches and the rest are leftovers", () => {
-  const prep = { ...profile, style: "prep" };
+  const prep = B.cleanProfile({ ...profile, day: undefined, style: "prep" });
   const week = P.fillWeek({ days, targets, recipes, profile: prep, seed: 3 });
   const cooks = P.cookSchedule(week, days, 1);
   assert.deepEqual([...new Set(cooks.map(c => c.day))], [days[0], days[3]]);
+});
+
+check("your usual day shapes the plan: skipped meals stay empty, big dinners get most of the day", () => {
+  const night = B.cleanProfile({ ...profile, day: B.DAY_PRESETS.night.day });
+  const shares = B.mealShares(night);
+  assert.equal(shares.lunch, 0);
+  assert(shares.dinner > 0.7);
+  const week = P.fillWeek({ days, targets, recipes, profile: night, seed: 4 });
+  for (const d of days) {
+    const s = week[d].slots;
+    assert(!s.lunch, "lunch should stay empty");
+    assert(s.breakfast.quickId, "light breakfast is grab-and-go");
+    assert(s.dinner.recipeId, "dinner is cooked");
+    const kcal = P.dayTotals(week[d], get).kcal;
+    assert(Math.abs(kcal - targets[d].kcal) / targets[d].kcal < 0.3, `${d}: ${kcal}`);
+  }
+  // Old saved profiles keep their cooking style.
+  assert.equal(B.cleanProfile({ style: "prep" }).day.dinner.how, "prep");
+});
+
+check("eating out and grab-and-go are planned and priced", () => {
+  const busy = B.cleanProfile({ ...profile, day: B.DAY_PRESETS.onTheGo.day });
+  const week = P.fillWeek({ days, targets, recipes, profile: busy, seed: 2 });
+  const spend = P.quickSpend(week, days, 1);
+  assert.equal(spend.out.length, 14, "breakfast and lunch out every day");
+  assert(spend.outCost > 50 && spend.grabCost > 0);
+  assert(spend.out.every(o => o.food.tip), "every restaurant pick has an ordering tip");
+  const stored = normalizeData({ plan: { "2026-11-16": { slots: { lunch: { quickId: "burrito-bowl", portions: 1 }, snack: { quickId: "nope", portions: 1 } } } } });
+  assert.equal(stored.plan["2026-11-16"].slots.lunch.quickId, "burrito-bowl");
+  assert(!stored.plan["2026-11-16"].slots.snack, "unknown foods are dropped");
+});
+
+check("portions by hand add up", () => {
+  const hands = H.handsFor({ protein: 48, carbs: 60, fat: 20 }, 1);
+  assert.equal(hands.palms, 2);
+  assert.equal(hands.fists, 1);
+  assert(hands.handfuls >= 2 && hands.thumbs >= 1);
+  const est = H.fromHands({ palms: 2, handfuls: 2, fists: 1, thumbs: 1 });
+  assert(est.kcal > 500 && est.kcal < 600);
+  const day = H.dailyHands(targets[days[0]]);
+  assert(day.palms >= 5 && day.palms <= 8, `palms ${day.palms}`);
+  assert.equal(H.handsText({ palms: 1.5, handfuls: 0, fists: 1, thumbs: 0 }), "1½ palms protein · 1 fist veg");
+  const e = P.entryHands({ recipeId: "koshari", portions: 2 }, get);
+  assert(e.handfuls > 0);
 });
 
 check("groceries cover what's cooked, in store packages, and leave out the pantry", () => {

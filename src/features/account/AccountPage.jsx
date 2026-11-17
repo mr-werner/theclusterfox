@@ -301,13 +301,13 @@ function F4TSummary({ userId }) {
 
     return (
         <div className="account-app-placeholder">
-            <span>F4T</span>
+            <span>Fuel</span>
 
             <p>
                 {synced
-                    ? `Fuel 4 Thought: ${planned} planned ${planned === 1 ? "day" : "days"}, ${weighIns} ${weighIns === 1 ? "weigh-in" : "weigh-ins"} and ${meals} saved ${meals === 1 ? "meal" : "meals"}, synced to this account.`
-                    : "Fuel 4 Thought saves your meal plan, profile, weigh-ins and saved meals here once you open it while logged in."}{" "}
-                <Link to="/f4t">Open Fuel 4 Thought</Link>
+                    ? `FuelFox: ${planned} planned ${planned === 1 ? "day" : "days"}, ${weighIns} ${weighIns === 1 ? "weigh-in" : "weigh-ins"} and ${meals} saved ${meals === 1 ? "meal" : "meals"}, synced to this account.`
+                    : "FuelFox saves your meal plan, profile, weigh-ins and saved meals here once you open it while logged in."}{" "}
+                <Link to="/f4t">Open FuelFox</Link>
             </p>
         </div>
     );

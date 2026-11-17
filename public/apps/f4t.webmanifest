@@ -1,8 +1,8 @@
 {
   "id": "/f4t",
-  "name": "Fuel 4 Thought",
+  "name": "FuelFox",
   "description": "Diet planner: meals, groceries and budget, paired with CookFox and LiftFox.",
-  "short_name": "F4T",
+  "short_name": "FuelFox",
   "start_url": "/f4t",
   "scope": "/f4t",
   "display": "standalone",

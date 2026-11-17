@@ -15,11 +15,11 @@ function amountText(item, amount) {
 }
 
 export default function GroceriesTab({ data, week, linked, onReplanCheaper, goTab }) {
-  const { shop, cooks } = week;
+  const { shop, cooks, quick } = week;
   const budget = data.profile.budget;
-  const over = budget ? shop.total - budget : 0;
+  const over = budget ? week.spend - budget : 0;
 
-  if (!cooks.length) {
+  if (!cooks.length && !quick.grab.length && !quick.out.length) {
     return (
       <div className="ff-panel fp-empty">
         <ShoppingCart size={28} aria-hidden="true" />
@@ -39,11 +39,14 @@ export default function GroceriesTab({ data, week, linked, onReplanCheaper, goTa
     <div className="fp-shop">
       <section className="ff-panel fp-shop-sum" aria-label="Grocery cost">
         <div className="fp-shop-total">
-          <span>This week’s groceries, about</span>
-          <strong>{money(shop.total)}</strong>
+          <span>This week’s food, about</span>
+          <strong>{money(week.spend)}</strong>
+          <small className="fp-split">
+            {money(shop.total)} groceries{quick.grabCost > 0 ? ` · ${money(quick.grabCost)} grab & go` : ""}{quick.outCost > 0 ? ` · ${money(quick.outCost)} eating out` : ""}
+          </small>
           {budget ? (
             <small className={over > 0 ? "is-over" : "is-ok"}>
-              {over > 0 ? `${round(over)} over your ${round(budget)} budget` : `${round(budget - shop.total)} under your ${round(budget)} budget`}
+              {over > 0 ? `${round(over)} over your ${round(budget)} budget` : `${round(budget - week.spend)} under your ${round(budget)} budget`}
             </small>
           ) : (
             <small>
@@ -52,7 +55,7 @@ export default function GroceriesTab({ data, week, linked, onReplanCheaper, goTa
           )}
           {budget > 0 && (
             <span className={`fp-meter${over > 0 ? " is-over" : ""}`} aria-hidden="true">
-              <span style={{ width: `${Math.min(100, (shop.total / budget) * 100)}%` }} />
+              <span style={{ width: `${Math.min(100, (week.spend / budget) * 100)}%` }} />
             </span>
           )}
         </div>
@@ -75,9 +78,9 @@ export default function GroceriesTab({ data, week, linked, onReplanCheaper, goTa
           )}
         </ul>
         <div className="fp-shop-actions">
-          <Link className="ff-btn ff-btn-primary" to={cookShopHref(cooks)}>
+          {cooks.length > 0 && <Link className="ff-btn ff-btn-primary" to={cookShopHref(cooks)}>
             <ShoppingCart size={16} /> Put it on my CookFox list
-          </Link>
+          </Link>}
           <Link className="ff-btn" to="/cook?tab=shopping">
             <Store size={16} /> Compare store prices
           </Link>
@@ -89,6 +92,39 @@ export default function GroceriesTab({ data, week, linked, onReplanCheaper, goTa
         </div>
         <p className="fp-fine">Prices are typical US grocery prices, not a store’s. CookFox can check live prices at stores near you.</p>
       </section>
+
+      {(quick.grab.length > 0 || quick.out.length > 0) && (
+        <div className="fp-aisles fp-quicklists">
+          {quick.grab.length > 0 && (
+            <section className="fp-aisle">
+              <h3>Grab & go</h3>
+              <ul>
+                {quick.grab.map(g => (
+                  <li key={g.food.id}>
+                    <span className="fp-item-name">{g.food.name}</span>
+                    <span className="fp-item-buy">{g.count} × {g.food.amount}</span>
+                    <span className="fp-item-cost">{money(g.cost)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {quick.out.length > 0 && (
+            <section className="fp-aisle">
+              <h3>Eating out</h3>
+              <ul>
+                {quick.out.map(o => (
+                  <li key={`${o.day}-${o.slot}`}>
+                    <span className="fp-item-name">{o.food.name}</span>
+                    <span className="fp-item-buy">{new Date(`${o.day}T12:00`).toLocaleDateString(undefined, { weekday: "short" })} {o.slot} · {o.food.tip}</span>
+                    <span className="fp-item-cost">{money(o.cost)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      )}
 
       <div className="fp-aisles">
         {[...groups].map(([aisle, items]) => (

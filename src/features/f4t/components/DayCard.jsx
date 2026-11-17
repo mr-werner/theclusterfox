@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, ChefHat, Dumbbell, Minus, Plus, RefreshCw, Shuffle, Undo2, Utensils, X } from "lucide-react";
+import { Check, ChefHat, Dumbbell, Hand, Minus, Plus, RefreshCw, ShoppingBag, Shuffle, Store, Undo2, Utensils, X } from "lucide-react";
 
 import { formatDuration, minutesToBurnCalories } from "../../../domain/exercise/energy.js";
 import { workoutCalories } from "../model/body.js";
 import { fuelNote, PRESETS } from "../model/training.js";
-import { dayLabel, entryFacts, plannedFacts, rankForSlot, slotGoal, SLOTS } from "../model/planner.js";
+import { dayLabel, entryFacts, entryHands, plannedFacts, rankForSlot, rankQuick, slotGoal, SLOTS } from "../model/planner.js";
+import { handsText } from "../model/portions.js";
+import { quickById } from "../data/quickFoods.js";
 
 // Brisk walking (Compendium 17200, 3.5 mph): the yardstick for an off-plan meal.
 export const WALK_MET = 4.3;
@@ -24,40 +26,89 @@ function Meter({ value, target }) {
   );
 }
 
-function SlotRow({ slot, entry, cook, leftoverFrom, getRecipe, ranked, weightLbs, onEntry, onAteElse }) {
+const encodeChoice = (kind, id) => `${kind}:${id}`;
+
+function SlotRow({ slot, entry, usual, cook, leftoverFrom, getRecipe, ranked, weightLbs, onEntry, onAteElse }) {
   const [picking, setPicking] = useState(false);
   const recipe = entry?.recipeId ? getRecipe(entry.recipeId) : null;
+  const quick = entry?.quickId ? quickById.get(entry.quickId) : null;
   const facts = entryFacts(entry, getRecipe);
   const planned = entry?.off ? plannedFacts(entry, getRecipe) : null;
+  const hands = entryHands(entry, getRecipe);
+  const skipped = usual?.size === "skip";
 
+  // Swap stays the same kind of meal: another recipe, another grab-and-go, another restaurant.
   function swap() {
-    const list = ranked();
-    const at = list.findIndex(r => r.recipe.id === entry?.recipeId);
-    const next = list[(at + 1) % Math.max(1, Math.min(list.length, 8))] ?? list[0];
-    if (next) onEntry({ recipeId: next.recipe.id, portions: next.portions });
+    const kind = quick ? quick.kind : !entry && (usual?.how === "grab" || usual?.how === "out") ? usual.how : "recipe";
+    const lists = ranked();
+    if (kind === "recipe") {
+      const list = lists.recipes;
+      const at = list.findIndex(r => r.recipe.id === entry?.recipeId);
+      const next = list[(at + 1) % Math.max(1, Math.min(list.length, 8))] ?? list[0];
+      if (next) onEntry({ recipeId: next.recipe.id, portions: next.portions });
+    } else {
+      const list = lists[kind];
+      const at = list.findIndex(r => r.food.id === entry?.quickId);
+      const next = list[(at + 1) % Math.max(1, Math.min(list.length, 6))] ?? list[0];
+      if (next) onEntry({ quickId: next.food.id, portions: next.portions });
+    }
   }
 
-  function choose(id) {
+  function choose(value) {
     setPicking(false);
-    if (!id) return;
-    const hit = ranked().find(r => r.recipe.id === id);
-    onEntry({ recipeId: id, portions: hit?.portions ?? 1 });
+    if (!value) return;
+    const [kind, id] = value.split(":");
+    const lists = ranked();
+    if (kind === "recipe") {
+      const hit = lists.recipes.find(r => r.recipe.id === id);
+      onEntry({ recipeId: id, portions: hit?.portions ?? 1 });
+    } else {
+      const hit = lists[kind].find(r => r.food.id === id);
+      onEntry({ quickId: id, portions: hit?.portions ?? 1 });
+    }
   }
 
-  const portions = delta => onEntry(e => (e ? { ...e, portions: Math.min(6, Math.max(0.5, e.portions + delta)) } : e));
+  const step = quick ? 1 : 0.5;
+  const portions = delta => onEntry(e => (e ? { ...e, portions: Math.min(6, Math.max(step === 1 ? 1 : 0.5, e.portions + delta)) } : e));
 
   if (picking) {
-    const list = ranked();
+    const lists = ranked();
+    const order = usual?.how === "out" ? ["out", "grab", "recipes"] : usual?.how === "grab" ? ["grab", "out", "recipes"] : ["recipes", "grab", "out"];
+    const groups = {
+      recipes: (
+        <optgroup key="r" label="Cook it (CookFox recipes, best fit first)">
+          {lists.recipes.map(({ recipe: r, portions: p }) => (
+            <option key={r.id} value={encodeChoice("recipe", r.id)}>
+              {r.title} · {fmt(entryFacts({ recipeId: r.id, portions: p }, getRecipe).kcal)} cal{p !== 1 ? ` (${p}×)` : ""}
+            </option>
+          ))}
+        </optgroup>
+      ),
+      grab: (
+        <optgroup key="g" label="Grab & go (no cooking)">
+          {lists.grab.map(({ food: f, portions: p }) => (
+            <option key={f.id} value={encodeChoice("grab", f.id)}>
+              {f.name}{p > 1 ? ` ×${p}` : ""} · {fmt(f.kcal * p)} cal
+            </option>
+          ))}
+        </optgroup>
+      ),
+      out: (
+        <optgroup key="o" label="Eat out">
+          {lists.out.map(({ food: f }) => (
+            <option key={f.id} value={encodeChoice("out", f.id)}>
+              {f.name} · {fmt(f.kcal)} cal · about ${f.cost}
+            </option>
+          ))}
+        </optgroup>
+      ),
+    };
     return (
       <li className="fp-slot is-picking">
         <span className="fp-slot-name">{slot.name}</span>
         <select autoFocus defaultValue="" onChange={e => choose(e.target.value)} onBlur={() => setPicking(false)} aria-label={`Choose ${slot.name.toLowerCase()}`}>
-          <option value="" disabled>Pick a recipe (best fit first)</option>
-          {list.map(({ recipe: r, portions: p }) => (
-            <option key={r.id} value={r.id}>
-              {r.title} · {fmt(entryFacts({ recipeId: r.id, portions: p }, getRecipe).kcal)} cal{p !== 1 ? ` (${p}×)` : ""}
-            </option>
-          ))}
+          <option value="" disabled>Pick something</option>
+          {order.map(k => groups[k])}
         </select>
         <button type="button" className="fp-icon" onClick={() => setPicking(false)} aria-label="Cancel">
           <X size={15} />
@@ -68,14 +119,23 @@ function SlotRow({ slot, entry, cook, leftoverFrom, getRecipe, ranked, weightLbs
 
   if (!entry) {
     return (
-      <li className="fp-slot is-empty">
+      <li className={`fp-slot is-empty${skipped ? " is-skipped" : ""}`}>
         <span className="fp-slot-name">{slot.name}</span>
-        <button type="button" className="fp-add" onClick={() => setPicking(true)}>
-          <Plus size={14} /> Choose
-        </button>
-        <button type="button" className="fp-icon" onClick={swap} aria-label={`Suggest a ${slot.name.toLowerCase()}`} title="Suggest one">
-          <Shuffle size={15} />
-        </button>
+        {skipped ? (
+          <span className="fp-skipped">
+            You usually skip this.{" "}
+            <button type="button" className="ff-link" onClick={() => setPicking(true)}>Add one</button>
+          </span>
+        ) : (
+          <button type="button" className="fp-add" onClick={() => setPicking(true)}>
+            <Plus size={14} /> Choose
+          </button>
+        )}
+        {!skipped && (
+          <button type="button" className="fp-icon" onClick={swap} aria-label={`Suggest a ${slot.name.toLowerCase()}`} title="Suggest one">
+            <Shuffle size={15} />
+          </button>
+        )}
       </li>
     );
   }
@@ -83,19 +143,20 @@ function SlotRow({ slot, entry, cook, leftoverFrom, getRecipe, ranked, weightLbs
   if (entry.off) {
     const extra = facts.kcal - (planned?.kcal ?? 0);
     const minutes = extra > 0 ? minutesToBurnCalories(extra, WALK_MET, weightLbs || 170) : 0;
+    const was = recipe?.title ?? (entry.quickId ? quickById.get(entry.quickId)?.name : null);
     return (
       <li className="fp-slot is-off">
         <span className="fp-slot-name">{slot.name}</span>
         <div className="fp-slot-main">
           <strong>{entry.off.name}</strong>
           <small>
-            Off plan{recipe ? ` (was ${recipe.title})` : ""} ·{" "}
+            Off plan{was ? ` (was ${was})` : ""} ·{" "}
             {extra > 0 ? <b className="fp-extra">+{fmt(extra)} cal, about {formatDuration(minutes)} of brisk walking</b> : extra < 0 ? `${fmt(-extra)} cal under plan` : "same as planned"}
           </small>
         </div>
         <span className="fp-slot-cal">{fmt(facts.kcal)}</span>
         <div className="fp-slot-actions">
-          {recipe && (
+          {was && (
             <button type="button" className="fp-icon" onClick={() => onEntry(e => ({ ...e, off: undefined }))} aria-label="Back to the planned meal" title="Back to the plan">
               <Undo2 size={15} />
             </button>
@@ -112,7 +173,9 @@ function SlotRow({ slot, entry, cook, leftoverFrom, getRecipe, ranked, weightLbs
     <li className={`fp-slot${entry.eaten ? " is-eaten" : ""}`}>
       <span className="fp-slot-name">{slot.name}</span>
       <div className="fp-slot-main">
-        {recipe ? (
+        {quick ? (
+          <strong className="fp-recipe">{quick.name}</strong>
+        ) : recipe ? (
           <Link to={`/cook?r=${encodeURIComponent(recipe.id)}${cook ? `&servings=${cook.servings}` : ""}`} className="fp-recipe" title="Open in CookFox">
             {recipe.title}
           </Link>
@@ -120,20 +183,31 @@ function SlotRow({ slot, entry, cook, leftoverFrom, getRecipe, ranked, weightLbs
           <strong>Recipe not found</strong>
         )}
         <small>
-          {cook ? (
+          {quick ? (
+            <span className={`fp-tag${quick.kind === "out" ? " is-out" : " is-grab"}`}>
+              {quick.kind === "out" ? <Store size={12} /> : <ShoppingBag size={12} />} {quick.kind === "out" ? "Eat out" : "Grab & go"}
+            </span>
+          ) : cook ? (
             <span className="fp-tag is-cook"><ChefHat size={12} /> Cook {cook.servings} serving{cook.servings === 1 ? "" : "s"}</span>
           ) : entry.leftover ? (
             <span className="fp-tag">Leftovers{leftoverFrom ? ` from ${leftoverFrom}` : ""}</span>
           ) : null}
+          {quick && <span>{quick.amount}</span>}
           {facts && <span>{fmt(facts.protein)} g protein · {money(facts.cost)}</span>}
         </small>
+        {hands && handsText(hands) && (
+          <small className="fp-hands" title="Hand-size portions: palm of protein, cupped hand of carbs, fist of veg, thumb of fats">
+            <Hand size={12} aria-hidden="true" /><span>{handsText(hands)}</span>
+          </small>
+        )}
+        {quick?.tip && <small className="fp-tip">{quick.tip}</small>}
       </div>
       <div className="fp-portions" role="group" aria-label={`${slot.name} portions`}>
-        <button type="button" onClick={() => portions(-0.5)} disabled={entry.portions <= 0.5} aria-label="Smaller portion">
+        <button type="button" onClick={() => portions(-step)} disabled={entry.portions <= step} aria-label="Smaller portion">
           <Minus size={13} />
         </button>
         <span>{entry.portions}×</span>
-        <button type="button" onClick={() => portions(0.5)} aria-label="Bigger portion">
+        <button type="button" onClick={() => portions(step)} aria-label="Bigger portion">
           <Plus size={13} />
         </button>
       </div>
@@ -145,10 +219,10 @@ function SlotRow({ slot, entry, cook, leftoverFrom, getRecipe, ranked, weightLbs
         <button type="button" className="fp-icon" onClick={() => onAteElse(slot.id)} aria-label="I ate something else" title="Ate something else">
           <Utensils size={15} />
         </button>
-        <button type="button" className="fp-icon" onClick={swap} aria-label="Swap for another recipe" title="Swap">
+        <button type="button" className="fp-icon" onClick={swap} aria-label="Swap for something similar" title="Swap">
           <RefreshCw size={15} />
         </button>
-        <button type="button" className="fp-icon" onClick={() => setPicking(true)} aria-label="Choose a recipe" title="Choose">
+        <button type="button" className="fp-icon" onClick={() => setPicking(true)} aria-label="Choose something else" title="Choose">
           <Plus size={15} />
         </button>
         <button type="button" className="fp-icon" onClick={() => onEntry(null)} aria-label={`Clear ${slot.name.toLowerCase()}`} title="Clear">
@@ -185,7 +259,7 @@ function WorkoutForm({ onAdd, onClose }) {
   );
 }
 
-export default function DayCard({ day, isToday, dayPlan, target, workouts = [], cooks, leftoverSource, recipes, favorites, getRecipe, weightLbs, onEntry, onAteElse, onAddWorkout, onRemoveWorkout }) {
+export default function DayCard({ day, isToday, dayPlan, target, workouts = [], cooks, leftoverSource, recipes, favorites, getRecipe, weightLbs, profile, onEntry, onAteElse, onAddWorkout, onRemoveWorkout }) {
   const [adding, setAdding] = useState(false);
   const totals = SLOTS.reduce(
     (t, s) => {
@@ -245,7 +319,11 @@ export default function DayCard({ day, isToday, dayPlan, target, workouts = [], 
               leftoverFrom={entry?.leftover ? leftoverSource(day, slot.id, entry.recipeId) : null}
               getRecipe={getRecipe}
               weightLbs={weightLbs}
-              ranked={() => rankForSlot(recipes, slot.id, { ...slotGoal(target, slot.id), training, favorites })}
+              usual={profile?.day?.[slot.id]}
+              ranked={() => {
+                const g = { ...slotGoal(target, slot.id, 2000, profile), training, favorites, size: profile?.day?.[slot.id]?.size };
+                return { recipes: rankForSlot(recipes, slot.id, g), grab: rankQuick("grab", slot.id, g), out: rankQuick("out", slot.id, g) };
+              }}
               onEntry={value => onEntry(day, slot.id, value)}
               onAteElse={slotId => onAteElse(day, slotId)}
             />

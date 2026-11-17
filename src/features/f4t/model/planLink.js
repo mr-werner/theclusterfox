@@ -1,8 +1,9 @@
-// F4T in PlanFox: each planned day's meals, what to cook that day, and a
+// FuelFox in PlanFox: each planned day's meals, what to cook that day, and a
 // reminder to weigh in. A planner item can also open F4T or a saved meal.
 
 import { normalizeData } from "../state/f4tStore.js";
 import { recipesById } from "../../cook/data/recipes.js";
+import { quickById } from "../data/quickFoods.js";
 import { addDays, cookSchedule, entryFacts, SLOTS } from "./planner.js";
 
 const getRecipe = id => recipesById.get(id) ?? null;
@@ -22,7 +23,7 @@ export function planItems(raw, from, to) {
     for (const slot of SLOTS) {
       const e = slots[slot.id];
       if (!e) continue;
-      const title = e.off ? e.off.name : getRecipe(e.recipeId)?.title;
+      const title = e.off ? e.off.name : e.quickId ? quickById.get(e.quickId)?.name : getRecipe(e.recipeId)?.title;
       if (!title) continue;
       names.push(`${slot.name}: ${title}${e.leftover ? " (leftovers)" : ""}`);
       kcal += entryFacts(e, getRecipe)?.kcal ?? 0;

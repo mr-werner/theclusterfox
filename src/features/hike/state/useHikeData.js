@@ -5,7 +5,9 @@ import { loadData, normalizeData, saveData, STORAGE_KEY } from "./hikeStore";
 export function useHikeData() {
   const [data, setData] = useState(loadData);
 
-  useEffect(() => saveData(data), [data]);
+  useEffect(() => {
+    saveData(data);
+  }, [data]);
 
   useEffect(() => {
     const onStorage = e => {

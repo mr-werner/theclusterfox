@@ -35,7 +35,9 @@ export default function HikePage() {
   const tab = TABS.some(t => t.id === requested) ? requested : h.data.active && !trailId ? "go" : "find";
   const f = useMemo(() => fmt(h.data.units), [h.data.units]);
 
-  useEffect(() => registerOffline(), []);
+  useEffect(() => {
+    registerOffline();
+  }, []);
 
   const go = useCallback(
     next => {

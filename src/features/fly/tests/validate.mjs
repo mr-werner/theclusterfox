@@ -1,4 +1,4 @@
-// FlyFox checks: node src/features/fly/tests/validate.mjs
+// PilotFox checks: node src/features/fly/tests/validate.mjs
 import assert from "node:assert/strict";
 
 import { ceilingFt, flightCategory, magVar, parseAirports, parseHazards, parseMetars, parseTraffic, visibilityMiles } from "../../../../api/fly/_parse.js";
@@ -10,6 +10,10 @@ import { EXAMS } from "../data/exams.js";
 import { TOPICS, topicsById } from "../data/topics.js";
 import { normalizeData, progressFor, recordAnswer } from "../state/flyStore.js";
 import { planItems } from "../model/planLink.js";
+import { FT, KT, SCENARIOS, levelThrottle, readout, scenarioById, stallSpeedKt, step } from "../model/sim.js";
+import { papiColors } from "../model/simView.js";
+import { fmtFreq, gradeCall, normalizeCall, parseFreq, turnKnob } from "../model/radio.js";
+import { FREQS, LESSONS } from "../data/radio.js";
 
 let passed = 0;
 const test = (name, fn) => {
@@ -164,8 +168,88 @@ test("saved data is cleaned, study progress tracked, and flights go to PlanFox",
   assert.deepEqual(progressFor(study, "par", ["as1", "as2", "as3"]), { seen: 2, mastered: 1, missed: 1, total: 3 });
   const items = planItems(d, "2026-11-01", "2026-11-30");
   assert.equal(items.length, 1);
-  assert.equal(items[0].href, "/fly?flight=f1");
+  assert.equal(items[0].href, "/pilot?flight=f1");
   assert.equal(planItems(d, "2026-12-01", "2026-12-31").length, 0);
 });
 
-console.log(`FlyFox: ${passed} checks passed.`);
+const fly = (s, c, seconds) => {
+  for (let i = 0; i < seconds * 60; i += 1) s = step(s, typeof c === "function" ? c(s) : c, 1 / 60);
+  return s;
+};
+const hands = s => ({ elevator: 0, aileron: 0, rudder: 0, throttle: s.throttle, flaps: s.flaps, brakes: false });
+
+test("the simulator's trainer flies like a 172: stall speeds, trimmed cruise holds level", () => {
+  near(stallSpeedKt(0), 48, 2, "clean stall");
+  near(stallSpeedKt(30), 41, 2, "full-flap stall");
+  near(stallSpeedKt(0, 2), 48 * Math.SQRT2, 2, "60° bank stall");
+  assert.ok(levelThrottle(100) < 0.8 && levelThrottle(130) > 1, "100 kt is cruise power, 130 kt is beyond full power");
+  const s0 = scenarioById("cruise").make();
+  const s = fly(s0, hands(s0), 30);
+  near(readout(s).alt, 3000, 30, "hands-off altitude");
+  near(readout(s).kt, 100, 2, "hands-off speed");
+});
+
+test("the simulator takes off, turns with bank, stalls past the critical angle and judges landings", () => {
+  const t0 = scenarioById("takeoff").make();
+  const up = fly(t0, s => ({ ...hands(s), throttle: 1, elevator: readout(s).kt > 55 ? 0.5 : 0 }), 25);
+  assert.equal(up.onGround, false);
+  assert.ok(readout(up).alt > 150, `climbing after takeoff, got ${readout(up).alt}`);
+
+  const c0 = scenarioById("cruise").make();
+  const banked = fly({ ...c0, phi: (30 * Math.PI) / 180 }, s => ({ ...hands(s), elevator: 0.12 }), 10);
+  // g·tan(30°) / 100 kt ≈ 6.3°/s
+  near(readout(banked).turnRate, 6.3, 0.8, "30° bank turn rate at 100 kt");
+
+  const st0 = scenarioById("stalls").make();
+  const stalled = fly(st0, s => ({ ...hands(s), throttle: 0, elevator: 1 }), 25);
+  assert.ok(stalled.stalled || stalled.warn === "stall", "full back stick at idle stalls the wing");
+
+  const hard = step({ ...c0, h: 0.1, gamma: (-20 * Math.PI) / 180, v: 60 * KT }, hands(c0), 1 / 30);
+  assert.equal(hard.outcome, "crash");
+  const f0 = scenarioById("final").make();
+  let soft = { ...f0, x: 0, y: 0, h: 1, gamma: (-1 * Math.PI) / 180, alpha: (6 * Math.PI) / 180, v: 55 * KT };
+  for (let i = 0; i < 600 && !soft.outcome; i += 1) soft = step(soft, { ...hands(f0), throttle: 0 }, 1 / 60);
+  assert.equal(soft.outcome, "landed");
+  assert.equal(soft.touchdown.where, "runway");
+  assert.ok(SCENARIOS.every(sc => sc.make().v >= 0));
+});
+
+test("PAPI lights show two white, two red on the 3° glide path", () => {
+  const f0 = scenarioById("final").make();
+  const on = papiColors(f0).colors.filter(c => c === "#ff3b30").length;
+  assert.equal(on, 2);
+  assert.equal(papiColors({ ...f0, h: f0.h * 1.6 }).colors.filter(c => c === "#ff3b30").length, 0, "high is all white");
+  assert.equal(papiColors({ ...f0, h: f0.h * 0.5 }).colors.filter(c => c === "#ff3b30").length, 4, "low is all red");
+  assert.ok(FT > 0);
+});
+
+test("radio calls: spoken numbers and letters, frequencies and knobs", () => {
+  assert.equal(normalizeCall("Runway two eight, taxi via Alpha, Skyhawk 34A"), "runway 28 taxi via a skyhawk 34 a");
+  assert.equal(normalizeCall("contact departure one two four point three five"), "contact departure 124.35");
+  assert.equal(normalizeCall("at three thousand five hundred"), "at 3500");
+  assert.equal(normalizeCall("niner tree fife"), "935");
+  assert.equal(parseFreq("121.7"), 121700);
+  assert.equal(parseFreq("1183"), 118300);
+  assert.equal(parseFreq("99.5"), null);
+  assert.equal(fmtFreq(turnKnob(121975, "small", 1)), "121.000");
+  assert.equal(fmtFreq(turnKnob(118000, "big", -1)), "136.000");
+});
+
+test("every radio lesson's example call passes its own check, and bad calls don't", () => {
+  for (const lesson of LESSONS) {
+    for (const st of lesson.steps) {
+      assert.ok(FREQS.some(f => f.khz === st.freq), `${lesson.id}: ${st.freq} is on the frequency list`);
+      if (st.kind === "listen") {
+        assert.ok(st.choices[st.answer], `${lesson.id}: listen step has an answer`);
+        continue;
+      }
+      const g = gradeCall(st.example, st.expect);
+      assert.ok(g.ok, `${lesson.id}: "${st.example}" → ${g.norm} misses ${g.parts.filter(p => !p.ok && !p.optional).map(p => p.label).join(", ")}`);
+      assert.equal(gradeCall("hello there", st.expect).ok, false, `${lesson.id}: an empty call fails`);
+    }
+  }
+  const spoken = gradeCall("foxfield ground skyhawk one two three four alpha at the FBO with information bravo request taxi", LESSONS[0].steps[1].expect);
+  assert.ok(spoken.ok, "a spoken-style ground call passes");
+});
+
+console.log(`PilotFox: ${passed} checks passed.`);

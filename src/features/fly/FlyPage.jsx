@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { BookOpen, GraduationCap, Radar, Route, Wind } from "lucide-react";
+import { BookOpen, Gamepad2, GraduationCap, Plane, Radar, Radio, Route, Wind } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import { useFlyData } from "./state/useFlyData";
@@ -9,6 +9,9 @@ import PlanTab from "./components/PlanTab";
 import TrafficTab from "./components/TrafficTab";
 import LearnTab from "./components/LearnTab";
 import StudyTab from "./components/StudyTab";
+import AirplaneTab from "./components/AirplaneTab";
+import SimTab from "./components/SimTab";
+import RadioTab from "./components/RadioTab";
 import "./fly.css";
 import "./identity.css";
 
@@ -16,13 +19,17 @@ const TABS = [
   { id: "plan", name: "Plan", icon: Route },
   { id: "winds", name: "Winds", icon: Wind },
   { id: "traffic", name: "Tracker", icon: Radar },
+  { id: "airplane", name: "Airplane", icon: Plane },
+  { id: "sim", name: "Sim", icon: Gamepad2 },
+  { id: "radio", name: "Radio", icon: Radio },
   { id: "learn", name: "License", icon: GraduationCap },
   { id: "study", name: "Study", icon: BookOpen },
 ];
 
-// FlyFox: the pilot's app. Plan a flight with winds and weather along the
-// route, read winds aloft anywhere, watch live traffic, find the path to a
-// license and study for the FAA knowledge tests.
+// PilotFox: the pilot's app. Plan a flight with winds and weather along the
+// route, read winds aloft anywhere, watch live traffic, play with how an
+// airplane flies, fly the simulator, practice radio calls, find the path
+// to a license and study for the FAA knowledge tests.
 export default function FlyPage() {
   const store = useFlyData();
   const [params, setParams] = useSearchParams();
@@ -46,7 +53,7 @@ export default function FlyPage() {
   return (
     <div className="fy">
       <AppBar appId="flyfox" planTitle={planTitle} />
-      <nav className="fy-tabs" aria-label="FlyFox sections">
+      <nav className="fy-tabs" aria-label="PilotFox sections">
         {TABS.map(t => {
           const Icon = t.icon;
           return (
@@ -61,6 +68,9 @@ export default function FlyPage() {
         {tab === "plan" && <PlanTab f={store} key={saved?.id} openFlight={saved} />}
         {tab === "winds" && <WindsTab f={store} />}
         {tab === "traffic" && <TrafficTab f={store} />}
+        {tab === "airplane" && <AirplaneTab section={params.get("section")} go={go} />}
+        {tab === "sim" && <SimTab />}
+        {tab === "radio" && <RadioTab />}
         {tab === "learn" && <LearnTab f={store} openExam={exam => go({ tab: "study", exam })} />}
         {tab === "study" && <StudyTab f={store} examId={params.get("exam")} mode={params.get("mode")} go={go} />}
       </main>

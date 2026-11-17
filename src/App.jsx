@@ -35,6 +35,13 @@ const MedicPage = lazy(() => import("./features/medic/MedicPage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
 const BodyPage = lazy(() => import("./features/body/BodyPage"));
 
+// PilotFox used to be FlyFox at /fly; old links (and saved planner items)
+// keep working.
+function RedirectToPilot() {
+    const { search, hash } = useLocation();
+    return <Navigate to={`/pilot${search}${hash}`} replace />;
+}
+
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
     const { search, hash } = useLocation();
@@ -79,13 +86,14 @@ export default function App() {
                 }
             />
             <Route
-                path="/fly"
+                path="/pilot"
                 element={
                     <Suspense fallback={null}>
                         <FlyPage />
                     </Suspense>
                 }
             />
+            <Route path="/fly" element={<RedirectToPilot />} />
             <Route
                 path="/medic"
                 element={

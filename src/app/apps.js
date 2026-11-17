@@ -315,4 +315,13 @@ export const apps = [
     accent: "fretfox",
     category: "learn",
   },
+  {
+    id: "jumpfox",
+    name: "Jump",
+    subtitle: "JumpFox",
+    description: "Skydiving • Drop zones • Logbook",
+    path: "/jump",
+    icon: Parachute,
+    accent: "jumpfox",
+  },
 ];

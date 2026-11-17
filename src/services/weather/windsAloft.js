@@ -32,6 +32,9 @@ const SURFACE = [
   "cloud_cover_high",
   "visibility",
   "cape",
+  "is_day",
+  "weather_code",
+  "precipitation_probability",
 ];
 
 /** Every hourly variable the request asks for. */
@@ -86,7 +89,7 @@ const num = value => (Number.isFinite(value) ? value : null);
  *     time: Date, localHour, localDay,
  *     surface: { speedKt, dir, gustKt, tempC, dewPointC, pressureHpa, qnhHpa },
  *     freezingLevelFt, cloudBaseFt (estimated, above ground), cloud: { low, mid, high } %,
- *     visibilityM, cape,
+ *     visibilityM, cape, isDay, weatherCode (WMO), precipChance %,
  *     levels: [{ hPa, altitudeFt, speedKt, dir, tempC, belowGround }] }] }
  *
  * Levels the model puts under the ground at this spot are kept but marked
@@ -141,6 +144,11 @@ export function parseWindsAloft(body, { levels = PRESSURE_LEVELS } = {}) {
       cloud: { low: at("cloud_cover_low"), mid: at("cloud_cover_mid"), high: at("cloud_cover_high") },
       visibilityM: at("visibility"),
       cape: at("cape"),
+      // Daylight, the WMO weather code and the chance of rain this hour:
+      // what a skydiver checks after the wind.
+      isDay: at("is_day") == null ? null : at("is_day") === 1,
+      weatherCode: at("weather_code"),
+      precipChance: at("precipitation_probability"),
       levels: rows,
     };
   });

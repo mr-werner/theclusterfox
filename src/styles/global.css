@@ -35,6 +35,7 @@
   --bodyfox: #3fd0c9;
   --studyfox: #ffd84a;
   --trailfox: #e0a15e;
+  --jumpfox: #ff8a3d;
   --fretfox: #e8a45a;
   --snowfox: #1769d1;
   --keysfox: #f2b544;
@@ -569,6 +570,17 @@ select {
       145deg,
       #ffd9a8,
       #c9622e
+    );
+}
+
+.app-icon--jumpfox {
+  color: #fff4ec;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ff8a3d,
+      #12384a
     );
 }
 

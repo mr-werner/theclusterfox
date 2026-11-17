@@ -1,12 +1,12 @@
-// What FlyFox puts on the PlanFox calendar: each saved flight on its
+// What PilotFox puts on the PlanFox calendar: each saved flight on its
 // departure day, opening that flight in the planner. PlanFox loads this
-// module on demand (see src/app/planLinks.js) with FlyFox's saved data.
+// module on demand (see src/app/planLinks.js) with PilotFox's saved data.
 import { normalizeData } from "../state/flyStore.js";
 
 const localDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const localTime = d => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 
-export const flightHref = id => `/fly?flight=${encodeURIComponent(id)}`;
+export const flightHref = id => `/pilot?flight=${encodeURIComponent(id)}`;
 
 /** [{ id, day, time, title, detail, href, action }] for flights departing in [fromDay, toDay]. */
 export function planItems(raw, fromDay, toDay) {
@@ -33,12 +33,12 @@ export function planItems(raw, fromDay, toDay) {
   return out;
 }
 
-/** Things in FlyFox a planner item can open. */
+/** Things in PilotFox a planner item can open. */
 export function launchTargets(raw) {
   const base = [
-    { id: "plan", title: "Plan a flight", href: "/fly" },
-    { id: "winds", title: "Winds aloft", href: "/fly?tab=winds" },
-    { id: "study", title: "Study for a pilot test", href: "/fly?tab=study" },
+    { id: "plan", title: "Plan a flight", href: "/pilot" },
+    { id: "winds", title: "Winds aloft", href: "/pilot?tab=winds" },
+    { id: "study", title: "Study for a pilot test", href: "/pilot?tab=study" },
   ];
   if (!raw) return base;
   const data = normalizeData(raw);

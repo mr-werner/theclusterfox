@@ -1,4 +1,4 @@
-// FlyFox's data: aviation weather and live traffic through /api/fly (those
+// PilotFox's data: aviation weather and live traffic through /api/fly (those
 // sources don't allow browser requests), plus Open-Meteo place search and
 // OpenStreetMap flight-school lookups straight from the browser.
 
@@ -11,7 +11,7 @@ async function get(path, params, { signal } = {}) {
     response = await fetch(`/api/fly/${path}?${qs}`, { signal });
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    throw new Error("Couldn't reach FlyFox's data service. Check your connection.");
+    throw new Error("Couldn't reach PilotFox's data service. Check your connection.");
   }
   const body = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(body.error || "Aviation data isn't responding. Try again in a moment.");

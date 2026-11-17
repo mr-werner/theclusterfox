@@ -645,3 +645,154 @@ form.fy-search { flex-direction: row; }
   .fy-test-nav .fy-dots { display: none; }
   .fy-plan-head { flex-direction: column; }
 }
+
+/* ── Instruments (the six-pack) ── */
+.fy-sixpack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 14px; border-radius: 12px; background: #22262d; border: 1px solid #343a44; }
+.fy-sixpack.is-compact { gap: 8px; padding: 10px; }
+.fy-inst { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.fy-inst svg { width: 100%; max-width: 210px; height: auto; display: block; }
+.fy-inst figcaption { color: #9aa3b2; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; }
+.fy-inst-num { fill: #f2f2f2; font: 600 13px "Space Grotesk", sans-serif; text-anchor: middle; }
+.fy-inst-num.is-big { font-size: 17px; }
+.fy-inst-unit { fill: #c9ced8; font: 600 9px var(--fy-mono); text-anchor: middle; letter-spacing: 0.08em; }
+.fy-inst-unit.is-small { font-size: 7px; }
+.fy-inst-tiny { fill: #fff; font: 600 8px var(--fy-mono); }
+.fy-inst-digits { fill: #f2f2f2; font: 600 13px var(--fy-mono); text-anchor: middle; }
+
+/* ── Simulator ── */
+.fy-seg.is-wrap { align-self: flex-start; }
+.fy-kbd { display: inline-block; min-width: 92px; font-family: var(--fy-mono); font-size: 0.8rem; color: var(--fy-text); }
+.fy-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; margin: 0; }
+.fy-keys div { display: flex; gap: 10px; align-items: baseline; }
+.fy-keys dd { margin: 0; color: var(--fy-muted); font-size: 0.86rem; }
+.fy-sim { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
+.fy-sim-view { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; border: 1px solid var(--fy-line); background: #8ec3ef; touch-action: none; }
+.fy-sim-view canvas { width: 100%; height: 100%; display: block; }
+.fy-sim-hud { position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--fy-mono); font-size: 0.78rem; }
+.fy-sim-hud span { padding: 3px 7px; border-radius: 6px; color: #e9ffe9; background: rgba(0, 0, 0, 0.45); }
+.fy-sim-warn { position: absolute; top: 12px; right: 12px; padding: 6px 12px; border-radius: 8px; font: 700 0.86rem var(--fy-mono); letter-spacing: 0.1em; color: #fff; background: #c62828; animation: fy-blink 0.6s steps(2) infinite; }
+.fy-sim-warn.is-stall-horn { background: #c77800; }
+@keyframes fy-blink { 50% { opacity: 0.45; } }
+.fy-sim-paused { position: absolute; inset: 0; display: grid; place-items: center; font: 700 1.4rem "Space Grotesk", sans-serif; color: #fff; background: rgba(4, 10, 22, 0.45); }
+.fy-sim-coach { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 8px 12px; border-radius: 10px; color: #fff; background: rgba(4, 10, 22, 0.72); font-size: 0.9rem; }
+.fy-sim-controls { display: flex; flex-direction: column; gap: 12px; }
+.fy-sim-side { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 14px; border: 1px solid var(--fy-line); background: rgba(15, 26, 48, 0.9); }
+.fy-sim-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fy-sim-row > .fy-muted { min-width: 52px; font-size: 0.86rem; }
+.fy-throttle { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.fy-hold { touch-action: none; user-select: none; -webkit-user-select: none; }
+.fy-hold:active { background: rgba(76, 141, 255, 0.25); }
+.fy-yoke { position: relative; aspect-ratio: 1; width: 100%; max-width: 300px; align-self: center; border-radius: 18px; border: 1px solid var(--fy-line); background:
+  linear-gradient(var(--fy-line), var(--fy-line)) center / 1px 100% no-repeat,
+  linear-gradient(var(--fy-line), var(--fy-line)) center / 100% 1px no-repeat,
+  radial-gradient(circle at center, rgba(76, 141, 255, 0.12), rgba(4, 10, 22, 0.6) 70%);
+  touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.fy-yoke.is-on { cursor: grabbing; border-color: rgba(76, 141, 255, 0.6); }
+.fy-yoke-knob { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #8db8ff, #2f5fbf); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); pointer-events: none; }
+.fy-yoke-label { position: absolute; color: var(--fy-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; pointer-events: none; }
+.fy-yoke-label.is-top { top: 8px; left: 50%; transform: translateX(-50%); }
+.fy-yoke-label.is-bottom { bottom: 8px; left: 50%; transform: translateX(-50%); }
+.fy-yoke-label.is-left { left: 10px; top: 50%; transform: translateY(-50%); }
+.fy-yoke-label.is-right { right: 10px; top: 50%; transform: translateY(-50%); }
+
+/* ── Airplane diagrams ── */
+.fy-slider { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
+.fy-slider-ends { color: var(--fy-muted); font-size: 0.74rem; }
+.fy-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.fy-views figure { margin: 0; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 12px; border: 1px solid var(--fy-line); background: rgba(4, 10, 22, 0.45); }
+.fy-views figcaption { color: var(--fy-muted); font-size: 0.8rem; text-align: center; }
+.fy-diagram { width: 100%; height: auto; display: block; overflow: visible; }
+.fy-diagram.is-square { max-width: 260px; margin: 0 auto; }
+.fy-diagram.is-wide { max-width: 580px; margin: 0 auto; border-radius: 12px; background: rgba(4, 10, 22, 0.45); }
+.fy-dg-horizon { stroke: rgba(140, 175, 255, 0.25); stroke-width: 1.5; }
+.fy-dg-body { fill: #c8d3e6; }
+.fy-dg-body.is-dark { fill: #8b9bb6; }
+.fy-dg-gear { stroke: #8b9bb6; stroke-width: 3; }
+.fy-dg-wheel { fill: #2a3242; stroke: #8b9bb6; stroke-width: 2; }
+.fy-dg-axis { stroke: rgba(255, 255, 255, 0.35); stroke-width: 1; }
+.fy-dg-compass { fill: none; stroke: var(--fy-line); stroke-width: 1.5; }
+.fy-dg-label { fill: var(--fy-muted); font: 500 10px var(--fy-mono); }
+.fy-dg-label.is-center { text-anchor: middle; }
+.fy-dg-label.is-alert { fill: #ff8a80; font-weight: 700; }
+.fy-dg-flow { fill: none; stroke: rgba(141, 184, 255, 0.55); stroke-width: 1.5; }
+.fy-dg-flow.is-broken { stroke: rgba(255, 138, 128, 0.7); stroke-dasharray: 3 3; }
+.fy-dg-force { stroke-width: 4; stroke-linecap: round; }
+.fy-dg-force.is-lift { stroke: #3cc46e; }
+.fy-dg-force.is-drag { stroke: #f0524f; }
+.fy-dg-force.is-weight { stroke: #f0524f; }
+.fy-explain { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.fy-explain li { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--fy-line); background: rgba(4, 10, 22, 0.35); opacity: 0.7; }
+.fy-explain li.is-on { opacity: 1; border-color: rgba(76, 141, 255, 0.45); }
+.fy-explain p { color: #c6d1e4; font-size: 0.9rem; margin-top: 3px; }
+.fy-facts strong.is-good { color: var(--fy-vfr); }
+.fy-facts strong.is-low { color: var(--fy-amber); }
+.fy-chip.is-on { border-color: var(--fy-amber); color: #ffd59a; background: rgba(255, 181, 71, 0.12); }
+.fy-inst-notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin: 0; }
+.fy-inst-notes div { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--fy-line); background: rgba(4, 10, 22, 0.35); }
+.fy-inst-notes dt { font-weight: 700; }
+.fy-inst-notes dd { margin: 3px 0 0; color: #c6d1e4; font-size: 0.88rem; line-height: 1.45; }
+
+/* ── Radio ── */
+.fy-phonetic { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px 12px; font-size: 0.9rem; }
+.fy-phonetic strong { display: inline-block; width: 18px; color: var(--fy-accent); font-family: var(--fy-mono); }
+.fy-radio-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: 16px; align-items: start; }
+.fy-radio { background: linear-gradient(180deg, #1c2029, #12151b); border-color: #343a44; }
+.fy-radio-face { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.fy-radio-win { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 8px; background: #050807; border: 1px solid #2c332f; min-width: 0; }
+.fy-radio-win span { color: #6f8f7a; font: 600 0.66rem var(--fy-mono); letter-spacing: 0.1em; }
+.fy-radio-win strong { color: #6dff9b; font: 700 clamp(1.3rem, 4vw, 1.9rem) var(--fy-mono); letter-spacing: 0.04em; text-shadow: 0 0 10px rgba(109, 255, 155, 0.35); }
+.fy-radio-win.is-stby strong { color: #b6e8c6; text-shadow: none; }
+.fy-radio-win em { color: #8fb39b; font-style: normal; font-size: 0.76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1em; }
+.fy-radio-flip { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #3a414d; background: #2a2f38; color: #e8eef9; cursor: pointer; }
+.fy-radio-flip:hover { background: #343a45; }
+.fy-radio-knobs { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.fy-knob { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border-radius: 999px; border: 1px solid #3a414d; background: #2a2f38; }
+.fy-knob span { color: #9aa3b2; font: 600 0.72rem var(--fy-mono); padding: 0 4px; }
+.fy-knob button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #3a404b; color: #fff; font-size: 1.1rem; cursor: pointer; }
+.fy-knob button:hover { background: #4a5260; }
+.fy-radio-type { display: flex; gap: 6px; flex: 1 1 180px; }
+.fy-radio-type input { flex: 1; min-width: 0; font-family: var(--fy-mono); }
+.fy-step-situation { font-size: 1.02rem; }
+.fy-heard { margin: 0; display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; border-left: 3px solid var(--fy-accent); background: rgba(76, 141, 255, 0.08); color: #dbe6fa; font-style: italic; }
+.fy-heard svg:first-child { flex: none; margin-top: 3px; color: var(--fy-accent); }
+.fy-heard span { flex: 1; }
+.fy-heard.is-atis { border-left-color: var(--fy-amber); background: rgba(255, 181, 71, 0.08); font-family: var(--fy-mono); font-style: normal; font-size: 0.86rem; }
+.fy-heard.is-reply { border-left-color: var(--fy-vfr); background: rgba(60, 196, 110, 0.08); }
+.fy-call { display: flex; flex-direction: column; gap: 8px; }
+.fy-call textarea { width: 100%; box-sizing: border-box; resize: vertical; color: var(--fy-text); background: rgba(4, 10, 22, 0.6); border: 1px solid var(--fy-line); border-radius: 10px; padding: 10px 12px; font: inherit; }
+.fy-call textarea:focus { outline: 2px solid rgba(76, 141, 255, 0.55); outline-offset: 1px; }
+.fy-btn.is-live { border-color: #f0524f; color: #ffb3ad; }
+.fy-grade { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; font-size: 0.9rem; }
+.fy-grade li { display: flex; align-items: center; gap: 7px; }
+.fy-grade li.is-ok { color: #8ef0b0; }
+.fy-grade li.is-miss { color: #ffb3ad; }
+.fy-grade li.is-opt { color: var(--fy-muted); }
+.fy-example { padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); }
+.fy-example span { color: var(--fy-muted); margin-right: 4px; }
+
+@media (max-width: 860px) {
+  .fy-sim { grid-template-columns: 1fr; }
+  .fy-sim-controls { flex-direction: row; flex-wrap: wrap; }
+  .fy-sim-controls .fy-yoke { flex: 1 1 200px; max-width: 260px; }
+  .fy-sim-controls .fy-sim-side { flex: 1 1 260px; }
+  .fy-radio-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .fy-views { grid-template-columns: 1fr; }
+  .fy-sixpack { gap: 6px; padding: 8px; }
+  .fy-inst figcaption { font-size: 0.62rem; }
+  .fy-sim-view { aspect-ratio: 4 / 3; }
+  .fy-sim-controls { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 8px; align-items: start; }
+  .fy-sim-controls .fy-yoke { max-width: none; border-radius: 14px; }
+  .fy-yoke-knob { width: 36px; height: 36px; margin: -18px 0 0 -18px; }
+  .fy-yoke-label { font-size: 0.58rem; }
+  .fy-sim-side { padding: 10px; gap: 8px; }
+  .fy-sim-row { gap: 5px; }
+  .fy-sim-row > .fy-muted { min-width: 0; width: 100%; font-size: 0.74rem; }
+  .fy-sim-side .fy-seg button { padding: 5px 7px; font-size: 0.8rem; }
+  .fy-sim-side .fy-btn.is-small { padding: 6px 8px; font-size: 0.78rem; }
+  .fy-sim-coach { font-size: 0.8rem; padding: 6px 9px; }
+  .fy-sim-hud { font-size: 0.68rem; }
+  .fy-radio-face { grid-template-columns: 1fr; }
+  .fy-radio-flip { justify-self: center; transform: rotate(90deg); }
+}

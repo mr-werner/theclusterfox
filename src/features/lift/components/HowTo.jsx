@@ -1,15 +1,18 @@
 import { ExternalLink, PlayCircle } from "lucide-react";
 
 import ExerciseDemo from "./ExerciseDemo";
+import MotionDemo from "./MotionDemo";
 import { videoSearchUrl } from "../data/exercises";
 import { equipmentById } from "../data/equipment";
 import { muscleName } from "../data/muscles";
+import { movementFor } from "../data/activation";
 
-/** The animated demo, step-by-step instructions and a link to videos. */
+/** The demo, step-by-step instructions and a link to videos. */
 export default function HowTo({ exercise }) {
+  const movement = movementFor(exercise);
   return (
-    <div className="lf-howto">
-      <ExerciseDemo exercise={exercise} />
+    <div className={`lf-howto ${movement ? "lf-howto--muscles" : ""}`}>
+      {movement ? <MotionDemo movement={movement} exerciseName={exercise.name} /> : <ExerciseDemo exercise={exercise} />}
       <div>
         <ol className="lf-steps">
           {exercise.steps.map(step => <li key={step}>{step}</li>)}

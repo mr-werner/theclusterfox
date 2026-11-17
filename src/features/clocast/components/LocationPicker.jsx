@@ -3,7 +3,9 @@ import { LoaderCircle, LocateFixed, MapPin, Search, Star } from "lucide-react";
 
 import { searchPlaces } from "../../../services/weather/openMeteo";
 
-export default function LocationPicker({ place, savedPlaces, onPick, onToggleSaved, actions }) {
+// searchOnly leaves out the current place and saved-place chips, for the
+// place switcher, which shows those itself.
+export default function LocationPicker({ place, savedPlaces, onPick, onToggleSaved, actions, searchOnly = false, autoFocus = false }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -81,6 +83,7 @@ export default function LocationPicker({ place, savedPlaces, onPick, onToggleSav
             value={query}
             placeholder="Search a city or town"
             aria-label="Search for a place"
+            autoFocus={autoFocus}
             onChange={event => {
               setQuery(event.target.value);
               if (event.target.value.trim().length < 2) setResults([]);
@@ -112,7 +115,7 @@ export default function LocationPicker({ place, savedPlaces, onPick, onToggleSav
       )}
       {message && <p className="cc-note">{message}</p>}
 
-      {place && (
+      {place && !searchOnly && (
         <div className="cc-place">
           <MapPin size={16} aria-hidden="true" />
           <span>
@@ -131,7 +134,7 @@ export default function LocationPicker({ place, savedPlaces, onPick, onToggleSav
         </div>
       )}
 
-      {savedPlaces.length > 0 && (
+      {savedPlaces.length > 0 && !searchOnly && (
         <div className="cc-chips" aria-label="Saved places">
           {savedPlaces.map(saved => (
             <button

@@ -245,3 +245,37 @@ export async function fetchWindGrid(points, { signal } = {}) {
     direction: item.current?.wind_direction_10m ?? null,
   }));
 }
+
+/**
+ * A quick look at several places in one request: the temperature now,
+ * today's high and low, and the sky. places: [{ latitude, longitude }].
+ * Returns [{ temp, high, low, code, isDay }] in the same order (°C), with
+ * null for a place that came back empty.
+ */
+export async function fetchPlaceSummaries(places, { signal } = {}) {
+  if (!places.length) return [];
+  const params = new URLSearchParams({
+    latitude: places.map(p => p.latitude.toFixed(3)).join(","),
+    longitude: places.map(p => p.longitude.toFixed(3)).join(","),
+    current: "temperature_2m,weather_code,is_day",
+    daily: "temperature_2m_max,temperature_2m_min",
+    timezone: "auto",
+    forecast_days: "1",
+  });
+  const response = await fetch(`${FORECAST_URL}?${params}`, { signal });
+  if (!response.ok) throw new Error("Couldn't load the quick look for your places.");
+  const body = await response.json();
+  return (Array.isArray(body) ? body : [body]).map(parsePlaceSummary);
+}
+
+export function parsePlaceSummary(item) {
+  const temp = item?.current?.temperature_2m;
+  if (!Number.isFinite(temp)) return null;
+  return {
+    temp,
+    high: item.daily?.temperature_2m_max?.[0] ?? null,
+    low: item.daily?.temperature_2m_min?.[0] ?? null,
+    code: item.current.weather_code ?? 0,
+    isDay: Boolean(item.current.is_day),
+  };
+}

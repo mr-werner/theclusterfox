@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CalendarPlus, ChevronLeft } from "lucide-react";
+import { CalendarPlus, ChevronLeft, Heart, MessageSquare } from "lucide-react";
 
 import { useAuth } from "../context/AuthContext";
 import { withNext } from "../lib/redirect";
@@ -127,6 +127,15 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
         </button>
       )}
 
+      <Link
+        to={feedbackHref(appId, here)}
+        className="appbar-feedback"
+        aria-label="Send feedback about this page"
+        title="Something not working, or an idea? Send feedback"
+      >
+        <MessageSquare size={17} aria-hidden="true" />
+      </Link>
+
       <a href="/" className="appbar-home" onClick={goHome} aria-label="ClusterFox home" title="ClusterFox home">
         <img src="/clusterfox-logo.png" alt="" className="appbar-fox" />
       </a>
@@ -158,6 +167,12 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
                 <Link to="/account" className="appbar-menu-item" role="menuitem" onClick={() => setOpen(false)}>
                   ClusterFox account
                 </Link>
+                <Link to={feedbackHref(appId, here)} className="appbar-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+                  <MessageSquare size={15} aria-hidden="true" /> Send feedback
+                </Link>
+                <Link to="/donate" className="appbar-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+                  <Heart size={15} aria-hidden="true" /> Donate to The ClusterFox
+                </Link>
                 <button type="button" className="appbar-menu-item appbar-menu-out" role="menuitem" onClick={handleLogout}>
                   Log out
                 </button>
@@ -172,6 +187,12 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
       </div>
     </header>
   );
+}
+
+function feedbackHref(appId, here) {
+  const params = new URLSearchParams({ from: here });
+  if (appId) params.set("app", appId);
+  return `/feedback?${params}`;
 }
 
 // While an app is open, the browser treats it as that app: its own title,

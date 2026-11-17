@@ -36,7 +36,7 @@
   letter-spacing: 0.01em;
   line-height: 1.05;
 }
-.sf h1 { font-size: clamp(2.3rem, 7vw, 3.6rem); text-transform: uppercase; }
+.sf h1 { color: var(--sf-ink); font-size: clamp(2.3rem, 7vw, 3.6rem); text-transform: uppercase; }
 .sf p { margin: 0; line-height: 1.5; }
 .sf a { color: var(--sf-accent); }
 .sf-h2 { font-size: 1.55rem; text-transform: uppercase; margin: 22px 0 10px !important; }
@@ -360,7 +360,10 @@
   .sf-row-main .sf-bars { grid-column: 1 / -1; height: 40px; }
   .sf-row-wx { display: none; }
   .sf-bc .sf-row-danger { grid-column: 1 / -1; grid-row: 2; }
-  .sf-now-snow { grid-template-columns: repeat(3, 1fr); }
+  .sf-now-snow { grid-template-columns: repeat(6, 1fr); }
+  .sf-now-snow > div { grid-column: span 2; }
+  .sf-now-snow > div:nth-child(-n + 2) { grid-column: span 3; }
+  .sf-units { display: none; }
   .sf-now-snow > div { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
   .sf-now-snow b { font-size: 1.9rem; }
   .sf-snotel dl { grid-template-columns: repeat(2, 1fr); }

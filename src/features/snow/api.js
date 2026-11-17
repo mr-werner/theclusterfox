@@ -40,7 +40,11 @@ async function json(url, init, failText) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.error || failText);
   }
-  return response.json();
+  try {
+    return await response.json();
+  } catch (error) {
+    throw new Error(failText, { cause: error });
+  }
 }
 
 function parseHours(body) {
@@ -152,9 +156,10 @@ export async function fetchSummaries(spots, { signal } = {}) {
 let avyLayer = null; // Promise of the US map layer
 
 /** Every US avalanche forecast zone with today's danger (GeoJSON features). */
-export function fetchAvalancheZones({ signal } = {}) {
+// Shared by every caller, so it isn't tied to one caller's abort signal.
+export function fetchAvalancheZones() {
   if (!avyLayer) {
-    avyLayer = json("https://api.avalanche.org/v2/public/products/map-layer", { signal }, "Avalanche forecasts aren't responding right now.")
+    avyLayer = json("https://api.avalanche.org/v2/public/products/map-layer", {}, "Avalanche forecasts aren't responding right now.")
       .then(body => body.features ?? [])
       .catch(error => {
         avyLayer = null;
@@ -198,7 +203,7 @@ export async function fetchAvalanche({ lat, lon, country }, { signal } = {}) {
       bands,
     };
   }
-  const zones = await fetchAvalancheZones({ signal });
+  const zones = await fetchAvalancheZones();
   const hit = zones.find(f => inGeometry(lat, lon, f.geometry));
   if (!hit) return null;
   const p = hit.properties ?? {};
@@ -218,7 +223,7 @@ export async function fetchAvalanche({ lat, lon, country }, { signal } = {}) {
 
 /** Active NWS watches and warnings at a point (US only). */
 export async function fetchAlerts({ lat, lon }, { signal } = {}) {
-  const body = await json(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`, { signal, headers: { accept: "application/geo+json" } }, "Weather alerts aren't responding.");
+  const body = await json(`https://api.weather.gov/alerts/active?point=${lat.toFixed(4)},${lon.toFixed(4)}`, { signal }, "Weather alerts aren't responding.");
   return (body.features ?? []).map(f => {
     const p = f.properties ?? {};
     return { id: p.id ?? f.id, event: p.event, headline: p.headline, severity: p.severity, description: p.description, instruction: p.instruction, ends: p.ends ?? p.expires };

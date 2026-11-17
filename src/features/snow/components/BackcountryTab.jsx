@@ -14,7 +14,7 @@ import { Card, DangerChip, FavButton, Loading, Problem, SnowBars } from "./ui";
 export default function BackcountryTab({ s, open }) {
   const { data, patch } = s;
   const units = data.units;
-  const zones = useLoad("zones", signal => fetchAvalancheZones({ signal }));
+  const zones = useLoad("zones", () => fetchAvalancheZones());
   const sums = useLoad(`bc-${units}`, signal => fetchSummaries(BACKCOUNTRY, { signal }));
   const canada = useLoad("bc-canada", signal => Promise.all(BACKCOUNTRY.filter(b => CANADA.has(b.state)).map(b => fetchAvalanche({ ...b, country: "CA" }, { signal }).then(a => [b.id, a]).catch(() => [b.id, null]))).then(Object.fromEntries));
   const [picked, setPicked] = useState(null);

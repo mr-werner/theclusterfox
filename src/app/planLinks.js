@@ -32,6 +32,7 @@ export const PLAN_LINKS = [
   { app: "growfox", storageKey: "growfox-data-v1", load: () => import("../features/grow/model/planLink.js") },
   { app: "flyfox", storageKey: "flyfox-data-v1", load: () => import("../features/fly/model/planLink.js") },
   { app: "medicfox", storageKey: "medicfox-data-v1", load: () => import("../features/medic/model/planLink.js") },
+  { app: "fretfox", storageKey: "fretfox-data-v1", load: () => import("../features/guitar/model/planLink.js") },
 ];
 
 /** True for a link that stays on this site, like "/lift?plan=abc". */

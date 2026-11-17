@@ -17,6 +17,7 @@
 .pf [data-app="growfox"] { --app: var(--growfox, #7cc576); }
 .pf [data-app="flyfox"] { --app: var(--flyfox, #4c8dff); }
 .pf [data-app="medicfox"] { --app: var(--medicfox, #5b9dff); }
+.pf [data-app="bookfox"] { --app: var(--bookfox, #e0b25c); }
 
 .pf-app-mark {
   display: grid;

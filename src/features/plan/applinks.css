@@ -16,6 +16,7 @@
 .pf [data-app="cookfox"] { --app: var(--cookfox); }
 .pf [data-app="growfox"] { --app: var(--growfox, #7cc576); }
 .pf [data-app="flyfox"] { --app: var(--flyfox, #4c8dff); }
+.pf [data-app="climbfox"] { --app: var(--climbfox, #e0552a); }
 .pf [data-app="medicfox"] { --app: var(--medicfox, #5b9dff); }
 
 .pf-app-mark {

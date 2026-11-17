@@ -66,8 +66,8 @@ const NAG_EVERY_SEC = 75;
 export function useRecorder({ prefs, profile, sensors }) {
   const [live, setLive] = useState(loadLive);
   const [now, setNow] = useState(() => Date.now());
-  const [gps, setGps] = useState({ status: "off", acc: null, error: null });
-  const [awake, setAwake] = useState(false);
+  const [gpsFix, setGps] = useState(null);
+  const [lockHeld, setAwake] = useState(false);
   const liveRef = useRef(live);
   const lastSave = useRef(0);
   const prefsRef = useRef(prefs);
@@ -100,7 +100,6 @@ export function useRecorder({ prefs, profile, sensors }) {
   }, []);
 
   const recording = Boolean(live);
-  const running = live?.status === "running";
   const mode = live?.mode;
   const sport = live?.sport;
 
@@ -119,15 +118,7 @@ export function useRecorder({ prefs, profile, sensors }) {
 
   // GPS while recording outdoors.
   useEffect(() => {
-    if (!recording || mode !== "gps") {
-      setGps({ status: "off", acc: null, error: null });
-      return undefined;
-    }
-    if (!navigator.geolocation) {
-      setGps({ status: "unavailable", acc: null, error: "This browser can't share your location." });
-      return undefined;
-    }
-    setGps(g => ({ ...g, status: g.status === "ok" ? "ok" : "waiting" }));
+    if (!recording || mode !== "gps" || !navigator.geolocation) return undefined;
     const id = navigator.geolocation.watchPosition(
       pos => {
         const c = pos.coords;
@@ -154,10 +145,7 @@ export function useRecorder({ prefs, profile, sensors }) {
 
   // Keep the screen on, and take the lock back when you return to the page.
   useEffect(() => {
-    if (!recording || !prefs.keepAwake || !("wakeLock" in navigator)) {
-      setAwake(false);
-      return undefined;
-    }
+    if (!recording || !prefs.keepAwake || !("wakeLock" in navigator)) return undefined;
     let lock = null;
     let gone = false;
     const take = async () => {
@@ -178,6 +166,14 @@ export function useRecorder({ prefs, profile, sensors }) {
       lock?.release().catch(() => {});
     };
   }, [recording, prefs.keepAwake]);
+
+  const gps =
+    !recording || mode !== "gps"
+      ? { status: "off", acc: null, error: null }
+      : typeof navigator !== "undefined" && !navigator.geolocation
+        ? { status: "unavailable", acc: null, error: "This browser can't share your location." }
+        : gpsFix ?? { status: "waiting", acc: null, error: null };
+  const awake = recording && prefs.keepAwake && lockHeld;
 
   // Where you are in the session, how fast you're going, and what to say.
   const sec = live ? activeSec(live, now) : 0;
@@ -297,6 +293,7 @@ export function useRecorder({ prefs, profile, sensors }) {
   const clear = useCallback(() => {
     saveLive(null);
     setLive(null);
+    setGps(null);
     try {
       window.speechSynthesis?.cancel();
     } catch {

@@ -232,6 +232,9 @@ export function buildSteps(type, ctx) {
   }
 }
 
+/** The steps of one session of a plan. */
+export const planSessionSteps = (plan, s) => buildSteps(s.type, { sport: plan.sport, minutes: s.minutes, level: plan.level, phase: s.week.phase, weekIndex: s.week.index, eventId: plan.eventId });
+
 /** A rough race or test length in seconds, for planning and the live guide. */
 export function estimateRaceSec(eventId, level = "regular", isTest = false) {
   const event = eventById.get(eventId);

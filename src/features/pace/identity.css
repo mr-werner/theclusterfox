@@ -1,0 +1,53 @@
+/* PaceFox identity: a race at first light. Asphalt-dark, a sunrise
+   gradient from sprint pink to amber, condensed lettering like a race bib,
+   and big timing-clock numerals. */
+@import url("https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@500;600;700&display=swap");
+
+.appbar[data-app="pacefox"] {
+  --ab-bg: rgba(13, 15, 20, 0.9);
+  --ab-fg: #f3f4f8;
+  --ab-muted: #9aa0b4;
+  --ab-line: rgba(255, 77, 141, 0.16);
+  --ab-accent: #ff4d8d;
+  --ab-accent-ink: #1a0710;
+  --ab-font: "Saira Condensed", "Space Grotesk", sans-serif;
+  --ab-name-size: 1.4rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: 0.04em;
+  --ab-name-case: uppercase;
+  --ab-radius: 10px;
+  --ab-menu-bg: #151821;
+}
+
+.pc {
+  --pc-bg: #0d0f14;
+  --pc-surface: #151821;
+  --pc-surface-2: #1c2030;
+  --pc-line: rgba(255, 255, 255, 0.08);
+  --pc-text: #f3f4f8;
+  --pc-muted: #9aa0b4;
+  --pc-accent: #ff4d8d;
+  --pc-accent-2: #ffb547;
+  --pc-ink: #1a0710;
+  --pc-sunrise: linear-gradient(120deg, #ff4d8d, #ff7a59 55%, #ffb547);
+  --pc-display: "Saira Condensed", "Space Grotesk", sans-serif;
+  --pc-num: "Saira", "DM Sans", sans-serif;
+
+  --pc-z1: #8592ad;
+  --pc-z2: #38bdf8;
+  --pc-z3: #4ade80;
+  --pc-z4: #facc15;
+  --pc-z5: #fb923c;
+  --pc-z6: #f43f5e;
+
+  --pc-run: #ff4d8d;
+  --pc-ride: #ffb547;
+  --pc-row: #38d0ff;
+
+  min-height: 100vh;
+  color: var(--pc-text);
+  background:
+    radial-gradient(900px 420px at 85% -140px, rgba(255, 122, 89, 0.16), transparent 70%),
+    radial-gradient(700px 380px at 0% -120px, rgba(255, 77, 141, 0.12), transparent 70%),
+    var(--pc-bg);
+}

@@ -35,6 +35,7 @@
   --bodyfox: #3fd0c9;
   --flyfox: #4c8dff;
   --medicfox: #5b9dff;
+  --pacefox: #ff4d8d;
 
   --max-width: 1180px;
 }
@@ -399,6 +400,17 @@ select {
       145deg,
       #d4e5ff,
       #3d7fe6
+    );
+}
+
+.app-icon--pacefox {
+  color: #1a0710;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ff4d8d,
+      #ffb547
     );
 }
 

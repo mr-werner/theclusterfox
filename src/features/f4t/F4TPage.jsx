@@ -272,7 +272,7 @@ export default function F4TPage() {
             <p className="ff-eyebrow">FUEL 4 THOUGHT · DIET PLANNER</p>
             <h1>Eat for your goal, your training and your budget.</h1>
             <p className="ff-hero-sub">
-              Plan the week’s meals from CookFox recipes, sized to your body and your LiftFox training days. Get the grocery list and what it costs.
+              Plan the week’s meals from CookFox recipes, sized to your body and your LiftFox and PaceFox training days. Get the grocery list and what it costs.
               Ate something else? See how far off plan it was, and what it takes to walk it off.
             </p>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />

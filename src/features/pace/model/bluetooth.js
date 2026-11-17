@@ -72,7 +72,6 @@ export function parseRower(view) {
   if (has(9)) {
     const hr = view.getUint8(o);
     if (hr) out.hr = hr;
-    o += 1;
   }
   return out;
 }
@@ -107,7 +106,6 @@ export function parseIndoorBike(view) {
   if (has(9)) {
     const hr = view.getUint8(o);
     if (hr) out.hr = hr;
-    o += 1;
   }
   return out;
 }
@@ -135,7 +133,6 @@ export function parseTreadmill(view) {
   if (has(8)) {
     const hr = view.getUint8(o);
     if (hr) out.hr = hr;
-    o += 1;
   }
   return out;
 }

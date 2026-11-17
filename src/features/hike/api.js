@@ -5,7 +5,7 @@
 //  - Forecasts from Open-Meteo, at the trailhead and at the high point.
 //  - Place search from Open-Meteo (shared with SkyFox).
 
-import { searchPlaces } from "../../services/weather/openMeteo";
+import { searchPlaces } from "../../services/weather/openMeteo.js";
 import { bounds, dist, distanceToLine, isLoop, lineLength, locateOnLine, resample, simplifyTo, stitchToOne } from "./model/geo.js";
 
 export { searchPlaces };

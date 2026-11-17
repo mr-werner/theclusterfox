@@ -32,6 +32,8 @@ const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 // FlyFox carries its question bank and study notes, so it loads on demand too.
 const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 // MedicFox carries its knowledge base and skill sheets, so it loads on demand too.
+// ClimbFox reads routes live from OpenBeta, and loads on demand like the rest.
+const ClimbPage = lazy(() => import("./features/climb/ClimbPage"));
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
 // RoadFox carries its state outlines and games, so it loads on demand too.
 const RoadPage = lazy(() => import("./features/road/RoadPage"));
@@ -182,6 +184,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <RoadPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/climb"
+                element={
+                    <Suspense fallback={null}>
+                        <ClimbPage />
                     </Suspense>
                 }
             />

@@ -1,4 +1,4 @@
-import { Activity, Ambulance, CalendarRange, CarFront, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
+import { Activity, Ambulance, CalendarRange, CarFront, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, MonitorPlay, Mountain, PersonStanding, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
 // The home screen groups apps into these, in this order. PlanFox is the hub
 // above them all. An app without a category (or with one not listed here)
@@ -264,5 +264,14 @@ export const apps = [
     icon: CarFront,
     accent: "roadfox",
     category: "outdoors",
+  },
+  {
+    id: "climbfox",
+    name: "Climb",
+    subtitle: "ClimbFox",
+    description: "Crags • Routes • Conditions",
+    path: "/climb",
+    icon: Mountain,
+    accent: "climbfox",
   },
 ];

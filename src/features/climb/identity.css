@@ -1,0 +1,19 @@
+/* ClimbFox identity: chalk-dusted sandstone. Warm chalk white, granite
+   ink, a rope-orange accent and a sturdy, slightly wide grotesk like the
+   lettering on a guidebook spine. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap");
+
+.appbar[data-app="climbfox"] {
+  --ab-bg: rgba(246, 242, 235, 0.9);
+  --ab-fg: #1f1d1a;
+  --ab-muted: #6f685d;
+  --ab-line: rgba(60, 45, 30, 0.12);
+  --ab-accent: #e0552a;
+  --ab-accent-ink: #ffffff;
+  --ab-font: "Bricolage Grotesque", "Space Grotesk", sans-serif;
+  --ab-name-size: 1.18rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: -0.01em;
+  --ab-radius: 10px;
+  --ab-menu-bg: #fbf8f3;
+}

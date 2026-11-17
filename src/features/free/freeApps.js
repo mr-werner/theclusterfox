@@ -442,6 +442,8 @@ const categories = [
       { name: "ERR Jupiter", alt: "Netflix", url: "https://jupiter.err.ee/", mark: "JU", color: "#1e3a8a", description: "Estonian public TV and radio on demand, with dramas, films and kids shows." },
       { name: "RÚV", alt: "Netflix", url: "https://www.ruv.is/sjonvarp", mark: "RÚ", color: "#003da5", description: "Icelandic public TV, with Nordic dramas, documentaries and live channels." },
       { name: "RTVCPlay", alt: "Netflix", url: "https://www.rtvcplay.co/", mark: "RT", color: "#e4002b", description: "Colombian public TV, with Señal Colombia series, documentaries and live channels." },
+      { name: "PTS+", alt: "Netflix", url: "https://www.ptsplus.tv/", mark: "PT", color: "#00a0e9", description: "Taiwan's public TV streaming, with dramas, documentaries and children's shows." },
+      { name: "TaiwanPlus", alt: "Netflix", url: "https://www.taiwanplus.com/", mark: "T+", color: "#d7282f", description: "Taiwan's public English-language channel, with news, travel and culture shows." },
     ],
   },
   {
@@ -538,6 +540,8 @@ const categories = [
       { name: "RÚV Radio", alt: "SiriusXM", url: "https://www.ruv.is/utvarp", mark: "RÚ", color: "#003da5", description: "Icelandic public radio, including Rás 1 and Rás 2, live and on demand." },
       { name: "Radio Nacional de Colombia", alt: "SiriusXM", url: "https://www.radionacional.co/", mark: "RN", color: "#f7b500", description: "Colombian public radio with news, culture and regional music, live and on demand." },
       { name: "Radiónica", alt: "SiriusXM", url: "https://www.radionica.rocks/", mark: "Ra", color: "#e6007e", description: "Colombian public youth radio focused on rock, indie and new local music." },
+      { name: "Radio Taiwan International", alt: "SiriusXM", url: "https://www.rti.org.tw/", mark: "Rt", color: "#0068b7", description: "Taiwan's international public radio, broadcasting in over a dozen languages." },
+      { name: "National Education Radio", alt: "SiriusXM", url: "https://www.ner.gov.tw/", mark: "NE", color: "#2e8b57", description: "Taiwanese public radio for learning, culture and podcasts, live and on demand." },
     ],
   },
   {
@@ -773,6 +777,7 @@ const categories = [
       { name: "Educ.ar", alt: "paid tutoring sites", url: "https://www.educ.ar/", mark: "Ed", color: "#2c5aa0", description: "Argentina's public education portal with lessons, courses and teaching resources." },
       { name: "Siyavula", alt: "paid tutoring / textbooks", url: "https://www.siyavula.com/", mark: "Si", color: "#17a589", description: "Free open maths and science textbooks with practice for high school." },
       { name: "Colombia Aprende", alt: "paid tutoring", url: "https://www.colombiaaprende.edu.co/", mark: "CA", color: "#3366cc", description: "Colombia's free national education portal, with lessons and resources for every school level." },
+      { name: "Junyi Academy", alt: "paid tutoring", url: "https://www.junyiacademy.org/", mark: "JA", color: "#4fb3bf", description: "Taiwanese nonprofit with free video lessons and practice from primary to high school." },
     ],
   },
   {
@@ -810,6 +815,7 @@ const categories = [
       { name: "Sõnaveeb", alt: "paid dictionaries", url: "https://sonaveeb.ee/", mark: "Sõ", color: "#0072ce", description: "Official Estonian dictionary portal with meanings, forms and pronunciation." },
       { name: "Icelandic Online", alt: "Babbel", url: "https://icelandiconline.com/", mark: "IO", color: "#d72828", description: "Free Icelandic courses from the University of Iceland, from beginner up." },
       { name: "Málið.is", alt: "paid dictionaries", url: "https://malid.is/", mark: "Má", color: "#003da5", description: "Official Icelandic dictionaries, spelling and inflection in one search." },
+      { name: "MOE Revised Mandarin Dictionary", alt: "paid dictionaries", url: "https://dict.revised.moe.edu.tw/", mark: "國", color: "#8b0000", description: "Taiwan's official Mandarin dictionary, with pronunciations, meanings and examples." },
     ],
   },
 ];

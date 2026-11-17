@@ -273,5 +273,6 @@ export const apps = [
     path: "/climb",
     icon: Mountain,
     accent: "climbfox",
+    category: "outdoors",
   },
 ];

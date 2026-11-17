@@ -2,7 +2,7 @@
 --
 -- site_admins:   who can open /dev. Rows are added by hand (see the bottom).
 -- site_feedback: what visitors send from the Feedback form. Anyone can send
---                one through /api/site/feedback (the server writes it with
+--                one through /api/plan/feedback (the server writes it with
 --                the database owner role); only admins can read or update.
 -- dev_notes:     notes the developer leaves while looking at a page, and app
 --                ideas. Claude sessions read the open ones and mark them

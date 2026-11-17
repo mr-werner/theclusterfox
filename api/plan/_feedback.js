@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import { requestUser, sql } from "./_db.js";
 
-// POST /api/site/feedback — anyone can send feedback, signed in or not.
+// POST /api/plan/feedback — anyone can send feedback, signed in or not.
 // It is stored in site_feedback (db/migrations/011) for the developer area.
 
 const KINDS = new Set(["bug", "idea", "praise", "other"]);

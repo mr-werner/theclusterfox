@@ -1,7 +1,7 @@
 import { sessionToken } from "../../lib/cloudSync";
 
 /**
- * Sends feedback to /api/site/feedback. Signed-in people send their token so
+ * Sends feedback to /api/plan/feedback. Signed-in people send their token so
  * the developer can see who it came from; anyone else is anonymous.
  * Resolves to true, or throws with a message meant for the person.
  */
@@ -9,7 +9,7 @@ export async function sendFeedback({ kind, message, contact, page, app, website 
   const token = await sessionToken();
   let response;
   try {
-    response = await fetch("/api/site/feedback", {
+    response = await fetch("/api/plan/feedback", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

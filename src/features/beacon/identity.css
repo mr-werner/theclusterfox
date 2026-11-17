@@ -1,0 +1,18 @@
+/* BeaconFox identity: a headlamp in the dark. Near-black, signal amber,
+   stencil-style capitals like the label on rescue gear. System fonts only,
+   so it looks the same with no signal. */
+.appbar[data-app="beaconfox"] {
+  --ab-bg: rgba(13, 11, 8, 0.92);
+  --ab-fg: #fff6e6;
+  --ab-muted: rgba(255, 246, 230, 0.6);
+  --ab-line: rgba(255, 176, 32, 0.14);
+  --ab-accent: #ffb020;
+  --ab-accent-ink: #1a1203;
+  --ab-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ab-name-size: 1.12rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: 0.08em;
+  --ab-name-case: uppercase;
+  --ab-radius: 6px;
+  --ab-menu-bg: #1a160f;
+}

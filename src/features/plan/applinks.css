@@ -17,6 +17,7 @@
 .pf [data-app="growfox"] { --app: var(--growfox, #7cc576); }
 .pf [data-app="flyfox"] { --app: var(--flyfox, #4c8dff); }
 .pf [data-app="snowfox"] { --app: var(--snowfox, #1769d1); }
+.pf [data-app="keysfox"] { --app: var(--keysfox, #f2b544); }
 .pf [data-app="climbfox"] { --app: var(--climbfox, #e0552a); }
 .pf [data-app="medicfox"] { --app: var(--medicfox, #5b9dff); }
 .pf [data-app="roadfox"] { --app: var(--roadfox, #ffc23c); }

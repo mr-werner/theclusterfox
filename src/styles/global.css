@@ -35,6 +35,7 @@
   --bodyfox: #3fd0c9;
   --studyfox: #ffd84a;
   --snowfox: #1769d1;
+  --keysfox: #f2b544;
   --flyfox: #4c8dff;
   --climbfox: #e0552a;
   --roadfox: #ffc23c;
@@ -478,6 +479,17 @@ select {
       #ffffff,
       #a9d1ff 55%,
       #1769d1
+    );
+}
+
+.app-icon--keysfox {
+  color: #f6e7c4;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3a2c1c,
+      #0e0c0b
     );
 }
 

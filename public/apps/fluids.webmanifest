@@ -1,0 +1,28 @@
+{
+  "id": "/fluids",
+  "name": "Fluids & Piping",
+  "short_name": "Fluids",
+  "start_url": "/fluids",
+  "scope": "/fluids",
+  "display": "standalone",
+  "background_color": "#062236",
+  "theme_color": "#062236",
+  "icons": [
+    {
+      "src": "/apps/fluids-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/fluids-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/fluids-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

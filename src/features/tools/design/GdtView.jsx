@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { Link } from "../nav";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Factory, RotateCcw, TriangleAlert, Volume2, X } from "lucide-react";
 import { BASICS, CALLOUTS, GROUPS, allowsMods, calloutById, evaluate, initialState, showsDia } from "./gdtModel";
 import { FrameBox, Symbol } from "./Frame";

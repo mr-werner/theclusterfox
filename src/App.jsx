@@ -18,6 +18,8 @@ import { useHistoryTrail } from "./lib/appBack";
 const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
 // Engineer ToolFox carries a lot of reference data, so it loads on demand too.
 const ToolsPage = lazy(() => import("./features/tools/ToolsPage"));
+// Each engineering discipline is also its own app, showing ToolFox's tools.
+const DISCIPLINE_APPS = ["fluids", "heat", "hvac", "mechanics", "electrical", "manufacturing"];
 // CalmFox carries its scripts and audio engine, so it loads on demand as well.
 const CalmPage = lazy(() => import("./features/calm/CalmPage"));
 // MathFox brings its own solver and KaTeX, so it loads on demand too.
@@ -108,6 +110,18 @@ export default function App() {
                     </Suspense>
                 }
             />
+            {/* The ToolFox disciplines as their own apps, same tools. */}
+            {DISCIPLINE_APPS.map(id => (
+                <Route
+                    key={id}
+                    path={`/${id}/*`}
+                    element={
+                        <Suspense fallback={null}>
+                            <ToolsPage key={id} discipline={id} />
+                        </Suspense>
+                    }
+                />
+            ))}
             <Route
                 path="/body"
                 element={

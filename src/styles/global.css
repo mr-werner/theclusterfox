@@ -35,6 +35,12 @@
   --bodyfox: #3fd0c9;
   --flyfox: #4c8dff;
   --medicfox: #5b9dff;
+  --fluids: #5cc8ff;
+  --heat: #ff8a4c;
+  --hvac: #7be0c3;
+  --mechanics: #c6a6ff;
+  --electrical: #ffd25c;
+  --manufacturing: #ffb86b;
 
   --max-width: 1180px;
 }
@@ -344,6 +350,72 @@ select {
       145deg,
       #b5fff2,
       #2fbfa9
+    );
+}
+
+.app-icon--fluids {
+  color: #03192a;
+
+  background:
+    linear-gradient(
+      145deg,
+      #c4ecff,
+      #2f9fdc
+    );
+}
+
+.app-icon--heat {
+  color: #2a0e02;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd2b8,
+      #e8692c
+    );
+}
+
+.app-icon--hvac {
+  color: #03241b;
+
+  background:
+    linear-gradient(
+      145deg,
+      #cdf7ea,
+      #3fbf9a
+    );
+}
+
+.app-icon--mechanics {
+  color: #170833;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ebe0ff,
+      #9a74f0
+    );
+}
+
+.app-icon--electrical {
+  color: #2a1f00;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff0b8,
+      #f0b82a
+    );
+}
+
+.app-icon--manufacturing {
+  color: #2a1602;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe2c2,
+      #e8913a
     );
 }
 

@@ -1,0 +1,28 @@
+{
+  "id": "/mechanics",
+  "name": "Mechanics & Structures",
+  "short_name": "Mechanics",
+  "start_url": "/mechanics",
+  "scope": "/mechanics",
+  "display": "standalone",
+  "background_color": "#181430",
+  "theme_color": "#181430",
+  "icons": [
+    {
+      "src": "/apps/mechanics-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/mechanics-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/mechanics-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

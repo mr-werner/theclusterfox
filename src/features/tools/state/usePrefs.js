@@ -4,7 +4,7 @@ import { useAccountSync } from "../../../lib/useAccountSync";
 
 // Engineer ToolFox remembers the unit system, favorites and recently used tools in this browser.
 const KEY = "toolfox-prefs-v1";
-const EMPTY = { system: "si", favorites: [], recent: [], units: {} };
+const EMPTY = { system: "si", favorites: [], recent: [], units: {}, job: null };
 
 function load() {
   try {
@@ -25,6 +25,8 @@ function clean(raw) {
     favorites: Array.isArray(raw.favorites) ? keys(raw.favorites) : [],
     recent: Array.isArray(raw.recent) ? keys(raw.recent).slice(0, 8) : [],
     units: raw.units && typeof raw.units === "object" ? raw.units : {},
+    // The profession kit someone picked ("hvac-tech"), shown first on the home page.
+    job: typeof raw.job === "string" && raw.job.length < 60 ? raw.job : null,
   };
 }
 
@@ -48,7 +50,9 @@ export function usePrefs() {
   /** Remember a unit someone picked for a dimension, so it sticks across tools. */
   const setUnit = useCallback((dim, unit) => setPrefs((p) => ({ ...p, units: { ...p.units, [dim]: unit } })), []);
 
+  const setJob = useCallback((job) => setPrefs((p) => ({ ...p, job: job || null })), []);
+
   const syncStatus = useAccountSync("tools_user_data", prefs, (doc) => setPrefs(clean(doc)), EMPTY);
 
-  return { prefs, syncStatus, setSystem, toggleFavorite, touch, setUnit };
+  return { prefs, syncStatus, setSystem, toggleFavorite, touch, setUnit, setJob };
 }

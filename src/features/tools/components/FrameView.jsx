@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { Link } from "../nav";
 import { Check, Link2, MousePointer2, PenLine, Plus, RotateCcw, Star, Trash2, TriangleAlert, Undo2, X } from "lucide-react";
 import ZoomPan from "./ZoomPan";
 import { Num } from "../diagrams/kit";

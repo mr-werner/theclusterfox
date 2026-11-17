@@ -1,0 +1,19 @@
+/* SnowFox identity: the shared ClusterFox app bar on fresh corduroy white,
+   with glacier blue and a tall trail-sign face for the name. */
+@import url("https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Public+Sans:wght@400;500;600;700;800&display=swap");
+
+.appbar[data-app="snowfox"] {
+  --ab-bg: rgba(246, 250, 253, 0.9);
+  --ab-fg: #0c1c2e;
+  --ab-muted: #5b6d80;
+  --ab-line: rgba(12, 28, 46, 0.1);
+  --ab-accent: #1769d1;
+  --ab-accent-ink: #fff;
+  --ab-font: "Big Shoulders Display", "Space Grotesk", sans-serif;
+  --ab-name-size: 1.45rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: 0.04em;
+  --ab-name-case: uppercase;
+  --ab-radius: 10px 10px 10px 2px;
+  --ab-menu-bg: #fff;
+}

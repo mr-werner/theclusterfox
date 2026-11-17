@@ -106,8 +106,8 @@ export default function TrailView({ h, f, trail, go }) {
           <h1>{trail.name}</h1>
           <div className="hk-trail-tags">
             <Difficulty value={s.difficulty} />
-            {trail.sac && <span className="hk-tag">{SAC_TEXT[trail.sac] ?? trail.sac}</span>}
-            {trail.info.surface && <span className="hk-tag">{trail.info.surface.replace(/_/g, " ")}</span>}
+            {trail.sac && <span className="hk-tag">{SAC_TEXT[trail.sac] ?? trail.sac.replace(/_/g, " ")}</span>}
+            {trail.info.surface && <span className="hk-tag">Surface: {trail.info.surface.replace(/_/g, " ")}</span>}
           </div>
         </div>
         <div className="hk-trail-actions">
@@ -204,7 +204,10 @@ export default function TrailView({ h, f, trail, go }) {
                 </p>
                 {turn !== null && (
                   <p className="hk-turn">
-                    <TriangleAlert size={15} aria-hidden="true" /> Turn around by <strong>{clock(turn)}</strong> wherever you are{chosen.worst.storm ? ", to be down before storms" : ", to finish in daylight"}.
+                    <TriangleAlert size={15} aria-hidden="true" />
+                    <span>
+                      Turn around by <strong>{clock(turn)}</strong> wherever you are{chosen.worst.storm ? ", to be down before storms" : ", to finish in daylight"}.
+                    </span>
                   </p>
                 )}
                 <ul className="hk-notes">

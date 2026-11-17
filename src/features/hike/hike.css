@@ -245,7 +245,7 @@
 .hk-trail-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
 .hk-trail-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
 .hk-trail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.hk-tag { padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); color: var(--hk-muted); font-size: 0.8rem; text-transform: capitalize; }
+.hk-tag { padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); color: var(--hk-muted); font-size: 0.8rem; }
 .hk-diff { padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
 .hk-diff--easy { background: rgba(134, 197, 111, 0.18); color: #b6e6a3; }
 .hk-diff--moderate { background: rgba(111, 182, 232, 0.18); color: #b5dcf7; }
@@ -318,7 +318,7 @@
 .hk-starts button.is-on { border-color: var(--hk-accent); background: rgba(224, 161, 94, 0.12); }
 .hk-start-rank { grid-area: rank; color: var(--hk-accent); font-size: 0.74rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
 .hk-starts strong { grid-area: time; font-family: "Space Grotesk", sans-serif; font-size: 1.2rem; }
-.hk-start-end { grid-area: end; color: var(--hk-muted); font-size: 0.84rem; }
+.hk-start-end { grid-area: end; color: var(--hk-muted); font-size: 0.84rem; white-space: nowrap; }
 .hk-starts small { grid-area: note; color: var(--hk-muted); font-size: 0.8rem; }
 .hk-score { grid-area: score; min-width: 34px; padding: 2px 7px; border-radius: 7px; text-align: center; font: 700 0.8rem var(--hk-mono); }
 .hk-score--good { background: rgba(134, 197, 111, 0.2); color: #b6e6a3; }

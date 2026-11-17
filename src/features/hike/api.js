@@ -82,7 +82,8 @@ export function parseTrails(body, here) {
         description: t.description ?? null,
       });
     } else if (e.type === "way" && t.name && Array.isArray(e.geometry)) {
-      if (t.highway === "footway" && !trailish.test(t.name) && !t.sac_scale) continue;
+      if (t.highway === "footway" && (!trailish.test(t.name) || /sidewalk|crosswalk|street|avenue|\broad\b|parking/i.test(t.name)) && !t.sac_scale) continue;
+      if (t.footway === "sidewalk" || t.footway === "crossing") continue;
       if (t.access === "private" || t.foot === "no") continue;
       const key = t.name.trim().toLowerCase();
       const g = groups.get(key) ?? { name: t.name.trim(), pieces: [], ids: [], sac: null, surface: null };

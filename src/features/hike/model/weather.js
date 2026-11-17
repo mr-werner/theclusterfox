@@ -87,9 +87,9 @@ export function scoreStart({ base, high = base, sun, day, start, minutes, expose
       if (!worst.storm) worst.storm = { ...h, buildup: true };
     }
     score -= ((h.precipProb ?? 0) / 100) * 14 * w + Math.min(10, (h.precip ?? 0) * 3) * w;
-    if (h.apparent < -8) {
-      score -= (-8 - h.apparent) * 1.4 * w;
-    }
+    // Below freezing is fine with layers, but later and warmer is nicer.
+    if (h.apparent < 0) score -= Math.min(8, -h.apparent * 0.5) * w;
+    if (h.apparent < -8) score -= (-8 - h.apparent) * 1.4 * w;
     if (!worst.cold || h.apparent < worst.cold.apparent) worst.cold = h;
     if (h.gust > 45) score -= (h.gust - 45) * 0.7 * w;
     worst.gust = Math.max(worst.gust, h.gust ?? 0);

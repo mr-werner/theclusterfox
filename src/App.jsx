@@ -13,6 +13,7 @@ import SignUpPage from "./features/auth/SignUpPage";
 import ForgotPasswordPage from "./features/auth/ForgotPasswordPage";
 import AccountPage from "./features/account/AccountPage";
 import { useHistoryTrail } from "./lib/appBack";
+import DevDock from "./features/dev/DevDock";
 
 // Brand icons make the 3rd Party Alternatives directory heavy, so it loads on demand.
 const FreeAppsPage = lazy(() => import("./features/free/FreeAppsPage"));
@@ -50,6 +51,11 @@ function RedirectToPilot() {
     return <Navigate to={`/pilot${search}${hash}`} replace />;
 }
 
+// Feedback, Donate and the developer area are small but rarely opened.
+const FeedbackPage = lazy(() => import("./features/site/FeedbackPage"));
+const DonatePage = lazy(() => import("./features/site/DonatePage"));
+const DevPage = lazy(() => import("./features/dev/DevPage"));
+
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
     const { search, hash } = useLocation();
@@ -61,6 +67,7 @@ export default function App() {
     // inside that app.
     useHistoryTrail();
     return (
+        <>
         <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/f4t" element={<F4TPage />} />
@@ -196,6 +203,37 @@ export default function App() {
             />
 
             <Route path="/account" element={<AccountPage />} />
+
+            <Route
+                path="/feedback"
+                element={
+                    <Suspense fallback={null}>
+                        <FeedbackPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/donate"
+                element={
+                    <Suspense fallback={null}>
+                        <DonatePage />
+                    </Suspense>
+                }
+            />
+            {["/dev", "/dev/catalog", "/dev/catalog/:appId"].map(path => (
+                <Route
+                    key={path}
+                    path={path}
+                    element={
+                        <Suspense fallback={null}>
+                            <DevPage />
+                        </Suspense>
+                    }
+                />
+            ))}
         </Routes>
+        {/* Only shows for the developer account. */}
+        <DevDock />
+        </>
     );
 }

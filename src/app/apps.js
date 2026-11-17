@@ -1,10 +1,30 @@
 import { Activity, Ambulance, CalendarRange, CarFront, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
+// The home screen groups apps into these, in this order. PlanFox is the hub
+// above them all. An app without a category (or with one not listed here)
+// lands in "More apps", so a new app always shows up somewhere.
+export const categories = [
+  { id: "health", name: "Health & Fitness", blurb: "Train, eat well and unwind" },
+  { id: "food", name: "Food & Cooking", blurb: "Recipes, prep and groceries" },
+  { id: "outdoors", name: "Outdoors & Travel", blurb: "Weather, yard and flying" },
+  { id: "learn", name: "Learn & Study", blurb: "Practice, explore and pass the test" },
+  { id: "fun", name: "Watch & Play", blurb: "Shows, movies and games" },
+  { id: "work", name: "Work & Tools", blurb: "Calculators and references for the job" },
+];
+
+const categoryIds = new Set(categories.map(c => c.id));
+export const MORE_CATEGORY = { id: "more", name: "More apps", blurb: "" };
+
+/** The category an app is shown under on the home screen. */
+export const categoryOf = app =>
+  app.category === "hub" ? "hub" : categoryIds.has(app.category) ? app.category : MORE_CATEGORY.id;
+
 // PlanFox comes first: it is the calendar every other app feeds into, so it
 // leads the home screen.
 export const apps = [
   {
     id: "planfox",
+    category: "hub",
     name: "Plan",
     subtitle: "PlanFox",
     description: "Calendar • Weather • Life",
@@ -14,6 +34,7 @@ export const apps = [
   },
   {
     id: "f4t",
+    category: "food",
     name: "Fuel",
     subtitle: "FuelFox",
     description: "Meals • Portions • Budget",
@@ -23,6 +44,7 @@ export const apps = [
   },
   {
     id: "clocast",
+    category: "outdoors",
     name: "Sky",
     subtitle: "SkyFox",
     description: "Weather • Radar • What to wear",
@@ -32,6 +54,7 @@ export const apps = [
   },
   {
     id: "watchfox",
+    category: "fun",
     name: "Watch",
     subtitle: "WatchFox",
     description: "Movies • Shows • Streaming",
@@ -41,6 +64,7 @@ export const apps = [
   },
   {
     id: "scorefox",
+    category: "fun",
     name: "Score",
     subtitle: "ScoreFox",
     description: "Games • Scores • Channels",
@@ -50,6 +74,7 @@ export const apps = [
   },
   {
     id: "liftfox",
+    category: "health",
     name: "Lift",
     subtitle: "LiftFox",
     description: "Muscles • Workouts • Plans",
@@ -68,6 +93,7 @@ export const apps = [
   },
   {
     id: "toolfox",
+    category: "work",
     name: "Engineer",
     subtitle: "ToolFox",
     fullName: "Engineer ToolFox",
@@ -134,6 +160,7 @@ export const apps = [
   },
   {
     id: "calmfox",
+    category: "health",
     name: "Calm",
     subtitle: "CalmFox",
     description: "Breathe • Meditate • Sleep",
@@ -143,6 +170,7 @@ export const apps = [
   },
   {
     id: "mathfox",
+    category: "learn",
     name: "Math",
     subtitle: "MathFox",
     description: "Solve • Steps • Graph",
@@ -152,6 +180,7 @@ export const apps = [
   },
   {
     id: "cookfox",
+    category: "food",
     name: "Cook",
     subtitle: "CookFox",
     description: "Recipes • Prep • Cook",
@@ -161,6 +190,7 @@ export const apps = [
   },
   {
     id: "growfox",
+    category: "outdoors",
     name: "Grow",
     subtitle: "GrowFox",
     description: "Garden • Lawn • Trees",
@@ -170,6 +200,7 @@ export const apps = [
   },
   {
     id: "flyfox",
+    category: "outdoors",
     name: "Pilot",
     subtitle: "PilotFox",
     description: "Flight plans • How planes fly • Sim • Radio • Pilot study",
@@ -179,6 +210,7 @@ export const apps = [
   },
   {
     id: "medicfox",
+    category: "learn",
     name: "Medic",
     subtitle: "MedicFox",
     description: "EMR • EMT • AEMT • Paramedic",
@@ -188,6 +220,7 @@ export const apps = [
   },
   {
     id: "bodyfox",
+    category: "health",
     name: "Body",
     subtitle: "BodyFox",
     description: "Anatomy • 3D • Explore",

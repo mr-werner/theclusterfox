@@ -2682,3 +2682,16 @@ select {
     animation: none;
   }
 }
+
+.footer-link {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  color: var(--fox);
+}
+
+.footer-link--donate {
+  color: var(--fox-light);
+}

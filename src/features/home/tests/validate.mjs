@@ -71,4 +71,38 @@ test("bad saved data is cleaned up", () => {
   assert.deepEqual(l.removed, ["o:cook"]);
 });
 
+// Categories: PlanFox is the hub; every other app sits in exactly one section.
+const { apps, categories } = await import("../../../app/apps.js");
+const { groupOriginals, sectionOf } = await import("../categories.js");
+const byId = new Map(apps.map(app => [app.id, app]));
+const allKeys = homeKeys(emptyLayout(), apps.map(app => app.id));
+
+test("PlanFox is the hub and every other app is in one category", () => {
+  const { hub, sections } = groupOriginals(allKeys, byId);
+  assert.equal(hub, "o:planfox");
+  const placed = sections.flatMap(s => s.keys);
+  assert.equal(placed.length, apps.length - 1);
+  assert.equal(new Set(placed).size, placed.length);
+  const known = new Set(categories.map(c => c.id));
+  for (const app of apps) {
+    if (app.id !== "planfox") assert.ok(known.has(app.category), `${app.id} has a known category`);
+  }
+});
+
+test("categories keep the person's order, and new apps without one land in More", () => {
+  const custom = [...byId.values(), { id: "newfox", category: "nope" }];
+  const map = new Map(custom.map(a => [a.id, a]));
+  const keys = ["o:cookfox", "o:f4t", "o:newfox", "o:planfox"];
+  const { hub, sections } = groupOriginals(keys, map);
+  assert.equal(hub, "o:planfox");
+  assert.deepEqual(sections.map(s => s.id), ["food", "more"]);
+  assert.deepEqual(sections[0].keys, ["o:cookfox", "o:f4t"]);
+});
+
+test("drags stay inside a category", () => {
+  assert.equal(sectionOf("o:cookfox", byId), sectionOf("o:f4t", byId));
+  assert.notEqual(sectionOf("o:cookfox", byId), sectionOf("o:liftfox", byId));
+  assert.equal(sectionOf("a:GIMP", byId), "alts");
+});
+
 console.log(`Home screen: ${passed} checks passed.`);

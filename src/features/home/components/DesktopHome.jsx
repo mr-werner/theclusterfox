@@ -7,6 +7,7 @@ import SiteFooter from "../../../components/SiteFooter";
 import FreeAppIcon from "../../free/FreeAppIcon";
 import { isOriginalKey, keyId } from "../state/homeStore";
 import { useTileGestures } from "../useTileGestures";
+import { groupOriginals, sectionOf } from "../categories";
 import AppLink from "./AppLink";
 import FeaturedPlan from "./FeaturedPlan";
 import OriginalIcon from "./OriginalIcon";
@@ -27,10 +28,18 @@ function RemoveBadge({ label, onRemove }) {
   );
 }
 
-const sameSection = (a, b) => isOriginalKey(a) === isOriginalKey(b);
+// Scrolls to a category without putting #cat-… in the address.
+const jumpTo = id => event => {
+  event.preventDefault();
+  document.getElementById(`cat-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
 
 export default function DesktopHome({ home, alts, originalsById, onWantAlts, onAdd }) {
   const [editing, setEditing] = useState(false);
+  const sameSection = useCallback(
+    (a, b) => sectionOf(a, originalsById) === sectionOf(b, originalsById),
+    [originalsById]
+  );
   const enterEdit = useCallback(() => setEditing(true), []);
   const { tileProps, draggingKey } = useTileGestures({
     editing,
@@ -42,6 +51,8 @@ export default function DesktopHome({ home, alts, originalsById, onWantAlts, onA
   const originalKeys = home.keys.filter(key => isOriginalKey(key) && originalsById.has(keyId(key)));
   const altKeys = home.keys.filter(key => !isOriginalKey(key) && (!alts || alts.byName.has(keyId(key))));
   const missingOriginals = originalsById.size - originalKeys.length;
+  const { hub, sections } = groupOriginals(originalKeys, originalsById);
+  const hubApp = hub ? originalsById.get(keyId(hub)) : null;
 
   const tileClass = key =>
     `home-tile ${editing ? "is-editing" : ""} ${draggingKey === key ? "is-dragging" : ""}`;
@@ -107,39 +118,76 @@ export default function DesktopHome({ home, alts, originalsById, onWantAlts, onA
           </span>
         </div>
 
-        <div className="app-grid home-original-grid">
-          {originalKeys.map(key => {
-            const app = originalsById.get(keyId(key));
-            if (app.id === "planfox") {
-              return (
-                <div key={key} className={`${tileClass(key)} home-tile--feature`} {...tileProps(key)}>
-                  <FeaturedPlan app={app} />
-                  {editing && <RemoveBadge label={app.subtitle} onRemove={() => home.remove(key)} />}
-                </div>
-              );
-            }
-            return (
-              <div key={key} className={tileClass(key)} {...tileProps(key)}>
-                <AppLink app={app} className="app-tile" draggable={false} aria-label={`Open ${app.fullName ?? app.subtitle}`}>
-                  <OriginalIcon app={app} />
-                  <div className="app-info">
-                    <h3>{app.fullName ?? app.subtitle}</h3>
-                    <p>{app.description}</p>
-                  </div>
-                </AppLink>
-                {editing && <RemoveBadge label={app.subtitle} onRemove={() => home.remove(key)} />}
-              </div>
-            );
-          })}
-
-          {missingOriginals > 0 && (
-            <button type="button" className="home-add-tile" onClick={onAdd}>
-              <Plus size={28} aria-hidden="true" />
-              <span>
-                {missingOriginals} hidden {missingOriginals === 1 ? "original" : "originals"}
-              </span>
-            </button>
+        <div className="home-hub-row">
+          {hubApp && (
+            <div className={`${tileClass(hub)} home-tile--feature`} {...tileProps(hub)}>
+              <FeaturedPlan app={hubApp} />
+              {editing && <RemoveBadge label={hubApp.subtitle} onRemove={() => home.remove(hub)} />}
+            </div>
           )}
+
+          <nav className="home-categories" aria-label="App categories">
+            <p className="home-categories-title">Browse by category</p>
+            {sections.map(section => (
+              <a key={section.id} href={`#cat-${section.id}`} className="home-category-link" onClick={jumpTo(section.id)}>
+                <span className="home-category-icons" aria-hidden="true">
+                  {section.keys.slice(0, 3).map(key => {
+                    const app = originalsById.get(keyId(key));
+                    const Icon = app.icon;
+                    return (
+                      <span key={key} className={`home-category-dot app-icon--${app.accent}`}>
+                        <Icon size={14} strokeWidth={2.2} />
+                      </span>
+                    );
+                  })}
+                </span>
+                <span className="home-category-text">
+                  <strong>{section.name}</strong>
+                  <small>{section.blurb || `${section.keys.length} apps`}</small>
+                </span>
+                <span className="home-category-count">{section.keys.length}</span>
+              </a>
+            ))}
+            {missingOriginals > 0 && (
+              <button type="button" className="home-category-link home-category-link--hidden" onClick={onAdd}>
+                <Plus size={16} aria-hidden="true" />
+                <span className="home-category-text">
+                  <strong>
+                    {missingOriginals} hidden {missingOriginals === 1 ? "app" : "apps"}
+                  </strong>
+                  <small>Put them back on your home screen</small>
+                </span>
+              </button>
+            )}
+          </nav>
+        </div>
+
+        <div className="home-category-list">
+        {sections.map(section => (
+          <div key={section.id} id={`cat-${section.id}`} className="home-category">
+            <div className="home-category-head">
+              <h3>{section.name}</h3>
+              {section.blurb && <p>{section.blurb}</p>}
+            </div>
+            <div className="app-grid home-category-grid">
+              {section.keys.map(key => {
+                const app = originalsById.get(keyId(key));
+                return (
+                  <div key={key} className={tileClass(key)} {...tileProps(key)}>
+                    <AppLink app={app} className="app-tile" draggable={false} aria-label={`Open ${app.fullName ?? app.subtitle}`}>
+                      <OriginalIcon app={app} />
+                      <div className="app-info">
+                        <h3>{app.fullName ?? app.subtitle}</h3>
+                        <p>{app.description}</p>
+                      </div>
+                    </AppLink>
+                    {editing && <RemoveBadge label={app.subtitle} onRemove={() => home.remove(key)} />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
         </div>
       </section>
 

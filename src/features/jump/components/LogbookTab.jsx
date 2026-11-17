@@ -4,7 +4,7 @@ import { Download, FileJson, Pencil, Plus, Printer, Trash2, Upload } from "lucid
 import { DROPZONES, dzById } from "../data/dropzones";
 import { estimateFreefall, fmtFreefall, fromBackup, fromCsv, mergeJumps, nextNumber, toBackup, toCsv, totals } from "../model/logbook";
 import { cleanJump, JUMP_TYPES, newId, sortJumps } from "../state/jumpStore";
-import { download, fmtDay, localDay } from "./ui";
+import { download, fmtDay, localDay } from "./format";
 
 const typeName = id => JUMP_TYPES.find(t => t.id === id)?.name ?? id;
 

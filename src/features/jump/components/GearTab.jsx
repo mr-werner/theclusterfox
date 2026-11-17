@@ -1,7 +1,7 @@
 import { ExternalLink, ShieldCheck } from "lucide-react";
 
 import { FIRST_RIG, GEAR_TIPS, MAKERS, STORES } from "../data/gear";
-import { fmtDay } from "./ui";
+import { fmtDay } from "./format";
 
 const addDays = (day, n) => {
   const d = new Date(`${day}T12:00:00`);

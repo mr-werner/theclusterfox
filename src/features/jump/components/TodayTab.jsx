@@ -7,7 +7,8 @@ import { compass, fetchWindsAloft, formatWindKt } from "../../../services/weathe
 import { DROPZONES, dzById } from "../data/dropzones";
 import { fmtDist, jumpCall, JUMPER_TYPES, KT_TO_MPH, LEVEL_TEXT, milesBetween, spot } from "../model/jumpcheck";
 import { newId } from "../state/jumpStore";
-import { DzSelect, fmtDay, HomeButton, hourLabel, Loading, localDay } from "./ui";
+import { DzSelect, HomeButton, Loading } from "./ui";
+import { fmtDay, hourLabel, localDay } from "./format";
 
 const mph = kt => (kt == null ? "–" : `${Math.round(kt * KT_TO_MPH)} mph`);
 const ft = n => `${(Math.round(n / 100) * 100).toLocaleString("en-US")} ft`;
@@ -33,7 +34,8 @@ export default function TodayTab({ j, dzId, setDz }) {
   }, [winds.data]);
   const calls = useMemo(() => hours.map(h => jumpCall(h, opts)), [hours, limitMph, data.exitFt, elevationFt]); // eslint-disable-line react-hooks/exhaustive-deps
   const [pick, setPick] = useState(null);
-  const now = Date.now();
+  // Forecast hours start at the hour it was fetched.
+  const now = winds.at;
   const nowIndex = hours.findIndex(h => h.time.getTime() + 3600e3 > now);
   const index = pick != null && pick < hours.length ? pick : Math.max(0, nowIndex);
   const hour = hours[index];
@@ -149,7 +151,7 @@ export default function TodayTab({ j, dzId, setDz }) {
             <div className="jf-row-between">
               <h2><Wind size={18} aria-hidden="true" /> Hour by hour</h2>
               <span className="jf-legend">
-                <i className="is-go" /> Jumpable <i className="is-maybe" /> Marginal <i className="is-no" /> No
+                <i className="is-go" /> Jumpable <i className="is-maybe" /> Marginal <i className="is-no" /> No <i /> Dark
               </span>
             </div>
             <Timeline hours={hours} calls={calls} index={index} onPick={setPick} />
@@ -265,24 +267,25 @@ function SpotDiagram({ s }) {
   const dy = -Math.cos(h);
   const L = c * 0.9;
   return (
-    <svg className="jf-spot-svg" viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Spot diagram, north up">
+    <svg className="jf-spot-svg" style={{ overflow: "hidden" }} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Spot diagram, north up">
       <defs>
         <marker id="jf-spot-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10 z" className="jf-arrowhead" />
         </marker>
       </defs>
+      <clipPath id="jf-spot-clip"><circle cx={c} cy={c} r={c - 6} /></clipPath>
       <circle cx={c} cy={c} r={c - 6} className="jf-spot-ring" />
       <circle cx={c} cy={c} r={(c - 6) / 2} className="jf-spot-ring" />
       <text x={c} y={14} textAnchor="middle" className="jf-dlabel is-small">N</text>
-      <line x1={exit.x - dx * L} y1={exit.y - dy * L} x2={exit.x + dx * 30} y2={exit.y + dy * 30} className="jf-jumprun" markerEnd="url(#jf-spot-arrow)" />
+      <line x1={exit.x - dx * L} y1={exit.y - dy * L} x2={exit.x + dx * 30} y2={exit.y + dy * 30} className="jf-jumprun" markerEnd="url(#jf-spot-arrow)" clipPath="url(#jf-spot-clip)" />
       <line x1={exit.x} y1={exit.y} x2={open.x} y2={open.y} className="jf-path is-dash" />
       <line x1={open.x} y1={open.y} x2={c} y2={c} className="jf-path is-dash is-canopy" />
       <rect x={c - 7} y={c - 7} width="14" height="14" rx="3" className="jf-target" />
       <circle cx={open.x} cy={open.y} r="6" className="jf-open-dot" />
       <circle cx={exit.x} cy={exit.y} r="7" className="jf-exit-dot" />
       <text x={exit.x + 10} y={exit.y - 8} className="jf-dlabel is-small">Exit</text>
-      <text x={open.x + 9} y={open.y + 14} className="jf-dlabel is-small">Open</text>
-      <text x={c + 10} y={c + 20} className="jf-dlabel is-small">DZ</text>
+      <text x={open.x} y={open.y + 20} textAnchor="middle" className="jf-dlabel is-small">Open</text>
+      <text x={c} y={c - 12} textAnchor="middle" className="jf-dlabel is-small">DZ</text>
       <text x={6} y={size - 6} className="jf-dlabel is-small">ring {fmtDist(reach / 2)}</text>
     </svg>
   );

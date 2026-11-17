@@ -319,9 +319,9 @@
 .jf-path.is-canopy { stroke: var(--jf-go); }
 .jf-arrowhead { fill: var(--jf-sky); }
 .jf-wind { stroke: var(--jf-maybe); stroke-width: 3; }
-.jf-dlabel { fill: var(--jf-text); font-size: 12px; font-family: inherit; }
-.jf-dlabel.is-strong { font-weight: 800; fill: var(--jf-accent); font-size: 13px; }
-.jf-dlabel.is-small { font-size: 10.5px; fill: var(--jf-muted); }
+.jf-dlabel { fill: var(--jf-text); font-size: 10.5px; font-family: inherit; }
+.jf-dlabel.is-strong { font-weight: 800; fill: var(--jf-accent); font-size: 11.5px; }
+.jf-dlabel.is-small { font-size: 9.5px; fill: var(--jf-muted); }
 .jf-canopy { fill: rgba(255, 138, 61, 0.85); stroke: #ffd2b0; stroke-width: 1.5; }
 .jf-canopy-line { fill: none; stroke: var(--jf-accent); stroke-width: 9; stroke-linecap: round; }
 .jf-line { stroke: rgba(234, 243, 248, 0.55); stroke-width: 1; }
@@ -344,7 +344,7 @@
 .jf-add-event { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 160px auto; gap: 8px; }
 
 /* Gear */
-.jf-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--jf-line); }
+.jf-table-wrap { position: relative; overflow-x: auto; border-radius: 12px; border: 1px solid var(--jf-line); }
 .jf-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .jf-table th, .jf-table td { padding: 9px 11px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--jf-line); }
 .jf-table th { color: var(--jf-muted); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(4, 12, 18, 0.4); white-space: nowrap; }

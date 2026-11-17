@@ -179,31 +179,27 @@ const DIAGRAMS = {
   ),
   pattern: () => (
     <>
-      <rect x="40" y="132" width="40" height="40" rx="4" className="jf-target" />
-      <Label x={60} y={192} anchor="middle">Target</Label>
-      <Wind x={250} y={180} length={50} angle={270} label="Wind from the right" />
-      <path d="M100 30 L100 150" className="jf-path" markerEnd="url(#jf-arrow)" />
-      <path d="M100 150 L100 160 Q100 168 92 168 L74 168" className="jf-path is-hidden" />
-      <path d="M260 40 L130 40" className="jf-path is-dash" markerEnd="url(#jf-arrow)" />
-      <path d="M130 40 Q100 40 100 60" className="jf-path is-dash" />
-      <path d="M100 150 Q100 152 98 152" className="jf-path" />
-      <path d="M220 152 L120 152" className="jf-path is-final" markerEnd="url(#jf-arrow)" />
-      <path d="M220 90 L220 152" className="jf-path" />
-      <path d="M140 90 L220 90" className="jf-path" />
-      <path d="M140 30 L140 90" className="jf-path" />
-      <Label x={146} y={26}>Holding area</Label>
-      <Label x={146} y={62}>Downwind leg ~1,000 ft</Label>
-      <Label x={226} y={124}>Base ~600 ft</Label>
-      <Label x={130} y={146}>Final ≥300 ft, into the wind</Label>
+      <Wind x={250} y={26} length={70} angle={90} label="Wind blows this way" />
+      <circle cx="62" cy="62" r="20" className="jf-path is-dash" />
+      <Label x={36} y={34}>Holding area</Label>
+      <rect x="44" y="134" width="36" height="36" rx="4" className="jf-target" />
+      <Label x={62} y={190} anchor="middle">Target</Label>
+      <path d="M84 62 L236 62" className="jf-path" markerEnd="url(#jf-arrow)" />
+      <path d="M248 62 L248 140" className="jf-path" markerEnd="url(#jf-arrow)" />
+      <path d="M240 152 L92 152" className="jf-path is-final" markerEnd="url(#jf-arrow)" />
+      <Label x={96} y={54}>Downwind leg, about 1,000 ft</Label>
+      <Label x={256} y={104}>Base, about 600 ft</Label>
+      <Label x={100} y={144}>Final from at least 300 ft</Label>
+      <Label x={100} y={170}>Land into the wind</Label>
     </>
   ),
   flare: () => (
     <>
       <line x1="10" y1="176" x2="310" y2="176" className="jf-ground" />
       {[
-        { x: 50, y: 50, toggles: 0, label: "Full flight" },
-        { x: 150, y: 110, toggles: 0.5, label: "Start the flare ~2× your height" },
-        { x: 250, y: 160, toggles: 1, label: "Finish all the way" },
+        { x: 40, y: 50, toggles: 0, label: "Full flight" },
+        { x: 140, y: 110, toggles: 0.5, label: "Start the flare ~2× your height" },
+        { x: 230, y: 160, toggles: 1, label: "Finish all the way" },
       ].map(s => (
         <g key={s.x} transform={`translate(${s.x} ${s.y})`}>
           <path d="M-30 -40 Q0 -54 30 -40" className="jf-canopy-line" />
@@ -215,10 +211,12 @@ const DIAGRAMS = {
           <line x1="2" y1="2" x2="9" y2={-8 + s.toggles * 18} className="jf-limb jf-accent" />
         </g>
       ))}
-      <path d="M70 40 Q170 110 238 152" className="jf-path is-dash" />
-      <Label x={20} y={18}>Full flight</Label>
-      <Label x={120} y={72}>Start at about 2× your height</Label>
-      <Label x={200} y={124}>Finish to your hips</Label>
+      <path d="M60 40 Q160 110 218 152" className="jf-path is-dash" />
+      <Label x={80} y={46}>Full flight</Label>
+      <Label x={176} y={92}>Start the flare at about</Label>
+      <Label x={176} y={106}>twice your height</Label>
+      <Label x={264} y={142}>Finish to</Label>
+      <Label x={264} y={156}>your hips</Label>
       <Label x={14} y={196}>Eyes on the horizon, feet and knees together</Label>
     </>
   ),
@@ -227,9 +225,9 @@ const DIAGRAMS = {
       <line x1="10" y1="170" x2="310" y2="170" className="jf-ground" />
       {["Balls of the feet", "Side of the calf", "Side of the thigh", "Hip / buttock", "Back of the shoulder"].map((t, i) => (
         <g key={t}>
-          <circle cx={40 + i * 60} cy={150} r="13" className="jf-step" />
-          <text x={40 + i * 60} y={155} textAnchor="middle" className="jf-step-n">{i + 1}</text>
-          <Label x={40 + i * 60} y={i % 2 ? 128 : 112} anchor="middle">{t}</Label>
+          <circle cx={56 + i * 62} cy={150} r="13" className="jf-step" />
+          <text x={56 + i * 62} y={155} textAnchor="middle" className="jf-step-n">{i + 1}</text>
+          <Label x={56 + i * 62} y={i % 2 ? 128 : 112} anchor="middle">{t}</Label>
         </g>
       ))}
       <path d="M40 92 Q160 40 280 92" className="jf-path" markerEnd="url(#jf-arrow)" />
@@ -253,7 +251,7 @@ const DIAGRAMS = {
           <Label x={84} y={b.y + 4}>{b.label}</Label>
         </g>
       ))}
-      <Label x={84} y={196}>Your exact numbers come from your instructor and the SIM</Label>
+      <Label x={84} y={196}>Exact numbers: your instructor and the SIM</Label>
     </>
   ),
   malfunction: () => (
@@ -303,7 +301,7 @@ export default function Diagram({ id, title }) {
   const Draw = DIAGRAMS[id];
   if (!Draw) return null;
   return (
-    <svg className="jf-diagram" viewBox="0 0 320 200" role="img" aria-label={title}>
+    <svg className="jf-diagram" viewBox="0 0 360 200" role="img" aria-label={title}>
       <Defs />
       <Draw />
     </svg>

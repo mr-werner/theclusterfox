@@ -3,7 +3,7 @@ import { CalendarPlus, ExternalLink, PartyPopper, Trash2 } from "lucide-react";
 
 import { EVENT_LINKS, EVENTS, MONTHS } from "../data/events";
 import { newId } from "../state/jumpStore";
-import { fmtDay, localDay } from "./ui";
+import { fmtDay, localDay } from "./format";
 
 // Boogies and events: the yearly ones with when they usually happen, plus
 // the ones you've saved with a date, which show on your PlanFox calendar.

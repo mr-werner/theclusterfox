@@ -32,6 +32,8 @@ const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
 const BodyPage = lazy(() => import("./features/body/BodyPage"));
+// StudyFox loads other apps' material on demand, so it loads on demand too.
+const StudyPage = lazy(() => import("./features/study/StudyPage"));
 
 // The directory used to live at /free; old links keep working.
 function RedirectToAlternatives() {
@@ -113,6 +115,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <BodyPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/study"
+                element={
+                    <Suspense fallback={null}>
+                        <StudyPage />
                     </Suspense>
                 }
             />

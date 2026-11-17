@@ -6,6 +6,7 @@ import { QUESTIONS } from "../data/questions";
 import { topicsById, topicsFor } from "../data/topics";
 import { generatorsFor, makeQuestion } from "../model/generators";
 import { progressFor, recordAnswer, recordExam } from "../state/flyStore";
+import AddToStudy from "../../../components/AddToStudy";
 
 // Study for an FAA knowledge test: notes for each subject, practice with
 // instant explanations, and timed practice tests scored like the real one.
@@ -144,6 +145,7 @@ function Notes({ topics, exam, go }) {
               <button type="button" className="fy-btn is-small" onClick={() => go({ tab: "study", exam: exam.id, mode: "practice", topic: t.id })}>
                 <Target size={14} /> Practice {t.title.toLowerCase()}
               </button>
+              <AddToStudy app="flyfox" deck={t.id} title={t.title} />
             </div>
           )}
         </section>

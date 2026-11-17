@@ -274,7 +274,7 @@ export default function MeTab({ data, today, actions }) {
               </div>
               <p className="fp-fine">
                 Resting energy about {fmt(rest)} cal (Mifflin-St Jeor), times your everyday activity, {profile.goal === "maintain" ? "with" : profile.goal === "lose" ? "minus" : "plus"}{" "}
-                {profile.goal === "maintain" ? "no change for your goal" : `${fmt((profile.rate * 3500) / 7)} cal a day for ${profile.rate} lb a week`}. Workouts from LiftFox and the plan add their own calories.
+                {profile.goal === "maintain" ? "no change for your goal" : `${fmt((profile.rate * 3500) / 7)} cal a day for ${profile.rate} lb a week`}. Workouts from LiftFox, PaceFox and the plan add their own calories.
                 {restDay.floored && ` We won't plan below ${fmt(restDay.kcal)} calories a day; talk with a doctor or dietitian about anything lower.`}
               </p>
             </>

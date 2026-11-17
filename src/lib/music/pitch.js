@@ -13,7 +13,6 @@
 // reliably list every note in a chord, but it can tell whether the notes
 // you're supposed to be playing are sounding.
 import { freqToMidi } from "./theory.js";
-import { yin } from "./audioToNotes.js";
 
 export const micSupported = () => typeof navigator !== "undefined" && Boolean(navigator.mediaDevices?.getUserMedia);
 

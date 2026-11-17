@@ -568,6 +568,12 @@
   fill: #1d1814;
   font: 15px "Noto Music", "DM Sans", serif;
 }
+.ks-acc--key {
+  font-size: 21px;
+}
+.ks-short {
+  display: none;
+}
 .ks-finger {
   fill: #6a5d4f;
   font: 700 10px "DM Sans", sans-serif;
@@ -810,8 +816,15 @@
   .ks-hud span:first-child {
     display: none;
   }
-  .ks-play span {
+  .ks-play span,
+  .ks-long {
     display: none;
+  }
+  .ks-short {
+    display: inline;
+  }
+  .ks-chip {
+    padding: 7px 10px;
   }
   .ks-play--big span,
   .ks-play--big {

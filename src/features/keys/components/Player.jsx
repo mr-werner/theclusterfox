@@ -12,7 +12,6 @@ import { todayKey } from "../model/dates";
 import SheetView, { SHEET_HEIGHT, WINDOW_PX } from "./SheetView";
 
 const HAND_COLOR = { R: "#f2b544", L: "#4fb7d6" };
-const HAND_SOFT = { R: "rgba(242,181,68,0.28)", L: "rgba(79,183,214,0.28)" };
 const SPEEDS = [0.25, 0.5, 0.6, 0.75, 0.9, 1, 1.25];
 const MIDI_PREF = "keysfox-midi-on";
 
@@ -71,8 +70,10 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
   const micHeardRef = useRef(new Set());
   const settingsRef = useRef(settings);
   const winRef = useRef(0);
-  statusRef.current = status;
-  settingsRef.current = settings;
+  useEffect(() => {
+    statusRef.current = status;
+    settingsRef.current = settings;
+  });
 
   const stage = useSize(stageRef);
   const sheetSize = useSize(sheetWrapRef);
@@ -98,12 +99,17 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
   );
 
   // A fresh engine whenever the practice setup changes.
+  const [setupFor, setSetupFor] = useState(() => makeEngine);
+  if (setupFor !== makeEngine) {
+    setSetupFor(() => makeEngine);
+    setStatus("ready");
+    setResult(null);
+  }
   useEffect(() => {
     engineRef.current = makeEngine(0);
     engineRef.current.beat = loopBeats ? loopBeats.a : 0;
     flashRef.current.clear();
-    setStatus("ready");
-    setResult(null);
+    statusRef.current = "ready";
   }, [makeEngine, loopBeats]);
 
   // Speed and metronome change live without restarting.
@@ -227,7 +233,7 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
     } catch {
       /* ignore */
     }
-    if (wanted && midiSupported()) connectKeyboard();
+    if (wanted && midiSupported()) queueMicrotask(() => connectKeyboard());
     return () => stopMidiRef.current?.();
   }, [connectKeyboard]);
 
@@ -329,7 +335,7 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
 
       // Lanes: a faint line at every C and F, bar lines across.
       ctx.fillStyle = "rgba(255,255,255,0.025)";
-      for (const [m, k] of layout.keys) if (k.black) ctx.fillRect(k.x, 0, k.w, fallH);
+      for (const k of layout.keys.values()) if (k.black) ctx.fillRect(k.x, 0, k.w, fallH);
       ctx.strokeStyle = "rgba(255,255,255,0.06)";
       ctx.lineWidth = 1;
       for (const [m, k] of layout.keys) {
@@ -562,8 +568,8 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
         </div>
 
         <label className="ks-speed">
-          <span>Speed</span>
-          <select value={speed} onChange={e => setSettings({ speed: Number(e.target.value) })}>
+          <span className="ks-long">Speed</span>
+          <select aria-label="Speed" value={speed} onChange={e => setSettings({ speed: Number(e.target.value) })}>
             {SPEEDS.map(s => (
               <option key={s} value={s}>
                 {pct(s)}
@@ -597,12 +603,12 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
 
         {midiSupported() && (
           <button type="button" className={`ks-chip${midi.on && midi.devices.length ? " is-on" : ""}`} onClick={connectKeyboard} title="Use a keyboard plugged in by USB or Bluetooth MIDI">
-            <Usb size={15} /> {midi.on ? (midi.devices.length ? midi.devices[0].name : "No keyboard found") : "Connect keyboard"}
+            <Usb size={15} /> {midi.on ? (midi.devices.length ? midi.devices[0].name : "No keyboard found") : <><span className="ks-long">Connect keyboard</span><span className="ks-short">Keyboard</span></>}
           </button>
         )}
         {micSupported() && (
           <button type="button" className={`ks-chip${mic.on ? " is-on" : ""}`} onClick={toggleMic} title="Listen to a real piano through the microphone">
-            {mic.on ? <Mic size={15} /> : <MicOff size={15} />} {mic.on ? `Listening${mic.heard != null ? ` · ${noteName(mic.heard)}` : ""}` : "Use microphone"}
+            {mic.on ? <Mic size={15} /> : <MicOff size={15} />} {mic.on ? `Listening${mic.heard != null ? ` · ${noteName(mic.heard)}` : ""}` : <><span className="ks-long">Use microphone</span><span className="ks-short">Mic</span></>}
           </button>
         )}
         <button type="button" className={`ks-icon-btn${panel === "settings" ? " is-on" : ""}`} onClick={() => setPanel(p => (p ? null : "settings"))} aria-label="More settings" aria-expanded={panel === "settings"}>

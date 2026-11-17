@@ -79,7 +79,7 @@ export function parseMidi(buffer) {
     };
     while (r.pos < end) {
       tick += r.vlq();
-      let b = r.u8();
+      const b = r.u8();
       if (b === 0xff) {
         const type = r.u8();
         const n = r.vlq();
@@ -111,7 +111,6 @@ export function parseMidi(buffer) {
         d1 = r.u8();
       } else {
         d1 = b; // running status
-        b = status;
       }
       const kind = status & 0xf0;
       const ch = status & 0x0f;

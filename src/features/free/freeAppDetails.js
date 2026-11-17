@@ -476,6 +476,12 @@ export const freeAppDetails = {
   "Radiónica": { note: "Live public radio from RTVC, available worldwide." },
   "Biblioteca Virtual Banrepcultural": { note: "Free public collection from the Banco de la República." },
   "Colombia Aprende": { note: "Free public portal from Colombia's Ministry of Education." },
+  "PTS+": { limits: ["region"], note: "Public and free with a free account; many shows are Taiwan only." },
+  "TaiwanPlus": { note: "Free public streaming, available worldwide." },
+  "Radio Taiwan International": { note: "Live public radio and podcasts, available worldwide." },
+  "National Education Radio": { note: "Live public radio and podcasts, available worldwide." },
+  "Junyi Academy": { note: "Free nonprofit platform; a free account saves your progress." },
+  "MOE Revised Mandarin Dictionary": { note: "Free public dictionary from Taiwan's Ministry of Education." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -792,4 +798,10 @@ export const freeAppCountries = {
   "Radiónica": "Colombia",
   "Biblioteca Virtual Banrepcultural": "Colombia",
   "Colombia Aprende": "Colombia",
+  "PTS+": "Taiwan",
+  "TaiwanPlus": "Taiwan",
+  "Radio Taiwan International": "Taiwan",
+  "National Education Radio": "Taiwan",
+  "Junyi Academy": "Taiwan",
+  "MOE Revised Mandarin Dictionary": "Taiwan",
 };

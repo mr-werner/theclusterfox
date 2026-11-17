@@ -406,3 +406,65 @@
   background: #0e0c10;
   box-shadow: 0 0 0 1px rgba(245, 196, 81, 0.12), 0 40px 120px rgba(0, 0, 0, 0.8);
 }
+
+/* Free movies: public domain films from the Internet Archive. */
+.wf-cinema .wf-free .wf-note a {
+  color: var(--wf-accent);
+}
+
+.wf-cinema .wf-free .wf-row {
+  margin-top: 18px;
+}
+
+.wf-free-poster {
+  position: relative;
+  display: block;
+}
+
+.wf-free-play {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--wf-accent-ink, #261600);
+  background: var(--wf-accent, #f5c451);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.wf-free-info {
+  padding: 18px 24px 26px;
+}
+
+.wf-free-info h2 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+}
+
+.wf-free-info .wf-overview {
+  display: -webkit-box;
+  margin: 10px 0 14px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+}
+
+.wf-free-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .wf-free-info {
+    padding: 14px 16px 20px;
+  }
+
+  .wf-free-info h2 {
+    font-size: 1.25rem;
+  }
+}

@@ -391,8 +391,18 @@
   vertical-align: -3px;
 }
 
-@media (max-width: 360px) {
+/* Phones: no room in the bar; feedback lives in the account menu and on
+   the home screen there. */
+@media (max-width: 520px) {
   .appbar-feedback {
     display: none;
+  }
+
+  .appbar-feedback + .appbar-home {
+    margin-left: auto;
+  }
+
+  .appbar-plan + .appbar-feedback + .appbar-home {
+    margin-left: 0;
   }
 }

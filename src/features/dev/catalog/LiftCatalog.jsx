@@ -49,7 +49,7 @@ export default function LiftCatalog({ query }) {
   const demosUsed = new Set(exercises.map(ex => ex.demo)).size;
 
   return (
-    <div className="lf dev-lift">
+    <div className="dev-lift">
       <div className="dev-filters">
         <select value={muscle} onChange={e => setMuscle(e.target.value)} aria-label="Muscle">
           <option value="">All muscles</option>

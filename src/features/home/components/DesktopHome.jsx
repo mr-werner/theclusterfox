@@ -162,13 +162,14 @@ export default function DesktopHome({ home, alts, originalsById, onWantAlts, onA
           </nav>
         </div>
 
+        <div className="home-category-list">
         {sections.map(section => (
           <div key={section.id} id={`cat-${section.id}`} className="home-category">
             <div className="home-category-head">
               <h3>{section.name}</h3>
               {section.blurb && <p>{section.blurb}</p>}
             </div>
-            <div className="app-grid">
+            <div className="app-grid home-category-grid">
               {section.keys.map(key => {
                 const app = originalsById.get(keyId(key));
                 return (
@@ -187,6 +188,7 @@ export default function DesktopHome({ home, alts, originalsById, onWantAlts, onA
             </div>
           </div>
         ))}
+        </div>
       </section>
 
       <section className="apps-section home-alts">

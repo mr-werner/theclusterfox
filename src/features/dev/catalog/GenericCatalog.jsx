@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Check } from "lucide-react";
 
+const slug = title => title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
 const textOf = item =>
   [item.title, item.meta, item.text, ...(item.list ?? []), ...(item.tags ?? []), ...(item.choices?.options ?? [])]
     .filter(Boolean)
@@ -34,7 +36,7 @@ function Item({ item }) {
       {item.list?.length > 0 && (
         <ul className="dev-list">
           {item.list.map((line, i) => (
-            <li key={i}>{line}</li>
+            <li key={i}>{typeof line === "string" ? line : JSON.stringify(line)}</li>
           ))}
         </ul>
       )}
@@ -85,13 +87,13 @@ export default function GenericCatalog({ load, query }) {
       </p>
       <nav className="dev-jump" aria-label="Groups">
         {groups.map(g => (
-          <a key={g.title} href={`#g-${encodeURIComponent(g.title)}`}>
+          <a key={g.title} href={`#g-${slug(g.title)}`}>
             {g.title} <small>{g.items.length}</small>
           </a>
         ))}
       </nav>
       {groups.map(g => (
-        <section key={g.title} id={`g-${encodeURIComponent(g.title)}`} className="dev-group">
+        <section key={g.title} id={`g-${slug(g.title)}`} className="dev-group">
           <h3>
             {g.title} <small>{g.items.length}</small>
           </h3>

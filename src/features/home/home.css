@@ -1698,8 +1698,40 @@ body.sheet-open {
   scroll-margin-top: 24px;
 }
 
-.home-category + .home-category {
-  margin-top: 40px;
+/* Smaller tiles than before, so every category fits without endless scrolling. */
+/* Two categories side by side, three apps across each. */
+.home-category-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 32px;
+}
+
+.app-grid.home-category-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.home-category-grid .app-tile {
+  padding: 12px;
+  border-radius: 22px;
+}
+
+.home-category-grid .app-info h3 {
+  font-size: 0.95rem;
+}
+
+.home-category-grid .app-info p {
+  font-size: 0.76rem;
+}
+
+@media (max-width: 1000px) {
+  .home-category-list {
+    grid-template-columns: 1fr;
+  }
+
+  .app-grid.home-category-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .home-category-head {
@@ -1733,7 +1765,7 @@ body.sheet-open {
 .phone-category-chips {
   display: flex;
   gap: 8px;
-  margin: 18px -16px 4px;
+  margin: 18px -16px 22px;
   padding: 0 16px 4px;
   overflow-x: auto;
   scrollbar-width: none;

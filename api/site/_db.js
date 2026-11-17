@@ -1,3 +1,4 @@
+/* global process */
 import { neon } from "@neondatabase/serverless";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 

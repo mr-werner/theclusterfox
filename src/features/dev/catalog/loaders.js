@@ -17,15 +17,8 @@ const groupBy = (items, keyOf, titleOf = k => k) => {
 const cap = s => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 export async function cookfox() {
-  const [base, more, world, moreWorld] = await Promise.all([
-    import("../../cook/data/recipes.js"),
-    import("../../cook/data/recipesMore.js"),
-    import("../../cook/data/recipesWorld.js"),
-    import("../../cook/data/recipesMoreWorld.js"),
-  ]);
-  const recipes = [...(base.recipes ?? []), ...(more.moreRecipes ?? []), ...(world.worldRecipes ?? []), ...(moreWorld.moreWorldRecipes ?? [])];
-  // Only the main library opens by link (CookPage reads ?r= from it).
-  const linkable = new Set((base.recipes ?? []).map(r => r.id));
+  // recipes.js already includes the extra and world collections.
+  const { recipes = [] } = await import("../../cook/data/recipes.js");
   const items = recipes.map(r => ({
     id: r.id,
     title: r.title,
@@ -35,7 +28,7 @@ export async function cookfox() {
     text: r.description,
     tags: [...(r.meals ?? []), ...(r.tags ?? [])],
     group: (r.meals ?? ["other"])[0],
-    href: linkable.has(r.id) ? `/cook?r=${encodeURIComponent(r.id)}` : null,
+    href: `/cook?r=${encodeURIComponent(r.id)}`,
   }));
   return { groups: groupBy(items, i => i.group, k => cap(k)) };
 }
@@ -73,7 +66,8 @@ export async function medicfox() {
     title: t.title,
     meta: t.min?.toUpperCase(),
     text: t.summary,
-    list: t.points,
+    // A point is plain text, or { min, t } when only some levels learn it.
+    list: (t.points ?? []).map(pt => (typeof pt === "string" ? pt : `${pt.min ? `[${pt.min.toUpperCase()}+] ` : ""}${pt.t}`)),
   }));
   const questions = (q.QUESTIONS ?? []).map(x => ({
     id: `q-${x.id}`,

@@ -295,4 +295,13 @@ export const apps = [
     accent: "keysfox",
     category: "learn",
   },
+  {
+    id: "trailfox",
+    name: "Hike",
+    subtitle: "TrailFox",
+    description: "Trails • Start times • Offline GPS",
+    path: "/hike",
+    icon: MountainSnow,
+    accent: "trailfox",
+  },
 ];

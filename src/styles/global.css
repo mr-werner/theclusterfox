@@ -34,6 +34,7 @@
   --growfox: #7cc576;
   --bodyfox: #3fd0c9;
   --studyfox: #ffd84a;
+  --trailfox: #e0a15e;
   --snowfox: #1769d1;
   --keysfox: #f2b544;
   --flyfox: #4c8dff;
@@ -490,6 +491,17 @@ select {
       145deg,
       #3a2c1c,
       #0e0c0b
+    );
+}
+
+.app-icon--trailfox {
+  color: #fff6ea;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e0a15e,
+      #2f4a2c
     );
 }
 

@@ -32,6 +32,8 @@ const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 // FlyFox carries its question bank and study notes, so it loads on demand too.
 // SnowFox carries its resort list and maps, so it loads on demand too.
 const SnowPage = lazy(() => import("./features/snow/SnowPage"));
+// TrailFox carries its map, tracker and trail tools, so it loads on demand too.
+const HikePage = lazy(() => import("./features/hike/HikePage"));
 // KeysFox carries its song library and audio engine, so it loads on demand too.
 const KeysPage = lazy(() => import("./features/keys/KeysPage"));
 const FlyPage = lazy(() => import("./features/fly/FlyPage"));
@@ -87,6 +89,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <CalmPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/hike"
+                element={
+                    <Suspense fallback={null}>
+                        <HikePage />
                     </Suspense>
                 }
             />

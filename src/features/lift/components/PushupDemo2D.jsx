@@ -34,7 +34,7 @@ export default function PushupDemo2D({ depth, efforts, onPick }) {
   const neckEnd = [head[0] - body.dir[0] * HEAD_R * 0.7, head[1] - body.dir[1] * HEAD_R * 0.7];
 
   return (
-    <svg className="lp-2d" viewBox="8 18 214 82" role="img" aria-label="Side view of a push-up. Working muscles turn red.">
+    <svg className="lp-2d" viewBox="10 19 210 79" role="img" aria-label="Side view of a push-up. Working muscles turn red.">
       <defs>
         <radialGradient id="lp-floor-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#ff2a1a" stopOpacity="0.35" />

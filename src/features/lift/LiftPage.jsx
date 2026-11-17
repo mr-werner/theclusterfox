@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { CalendarRange, Cloud, CloudOff, Dumbbell, HardDrive, History, LoaderCircle } from "lucide-react";
+import { CalendarRange, Cloud, CloudOff, Dumbbell, HardDrive, History, LibraryBig, LoaderCircle } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import WorkoutBuilder from "./components/WorkoutBuilder";
 import WorkoutView from "./components/WorkoutView";
 import PlansTab from "./components/PlansTab";
 import HistoryTab from "./components/HistoryTab";
+import ExerciseLibrary from "./components/ExerciseLibrary";
 import { generateWorkout, workoutTitle } from "./model/generate";
 import { nextSession, PLAN_GOALS, toIsoDay } from "./model/program";
 import { useLiftData } from "./state/useLiftData";
@@ -43,6 +44,7 @@ function SyncBadge({ status, isSignedIn }) {
 
 const TABS = [
   { id: "workout", name: "Train", icon: Dumbbell },
+  { id: "library", name: "Exercises", icon: LibraryBig },
   { id: "plans", name: "Plans", icon: CalendarRange },
   { id: "history", name: "Progress", icon: History },
 ];
@@ -54,6 +56,14 @@ export default function LiftPage() {
   } = useLiftData();
   const [params, setParams] = useSearchParams();
   const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : "workout";
+  const openExercise = id => {
+    setParams(id ? { tab: "library", ex: id } : { tab: "library" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const toggleFavorite = id => {
+    const list = data.prefs.favorites ?? [];
+    setPrefs({ favorites: list.includes(id) ? list.filter(x => x !== id) : [...list, id] });
+  };
   const openTab = id => {
     setParams(id === "workout" ? {} : { tab: id });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -143,7 +153,7 @@ export default function LiftPage() {
           </div>
           <div>
             <p className="lf-eyebrow">LIFTFOX</p>
-            <h1>Pick your muscles. Get your workout.</h1>
+            <h1>Pick your muscles. <em>Make them burn.</em></h1>
             <SyncBadge status={syncStatus} isSignedIn={isSignedIn} />
           </div>
         </header>
@@ -179,6 +189,15 @@ export default function LiftPage() {
           ) : (
             <WorkoutBuilder prefs={data.prefs} onPrefs={setPrefs} onGenerate={() => build()} />
           ))}
+
+        {tab === "library" && (
+          <ExerciseLibrary
+            favorites={data.prefs.favorites ?? []}
+            onToggleFavorite={toggleFavorite}
+            openId={params.get("ex")}
+            onOpen={openExercise}
+          />
+        )}
 
         {tab === "plans" && (
           <PlansTab

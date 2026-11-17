@@ -10,52 +10,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { fetchLayer } from "../../body/viewer/loadLayer";
 import { bindVertices, makePushup, skin } from "./pushupRig";
 import { efforts, muscleForPart, repAt } from "../data/activation";
-
-const MAX_SLOTS = 24;
-
-// Shader colour ramp, same stops as effortRgb in data/activation.js.
-const RAMP = /* glsl */ `
-vec3 effortRamp(float v) {
-  vec3 c0 = vec3(0.78, 0.76, 0.75);
-  vec3 c1 = vec3(0.86, 0.6, 0.55);
-  vec3 c2 = vec3(0.93, 0.3, 0.2);
-  vec3 c3 = vec3(0.86, 0.07, 0.06);
-  vec3 c4 = vec3(0.6, 0.0, 0.04);
-  if (v < 0.15) return c0;
-  if (v < 0.3) return mix(c0, c1, (v - 0.15) / 0.15);
-  if (v < 0.5) return mix(c1, c2, (v - 0.3) / 0.2);
-  if (v < 0.75) return mix(c2, c3, (v - 0.5) / 0.25);
-  return mix(c3, c4, (v - 0.75) / 0.25);
-}`;
-
-function muscleMaterial(uniforms) {
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, side: THREE.DoubleSide });
-  mat.onBeforeCompile = shader => {
-    Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", `#include <common>\nattribute float slot;\nuniform float efforts[${MAX_SLOTS}];\nvarying float vEffort;`)
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\nint s = int(slot + 0.5);\nvEffort = s > 0 ? efforts[s - 1] : -1.0;");
-    shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\nvarying float vEffort;\n${RAMP}`)
-      .replace(
-        "#include <color_fragment>",
-        "#include <color_fragment>\nif (vEffort >= 0.0) diffuseColor.rgb = pow(effortRamp(vEffort), vec3(2.2)) * (vColor.r / 0.8);",
-      )
-      .replace(
-        "#include <emissivemap_fragment>",
-        "#include <emissivemap_fragment>\nif (vEffort > 0.3) totalEmissiveRadiance += vec3(0.5, 0.02, 0.0) * (vEffort - 0.3) * 0.35;",
-      );
-  };
-  mat.customProgramCacheKey = () => "lift-muscle";
-  return mat;
-}
-
-// A steady tiny brightness change per part so neighbouring muscles read apart.
-function shade(id) {
-  let h = 2166136261;
-  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
-  return 0.92 + ((h >>> 0) % 1000) / 1000 * 0.16;
-}
+import { MAX_SLOTS, muscleMaterial, shade } from "./material";
 
 export default class MuscleStage {
   constructor(container, { movement, lite = false, baseUrl = "/anatomy", onFrame, onStatus }) {
@@ -85,7 +40,7 @@ export default class MuscleStage {
     const scene = new THREE.Scene();
     this.scene = scene;
     const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 20);
-    camera.position.set(2.35, 0.95, 1.85);
+    camera.position.set(1.8, 0.72, 1.5);
     this.camera = camera;
 
     scene.add(new THREE.HemisphereLight(0xfff4ee, 0x2a0d0a, 1.25));
@@ -114,6 +69,9 @@ export default class MuscleStage {
     controls.maxDistance = 4.2;
     controls.maxPolarAngle = Math.PI * 0.49;
     controls.addEventListener("change", () => this.requestRender());
+    controls.addEventListener("start", () => {
+      this.userMoved = true;
+    });
     this.controls = controls;
 
     this.uniforms = { efforts: { value: new Float32Array(MAX_SLOTS) } };
@@ -292,8 +250,14 @@ export default class MuscleStage {
     const h = this.container.clientHeight || 1;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    // Keep the whole body in view on narrow screens.
-    this.camera.fov = w / h < 1 ? 30 / Math.max(0.62, w / h) : 30;
+    this.camera.fov = 30;
+    // Step back on narrower screens so the whole body (about 1.8 m long) fits,
+    // until someone moves the camera themselves.
+    if (!this.userMoved) {
+      const away = this.camera.position.clone().sub(this.controls.target).normalize();
+      const dist = 2.45 * Math.max(1, 1.75 / (w / h));
+      this.camera.position.copy(this.controls.target).add(away.multiplyScalar(Math.min(dist, 4.1)));
+    }
     this.camera.updateProjectionMatrix();
     this.requestRender();
   }

@@ -28,13 +28,18 @@ export const MOVEMENTS = {
       { id: "glutes", name: "Glutes", detail: "Gluteus maximus and medius", group: "glutes", role: "brace", peak: 0.22, match: /gluteus (maximus|medius)/ },
       { id: "traps", name: "Traps", detail: "Trapezius and rhomboids", group: "traps", role: "brace", peak: 0.2, match: /trapezius|rhomboid/ },
       { id: "biceps", name: "Biceps", detail: "Biceps brachii", group: "biceps", role: "brace", peak: 0.12, match: /biceps brachii|brachialis/ },
+      { id: "calves", name: "Calves", detail: "Gastrocnemius and soleus", group: "calves", role: "brace", peak: 0.15, match: /gastrocnemius|soleus/ },
+      { id: "hamstrings", name: "Hamstrings", detail: "Back of the thigh", group: "hamstrings", role: "brace", peak: 0.1, match: /biceps femoris|semitendinosus|semimembranosus/ },
       { id: "lowerBack", name: "Lower back", detail: "Erector spinae", group: "lowerBack", role: "brace", peak: 0.1, match: /iliocostalis|longissimus|spinalis|multifidus/ },
       { id: "lats", name: "Lats", detail: "Latissimus dorsi", group: "lats", role: "brace", peak: 0.12, match: /latissimus|teres major/ },
     ],
   },
 };
 
-export const movementFor = exercise => (exercise?.demo && MOVEMENTS[exercise.demo]) || null;
+// Which exercises have muscle data so far. Start with the push-up; add more
+// here once it looks right.
+const BY_EXERCISE = { "push-up": "pushup" };
+export const movementFor = exercise => MOVEMENTS[BY_EXERCISE[exercise?.id]] ?? null;
 
 const ease = v => (1 - Math.cos(Math.PI * v)) / 2;
 

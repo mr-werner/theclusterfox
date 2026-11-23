@@ -74,6 +74,23 @@ for (const id of ['twinkle', 'fur-elise', 'prelude-c']) {
   for (let i = 0; i < 100; i++) eng.tick(0.02);
   assert.equal(eng.beat, 1);
 }
+// Wait mode with the microphone: it listens for the next note even before the
+// song reaches it, because a mic only hears a key at the moment it's struck.
+{
+  const eng = new Engine(songById.get('twinkle'), { mode: 'wait', hands: 'R', countIn: 0 });
+  eng.tick(0.01);
+  assert.equal(eng.press(60, { fromMic: true }).type, 'hit');
+  // Twinkle repeats C: the next C is listened for right away...
+  assert.deepEqual(eng.listenFor().map(n => n.midi), [60]);
+  // ...but a computer key pressed this early is still too early.
+  assert.equal(eng.expected().length, 0);
+  assert.equal(eng.press(60, { fromMic: true }).type, 'hit', 'played a little early, heard');
+  assert.equal(eng.wrong, 0);
+}
+// Piano tuning is kept and cleaned up.
+assert.equal(normalizeData({ settings: { tuning: -37 } }).settings.tuning, -37);
+assert.equal(normalizeData({ settings: { tuning: 900 } }).settings.tuning, 0);
+assert.equal(normalizeData({}).settings.tuning, 0);
 // Looping bars.
 {
   const eng = new Engine(songById.get('ode-to-joy'), { mode: 'play', loop: { a: 4, b: 8 }, countIn: 0 });

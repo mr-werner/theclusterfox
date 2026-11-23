@@ -8,6 +8,8 @@
 import { barBeats, songBeats } from "./song.js";
 
 const EPS = 1e-6;
+// In wait mode the next note counts when you play it up to this many beats early.
+const WAIT_EARLY = 2;
 
 export class Engine {
   /**
@@ -71,11 +73,21 @@ export class Engine {
     return group;
   }
 
-  /** Notes you're expected to play right now (for highlighting keys and for the mic). */
+  /** Notes you're expected to play right now (for highlighting keys). */
   expected() {
     if (this.mode === "wait") return this.pendingGroup().filter(n => n.t - this.beat < 0.75);
     const w = this.window * this.beatsPerSec;
     return this.practice.filter(n => !this.result.has(n.id) && Math.abs(n.t - this.beat) <= w);
+  }
+
+  /**
+   * Notes the microphone should listen for. In wait mode that's the next
+   * stop even before the song gets there: a mic only hears a note when it's
+   * struck, so one played a little early would otherwise never count.
+   */
+  listenFor() {
+    if (this.mode === "wait") return this.pendingGroup().filter(n => n.t - this.beat <= WAIT_EARLY);
+    return this.expected();
   }
 
   /**
@@ -151,7 +163,7 @@ export class Engine {
     if (this.mode === "wait") {
       const group = this.pendingGroup();
       const n = group.find(g => g.midi === midi);
-      if (n && n.t - this.beat <= 0.75) {
+      if (n && n.t - this.beat <= (fromMic ? WAIT_EARLY : 0.75)) {
         this.result.set(n.id, "hit");
         this.streak++;
         this.bestStreak = Math.max(this.bestStreak, this.streak);

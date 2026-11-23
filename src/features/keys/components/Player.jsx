@@ -3,7 +3,8 @@ import { Hand, Keyboard, Mic, MicOff, Music2, Pause, Play, Repeat, RotateCcw, Se
 
 import { createSynth } from "../../../lib/music/synth";
 import { connectMidi, midiSupported } from "../../../lib/music/midiInput";
-import { micSupported, notesPresent, startMic } from "../../../lib/music/pitch";
+import { micSupported, startMic, tuningFromPitches } from "../../../lib/music/pitch";
+import { createNoteListener, selfSounds } from "../../../lib/music/listener";
 import { noteName } from "../../../lib/music/theory";
 import { arrange, barAt, barBeats, barCount, barStart, keyRange, LEVELS } from "../model/song";
 import { Engine, starsFor } from "../model/engine";
@@ -41,7 +42,7 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 export default function Player({ song, settings, setSettings, onRun, onBack }) {
-  const { level, hands, mode, speed, view, noteNames, otherHand, metronome, mySound } = settings;
+  const { level, hands, mode, speed, view, noteNames, otherHand, metronome, mySound, tuning = 0 } = settings;
   const arranged = useMemo(() => arrange(song, level), [song, level]);
   const [lo, hi] = useMemo(() => keyRange(song), [song]);
   const bars = barCount(arranged);
@@ -68,11 +69,18 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
   const stopMidiRef = useRef(null);
   const stopMicRef = useRef(null);
   const micHeardRef = useRef(new Set());
+  const listenerRef = useRef(null);
+  const selfSoundsRef = useRef([]); // notes KeysFox plays itself, so the mic doesn't take them for yours
+  const quietUntilRef = useRef(0); // the metronome just clicked
+  const calibRef = useRef(null); // { freqs, until } while tuning to the player's piano
+  const setSettingsRef = useRef(setSettings);
+  const [calib, setCalib] = useState(null); // null | "listening" | { cents } | { error }
   const settingsRef = useRef(settings);
   const winRef = useRef(0);
   useEffect(() => {
     statusRef.current = status;
     settingsRef.current = settings;
+    setSettingsRef.current = setSettings;
   });
 
   const stage = useSize(stageRef);
@@ -238,27 +246,56 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
   }, [connectKeyboard]);
 
   // Microphone.
+  const finishCalib = useCallback(freqs => {
+    calibRef.current = null;
+    const cents = tuningFromPitches(freqs, 60);
+    if (cents == null) {
+      stopMicRef.current?.setTuning?.(settingsRef.current.tuning || 0);
+      setCalib({ error: "Couldn't hear one steady C. Play middle C firmly, let it ring, and try again." });
+      return;
+    }
+    stopMicRef.current?.setTuning?.(cents);
+    setSettingsRef.current({ tuning: cents });
+    setCalib({ cents });
+  }, []);
+
   const toggleMic = useCallback(async () => {
     if (stopMicRef.current) {
+      calibRef.current = null;
+      setCalib(c => (c === "listening" ? null : c));
       stopMicRef.current();
       stopMicRef.current = null;
+      listenerRef.current = null;
       setMic({ on: false, heard: null, error: null });
       return;
     }
     try {
       let lastShown = 0;
+      const listener = createNoteListener();
+      listenerRef.current = listener;
       stopMicRef.current = await startMic({
         minFreq: 26,
         maxFreq: 4200,
+        tuning: settingsRef.current.tuning || 0,
         onFrame: frame => {
-          const e = engineRef.current;
-          if (e && statusRef.current === "playing") {
-            const exp = e.expected().map(n => n.midi);
-            const heard = notesPresent(frame, exp);
-            for (const m of heard) if (!micHeardRef.current.has(m) || frame.onset) noteOn(m, "mic");
-            for (const m of micHeardRef.current) if (!heard.has(m)) pressedRef.current.delete(m);
-            micHeardRef.current = heard;
+          const cal = calibRef.current;
+          if (cal) {
+            // Tuning to the player's piano: collect clear readings of the C they play.
+            if (frame.freq && frame.clarity > 0.9 && frame.level > 0.008) cal.freqs.push(frame.freq);
+            if (cal.freqs.length >= 24 || performance.now() > cal.until) finishCalib(cal.freqs);
           }
+          const e = engineRef.current;
+          const playing = e && statusRef.current === "playing";
+          const t = performance.now();
+          selfSoundsRef.current = selfSoundsRef.current.filter(x => x.until > t);
+          // Only a key struck now counts: a note still ringing from before,
+          // the app's own playing and room noise never move the song along.
+          const exp = playing ? e.listenFor().map(n => n.midi) : [];
+          const struck = listener.update(frame, exp, { ...selfSounds(selfSoundsRef.current, t), quiet: t < quietUntilRef.current });
+          for (const m of struck) noteOn(m, "mic");
+          const heard = listener.sounding;
+          for (const m of micHeardRef.current) if (!heard.has(m) && pressedRef.current.get(m)?.source === "mic") pressedRef.current.delete(m);
+          micHeardRef.current = new Set(heard);
           const now = performance.now();
           if (now - lastShown > 150) {
             lastShown = now;
@@ -270,8 +307,23 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
     } catch (err) {
       setMic({ on: false, heard: null, error: err?.name === "NotAllowedError" ? "Microphone permission was blocked." : err?.message || "Couldn't open the microphone." });
     }
-  }, [noteOn]);
+  }, [noteOn, finishCalib]);
   useEffect(() => () => stopMicRef.current?.(), []);
+
+  // "Tune to my piano": hear middle C and listen in the piano's own tuning from then on.
+  const tuneToPiano = useCallback(async () => {
+    if (!stopMicRef.current) await toggleMic();
+    if (!stopMicRef.current) return;
+    stopMicRef.current.setTuning?.(0);
+    calibRef.current = { freqs: [], until: performance.now() + 8000 };
+    setCalib("listening");
+  }, [toggleMic]);
+  const resetTuning = useCallback(() => {
+    calibRef.current = null;
+    stopMicRef.current?.setTuning?.(0);
+    setSettings({ tuning: 0 });
+    setCalib(null);
+  }, [setSettings]);
 
   // --- the frame loop -----------------------------------------------------
   useEffect(() => {
@@ -289,8 +341,14 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
       if (e && statusRef.current === "playing") {
         for (const ev of e.tick(dt)) {
           const sy = synthRef.current;
-          if (ev.type === "auto" && s.otherHand === "play" && sy) sy.playNote(ev.note.midi, (ev.note.d * 60) / (e.song.bpm * e.speed), sy.now() + 0.01, ev.note.vel * 0.85);
-          else if (ev.type === "click" && sy) sy.click(sy.now() + 0.01, ev.accent);
+          if (ev.type === "auto" && s.otherHand === "play" && sy) {
+            const secs = (ev.note.d * 60) / (e.song.bpm * e.speed);
+            sy.playNote(ev.note.midi, secs, sy.now() + 0.01, ev.note.vel * 0.85);
+            if (stopMicRef.current) selfSoundsRef.current.push({ midi: ev.note.midi, at: now, until: now + secs * 1000 + 400 });
+          } else if (ev.type === "click" && sy) {
+            sy.click(sy.now() + 0.01, ev.accent);
+            quietUntilRef.current = now + 120;
+          }
           else if (ev.type === "loop") flashRef.current.clear();
           else if (ev.type === "end") finish();
         }
@@ -661,6 +719,32 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
               </button>
             </div>
           </div>
+          {micSupported() && (
+            <div className="ks-field">
+              <span>
+                <Mic size={14} /> Piano tuning
+              </span>
+              <div className="ks-seg">
+                <button type="button" className={calib === "listening" ? "is-on" : ""} onClick={tuneToPiano} disabled={calib === "listening"} title="Play middle C and KeysFox listens in your piano's tuning">
+                  {calib === "listening" ? "Listening for C…" : "Tune to my piano"}
+                </button>
+                {tuning !== 0 && (
+                  <button type="button" onClick={resetTuning} title="Go back to standard pitch (A = 440)">
+                    Standard
+                  </button>
+                )}
+              </div>
+              <p className="ks-help">
+                {calib === "listening"
+                  ? "Play middle C (or any C) and let it ring."
+                  : calib?.error
+                    ? calib.error
+                    : tuning === 0
+                      ? "Standard pitch. If your piano is out of tune and notes aren't being heard, tune to it."
+                      : `Listening in your piano's tuning: ${Math.abs(tuning)} cents ${tuning < 0 ? "flat" : "sharp"}.`}
+              </p>
+            </div>
+          )}
           <label className="ks-check">
             <input type="checkbox" checked={noteNames} onChange={e => setSettings({ noteNames: e.target.checked })} /> Note names on falling notes
           </label>
@@ -673,7 +757,7 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
           <p className="ks-help">
             <Keyboard size={14} /> No piano handy? Your computer keys play: {Object.entries(COMPUTER_LABELS).slice(0, 13).map(([, k]) => k).join(" ")} starting at {noteName(octave)}. Z and X move an octave. Space plays and pauses. Tap the sheet music to jump to a bar.
           </p>
-          {mic.on && <p className="ks-help">With the microphone on, use headphones so it doesn't hear the hand KeysFox plays for you.</p>}
+          {mic.on && <p className="ks-help">With the microphone on, a note counts the moment you strike it, so a key that's still ringing won't move the song on. Headphones help it hear only you, not the hand KeysFox plays.</p>}
         </div>
       )}
 

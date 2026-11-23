@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   metronome: false,
   mySound: true,
   input: "auto",
+  tuning: 0, // cents your piano sits above standard pitch (from "Tune to my piano")
 };
 
 export function emptyData() {
@@ -44,6 +45,7 @@ export function normalizeSettings(raw) {
     metronome: typeof s.metronome === "boolean" ? s.metronome : d.metronome,
     mySound: typeof s.mySound === "boolean" ? s.mySound : d.mySound,
     input: oneOf(s.input, ["auto", "mic", "keys"], d.input),
+    tuning: Math.round(num(s.tuning, -150, 150, d.tuning)),
   };
 }
 

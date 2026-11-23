@@ -441,6 +441,15 @@
 
 .bf-levels button {
   flex: 1;
+  padding: 0 4px;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.bf-info-note {
+  color: var(--bf-faint);
+  font-size: 0.74rem;
+  font-style: italic;
 }
 
 .bf-info-body.is-kid {
@@ -919,6 +928,12 @@
   .bf-layer-text small,
   .bf-seg:not(.bf-seg-wide) {
     display: none;
+  }
+
+  /* The level switch in the part panel stays on phones. */
+  .bf-info .bf-levels {
+    display: flex;
+    margin-top: 10px;
   }
 
   .bf-layer-text strong {

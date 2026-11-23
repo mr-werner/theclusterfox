@@ -45,6 +45,7 @@
   --roadfox: #ffc23c;
   --beaconfox: #ffb020;
   --pacefox: #ff4d8d;
+  --leapfox: #d4ff3a;
   --medicfox: #5b9dff;
   --fluids: #5cc8ff;
   --heat: #ff8a4c;
@@ -516,6 +517,17 @@ select {
       145deg,
       #d4e5ff,
       #3d7fe6
+    );
+}
+
+.app-icon--leapfox {
+  color: #141a02;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e9ff8a,
+      #9ad400
     );
 }
 

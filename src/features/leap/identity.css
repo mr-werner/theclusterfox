@@ -1,0 +1,49 @@
+/* LeapFox identity: a jump stand under gym lights. Ink-dark like a court
+   after hours, highlighter lime for the vane you just tapped, condensed
+   lettering like the numbers on a measuring pole. */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&display=swap");
+
+.appbar[data-app="leapfox"] {
+  --ab-bg: rgba(11, 14, 23, 0.9);
+  --ab-fg: #f1f4ea;
+  --ab-muted: #98a0b3;
+  --ab-line: rgba(212, 255, 58, 0.14);
+  --ab-accent: #d4ff3a;
+  --ab-accent-ink: #141a02;
+  --ab-font: "Barlow Condensed", "Space Grotesk", sans-serif;
+  --ab-name-size: 1.42rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: 0.03em;
+  --ab-name-case: uppercase;
+  --ab-radius: 10px;
+  --ab-menu-bg: #141927;
+}
+
+.lp {
+  --lp-bg: #0b0e17;
+  --lp-surface: #131826;
+  --lp-surface-2: #1a2033;
+  --lp-line: rgba(255, 255, 255, 0.08);
+  --lp-text: #f1f4ea;
+  --lp-muted: #98a0b3;
+  --lp-accent: #d4ff3a;
+  --lp-accent-2: #8f9bff;
+  --lp-ink: #141a02;
+  --lp-danger: #ff6b6b;
+  --lp-display: "Barlow Condensed", "Space Grotesk", sans-serif;
+  --lp-body: "Barlow", "DM Sans", system-ui, sans-serif;
+
+  --lp-F: #5eead4;
+  --lp-S: #8f9bff;
+  --lp-P: #d4ff3a;
+  --lp-R: #8a93a8;
+  --lp-T: #ffb347;
+
+  min-height: 100vh;
+  color: var(--lp-text);
+  font-family: var(--lp-body);
+  background:
+    radial-gradient(800px 380px at 90% -160px, rgba(143, 155, 255, 0.16), transparent 70%),
+    radial-gradient(640px 340px at 0% -120px, rgba(212, 255, 58, 0.09), transparent 70%),
+    var(--lp-bg);
+}

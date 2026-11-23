@@ -1,5 +1,5 @@
 import Parachute from "../components/icons/Parachute.js";
-import { Activity, Ambulance, BookOpen, CalendarRange, CarFront, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, Guitar, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
+import { Activity, Ambulance, BookOpen, CalendarRange, CarFront, ChefHat, ChevronsUp, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, Guitar, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
 // The home screen groups apps into these, in this order. PlanFox is the hub
 // above them all. An app without a category (or with one not listed here)
@@ -91,6 +91,16 @@ export const apps = [
     path: "/pace",
     icon: Activity,
     accent: "pacefox",
+    category: "health",
+  },
+  {
+    id: "leapfox",
+    name: "Leap",
+    subtitle: "LeapFox",
+    description: "Jump higher • Sport plans • Tests",
+    path: "/leap",
+    icon: ChevronsUp,
+    accent: "leapfox",
     category: "health",
   },
   {

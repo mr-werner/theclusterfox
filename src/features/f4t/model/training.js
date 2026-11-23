@@ -1,11 +1,12 @@
 // Training the diet planner eats for. Workouts come from the training apps
-// (LiftFox for strength, PaceFox for running, riding and rowing; each adds its own reader to SOURCES) and
+// (LiftFox for strength, PaceFox for running, riding and rowing, LeapFox for jump training; each adds its own reader to SOURCES) and
 // from workouts typed into the planner. A training day gets more calories,
 // more carbs, and a note on when to eat.
 
 import { normalizeData as normalizeLift } from "../../lift/state/liftStore.js";
 import { sessionDate } from "../../lift/model/program.js";
 import { paceWorkouts } from "../../pace/model/fuelLink.js";
+import { leapWorkouts } from "../../leap/model/fuelLink.js";
 
 // Intensity of a LiftFox plan session, as METs (Compendium values for
 // resistance training: circuit work runs higher, an easy week lower).
@@ -67,6 +68,7 @@ export function liftWorkouts(raw, from, to) {
 export const SOURCES = [
   { app: "liftfox", name: "LiftFox", storageKey: "liftfox-data-v1", read: liftWorkouts },
   { app: "pacefox", name: "PaceFox", storageKey: "pacefox-data-v1", read: paceWorkouts },
+  { app: "leapfox", name: "LeapFox", storageKey: "leapfox-data-v1", read: leapWorkouts },
 ];
 
 /** Workouts typed into the planner, shaped like the ones from the apps. */

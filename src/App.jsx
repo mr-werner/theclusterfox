@@ -55,6 +55,8 @@ const BeaconPage = lazy(() => import("./features/beacon/BeaconPage"));
 const PacePage = lazy(() => import("./features/pace/PacePage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
 const BodyPage = lazy(() => import("./features/body/BodyPage"));
+// ReadyFox carries the Army's full AFT score tables, so it loads on demand too.
+const ReadyPage = lazy(() => import("./features/ready/ReadyPage"));
 // StudyFox loads other apps' material on demand, so it loads on demand too.
 const StudyPage = lazy(() => import("./features/study/StudyPage"));
 
@@ -135,6 +137,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <GrowPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/ready"
+                element={
+                    <Suspense fallback={null}>
+                        <ReadyPage />
                     </Suspense>
                 }
             />

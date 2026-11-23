@@ -1,0 +1,28 @@
+{
+  "id": "/grocery",
+  "name": "GroceryFox",
+  "short_name": "GroceryFox",
+  "start_url": "/grocery",
+  "scope": "/grocery",
+  "display": "standalone",
+  "background_color": "#f4f1e8",
+  "theme_color": "#f4f1e8",
+  "icons": [
+    {
+      "src": "/apps/groceryfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/groceryfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/groceryfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

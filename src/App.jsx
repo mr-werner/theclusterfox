@@ -27,6 +27,7 @@ const CalmPage = lazy(() => import("./features/calm/CalmPage"));
 const MathPage = lazy(() => import("./features/math/MathPage"));
 // CookFox carries its recipe library, so it loads on demand too.
 const CookPage = lazy(() => import("./features/cook/CookPage"));
+const GroceryPage = lazy(() => import("./features/grocery/GroceryPage"));
 // GrowFox carries its plant library, so it loads on demand too.
 const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 // JumpFox carries drop zones, skills diagrams and the logbook, so it loads on demand too.
@@ -127,6 +128,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <CookPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/grocery"
+                element={
+                    <Suspense fallback={null}>
+                        <GroceryPage />
                     </Suspense>
                 }
             />

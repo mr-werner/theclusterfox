@@ -445,6 +445,7 @@ const categories = [
       { name: "PTS+", alt: "Netflix", url: "https://www.ptsplus.tv/", mark: "PT", color: "#00a0e9", description: "Taiwan's public TV streaming, with dramas, documentaries and children's shows." },
       { name: "TaiwanPlus", alt: "Netflix", url: "https://www.taiwanplus.com/", mark: "T+", color: "#d7282f", description: "Taiwan's public English-language channel, with news, travel and culture shows." },
       { name: "mewatch", alt: "Netflix", url: "https://www.mewatch.sg/", mark: "me", color: "#7b2cbf", description: "Mediacorp's free streaming for Singapore dramas, variety shows and live channels." },
+      { name: "HRTi", alt: "Netflix", url: "https://hrti.hrt.hr/", mark: "HR", color: "#0057a8", description: "Croatian public TV streaming, with series, documentaries and live HRT channels." },
     ],
   },
   {
@@ -544,6 +545,7 @@ const categories = [
       { name: "Radio Taiwan International", alt: "SiriusXM", url: "https://www.rti.org.tw/", mark: "Rt", color: "#0068b7", description: "Taiwan's international public radio, broadcasting in over a dozen languages." },
       { name: "National Education Radio", alt: "SiriusXM", url: "https://www.ner.gov.tw/", mark: "NE", color: "#2e8b57", description: "Taiwanese public radio for learning, culture and podcasts, live and on demand." },
       { name: "meListen", alt: "SiriusXM", url: "https://www.melisten.sg/", mark: "mL", color: "#ff5a36", description: "Mediacorp radio stations and podcasts from Singapore, live and on demand." },
+      { name: "HRT Radio", alt: "SiriusXM", url: "https://radio.hrt.hr/", mark: "HR", color: "#0057a8", description: "Croatian public radio, including HR1, HR2 and HR3, live and on demand." },
     ],
   },
   {
@@ -784,6 +786,8 @@ const categories = [
       { name: "Colombia Aprende", alt: "paid tutoring", url: "https://www.colombiaaprende.edu.co/", mark: "CA", color: "#3366cc", description: "Colombia's free national education portal, with lessons and resources for every school level." },
       { name: "Junyi Academy", alt: "paid tutoring", url: "https://www.junyiacademy.org/", mark: "JA", color: "#4fb3bf", description: "Taiwanese nonprofit with free video lessons and practice from primary to high school." },
       { name: "SkillsFuture", alt: "LinkedIn Learning", url: "https://www.skillsfuture.gov.sg/", mark: "SF", color: "#d71920", description: "Singapore's national lifelong learning portal, with free guides and subsidized courses." },
+      { name: "Hrvatska enciklopedija", alt: "Encyclopaedia Britannica", url: "https://enciklopedija.hr/", mark: "HE", color: "#8b1a1a", description: "Croatia's national encyclopedia, free online from the Miroslav Krleža Institute." },
+      { name: "Edutorij", alt: "paid tutoring", url: "https://edutorij.e-skole.hr/", mark: "Ed", color: "#f39200", description: "Croatia's public library of digital school materials for every subject and grade." },
     ],
   },
   {
@@ -822,6 +826,7 @@ const categories = [
       { name: "Icelandic Online", alt: "Babbel", url: "https://icelandiconline.com/", mark: "IO", color: "#d72828", description: "Free Icelandic courses from the University of Iceland, from beginner up." },
       { name: "Málið.is", alt: "paid dictionaries", url: "https://malid.is/", mark: "Má", color: "#003da5", description: "Official Icelandic dictionaries, spelling and inflection in one search." },
       { name: "MOE Revised Mandarin Dictionary", alt: "paid dictionaries", url: "https://dict.revised.moe.edu.tw/", mark: "國", color: "#8b0000", description: "Taiwan's official Mandarin dictionary, with pronunciations, meanings and examples." },
+      { name: "Hrvatski jezični portal", alt: "paid dictionaries", url: "https://hjp.znanje.hr/", mark: "HJ", color: "#c8102e", description: "Free Croatian dictionary with meanings, grammar and word forms." },
     ],
   },
 ];

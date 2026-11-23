@@ -15,7 +15,7 @@ export const MAX_TRACKS = 40;
 export function emptyData() {
   return {
     version: 1,
-    prefs: { unit: "mi", sport: "run", voice: true, splitCues: true, keepAwake: true, trainTime: null },
+    prefs: { unit: "mi", sport: "run", voice: true, splitCues: true, keepAwake: true, batterySaver: false, trainTime: null },
     profile: { age: null, maxHr: null, restHr: null, runRace: null, ftp: null, row2k: null },
     plans: [],
     activePlanId: null,
@@ -52,6 +52,7 @@ function cleanPrefs(p) {
     voice: p.voice !== false,
     splitCues: p.splitCues !== false,
     keepAwake: p.keepAwake !== false,
+    batterySaver: p.batterySaver === true,
     trainTime: typeof p.trainTime === "string" && /^\d{2}:\d{2}$/.test(p.trainTime) ? p.trainTime : null,
   };
 }

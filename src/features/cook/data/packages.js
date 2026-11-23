@@ -159,4 +159,10 @@ export const packages = {
   allspice: jar(54, 1.9),
   "frozen-peas": [{ amount: 340, label: "12-oz bag" }, { amount: 454, label: "1-lb bag" }],
   dill: [{ amount: 19, label: "0.66-oz pack" }],
+
+  // Fifth batch
+  "flank-steak": [{ amount: 680, label: "1.5-lb steak" }],
+  "canned-tuna": [{ amount: 113, label: "5-oz can" }],
+  "burger-buns": [{ amount: 8, label: "pack of 8" }],
+  "popcorn-kernels": jar(850, 30),
 };

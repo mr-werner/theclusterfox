@@ -77,3 +77,20 @@ assert.deepEqual(saved.prefs.favorites, ['push-up', 'squat']);
 assert.deepEqual(normalizeData({}).prefs.favorites, []);
 
 console.log('lift muscle demos ok');
+
+// The five-a-day queue covers every exercise exactly once, five at most a day.
+{
+  const { MUSCLE_VIEW_QUEUE, nextBatch } = await import('../data/muscleViewQueue.js');
+  const { BY_EXERCISE } = await import('../data/activation.js');
+  const { exercises } = await import('../data/exercises.js');
+  const queued = MUSCLE_VIEW_QUEUE.flatMap(b => b.exercises);
+  assert.equal(new Set(queued).size, queued.length, 'an exercise is queued twice');
+  for (const b of MUSCLE_VIEW_QUEUE) assert(b.exercises.length <= 5 && b.note, 'batches are five or fewer, with a note');
+  for (const id of queued) assert(exercisesById.has(id), `queue: unknown exercise ${id}`);
+  for (const e of exercises) assert(queued.includes(e.id) || BY_EXERCISE[e.id], `${e.id} is not in the queue`);
+  // Done exercises have real movement data, and every movement has a known rig.
+  for (const [id, key] of Object.entries(BY_EXERCISE)) assert(MOVEMENTS[key] && exercisesById.has(id), `${id}: bad mapping`);
+  for (const m of Object.values(MOVEMENTS)) assert(typeof m.rig === 'string', `${m.name}: no rig`);
+  assert.deepEqual(nextBatch(Object.keys(BY_EXERCISE)).index >= 0, true);
+  console.log(`muscle view queue: ${queued.length} exercises in ${MUSCLE_VIEW_QUEUE.length} days`);
+}

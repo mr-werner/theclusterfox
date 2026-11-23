@@ -12,6 +12,10 @@
 export const MOVEMENTS = {
   pushup: {
     name: "Push-up",
+    // Which body rig poses it: see anatomy3d/rigs.js (3D) and
+    // components/MotionDemo.jsx (2D). Variants can share a rig and pass
+    // rigOptions (hand height, hand width, ...).
+    rig: "pushup",
     // One rep: lower for 40%, hold the bottom 10%, press for 30%, rest at the top 20%.
     cycleMs: 3400,
     muscles: [
@@ -36,9 +40,9 @@ export const MOVEMENTS = {
   },
 };
 
-// Which exercises have muscle data so far. Start with the push-up; add more
-// here once it looks right.
-const BY_EXERCISE = { "push-up": "pushup" };
+// Which exercises have muscle data so far. New ones are added five a day,
+// in the order of data/muscleViewQueue.js.
+export const BY_EXERCISE = { "push-up": "pushup" };
 export const movementFor = exercise => MOVEMENTS[BY_EXERCISE[exercise?.id]] ?? null;
 
 const ease = v => (1 - Math.cos(Math.PI * v)) / 2;

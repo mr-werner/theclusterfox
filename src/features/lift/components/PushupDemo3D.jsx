@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { RotateCcw } from "lucide-react";
 
 import MuscleStage from "../anatomy3d/MuscleStage";
 
@@ -61,7 +62,14 @@ export default function PushupDemo3D({ movement, playing, speed, onFrame, onFail
   return (
     <div className="lp-3d" ref={box}>
       {status === "loading" && <p className="lp-3d-status">Loading the 3D body…</p>}
-      {status === "ready" && <p className="lp-3d-hint">Drag to turn · pinch or scroll to zoom</p>}
+      {status === "ready" && (
+        <>
+          <p className="lp-3d-hint">Drag to turn any way · pinch or scroll to zoom</p>
+          <button type="button" className="lp-3d-reset" onClick={() => stage.current?.resetView()}>
+            <RotateCcw size={14} aria-hidden="true" /> Reset view
+          </button>
+        </>
+      )}
     </div>
   );
 }

@@ -5,12 +5,16 @@
 // nothing new to download once someone has opened either app.
 
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
 import { fetchLayer } from "../../body/viewer/loadLayer";
-import { bindVertices, makePushup, skin } from "./pushupRig";
+import { bindVertices, skin } from "./pushupRig";
+import { RIGS_3D } from "./rigs";
 import { efforts, muscleForPart, repAt } from "../data/activation";
 import { MAX_SLOTS, muscleMaterial, shade } from "./material";
+
+// Where the camera starts, from the body's centre: front-left and a little above.
+const START_VIEW = new THREE.Vector3(1.8, 0.44, 0.68);
 
 export default class MuscleStage {
   constructor(container, { movement, lite = false, baseUrl = "/anatomy", onFrame, onStatus }) {
@@ -40,7 +44,7 @@ export default class MuscleStage {
     const scene = new THREE.Scene();
     this.scene = scene;
     const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 20);
-    camera.position.set(1.8, 0.72, 1.5);
+    camera.position.copy(START_VIEW).add(new THREE.Vector3(0, 0.28, 0.82));
     this.camera = camera;
 
     scene.add(new THREE.HemisphereLight(0xfff4ee, 0x2a0d0a, 1.25));
@@ -50,6 +54,10 @@ export default class MuscleStage {
     const rim = new THREE.DirectionalLight(0xff3b2a, 1.6);
     rim.position.set(-2.5, 1.2, -1.5);
     scene.add(rim);
+    // A soft light from below, so the body isn't a silhouette when you turn it over.
+    const under = new THREE.DirectionalLight(0xffffff, 0.7);
+    under.position.set(0.5, -3, 1);
+    scene.add(under);
 
     // Floor: a soft red pool of light under the body.
     const floorTex = this.floorTexture();
@@ -61,22 +69,35 @@ export default class MuscleStage {
     floor.position.set(0, -0.001, 0.6);
     scene.add(floor);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
+    // Trackball, not orbit: you can turn the body any way at all, over the
+    // top and underneath as well as round the sides. "Reset view" puts it
+    // back upright.
+    const controls = new TrackballControls(camera, renderer.domElement);
     controls.target.set(0, 0.28, 0.82);
-    controls.enableDamping = true;
-    controls.enablePan = false;
+    controls.rotateSpeed = 3;
+    controls.zoomSpeed = 1;
+    controls.noPan = true;
+    controls.dynamicDampingFactor = 0.15;
     controls.minDistance = 1.2;
     controls.maxDistance = 4.2;
-    controls.maxPolarAngle = Math.PI * 0.49;
+    controls.keys = []; // no A/S/D shortcuts: they'd fire while typing elsewhere
+    // Trackball only moves the camera inside update(), so keep drawing while
+    // a finger or mouse is down. "change" keeps it going while it glides.
     controls.addEventListener("change", () => this.requestRender());
     controls.addEventListener("start", () => {
       this.userMoved = true;
+      this.dragging = true;
+      this.requestRender();
+    });
+    controls.addEventListener("end", () => {
+      this.dragging = false;
+      this.requestRender();
     });
     this.controls = controls;
 
     this.uniforms = { efforts: { value: new Float32Array(MAX_SLOTS) } };
     this.material = muscleMaterial(this.uniforms);
-    this.rig = makePushup({ chestGap: 0.08 });
+    this.rig = RIGS_3D[movement.rig](movement.rigOptions);
 
     this.resize = this.resize.bind(this);
     this.tick = this.tick.bind(this);
@@ -240,9 +261,9 @@ export default class MuscleStage {
     } else {
       this.last = null;
     }
-    const damping = this.controls.update();
+    this.controls.update();
     this.renderer.render(this.scene, this.camera);
-    if (moving || damping) this.requestRender();
+    if (moving || this.dragging) this.requestRender();
   }
 
   resize() {
@@ -253,12 +274,25 @@ export default class MuscleStage {
     this.camera.fov = 30;
     // Step back on narrower screens so the whole body (about 1.8 m long) fits,
     // until someone moves the camera themselves.
-    if (!this.userMoved) {
-      const away = this.camera.position.clone().sub(this.controls.target).normalize();
-      const dist = 2.45 * Math.max(1, 1.75 / (w / h));
-      this.camera.position.copy(this.controls.target).add(away.multiplyScalar(Math.min(dist, 4.1)));
-    }
+    if (!this.userMoved) this.placeCamera(this.camera.position.clone().sub(this.controls.target));
     this.camera.updateProjectionMatrix();
+    this.controls.handleResize();
+    this.requestRender();
+  }
+
+  placeCamera(direction) {
+    const w = this.container.clientWidth || 1;
+    const h = this.container.clientHeight || 1;
+    const dist = 2.45 * Math.max(1, 1.75 / (w / h));
+    this.camera.position.copy(this.controls.target).add(direction.normalize().multiplyScalar(Math.min(dist, 4.1)));
+  }
+
+  /** Back to the starting view: upright, from the front and a little above. */
+  resetView() {
+    this.userMoved = false;
+    this.camera.up.set(0, 1, 0);
+    this.placeCamera(START_VIEW.clone());
+    this.camera.lookAt(this.controls.target);
     this.requestRender();
   }
 

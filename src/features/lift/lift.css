@@ -301,6 +301,37 @@
   background: var(--lf-accent);
 }
 
+.lf-trainfor {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.lf-trainfor-group h3 {
+  margin: 0 0 8px;
+  color: var(--lf-muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lf-trainfor-why {
+  padding: 12px 14px;
+  border: 1px solid var(--lf-line-strong);
+  border-left: 3px solid var(--lf-accent);
+  border-radius: 10px;
+  background: var(--lf-surface-2);
+}
+
+.lf-trainfor-why p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.lf-trainfor-why p + p {
+  margin-top: 6px;
+}
+
 .lf-chip--preset {
   border-style: dashed;
 }
@@ -1335,6 +1366,25 @@
 
 .lp-3d-hint {
   bottom: 8px;
+}
+
+.lp-3d-reset {
+  position: absolute;
+  right: 10px;
+  bottom: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--lf-line-strong);
+  border-radius: 4px;
+  color: #f4f4ef;
+  background: rgba(0, 0, 0, 0.5);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .lp-caption {

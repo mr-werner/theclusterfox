@@ -47,7 +47,7 @@ export default function ListTab({ data, setList, change, today, result, cookPend
 
       <form className="gx-add" onSubmit={add}>
         <label className="gx-sr" htmlFor="gx-add-input">Add an item</label>
-        <input id="gx-add-input" type="text" autoComplete="off" placeholder="Add an item, like “2 lb chicken” or “eggs x2”" value={text} onChange={e => setText(e.target.value)} maxLength={80} />
+        <input id="gx-add-input" type="text" autoComplete="off" placeholder="Add an item, like 2 lb chicken" value={text} onChange={e => setText(e.target.value)} maxLength={80} />
         <button type="submit" className="gx-btn gx-btn--primary" disabled={!text.trim()}>
           <Plus size={17} aria-hidden="true" /> Add
         </button>

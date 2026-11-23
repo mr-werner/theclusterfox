@@ -1297,3 +1297,24 @@
   flex: none;
   color: var(--gx-muted);
 }
+
+.gx-cell-entry a {
+  white-space: nowrap;
+}
+
+/* On a phone the item names stay put while the stores scroll sideways. */
+@media (max-width: 640px) {
+  .gx .gx-cell-entry input {
+    width: 70px;
+  }
+
+  .gx-table tbody th,
+  .gx-table thead th:first-child,
+  .gx-table tfoot th {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 96px;
+    background: var(--gx-paper);
+  }
+}

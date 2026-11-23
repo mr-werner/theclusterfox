@@ -444,6 +444,7 @@ const categories = [
       { name: "RTVCPlay", alt: "Netflix", url: "https://www.rtvcplay.co/", mark: "RT", color: "#e4002b", description: "Colombian public TV, with Señal Colombia series, documentaries and live channels." },
       { name: "PTS+", alt: "Netflix", url: "https://www.ptsplus.tv/", mark: "PT", color: "#00a0e9", description: "Taiwan's public TV streaming, with dramas, documentaries and children's shows." },
       { name: "TaiwanPlus", alt: "Netflix", url: "https://www.taiwanplus.com/", mark: "T+", color: "#d7282f", description: "Taiwan's public English-language channel, with news, travel and culture shows." },
+      { name: "mewatch", alt: "Netflix", url: "https://www.mewatch.sg/", mark: "me", color: "#7b2cbf", description: "Mediacorp's free streaming for Singapore dramas, variety shows and live channels." },
     ],
   },
   {
@@ -542,6 +543,7 @@ const categories = [
       { name: "Radiónica", alt: "SiriusXM", url: "https://www.radionica.rocks/", mark: "Ra", color: "#e6007e", description: "Colombian public youth radio focused on rock, indie and new local music." },
       { name: "Radio Taiwan International", alt: "SiriusXM", url: "https://www.rti.org.tw/", mark: "Rt", color: "#0068b7", description: "Taiwan's international public radio, broadcasting in over a dozen languages." },
       { name: "National Education Radio", alt: "SiriusXM", url: "https://www.ner.gov.tw/", mark: "NE", color: "#2e8b57", description: "Taiwanese public radio for learning, culture and podcasts, live and on demand." },
+      { name: "meListen", alt: "SiriusXM", url: "https://www.melisten.sg/", mark: "mL", color: "#ff5a36", description: "Mediacorp radio stations and podcasts from Singapore, live and on demand." },
     ],
   },
   {
@@ -581,6 +583,8 @@ const categories = [
       { name: "DIGAR", alt: "Kindle Unlimited / archives", url: "https://www.digar.ee/", mark: "DI", color: "#2f6f4f", description: "National Library of Estonia digital archive of books, papers and maps." },
       { name: "Tímarit.is", alt: "Newspapers.com", url: "https://timarit.is/", mark: "Tí", color: "#4a6fa5", description: "Free archive of digitized Icelandic, Faroese and Greenlandic newspapers." },
       { name: "Biblioteca Virtual Banrepcultural", alt: "Scribd", url: "https://www.banrepcultural.org/biblioteca-virtual", mark: "BV", color: "#00457c", description: "Free digital library from Colombia's central bank, with books, maps and historic documents." },
+      { name: "NewspaperSG", alt: "Newspapers.com", url: "https://eresources.nlb.gov.sg/newspapers", mark: "NS", color: "#c8102e", description: "Free archive of Singapore and Malaya newspapers going back to 1831." },
+      { name: "NLB Mobile", alt: "Kindle Unlimited", url: "https://www.nlb.gov.sg/main/visit-us/nlb-mobile-app", mark: "NL", color: "#e2231a", description: "Singapore's National Library app for free e-books, audiobooks and magazines." },
     ],
   },
   {
@@ -700,6 +704,7 @@ const categories = [
       { name: "Yr", alt: "paid weather apps", url: "https://www.yr.no/en", logo: siYr, description: "Ad-free weather forecasts for anywhere in the world." },
       { name: "Too Good To Go", alt: "full-price takeout", url: "https://www.toogoodtogo.com/", mark: "TG", color: "#00615f", description: "Buy surplus food from local shops and restaurants at a discount." },
       { name: "Mapy.com", alt: "Google Maps", url: "https://mapy.com/", mark: "Ma", color: "#2a9d3d", description: "Detailed maps with hiking and cycling trails and offline downloads." },
+      { name: "OneMap", alt: "Google Maps", url: "https://www.onemap.gov.sg/", mark: "OM", color: "#0d6efd", description: "Singapore's official government map, with transit routes, addresses and public services." },
     ],
   },
   {
@@ -778,6 +783,7 @@ const categories = [
       { name: "Siyavula", alt: "paid tutoring / textbooks", url: "https://www.siyavula.com/", mark: "Si", color: "#17a589", description: "Free open maths and science textbooks with practice for high school." },
       { name: "Colombia Aprende", alt: "paid tutoring", url: "https://www.colombiaaprende.edu.co/", mark: "CA", color: "#3366cc", description: "Colombia's free national education portal, with lessons and resources for every school level." },
       { name: "Junyi Academy", alt: "paid tutoring", url: "https://www.junyiacademy.org/", mark: "JA", color: "#4fb3bf", description: "Taiwanese nonprofit with free video lessons and practice from primary to high school." },
+      { name: "SkillsFuture", alt: "LinkedIn Learning", url: "https://www.skillsfuture.gov.sg/", mark: "SF", color: "#d71920", description: "Singapore's national lifelong learning portal, with free guides and subsidized courses." },
     ],
   },
   {

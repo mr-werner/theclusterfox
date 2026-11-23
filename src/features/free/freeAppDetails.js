@@ -482,6 +482,12 @@ export const freeAppDetails = {
   "National Education Radio": { note: "Live public radio and podcasts, available worldwide." },
   "Junyi Academy": { note: "Free nonprofit platform; a free account saves your progress." },
   "MOE Revised Mandarin Dictionary": { note: "Free public dictionary from Taiwan's Ministry of Education." },
+  "mewatch": { limits: ["ads", "region"], note: "Free with ads; most shows only play in Singapore." },
+  "meListen": { note: "Live radio and podcasts, available worldwide." },
+  "NewspaperSG": { note: "Free public archive from the National Library Board; some recent papers are viewable only at the library." },
+  "NLB Mobile": { limits: ["libraryCard"], note: "Free with a National Library Board membership, open to Singapore residents." },
+  "OneMap": { note: "Free public map from the Singapore Land Authority." },
+  "SkillsFuture": { limits: ["region", "freeTier"], note: "Free guides for everyone; course credits are only for Singapore citizens." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -804,4 +810,10 @@ export const freeAppCountries = {
   "National Education Radio": "Taiwan",
   "Junyi Academy": "Taiwan",
   "MOE Revised Mandarin Dictionary": "Taiwan",
+  "mewatch": "Singapore",
+  "meListen": "Singapore",
+  "NewspaperSG": "Singapore",
+  "NLB Mobile": "Singapore",
+  "OneMap": "Singapore",
+  "SkillsFuture": "Singapore",
 };

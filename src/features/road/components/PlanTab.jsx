@@ -113,6 +113,7 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
       line: shrink(current.route.points, 400).map(p => [Math.round(p.lat * 1e4) / 1e4, Math.round(p.lon * 1e4) / 1e4]),
       stops: current.stops.map(s => ({ id: s.id, name: s.name, region: "", lat: s.lat, lon: s.lon, label: s.label, theme: s.theme, mile: s.mile, minutes: s.minutes, wiki: s.wiki })),
       days: days.map(d => ({ driveMinutes: d.driveMinutes, stopMinutes: d.stopMinutes, miles: d.toMile - d.fromMile, endName: townFor(d.end)?.name ?? "", stopNames: d.stops.map(s => s.name) })),
+      pack: data.pack,
       createdAt: new Date().toISOString(),
     };
     patch(d => ({ trips: [t, ...d.trips].slice(0, 40) }));
@@ -373,7 +374,7 @@ function Intro() {
           </article>
         );
       })}
-      <p className="rf-muted rf-small rf-intro-note">Pick where you're starting and where you're going. RoadFox finds the fastest way, another way, and a route for each kind of trip with real places to stop, then splits it into days with a town to sleep in each night.</p>
+      <p className="rf-muted rf-small rf-intro-note">Pick where you're starting and where you're going. RoadTripFox finds the fastest way, another way, and a route for each kind of trip with real places to stop, then splits it into days with a town to sleep in each night. Tell it how long you're staying and the Pack tab lists what to bring for the weather there.</p>
     </section>
   );
 }

@@ -1,16 +1,18 @@
-// RoadFox's data, all free:
+// RoadTripFox's data, all free:
 //  - places: Open-Meteo geocoding (keyless)
 //  - routes: the public OSRM server (keyless, fair use)
 //  - stops, gas stations, chargers, towns: OpenStreetMap through Overpass
 //    (keyless; the browser asks directly, like CookFox does)
 //  - gas prices: U.S. EIA weekly averages, and DC fast chargers: NREL,
 //    both through /api/road (free keys; DEMO_KEY works for light use)
-//  - weather at each night's stop: Open-Meteo (keyless)
+//  - weather at each night's stop and where you stay: Open-Meteo forecast
+//    and its archive for what's typical further out (keyless)
 
 import { searchPlaces } from "../../services/weather/openMeteo";
 import { osrmPath, parseOsrm, placesFromOsm } from "./model/route.js";
 import { overpassAlong } from "./data/themes.js";
 import { stationsFromOsm } from "./model/fuel.js";
+import { parseForecastDays, shiftYears, typicalDays } from "./model/packing.js";
 
 const OSRM = "https://router.project-osrm.org";
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
@@ -90,10 +92,10 @@ async function api(path, init) {
     response = await fetch(`/api/road/${path}`, init);
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    throw new Error("Couldn't reach RoadFox's data service.", { cause: error });
+    throw new Error("Couldn't reach RoadTripFox's data service.", { cause: error });
   }
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error || "RoadFox's data service isn't responding.");
+  if (!response.ok) throw new Error(body.error || "RoadTripFox's data service isn't responding.");
   return body;
 }
 
@@ -127,4 +129,73 @@ export async function fetchDailyWeather(points, { signal } = {}) {
     });
     return { days };
   });
+}
+
+const stayWeather = new Map();
+
+/**
+ * Weather for one stay: { "YYYY-MM-DD": { hi, lo, rain, snow, code } }.
+ * source "forecast" asks for the forecast; "typical" averages the same dates
+ * over the last three years. Answers are kept for the visit.
+ */
+export function fetchStayWeather(place, dates, source, { signal } = {}) {
+  if (!dates.length) return Promise.resolve({});
+  const key = `${place.lat.toFixed(2)},${place.lon.toFixed(2)}|${dates[0]}|${dates.length}|${source}`;
+  if (!stayWeather.has(key)) {
+    const job = (source === "forecast" ? forecastFor(place, dates) : typicalFor(place, dates)).catch(error => {
+      stayWeather.delete(key);
+      throw error;
+    });
+    stayWeather.set(key, job);
+  }
+  const job = stayWeather.get(key);
+  if (!signal) return job;
+  return new Promise((resolve, reject) => {
+    signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+    job.then(resolve, reject);
+  });
+}
+
+async function openMeteo(base, qs) {
+  let response;
+  try {
+    response = await fetch(`${base}?${new URLSearchParams(qs)}`);
+  } catch (error) {
+    throw new Error("Couldn't reach the weather service. Check your connection.", { cause: error });
+  }
+  if (!response.ok) throw new Error("The weather service isn't responding. Try again in a moment.");
+  return response.json();
+}
+
+async function forecastFor(place, dates) {
+  const body = await openMeteo("https://api.open-meteo.com/v1/forecast", {
+    latitude: place.lat.toFixed(3),
+    longitude: place.lon.toFixed(3),
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,snowfall_sum",
+    temperature_unit: "fahrenheit",
+    timezone: "auto",
+    start_date: dates[0],
+    end_date: dates[dates.length - 1],
+  });
+  return parseForecastDays(body);
+}
+
+async function typicalFor(place, dates) {
+  const years = [1, 2, 3];
+  const bodies = await Promise.all(
+    years.map(n =>
+      openMeteo("https://archive-api.open-meteo.com/v1/archive", {
+        latitude: place.lat.toFixed(3),
+        longitude: place.lon.toFixed(3),
+        daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum",
+        temperature_unit: "fahrenheit",
+        timezone: "auto",
+        start_date: shiftYears(dates[0], n),
+        end_date: shiftYears(dates[dates.length - 1], n),
+      }).catch(() => null)
+    )
+  );
+  const got = bodies.filter(Boolean);
+  if (!got.length) throw new Error("The weather service isn't responding. Try again in a moment.");
+  return typicalDays(got, dates);
 }

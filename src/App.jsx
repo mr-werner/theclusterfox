@@ -47,7 +47,7 @@ const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 // ClimbFox reads routes live from OpenBeta, and loads on demand like the rest.
 const ClimbPage = lazy(() => import("./features/climb/ClimbPage"));
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
-// RoadFox carries its state outlines and games, so it loads on demand too.
+// RoadTripFox carries its state outlines and games, so it loads on demand too.
 const RoadPage = lazy(() => import("./features/road/RoadPage"));
 // BeaconFox is saved for offline use on its own, so it is its own chunk.
 const BeaconPage = lazy(() => import("./features/beacon/BeaconPage"));
@@ -63,6 +63,13 @@ const StudyPage = lazy(() => import("./features/study/StudyPage"));
 function RedirectToPilot() {
     const { search, hash } = useLocation();
     return <Navigate to={`/pilot${search}${hash}`} replace />;
+}
+
+// RoadTripFox used to be RoadFox at /road; old links (and saved planner
+// items) keep working.
+function RedirectToRoadTrip() {
+    const { search, hash } = useLocation();
+    return <Navigate to={`/roadtrip${search}${hash}`} replace />;
 }
 
 // Feedback, Donate and the developer area are small but rarely opened.
@@ -215,8 +222,9 @@ export default function App() {
                     </Suspense>
                 }
             />
+            <Route path="/road" element={<RedirectToRoadTrip />} />
             <Route
-                path="/road"
+                path="/roadtrip"
                 element={
                     <Suspense fallback={null}>
                         <RoadPage />

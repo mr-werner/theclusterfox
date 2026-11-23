@@ -488,6 +488,11 @@ export const freeAppDetails = {
   "NLB Mobile": { limits: ["libraryCard"], note: "Free with a National Library Board membership, open to Singapore residents." },
   "OneMap": { note: "Free public map from the Singapore Land Authority." },
   "SkillsFuture": { limits: ["region", "freeTier"], note: "Free guides for everyone; course credits are only for Singapore citizens." },
+  "HRTi": { limits: ["region"], note: "Public and free with a free account; many shows are Croatia only." },
+  "HRT Radio": { note: "Live public radio and podcasts, available worldwide." },
+  "Hrvatska enciklopedija": { note: "Free public encyclopedia from the Miroslav Krleža Lexicographic Institute." },
+  "Edutorij": { note: "Free public repository from CARNET, Croatia's academic network." },
+  "Hrvatski jezični portal": { note: "Free dictionary from publisher Znanje and Novi Liber." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -816,4 +821,9 @@ export const freeAppCountries = {
   "NLB Mobile": "Singapore",
   "OneMap": "Singapore",
   "SkillsFuture": "Singapore",
+  "HRTi": "Croatia",
+  "HRT Radio": "Croatia",
+  "Hrvatska enciklopedija": "Croatia",
+  "Edutorij": "Croatia",
+  "Hrvatski jezični portal": "Croatia",
 };

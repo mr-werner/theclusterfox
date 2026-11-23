@@ -159,7 +159,7 @@ const sideFor = (takeoff, n) => (takeoff === "both" ? (n % 2 ? "one" : "two") : 
 // ---- items ---------------------------------------------------------------
 
 function legNote(drill, opts) {
-  if (!drill.perSide && drill.legs !== "one") return null;
+  if (!drill.perSide) return null;
   if (opts.leg && opts.takeoff !== "two") return `Start on your takeoff leg (${opts.leg}), then the other.`;
   return null;
 }
@@ -373,6 +373,7 @@ export function itemInfo(item) {
 
 export function doseText(item) {
   if (item.unit === "round") return null;
+  if (item.unit === "tries") return `${item.reps} tries each`;
   const side = item.perSide ? " each side" : "";
   const unit = item.unit === "sec" ? " sec" : item.unit === "m" ? " m" : item.unit === "bounds" ? " bounds" : item.unit === "tries" ? " tries each" : "";
   return `${item.sets} × ${item.reps}${unit}${side}`;

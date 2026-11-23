@@ -391,7 +391,7 @@
 .lp-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 18px; padding: 0; list-style: none; font-size: 0.82rem; color: var(--lp-muted); }
 .lp-legend li::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 3px; background: var(--ph); }
 
-.lp-weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.lp-weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
 .lp-week { padding: 14px; border: 1px solid var(--lp-line); border-radius: 16px; background: var(--lp-surface); }
 .lp-week.is-now { border-color: rgba(212, 255, 58, 0.4); }
 .lp-week h3 { display: flex; gap: 8px; align-items: baseline; margin-bottom: 8px; }
@@ -399,7 +399,7 @@
 .lp-week ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .lp-sess {
   display: grid;
-  grid-template-columns: 20px 82px 1fr auto;
+  grid-template-columns: 18px 76px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -420,7 +420,7 @@
 .lp-sess.is-missed .lp-sess-name { color: var(--lp-muted); }
 .lp-sess-day { font-size: 0.84rem; color: var(--lp-muted); }
 .lp-sess-name { font-size: 0.94rem; font-weight: 600; }
-.lp-sess-meta { font-size: 0.8rem; color: var(--lp-muted); }
+.lp-sess-meta { font-size: 0.8rem; color: var(--lp-muted); white-space: nowrap; }
 .lp-plan-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 18px; }
 .lp-confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--lp-muted); }
 
@@ -574,5 +574,12 @@
   .lp-history li { grid-template-columns: 80px 1fr auto 30px; font-size: 0.86rem; }
   .lp-train-nav h2 { font-size: 1.5rem; }
   .lp-field-row .lp-input { min-width: 150px; }
-  .lp-vanes { width: 40%; opacity: 0.6; }
+  .lp-vanes { width: 40%; opacity: 0.35; }
+  .lp-hero { align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .lp-logo { width: 46px; height: 46px; border-radius: 13px; }
+  .lp-lede { font-size: 0.95rem; }
+  .lp-summary { flex-direction: column; gap: 12px; }
+  .lp-meter { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; align-items: end; width: 100%; }
+  .lp-meter strong { font-size: 2.2rem; }
+  .lp-meter-bar { grid-column: 1 / -1; }
 }

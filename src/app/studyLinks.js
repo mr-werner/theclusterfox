@@ -31,6 +31,7 @@ export const STUDY_LINKS = [
   { app: "toolfox", load: () => import("../features/tools/model/studyLink.js") },
   { app: "bodyfox", load: () => import("../features/body/model/studyLink.js") },
   { app: "growfox", load: () => import("../features/grow/model/studyLink.js") },
+  { app: "bookfox", load: () => import("../features/book/model/studyLink.js") },
 ];
 
 export const studyLinkFor = app => STUDY_LINKS.find(l => l.app === app) ?? null;

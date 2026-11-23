@@ -334,5 +334,6 @@ export const apps = [
     path: "/books",
     icon: BookOpen,
     accent: "bookfox",
+    category: "learn",
   },
 ];

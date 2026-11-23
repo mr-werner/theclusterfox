@@ -360,3 +360,49 @@
 .appbar-home + .appbar-account {
   margin-left: -6px;
 }
+
+/* Feedback: a quiet way to say something isn't working, from any app. */
+.appbar-feedback {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  border: 1px solid var(--ab-line);
+  border-radius: 50%;
+  color: var(--ab-fg);
+  opacity: 0.8;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.appbar-feedback:hover {
+  border-color: var(--ab-accent);
+  opacity: 1;
+}
+
+.appbar-plan + .appbar-feedback,
+.appbar-feedback + .appbar-home {
+  margin-left: 0;
+}
+
+.appbar-menu-item svg {
+  margin-right: 6px;
+  vertical-align: -3px;
+}
+
+/* Phones: no room in the bar; feedback lives in the account menu and on
+   the home screen there. */
+@media (max-width: 520px) {
+  .appbar-feedback {
+    display: none;
+  }
+
+  .appbar-feedback + .appbar-home {
+    margin-left: auto;
+  }
+
+  .appbar-plan + .appbar-feedback + .appbar-home {
+    margin-left: 0;
+  }
+}

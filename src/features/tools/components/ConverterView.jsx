@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { HomeLabel, Link } from "../nav";
+import { useNavigate } from "../navBase";
 import { Check, Copy } from "lucide-react";
 import { DIMS, CONVERTER_DIMS, defaultUnit, toSI, fromSI, fmt, fmtInput, parseNumber } from "../model/units";
 
@@ -36,7 +37,7 @@ export default function ConverterView({ dim: dimParam, prefsApi }) {
     <article className="tf-convert">
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          Engineer ToolFox
+          <HomeLabel />
         </Link>
         <h1>Unit converter</h1>
         <p className="tf-lede">Type once, see every unit at the same time. Click a result to copy it.</p>

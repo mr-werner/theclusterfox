@@ -12,7 +12,7 @@
 import { sunPosition, declination, lightFor } from "./sun.js";
 
 const RAD = Math.PI / 180;
-export const EXTENT = 20; // meters from the map center to its edge (a lot about 130 ft across)
+export const EXTENT = 28; // meters from the map center to its edge (a lot about 180 ft across)
 export const CELL = 0.8; // meters per map patch
 const STEP = 0.25; // hours between sun samples
 const MIN_ALT = 10; // degrees: lower sun is weak and usually blocked by neighbors and trees beyond the map

@@ -148,6 +148,8 @@ export const BROWSE_LISTS = [
   { id: "movies", name: "Popular movies" },
   { id: "shows", name: "Popular shows" },
   { id: "mine", name: "On my services" },
+  { id: "hot", name: "Hot right now" },
+  { id: "classics", name: "Classics" },
   { id: "watchlist", name: "Watchlist" },
   { id: "favorites", name: "Favorites" },
   { id: "watched", name: "Seen" },
@@ -177,6 +179,29 @@ export const GENRES = [
 ];
 
 export const genresById = new Map(GENRES.map(g => [g.id, g]));
+
+// Extra TMDB discover filters for the recommendation lists.
+// Hot right now: new movies and shows with episodes airing lately, by buzz.
+// Classics: 15+ years old, widely seen and highly rated.
+export function discoverFilters(list, type, today = new Date()) {
+  const day = date => date.toISOString().slice(0, 10);
+  const shift = (years, months = 0) => {
+    const date = new Date(today);
+    date.setUTCFullYear(date.getUTCFullYear() - years, date.getUTCMonth() - months);
+    return day(date);
+  };
+  if (list === "hot") {
+    return type === "movie"
+      ? { "primary_release_date.gte": shift(0, 9), "primary_release_date.lte": day(today), "vote_count.gte": "20" }
+      : { "air_date.gte": shift(0, 2), "air_date.lte": day(today), "vote_count.gte": "20" };
+  }
+  if (list === "classics") {
+    return type === "movie"
+      ? { sort_by: "vote_average.desc", "primary_release_date.lte": shift(15), "vote_count.gte": "2500" }
+      : { sort_by: "vote_average.desc", "first_air_date.lte": shift(15), "vote_count.gte": "600" };
+  }
+  return {};
+}
 
 // Recommendations from several favorites, merged. A title suggested by more
 // favorites ranks higher; within that, earlier spots in each list count more.

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { HomeLabel, Link } from "../nav";
 import { ChevronRight } from "lucide-react";
 
 // Small controls shared by the Design & Manufacturing pages.
@@ -65,7 +65,7 @@ export function Segmented({ label, options, value, onChange, small }) {
 export function Crumbs({ here }) {
   return (
     <nav className="gd-crumbs" aria-label="Breadcrumb">
-      <Link to="/tools" className="tf-crumb">Engineer ToolFox</Link>
+      <Link to="/tools" className="tf-crumb"><HomeLabel /></Link>
       <ChevronRight size={13} aria-hidden="true" />
       <Link to="/tools/c/design" className="tf-crumb">Design &amp; Manufacturing</Link>
       {here && (

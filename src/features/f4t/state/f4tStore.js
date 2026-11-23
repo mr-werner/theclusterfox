@@ -1,4 +1,4 @@
-// Everything Fuel 4 Thought remembers lives in one document. It is kept in
+// Everything FuelFox (formerly Fuel 4 Thought) remembers lives in one document. It is kept in
 // this browser for everyone, and mirrored to the account when signed in.
 //
 // The diet planner adds: the body profile, weigh-ins, the meal plan (one
@@ -6,6 +6,7 @@
 
 import { cleanProfile, emptyProfile } from "../model/body.js";
 import { SLOTS } from "../model/planner.js";
+import { quickById } from "../data/quickFoods.js";
 
 export const STORAGE_KEY = "f4t-data-v2";
 const DRAFT_KEY = "f4t-current-meal-v1";
@@ -70,9 +71,11 @@ function cleanEntry(e) {
       }
     : null;
   const recipeId = typeof e.recipeId === "string" ? e.recipeId.slice(0, 80) : null;
-  if (!recipeId && !off) return null;
+  const quickId = typeof e.quickId === "string" && quickById.has(e.quickId) ? e.quickId : null;
+  if (!recipeId && !quickId && !off) return null;
   return {
-    recipeId,
+    recipeId: quickId ? null : recipeId,
+    ...(quickId ? { quickId } : {}),
     portions: num(e.portions, 0.25, 12) ?? 1,
     ...(e.leftover === true && recipeId ? { leftover: true } : {}),
     ...(e.eaten === true ? { eaten: true } : {}),

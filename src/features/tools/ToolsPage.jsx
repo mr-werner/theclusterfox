@@ -1,33 +1,54 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeftRight, BookOpen, Calculator, ChevronRight, Clock, FolderOpen, Network, Search, Star, Table2, Wrench } from "lucide-react";
+import { Link as AppLink, Route, Routes, useParams, useSearchParams } from "react-router-dom";
+import { HomeLabel, Link, NavLink, Navigate, ToolsBaseProvider } from "./nav";
+import { useNavigate, useToolsBase } from "./navBase";
+import { ArrowLeftRight, BookOpen, BriefcaseBusiness, Calculator, Check, ChevronRight, Clock, FolderOpen, Network, Search, Star, Table2, Wrench } from "lucide-react";
 import AppBar from "../../components/AppBar";
 import { CATEGORIES, CALCS, TABLES, BUILDERS, CALC_ALIASES, calcById, tableById, builderById, categoryById, search } from "./registry";
 import { usePrefs } from "./state/usePrefs";
+import { canonical } from "./paths";
 import CalcView from "./components/CalcView";
 import TableView from "./components/TableView";
 import ConverterView from "./components/ConverterView";
 import FrameView from "./components/FrameView";
 import { GdtIndex, GdtRoute } from "./design/GdtView";
+import AddToStudy from "../../components/AddToStudy";
 import { MakeRoute } from "./design/MakeView";
 import { BASICS as GDT_BASICS, CALLOUTS as GDT_CALLOUTS } from "./design/gdtModel";
 import "./tools.css";
 import "./identity.css";
+import "./disciplines.css";
+import { disciplineById, disciplineForCat } from "./disciplines";
+import { PROFESSIONS, PROFESSION_GROUPS, professionById } from "./professions";
 import ProjectsProvider from "./state/ProjectsProvider";
 import { useProjects } from "./state/useProjects";
 import { ProjectsIndex, ProjectPage, ProjectReport } from "./components/ProjectsView";
 
 const POPULAR = ["pressure-drop", "beam", "psychrometrics", "voltage-drop", "tank-volume", "section-properties"];
 
-export default function ToolsPage() {
+/**
+ * Engineer ToolFox, or one discipline of it standing as its own app
+ * (`discipline` = "fluids", "hvac", ... from disciplines.js). Both show the
+ * same tool pages; a discipline app just leads with its own tools and wears
+ * its own colors.
+ */
+export default function ToolsPage({ discipline: disciplineId }) {
+  const discipline = disciplineById[disciplineId] || null;
   return (
-    <ProjectsProvider>
-      <ToolsShell />
-    </ProjectsProvider>
+    <ToolsBaseProvider base={discipline ? discipline.path : "/tools"} discipline={discipline}>
+      <ProjectsProvider>
+        <ToolsShell />
+      </ProjectsProvider>
+    </ToolsBaseProvider>
   );
 }
 
+/** The CSS variables that give a discipline app its own sheet. */
+const disciplineStyle = (d) => (d ? { "--d-bg": d.bg, "--d-accent": d.accent, "--d-grid": d.grid, "--tf-cat": d.accent } : undefined);
+
 function ToolsShell() {
+  const { base, discipline } = useToolsBase();
+  const dcat = discipline ? categoryById[discipline.cat] : null;
   const prefsApi = usePrefs();
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -44,19 +65,26 @@ function ToolsShell() {
   }, []);
 
   return (
-    <main className="tools-page tf">
-      <AppBar appId="toolfox" backTo={toolsParent} />
+    <main className={`tools-page tf${discipline ? " tf-discipline" : ""}`} data-discipline={discipline?.id} style={disciplineStyle(discipline)}>
+      <AppBar appId={discipline ? discipline.id : "toolfox"} backTo={(loc) => toolsParent(loc, base, discipline)} />
       <div className="tf-shell">
-        <aside className="tf-side" aria-label="Engineer ToolFox sections">
+        <aside className="tf-side" aria-label={`${discipline ? discipline.name : "Engineer ToolFox"} sections`}>
           <Link to="/tools" className="tf-brand">
             <span className="tf-brand-mark" aria-hidden="true">
-              <Wrench size={18} />
+              {dcat ? <dcat.icon size={18} /> : <Wrench size={18} />}
             </span>
             <span>
-              <span className="tf-brand-text">
-                <small>Engineer</small>
-                <span>Tool<strong>Fox</strong></span>
-              </span>
+              {discipline ? (
+                <span className="tf-brand-text">
+                  <small>Engineering</small>
+                  <span>{discipline.name}</span>
+                </span>
+              ) : (
+                <span className="tf-brand-text">
+                  <small>Engineer</small>
+                  <span>Tool<strong>Fox</strong></span>
+                </span>
+              )}
             </span>
           </Link>
           <button type="button" className="tf-side-search" onClick={() => setPaletteOpen(true)}>
@@ -65,20 +93,35 @@ function ToolsShell() {
             <kbd>/</kbd>
           </button>
           <nav className="tf-side-nav">
+            {discipline && (
+              <NavLink to="/tools" end className="tf-side-link">
+                <dcat.icon size={16} aria-hidden="true" /> {discipline.name}
+              </NavLink>
+            )}
+            <NavLink to="/tools/jobs" className="tf-side-link">
+              <BriefcaseBusiness size={16} aria-hidden="true" /> Tools by job
+            </NavLink>
             <NavLink to="/tools/projects" className="tf-side-link">
               <FolderOpen size={16} aria-hidden="true" /> Projects
             </NavLink>
             <NavLink to="/tools/convert" className="tf-side-link">
               <ArrowLeftRight size={16} aria-hidden="true" /> Unit converter
             </NavLink>
-            {CATEGORIES.map((c) => (
-              <NavLink key={c.id} to={`/tools/c/${c.id}`} className="tf-side-link" style={{ "--tf-cat": c.hue }}>
-                <c.icon size={16} aria-hidden="true" /> {c.name}
-              </NavLink>
-            ))}
+            {!discipline &&
+              CATEGORIES.map((c) => (
+                <NavLink key={c.id} to={`/tools/c/${c.id}`} className="tf-side-link" style={{ "--tf-cat": c.hue }}>
+                  <c.icon size={16} aria-hidden="true" /> {c.name}
+                </NavLink>
+              ))}
             <NavLink to="/tools/data" className="tf-side-link">
               <Table2 size={16} aria-hidden="true" /> All reference data
             </NavLink>
+            {discipline && (
+              // The full catalog, in its own app.
+              <AppLink to="/tools" className="tf-side-link tf-side-out">
+                <Wrench size={16} aria-hidden="true" /> All of Engineer ToolFox
+              </AppLink>
+            )}
           </nav>
           <div className="tf-system" role="radiogroup" aria-label="Default units">
             <span>Default units</span>
@@ -97,8 +140,10 @@ function ToolsShell() {
 
         <div className="tf-main">
           <Routes>
-            <Route index element={<Home prefsApi={prefsApi} openSearch={() => setPaletteOpen(true)} />} />
+            <Route index element={discipline ? <DisciplineHome prefsApi={prefsApi} openSearch={() => setPaletteOpen(true)} /> : <Home prefsApi={prefsApi} openSearch={() => setPaletteOpen(true)} />} />
             <Route path="c/:cat" element={<CategoryRoute prefsApi={prefsApi} />} />
+            <Route path="jobs" element={<JobsIndex prefsApi={prefsApi} />} />
+            <Route path="jobs/:id" element={<JobPage prefsApi={prefsApi} />} />
             <Route path="calc/:id" element={<CalcRoute prefsApi={prefsApi} />} />
             <Route path="data" element={<AllData />} />
             <Route path="data/:id" element={<TableRoute prefsApi={prefsApi} />} />
@@ -112,7 +157,7 @@ function ToolsShell() {
             <Route path="projects/:id/report" element={<ProjectReport />} />
             <Route path="convert" element={<ConverterRoute prefsApi={prefsApi} />} />
             <Route path="convert/:dim" element={<ConverterRoute prefsApi={prefsApi} />} />
-            <Route path="*" element={<Home prefsApi={prefsApi} openSearch={() => setPaletteOpen(true)} />} />
+            <Route path="*" element={<Navigate to="/tools" replace />} />
           </Routes>
         </div>
       </div>
@@ -126,16 +171,20 @@ function ToolsShell() {
  * page was opened directly: a calculator goes to its category, a table to
  * all reference data, a GD&T callout to the explorer, and so on up.
  */
-function toolsParent({ pathname }) {
-  const parts = pathname.replace(/^\/tools\/?/, "").split("/").filter(Boolean);
+function toolsParent({ pathname }, base = "/tools", discipline = null) {
+  const path = canonical(pathname.replace(/\/+$/, "") || "/", base);
+  const parts = path.replace(/^\/tools\/?/, "").split("/").filter(Boolean);
   const [kind, id] = parts;
-  const builder = BUILDERS.find((b) => b.path === pathname.replace(/\/+$/, ""));
-  if (builder) return `/tools/c/${builder.cat}`;
-  if (kind === "calc" && id) return calcById[id] ? `/tools/c/${calcById[id].cat}` : "/tools";
-  if (kind === "data" && id) return "/tools/data";
-  if (kind === "gdt" && id) return "/tools/gdt";
-  if (kind === "convert" && id) return "/tools/convert";
-  return "/tools";
+  // Inside a discipline app its own category page is the app's home.
+  const catPage = (cat) => (discipline && cat === discipline.cat ? base : `${base}/c/${cat}`);
+  const builder = BUILDERS.find((b) => b.path === path);
+  if (builder) return catPage(builder.cat);
+  if (kind === "calc" && id) return calcById[id] ? catPage(calcById[id].cat) : base;
+  if (kind === "data" && id) return `${base}/data`;
+  if (kind === "gdt" && id) return `${base}/gdt`;
+  if (kind === "convert" && id) return `${base}/convert`;
+  if (kind === "jobs" && id) return `${base}/jobs`;
+  return base;
 }
 
 /** Remember a builder page in "Recently used". */
@@ -220,6 +269,8 @@ function Home({ prefsApi, openSearch }) {
       </section>
 
       <HomeProjects />
+
+      <YourJob prefsApi={prefsApi} />
 
       {(favorites.length > 0 || recent.length > 0) && (
         <section className="tf-home-block">
@@ -312,31 +363,43 @@ function HomeProjects() {
 
 function CategoryRoute() {
   const { cat: catId } = useParams();
+  const { discipline } = useToolsBase();
   const cat = categoryById[catId];
   useEffect(() => {
-    if (cat) document.title = `${cat.name} · Engineer ToolFox`;
+    if (cat) document.title = `${cat.name} · ${discipline ? discipline.name : "Engineer ToolFox"}`;
     return () => {
       document.title = "The ClusterFOX";
     };
-  }, [cat]);
-  if (!cat) return <Home prefsApi={{ prefs: { favorites: [], recent: [] } }} openSearch={() => {}} />;
-  const calcs = CALCS.filter((c) => c.cat === cat.id);
-  const builders = BUILDERS.filter((b) => b.cat === cat.id);
-  const tables = TABLES.filter((t) => t.cat === cat.id);
+  }, [cat, discipline]);
+  // A discipline app's own category is its home page.
+  if (!cat || (discipline && cat.id === discipline.cat)) return <Navigate to="/tools" replace />;
   return (
     <div className="tf-category" style={{ "--tf-cat": cat.hue }}>
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          Engineer ToolFox
+          <HomeLabel />
         </Link>
         <div className="tf-title-row">
           <span className="tf-cat-icon is-big" aria-hidden="true">
             <cat.icon size={26} />
           </span>
           <h1>{cat.name}</h1>
+          <AddToStudy app="toolfox" deck={cat.id === "design" ? "gdt" : `calc-${cat.id}`} title={cat.id === "design" ? "GD&T symbols" : `${cat.name} formulas`} />
         </div>
         <p className="tf-lede">{cat.blurb}</p>
       </header>
+      <CategoryTools cat={cat} />
+    </div>
+  );
+}
+
+/** Every builder, lesson, calculator and table in one category. */
+function CategoryTools({ cat }) {
+  const calcs = CALCS.filter((c) => c.cat === cat.id);
+  const builders = BUILDERS.filter((b) => b.cat === cat.id);
+  const tables = TABLES.filter((t) => t.cat === cat.id);
+  return (
+    <>
       {builders.length > 0 && (
         <>
           <h2 className="tf-block-title">Builders</h2>
@@ -383,7 +446,7 @@ function CategoryRoute() {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -392,7 +455,7 @@ function AllData() {
     <div className="tf-category">
       <header className="tf-page-head">
         <Link to="/tools" className="tf-crumb">
-          Engineer ToolFox
+          <HomeLabel />
         </Link>
         <h1>Reference data</h1>
         <p className="tf-lede">Sortable, filterable tables. Pick any unit in a column header; download what you see as CSV.</p>
@@ -413,12 +476,16 @@ function AllData() {
 
 function Palette({ onClose }) {
   const navigate = useNavigate();
+  const { discipline } = useToolsBase();
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const inputRef = useRef(null);
+  // Inside a discipline app its own tools come first; everything else still shows.
+  const ranked = (list) => (discipline ? [...list].sort((a, b) => (b.cat === discipline.cat) - (a.cat === discipline.cat)) : list);
+  const popular = discipline ? disciplinePopular(discipline) : POPULAR;
   const results = q.trim()
-    ? search(q, 10)
-    : POPULAR.map((id) => ({ kind: "calc", id, name: calcById[id].name, blurb: calcById[id].blurb, cat: calcById[id].cat, path: `/tools/calc/${id}` }));
+    ? ranked(search(q, 40)).slice(0, 10)
+    : popular.map((id) => ({ kind: "calc", id, name: calcById[id].name, blurb: calcById[id].blurb, cat: calcById[id].cat, path: `/tools/calc/${id}` }));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -479,3 +546,253 @@ function Palette({ onClose }) {
     </div>
   );
 }
+
+/** The first few calculators of a discipline, for its empty search box. */
+function disciplinePopular(d) {
+  const own = CALCS.filter((c) => c.cat === d.cat).map((c) => c.id);
+  const also = d.alsoUse.filter((k) => k.startsWith("calc:")).map((k) => k.slice(5));
+  return [...own, ...also].slice(0, 6);
+}
+
+/** Every tool key a discipline app leads with: its category, then `alsoUse`. */
+function disciplineKeys(d) {
+  return [
+    ...BUILDERS.filter((b) => b.cat === d.cat).map((b) => `builder:${b.id}`),
+    ...CALCS.filter((c) => c.cat === d.cat).map((c) => `calc:${c.id}`),
+    ...TABLES.filter((t) => t.cat === d.cat).map((t) => `table:${t.id}`),
+    ...d.alsoUse,
+  ];
+}
+
+/** A discipline app's start page: its own tools, the extras its field uses, and the jobs that use them. */
+function DisciplineHome({ prefsApi, openSearch }) {
+  const { discipline } = useToolsBase();
+  const cat = categoryById[discipline.cat];
+  const { prefs } = prefsApi;
+  const mine = new Set(disciplineKeys(discipline));
+  const favorites = prefs.favorites.filter((k) => mine.has(k)).map(itemFor).filter(Boolean);
+  const recent = prefs.recent.filter((k) => mine.has(k) && !prefs.favorites.includes(k)).map(itemFor).filter(Boolean).slice(0, 4);
+  const extras = discipline.alsoUse.map(itemFor).filter(Boolean);
+  const jobs = PROFESSIONS.filter((p) => p.tools.some((k) => itemFor(k)?.cat === discipline.cat));
+
+  useEffect(() => {
+    document.title = `${discipline.name} · Engineering tools`;
+    return () => {
+      document.title = "The ClusterFOX";
+    };
+  }, [discipline]);
+
+  return (
+    <div className="tf-home tf-category">
+      <section className="tf-hero">
+        <p className="tf-eyebrow">{discipline.tagline}</p>
+        <div className="tf-title-row tf-disc-title">
+          <span className="tf-cat-icon is-big" aria-hidden="true">
+            <cat.icon size={26} />
+          </span>
+          <h1>{discipline.name}</h1>
+        </div>
+        <p className="tf-lede">{cat.blurb} The same tools as Engineer ToolFox, kept in step with it.</p>
+        <button type="button" className="tf-hero-search" onClick={openSearch}>
+          <Search size={20} aria-hidden="true" />
+          <span>Search {discipline.name.toLowerCase()} tools</span>
+          <kbd>/</kbd>
+        </button>
+      </section>
+
+      {(favorites.length > 0 || recent.length > 0) && (
+        <section className="tf-home-block">
+          {favorites.length > 0 && (
+            <>
+              <h2 className="tf-block-title">
+                <Star size={16} aria-hidden="true" /> Favorites
+              </h2>
+              <div className="tf-tool-list">
+                {favorites.map((f) => (
+                  <ToolCard key={f.key} item={f} />
+                ))}
+              </div>
+            </>
+          )}
+          {recent.length > 0 && (
+            <>
+              <h2 className="tf-block-title">
+                <Clock size={16} aria-hidden="true" /> Recently used
+              </h2>
+              <div className="tf-tool-list">
+                {recent.map((f) => (
+                  <ToolCard key={f.key} item={f} />
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      <section className="tf-home-block">
+        <CategoryTools cat={cat} />
+        {extras.length > 0 && (
+          <>
+            <h2 className="tf-block-title">Also handy</h2>
+            <div className="tf-tool-list">
+              {extras.map((x) => (
+                <ToolCard key={x.key} item={x} />
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+
+      {jobs.length > 0 && (
+        <section className="tf-home-block">
+          <h2 className="tf-block-title">
+            <BriefcaseBusiness size={16} aria-hidden="true" /> Jobs that use these tools
+          </h2>
+          <div className="tf-job-chips">
+            {jobs.map((p) => (
+              <Link key={p.id} to={`/tools/jobs/${p.id}`} className="tf-chip">
+                {p.name}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+/** On the ToolFox home page: your job's kit, or a nudge to pick one. */
+function YourJob({ prefsApi }) {
+  const job = professionById[prefsApi.prefs.job];
+  if (!job) {
+    return (
+      <section className="tf-home-block">
+        <h2 className="tf-block-title">
+          <BriefcaseBusiness size={16} aria-hidden="true" /> Pick your job
+        </h2>
+        <p className="tf-job-note">See just the tools your work uses. You can change it any time.</p>
+        <div className="tf-job-chips">
+          {PROFESSIONS.map((p) => (
+            <Link key={p.id} to={`/tools/jobs/${p.id}`} className="tf-chip">
+              {p.name}
+            </Link>
+          ))}
+        </div>
+      </section>
+    );
+  }
+  const items = job.tools.map(itemFor).filter(Boolean);
+  return (
+    <section className="tf-home-block">
+      <h2 className="tf-block-title">
+        <BriefcaseBusiness size={16} aria-hidden="true" /> {job.name}
+        <Link to={`/tools/jobs/${job.id}`} className="tf-block-more">
+          All {items.length} tools
+        </Link>
+      </h2>
+      <div className="tf-tool-list">
+        {items.slice(0, 6).map((x) => (
+          <ToolCard key={x.key} item={x} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Every profession kit, by group. */
+function JobsIndex({ prefsApi }) {
+  const mine = prefsApi.prefs.job;
+  useEffect(() => {
+    document.title = "Tools by job · Engineer ToolFox";
+    return () => {
+      document.title = "The ClusterFOX";
+    };
+  }, []);
+  return (
+    <div className="tf-category">
+      <header className="tf-page-head">
+        <Link to="/tools" className="tf-crumb">
+          <HomeLabel />
+        </Link>
+        <h1>Tools by job</h1>
+        <p className="tf-lede">Pick what you do and get the tools that work uses, from every discipline, in one list.</p>
+      </header>
+      {PROFESSION_GROUPS.map((g) => (
+        <div key={g.id}>
+          <h2 className="tf-block-title">{g.name}</h2>
+          <div className="tf-tool-list">
+            {PROFESSIONS.filter((p) => p.group === g.id).map((p) => (
+              <ToolCard
+                key={p.id}
+                item={{ kind: "job", icon: p.id === mine ? Check : BriefcaseBusiness, name: p.id === mine ? `${p.name} (your job)` : p.name, blurb: `${p.blurb} ${p.tools.length} tools.`, path: `/tools/jobs/${p.id}` }}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** One profession's kit, grouped by the discipline each tool belongs to. */
+function JobPage({ prefsApi }) {
+  const { id } = useParams();
+  const job = professionById[id];
+  const { prefs, setJob } = prefsApi;
+  useEffect(() => {
+    if (job) document.title = `${job.name} · Tools by job`;
+    return () => {
+      document.title = "The ClusterFOX";
+    };
+  }, [job]);
+  if (!job) return <Navigate to="/tools/jobs" replace />;
+  const items = job.tools.map(itemFor).filter(Boolean);
+  const mine = prefs.job === job.id;
+  const cats = [...new Set(items.map((x) => x.cat || "other"))];
+  return (
+    <div className="tf-category">
+      <header className="tf-page-head">
+        <Link to="/tools/jobs" className="tf-crumb">
+          Tools by job
+        </Link>
+        <div className="tf-title-row">
+          <span className="tf-cat-icon is-big" aria-hidden="true">
+            <BriefcaseBusiness size={26} />
+          </span>
+          <h1>{job.name}</h1>
+          <div className="tf-actions">
+            <button type="button" className={`tf-job-pick ${mine ? "is-on" : ""}`} aria-pressed={mine} onClick={() => setJob(mine ? null : job.id)}>
+              {mine ? <Check size={16} aria-hidden="true" /> : <BriefcaseBusiness size={16} aria-hidden="true" />}
+              {mine ? "This is my job" : "Make this my job"}
+            </button>
+          </div>
+        </div>
+        <p className="tf-lede">{job.blurb}</p>
+      </header>
+      {cats.map((c) => {
+        const cat = categoryById[c];
+        const d = disciplineForCat[c];
+        return (
+          <div key={c}>
+            <h2 className="tf-block-title" style={cat ? { "--tf-cat": cat.hue } : undefined}>
+              {cat ? cat.name : "Everyday helpers"}
+              {d && (
+                <AppLink to={d.path} className="tf-block-more">
+                  Open the {d.name} app
+                </AppLink>
+              )}
+            </h2>
+            <div className="tf-tool-list">
+              {items
+                .filter((x) => (x.cat || "other") === c)
+                .map((x) => (
+                  <ToolCard key={x.key} item={x} />
+                ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+

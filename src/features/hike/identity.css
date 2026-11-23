@@ -1,0 +1,17 @@
+/* TrailFox identity: the shared ClusterFox app bar in deep-forest green
+   with a topo-map ochre and a sturdy, trail-sign name. */
+
+.appbar[data-app="trailfox"] {
+  --ab-bg: rgba(16, 22, 15, 0.9);
+  --ab-fg: #eef0e6;
+  --ab-muted: #9aa594;
+  --ab-line: rgba(224, 161, 94, 0.16);
+  --ab-accent: #e0a15e;
+  --ab-accent-ink: #231505;
+  --ab-font: "Space Grotesk", sans-serif;
+  --ab-name-size: 1.12rem;
+  --ab-name-weight: 700;
+  --ab-name-spacing: 0.01em;
+  --ab-radius: 10px;
+  --ab-menu-bg: #172117;
+}

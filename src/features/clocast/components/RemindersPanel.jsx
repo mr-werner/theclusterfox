@@ -1,25 +1,14 @@
 import { Link } from "react-router-dom";
-import { BellRing, CalendarDays, Check } from "lucide-react";
+import { BellRing, CalendarDays, Check, X } from "lucide-react";
 
-import { REMINDERS, dayReminders } from "../model/reminders";
+import { REMINDERS } from "../model/reminders";
 import { REMINDER_ICONS } from "./reminderIcons";
 
 /**
  * The daily reminders: what they say for the day being looked at, and
  * which ones to send to PlanFox.
  */
-export default function RemindersPanel({ forecast, day, dayLabel, place, units, profile, tolerance, settings, now, onChange }) {
-  const list = dayReminders({
-    hours: forecast.hours,
-    days: forecast.days,
-    day,
-    settings,
-    place,
-    units,
-    profile,
-    tolerance,
-    notBefore: dayLabel === "today" ? now : 0,
-  });
+export default function RemindersPanel({ list, dayLabel, settings, onChange, onClose }) {
   const toggle = id => {
     const on = settings.on.includes(id) ? settings.on.filter(x => x !== id) : [...settings.on, id];
     onChange({ ...settings, on: REMINDERS.map(r => r.id).filter(x => on.includes(x)) });
@@ -35,9 +24,16 @@ export default function RemindersPanel({ forecast, day, dayLabel, place, units, 
           <h2 id="cc-reminders-title">Before you head out {dayLabel}</h2>
           <p className="cc-muted">These show on your PlanFox calendar every day. Pick the ones you want below.</p>
         </div>
-        <Link className="cc-btn" to="/plan?view=today">
-          <CalendarDays size={15} aria-hidden="true" /> Open PlanFox
-        </Link>
+        <div className="cc-reminders-actions">
+          <Link className="cc-btn" to="/plan?view=today">
+            <CalendarDays size={15} aria-hidden="true" /> Open PlanFox
+          </Link>
+          {onClose && (
+            <button type="button" className="cc-icon-btn" onClick={onClose} aria-label="Close reminders">
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </header>
 
       {settings.on.length === 0 ? (
@@ -87,6 +83,10 @@ export default function RemindersPanel({ forecast, day, dayLabel, place, units, 
             );
           })}
         </ul>
+        <label className="cc-reminder-sensitive">
+          <input type="checkbox" checked={settings.showFirst} onChange={e => onChange({ ...settings, showFirst: e.target.checked })} />
+          Show these in full when I open SkyFox, instead of as a notification
+        </label>
         {settings.on.includes("air") && (
           <label className="cc-reminder-sensitive">
             <input type="checkbox" checked={settings.airSensitive} onChange={e => onChange({ ...settings, airSensitive: e.target.checked })} />

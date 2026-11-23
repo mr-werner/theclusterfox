@@ -1,0 +1,29 @@
+{
+  "id": "/beacon",
+  "name": "BeaconFox",
+  "short_name": "BeaconFox",
+  "start_url": "/beacon",
+  "scope": "/beacon",
+  "display": "standalone",
+  "background_color": "#0d0b08",
+  "theme_color": "#0d0b08",
+  "icons": [
+    {
+      "src": "/apps/beaconfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/beaconfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/beaconfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "description": "Emergency light: SOS, rescue strobe and Morse code with your screen or flashlight. Works offline."
+}

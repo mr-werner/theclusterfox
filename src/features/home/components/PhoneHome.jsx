@@ -1,17 +1,22 @@
 import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
-import { LayoutGrid, Minus, Plus, Search, UserRound } from "lucide-react";
+import { Heart, LayoutGrid, MessageSquare, Minus, Plus, Search, UserRound } from "lucide-react";
 
 import { useAuth } from "../../../context/AuthContext";
 import FreeAppIcon from "../../free/FreeAppIcon";
 import { isOriginalKey, keyId } from "../state/homeStore";
 import { useTileGestures } from "../useTileGestures";
+import { groupOriginals, sectionOf } from "../categories";
 import AppLink from "./AppLink";
 import FeaturedPlan from "./FeaturedPlan";
 import OriginalIcon from "./OriginalIcon";
 import SyncNote from "./SyncNote";
 
-const sameSection = (a, b) => isOriginalKey(a) === isOriginalKey(b);
+// Scrolls to a category without putting #cat-… in the address.
+const jumpTo = id => event => {
+  event.preventDefault();
+  document.getElementById(`cat-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
 
 function PhoneTile({ label, editing, dragging, onRemove, gestureProps, feature = false, children }) {
   return (
@@ -43,6 +48,10 @@ function PhoneTile({ label, editing, dragging, onRemove, gestureProps, feature =
 export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }) {
   const { user, isAuthenticated, loading } = useAuth();
   const [editing, setEditing] = useState(false);
+  const sameSection = useCallback(
+    (a, b) => sectionOf(a, originalsById) === sectionOf(b, originalsById),
+    [originalsById]
+  );
   const enterEdit = useCallback(() => setEditing(true), []);
   const { tileProps, draggingKey } = useTileGestures({
     editing,
@@ -53,6 +62,8 @@ export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }
 
   const originalKeys = home.keys.filter(key => isOriginalKey(key) && originalsById.has(keyId(key)));
   const altKeys = home.keys.filter(key => !isOriginalKey(key) && (!alts || alts.byName.has(keyId(key))));
+  const { hub, sections } = groupOriginals(originalKeys, originalsById);
+  const hubApp = hub ? originalsById.get(keyId(hub)) : null;
   const initial = (user?.name || user?.email || "?").trim().charAt(0).toUpperCase();
 
   return (
@@ -93,13 +104,40 @@ export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }
         <span>Search apps & alternatives</span>
       </button>
 
-      <section className="phone-section" aria-label="Recommended ClusterFox apps">
-        <h2 className="phone-section-label">Recommended for you</h2>
-        <div className="phone-grid phone-original-grid">
-          {originalKeys.map(key => {
-            const app = originalsById.get(keyId(key));
-            const label = app.fullName ?? app.subtitle;
-            if (app.id === "planfox") {
+      {hubApp && (
+        <section className="phone-section" aria-label="PlanFox, your hub">
+          <div className="phone-grid phone-original-grid">
+            <PhoneTile
+              label={hubApp.fullName ?? hubApp.subtitle}
+              editing={editing}
+              dragging={draggingKey === hub}
+              onRemove={() => home.remove(hub)}
+              gestureProps={tileProps(hub)}
+              feature
+            >
+              <FeaturedPlan app={hubApp} phone />
+            </PhoneTile>
+          </div>
+        </section>
+      )}
+
+      {sections.length > 1 && (
+        <nav className="phone-category-chips" aria-label="App categories">
+          {sections.map(section => (
+            <a key={section.id} href={`#cat-${section.id}`} onClick={jumpTo(section.id)}>
+              {section.name}
+            </a>
+          ))}
+        </nav>
+      )}
+
+      {sections.map(section => (
+        <section key={section.id} id={`cat-${section.id}`} className="phone-section" aria-label={section.name}>
+          <h2 className="phone-section-label">{section.name}</h2>
+          <div className="phone-grid">
+            {section.keys.map(key => {
+              const app = originalsById.get(keyId(key));
+              const label = app.fullName ?? app.subtitle;
               return (
                 <PhoneTile
                   key={key}
@@ -108,30 +146,17 @@ export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }
                   dragging={draggingKey === key}
                   onRemove={() => home.remove(key)}
                   gestureProps={tileProps(key)}
-                  feature
                 >
-                  <FeaturedPlan app={app} phone />
+                  <AppLink app={app} className="phone-tile-link" draggable={false} aria-label={`Open ${label}`}>
+                    <OriginalIcon app={app} compact />
+                    <span className="phone-tile-label">{app.subtitle.length > 10 ? app.name : app.subtitle}</span>
+                  </AppLink>
                 </PhoneTile>
               );
-            }
-            return (
-              <PhoneTile
-                key={key}
-                label={label}
-                editing={editing}
-                dragging={draggingKey === key}
-                onRemove={() => home.remove(key)}
-                gestureProps={tileProps(key)}
-              >
-                <AppLink app={app} className="phone-tile-link" draggable={false} aria-label={`Open ${label}`}>
-                  <OriginalIcon app={app} compact />
-                  <span className="phone-tile-label">{app.subtitle.length > 10 ? app.name : app.subtitle}</span>
-                </AppLink>
-              </PhoneTile>
-            );
-          })}
-        </div>
-      </section>
+            })}
+          </div>
+        </section>
+      ))}
 
       <section className="phone-section" aria-label="3rd Party Alternatives">
         <h2 className="phone-section-label">3rd Party Alternatives</h2>
@@ -182,6 +207,14 @@ export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }
           <LayoutGrid size={14} aria-hidden="true" /> All alternatives
         </Link>
       </footer>
+      <nav className="phone-footer-links" aria-label="About the site">
+        <Link to="/feedback?from=%2F">
+          <MessageSquare size={14} aria-hidden="true" /> Send feedback
+        </Link>
+        <Link to="/donate">
+          <Heart size={14} aria-hidden="true" /> Donate
+        </Link>
+      </nav>
     </main>
   );
 }

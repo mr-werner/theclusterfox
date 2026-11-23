@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { Link } from "../nav";
 import { Check, ClipboardList, Copy, Download, Link2, Printer, RotateCcw, Star, TriangleAlert } from "lucide-react";
 import { calcById, categoryById } from "../registry";
 import { defaultsOf, run, toParams, fromParams, applyPreset, matchingPreset, isVisible } from "../model/engine";

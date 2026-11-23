@@ -1587,3 +1587,222 @@ body.sheet-open {
     display: none;
   }
 }
+
+/* ---------- Categories: PlanFox leads, then apps grouped by what they're for ---------- */
+
+.home-hub-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-bottom: 44px;
+}
+
+.home-hub-row > .home-tile--feature {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.home-hub-row > .home-categories:only-child {
+  grid-column: 1 / -1;
+}
+
+.home-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--surface);
+}
+
+.home-categories-title {
+  margin: 0 4px 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.home-category-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.home-category-link:hover {
+  border-color: var(--border);
+  background: var(--surface-hover);
+}
+
+.home-category-link--hidden {
+  color: var(--muted);
+}
+
+.home-category-icons {
+  display: flex;
+  flex: none;
+  width: 74px;
+}
+
+.home-category-dot {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-right: -8px;
+  border: 2px solid var(--surface);
+  border-radius: 30%;
+}
+
+.home-category-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-category-text strong {
+  font-size: 0.98rem;
+}
+
+.home-category-text small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.home-category-count {
+  min-width: 28px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.home-category {
+  scroll-margin-top: 24px;
+}
+
+/* Smaller tiles than before, so every category fits without endless scrolling. */
+/* Two categories side by side, three apps across each. */
+.home-category-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px 32px;
+}
+
+.app-grid.home-category-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.home-category-grid .app-tile {
+  padding: 12px;
+  border-radius: 22px;
+}
+
+.home-category-grid .app-info h3 {
+  font-size: 0.95rem;
+}
+
+.home-category-grid .app-info p {
+  font-size: 0.76rem;
+}
+
+@media (max-width: 1000px) {
+  .home-category-list {
+    grid-template-columns: 1fr;
+  }
+
+  .app-grid.home-category-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.home-category-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin-bottom: 18px;
+}
+
+.home-category-head h3 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+}
+
+.home-category-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .home-hub-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phone: category chips under PlanFox, then a labeled grid per category. */
+.phone-category-chips {
+  display: flex;
+  gap: 8px;
+  margin: 18px -16px 22px;
+  padding: 0 16px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.phone-category-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.phone-category-chips a {
+  flex: none;
+  padding: 8px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(244, 241, 234, 0.85);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.phone-section {
+  scroll-margin-top: 16px;
+}
+
+.phone-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 18px;
+}
+
+.phone-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(244, 241, 234, 0.6);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

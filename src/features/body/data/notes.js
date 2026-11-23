@@ -196,6 +196,19 @@ export const NOTES = [
   { match: /trochlear nerve/, text: "Cranial nerve IV, the thinnest cranial nerve. It works the superior oblique eye muscle." },
   { match: /ophthalmic nerve/, text: "The first branch of the trigeminal nerve. It carries feeling from the eye, forehead and nose." },
 
+  // ---------- Female reproductive organs (HRA female model) ----------
+  { match: /^(body|fundus) of uterus/, text: "The uterus (womb), a pear-sized muscular organ. Its lining thickens each month and is shed as a period if no pregnancy starts; in pregnancy it stretches to hold the baby and its powerful muscle wall pushes the baby out in labour. The fundus is its domed top." },
+  { match: /^cervix of uterus/, text: "The neck of the uterus, opening into the vagina. It makes mucus that changes over the cycle, stays shut during pregnancy and opens to about 10 cm in labour." },
+  { match: /^vagina/, text: "The muscular, stretchy canal from the cervix to the outside. It receives sperm and is the birth canal." },
+  { match: /^ovary/, text: "One of two almond-sized glands that hold a lifetime's egg cells and make the hormones oestrogen and progesterone. Usually one egg is released each month (ovulation)." },
+  { match: /^uterine tube/, text: "The fallopian tube. Its fringed end sweeps up the egg released by the ovary, and fertilisation usually happens inside it before the embryo moves on to the uterus." },
+  { match: /^broad ligament/, text: "A sheet of peritoneum draped over the uterus, tubes and ovaries like a cloth over a washing line. It carries their blood vessels and loosely holds them in place." },
+  { match: /^round ligament of uterus/, text: "A cord from the top of the uterus through the groin to the labia. It keeps the uterus tipped forward and can ache as it stretches in pregnancy." },
+  { match: /^ovarian ligament/, text: "A short cord tying the ovary to the side of the uterus." },
+  { match: /^suspensory ligament of ovary/, text: "A fold that carries the ovary's artery and vein down from the back of the belly wall to the ovary." },
+  { match: /^mammary gland/, text: "The milk-making gland of the breast: 15 to 20 lobes of milk glands whose ducts open at the nipple, set in fat and held up by fibrous bands over the chest muscles." },
+  { match: /^uterine (artery|vein)/, text: "The main blood supply of the uterus. Its flow grows many times over in pregnancy to feed the placenta." },
+
   // ---------- Skin ----------
   { match: /^skin/, text: "The body's largest organ. Skin keeps water in and germs out, controls temperature by sweating, makes vitamin D from sunlight and senses touch, heat and pain." },
 ];

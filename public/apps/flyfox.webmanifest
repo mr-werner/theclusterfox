@@ -1,9 +1,9 @@
 {
   "id": "/fly",
-  "name": "FlyFox",
-  "short_name": "FlyFox",
-  "start_url": "/fly",
-  "scope": "/fly",
+  "name": "PilotFox",
+  "short_name": "PilotFox",
+  "start_url": "/pilot",
+  "scope": "/pilot",
   "display": "standalone",
   "background_color": "#08101f",
   "theme_color": "#08101f",

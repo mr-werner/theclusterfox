@@ -16,7 +16,23 @@
 .pf [data-app="cookfox"] { --app: var(--cookfox); }
 .pf [data-app="growfox"] { --app: var(--growfox, #7cc576); }
 .pf [data-app="flyfox"] { --app: var(--flyfox, #4c8dff); }
+.pf [data-app="jumpfox"] { --app: var(--jumpfox, #ff8a3d); }
+.pf [data-app="bookfox"] { --app: var(--bookfox, #e0b25c); }
+.pf [data-app="trailfox"] { --app: var(--trailfox, #e0a15e); }
+.pf [data-app="fretfox"] { --app: var(--fretfox, #e8a45a); }
+.pf [data-app="snowfox"] { --app: var(--snowfox, #1769d1); }
+.pf [data-app="keysfox"] { --app: var(--keysfox, #f2b544); }
+.pf [data-app="climbfox"] { --app: var(--climbfox, #e0552a); }
 .pf [data-app="medicfox"] { --app: var(--medicfox, #5b9dff); }
+.pf [data-app="roadfox"] { --app: var(--roadfox, #ffc23c); }
+.pf [data-app="pacefox"] { --app: var(--pacefox, #ff4d8d); }
+.pf [data-app="fluids"] { --app: var(--fluids); }
+.pf [data-app="heat"] { --app: var(--heat); }
+.pf [data-app="hvac"] { --app: var(--hvac); }
+.pf [data-app="mechanics"] { --app: var(--mechanics); }
+.pf [data-app="electrical"] { --app: var(--electrical); }
+.pf [data-app="manufacturing"] { --app: var(--manufacturing); }
+.pf [data-app="studyfox"] { --app: var(--studyfox, #ffd84a); }
 
 .pf-app-mark {
   display: grid;

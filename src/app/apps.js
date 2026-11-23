@@ -1,10 +1,31 @@
-import { Ambulance, CalendarRange, ChefHat, CloudSun, Dumbbell, Flame, Flower2, MonitorPlay, PersonStanding, Plane, Sigma, Sprout, Trophy, Wrench } from "lucide-react";
+import Parachute from "../components/icons/Parachute.js";
+import { Activity, Ambulance, BookOpen, CalendarRange, CarFront, ChefHat, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, Guitar, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
+
+// The home screen groups apps into these, in this order. PlanFox is the hub
+// above them all. An app without a category (or with one not listed here)
+// lands in "More apps", so a new app always shows up somewhere.
+export const categories = [
+  { id: "health", name: "Health & Fitness", blurb: "Train, eat well and unwind" },
+  { id: "food", name: "Food & Cooking", blurb: "Recipes, prep and groceries" },
+  { id: "outdoors", name: "Outdoors & Travel", blurb: "Weather, yard and flying" },
+  { id: "learn", name: "Learn & Study", blurb: "Practice, explore and pass the test" },
+  { id: "fun", name: "Watch & Play", blurb: "Shows, movies and games" },
+  { id: "work", name: "Work & Tools", blurb: "Calculators and references for the job" },
+];
+
+const categoryIds = new Set(categories.map(c => c.id));
+export const MORE_CATEGORY = { id: "more", name: "More apps", blurb: "" };
+
+/** The category an app is shown under on the home screen. */
+export const categoryOf = app =>
+  app.category === "hub" ? "hub" : categoryIds.has(app.category) ? app.category : MORE_CATEGORY.id;
 
 // PlanFox comes first: it is the calendar every other app feeds into, so it
 // leads the home screen.
 export const apps = [
   {
     id: "planfox",
+    category: "hub",
     name: "Plan",
     subtitle: "PlanFox",
     description: "Calendar • Weather • Life",
@@ -14,15 +35,17 @@ export const apps = [
   },
   {
     id: "f4t",
-    name: "F4T",
-    subtitle: "Fuel 4 Thought",
-    description: "Meals • Groceries • Budget",
+    category: "food",
+    name: "Fuel",
+    subtitle: "FuelFox",
+    description: "Meals • Portions • Budget",
     path: "/f4t",
     icon: Flame,
     accent: "f4t",
   },
   {
     id: "clocast",
+    category: "outdoors",
     name: "Sky",
     subtitle: "SkyFox",
     description: "Weather • Radar • What to wear",
@@ -32,6 +55,7 @@ export const apps = [
   },
   {
     id: "watchfox",
+    category: "fun",
     name: "Watch",
     subtitle: "WatchFox",
     description: "Movies • Shows • Streaming",
@@ -41,6 +65,7 @@ export const apps = [
   },
   {
     id: "scorefox",
+    category: "fun",
     name: "Score",
     subtitle: "ScoreFox",
     description: "Games • Scores • Channels",
@@ -50,6 +75,7 @@ export const apps = [
   },
   {
     id: "liftfox",
+    category: "health",
     name: "Lift",
     subtitle: "LiftFox",
     description: "Muscles • Workouts • Plans",
@@ -58,7 +84,18 @@ export const apps = [
     accent: "liftfox",
   },
   {
+    id: "pacefox",
+    name: "Pace",
+    subtitle: "PaceFox",
+    description: "Run • Ride • Row",
+    path: "/pace",
+    icon: Activity,
+    accent: "pacefox",
+    category: "health",
+  },
+  {
     id: "toolfox",
+    category: "work",
     name: "Engineer",
     subtitle: "ToolFox",
     fullName: "Engineer ToolFox",
@@ -67,8 +104,71 @@ export const apps = [
     icon: Wrench,
     accent: "toolfox",
   },
+  // The ToolFox disciplines, each also its own app. They show the same
+  // tools as ToolFox (see src/features/tools/disciplines.js).
+  {
+    id: "fluids",
+    name: "Fluids",
+    subtitle: "Fluids & Piping",
+    description: "Pipes • Pumps • Flow",
+    path: "/fluids",
+    icon: Droplets,
+    accent: "fluids",
+    category: "work",
+  },
+  {
+    id: "heat",
+    name: "Heat",
+    subtitle: "Heat & Energy",
+    description: "Conduction • Exchangers • Fuel",
+    path: "/heat",
+    icon: Flame,
+    accent: "heat",
+    category: "work",
+  },
+  {
+    id: "hvac",
+    name: "HVAC",
+    subtitle: "Air & HVAC",
+    description: "Psychrometrics • Ducts • Loads",
+    path: "/hvac",
+    icon: Wind,
+    accent: "hvac",
+    category: "work",
+  },
+  {
+    id: "mechanics",
+    name: "Mechanics",
+    subtitle: "Mechanics & Structures",
+    description: "Beams • Frames • Bolts",
+    path: "/mechanics",
+    icon: Cog,
+    accent: "mechanics",
+    category: "work",
+  },
+  {
+    id: "electrical",
+    name: "Electrical",
+    subtitle: "Electrical",
+    description: "Ohm's law • Wire • Power",
+    path: "/electrical",
+    icon: Zap,
+    accent: "electrical",
+    category: "work",
+  },
+  {
+    id: "manufacturing",
+    name: "Design",
+    subtitle: "Design & Manufacturing",
+    description: "GD&T • Processes • Machines",
+    path: "/manufacturing",
+    icon: DraftingCompass,
+    accent: "manufacturing",
+    category: "work",
+  },
   {
     id: "calmfox",
+    category: "health",
     name: "Calm",
     subtitle: "CalmFox",
     description: "Breathe • Meditate • Sleep",
@@ -78,6 +178,7 @@ export const apps = [
   },
   {
     id: "mathfox",
+    category: "learn",
     name: "Math",
     subtitle: "MathFox",
     description: "Solve • Steps • Graph",
@@ -87,6 +188,7 @@ export const apps = [
   },
   {
     id: "cookfox",
+    category: "food",
     name: "Cook",
     subtitle: "CookFox",
     description: "Recipes • Prep • Cook",
@@ -96,6 +198,7 @@ export const apps = [
   },
   {
     id: "growfox",
+    category: "outdoors",
     name: "Grow",
     subtitle: "GrowFox",
     description: "Garden • Lawn • Trees",
@@ -105,15 +208,17 @@ export const apps = [
   },
   {
     id: "flyfox",
-    name: "Fly",
-    subtitle: "FlyFox",
-    description: "Winds aloft • Flight plans • Pilot study",
-    path: "/fly",
+    category: "outdoors",
+    name: "Pilot",
+    subtitle: "PilotFox",
+    description: "Flight plans • How planes fly • Sim • Radio • Pilot study",
+    path: "/pilot",
     icon: Plane,
     accent: "flyfox",
   },
   {
     id: "medicfox",
+    category: "learn",
     name: "Medic",
     subtitle: "MedicFox",
     description: "EMR • EMT • AEMT • Paramedic",
@@ -123,11 +228,112 @@ export const apps = [
   },
   {
     id: "bodyfox",
+    category: "health",
     name: "Body",
     subtitle: "BodyFox",
     description: "Anatomy • 3D • Explore",
     path: "/body",
     icon: PersonStanding,
     accent: "bodyfox",
+  },
+  {
+    id: "studyfox",
+    name: "Study",
+    subtitle: "StudyFox",
+    description: "Flashcards • Quizzes • Spaced review",
+    path: "/study",
+    icon: GraduationCap,
+    accent: "studyfox",
+    category: "learn",
+  },
+  {
+    id: "beaconfox",
+    name: "Beacon",
+    subtitle: "BeaconFox",
+    description: "SOS • Flashlight • Morse",
+    path: "/beacon",
+    icon: Flashlight,
+    accent: "beaconfox",
+    category: "outdoors",
+  },
+  {
+    id: "roadfox",
+    name: "Road",
+    subtitle: "RoadFox",
+    description: "Road trips • Stops • Car games",
+    path: "/road",
+    icon: CarFront,
+    accent: "roadfox",
+    category: "outdoors",
+  },
+  {
+    id: "climbfox",
+    name: "Climb",
+    subtitle: "ClimbFox",
+    description: "Crags • Routes • Conditions",
+    path: "/climb",
+    icon: Mountain,
+    accent: "climbfox",
+    category: "outdoors",
+  },
+  {
+    id: "snowfox",
+    name: "Snow",
+    subtitle: "SnowFox",
+    description: "Snow • Lifts • Avalanche • Roads",
+    path: "/snow",
+    icon: MountainSnow,
+    accent: "snowfox",
+    category: "outdoors",
+  },
+  {
+    id: "keysfox",
+    name: "Piano",
+    subtitle: "KeysFox",
+    description: "Falling notes • Sheet music • Practice",
+    path: "/piano",
+    icon: Piano,
+    accent: "keysfox",
+    category: "learn",
+  },
+  {
+    id: "trailfox",
+    name: "Hike",
+    subtitle: "TrailFox",
+    description: "Trails • Start times • Offline GPS",
+    path: "/hike",
+    icon: MountainSnow,
+    accent: "trailfox",
+    category: "outdoors",
+  },
+  {
+    id: "fretfox",
+    name: "Guitar",
+    subtitle: "FretFox",
+    description: "Falling notes • Tabs • Chords",
+    path: "/guitar",
+    icon: Guitar,
+    accent: "fretfox",
+    category: "learn",
+  },
+  {
+    id: "jumpfox",
+    name: "Jump",
+    subtitle: "JumpFox",
+    description: "Skydiving • Drop zones • Logbook",
+    path: "/jump",
+    icon: Parachute,
+    accent: "jumpfox",
+    category: "outdoors",
+  },
+  {
+    id: "bookfox",
+    name: "Books",
+    subtitle: "BookFox",
+    description: "Free books • Read • Highlight",
+    path: "/books",
+    icon: BookOpen,
+    accent: "bookfox",
+    category: "learn",
   },
 ];

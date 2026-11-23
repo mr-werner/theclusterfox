@@ -22,7 +22,7 @@ function dataApiUrl() {
 
 export class SyncUnavailableError extends Error {}
 
-async function request(path, init = {}) {
+export async function dataRequest(path, init = {}) {
   const base = dataApiUrl();
   if (!base) throw new SyncUnavailableError("Account sync is not configured.");
 
@@ -54,7 +54,7 @@ async function request(path, init = {}) {
 export function createCloudSync(table) {
   return {
     async fetchRemoteData(userId) {
-      const response = await request(
+      const response = await dataRequest(
         `${table}?select=data,updated_at&user_id=eq.${encodeURIComponent(userId)}`
       );
       const rows = await response.json();
@@ -62,7 +62,7 @@ export function createCloudSync(table) {
     },
 
     async pushRemoteData(userId, data) {
-      await request(`${table}?on_conflict=user_id`, {
+      await dataRequest(`${table}?on_conflict=user_id`, {
         method: "POST",
         headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
         body: JSON.stringify({
@@ -73,4 +73,14 @@ export function createCloudSync(table) {
       });
     },
   };
+}
+
+/** The signed-in person's Neon Auth token, or null when signed out. */
+export async function sessionToken() {
+  try {
+    const session = await authClient.getSession();
+    return session?.data?.session?.token ?? null;
+  } catch {
+    return null;
+  }
 }

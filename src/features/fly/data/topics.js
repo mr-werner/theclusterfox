@@ -1,4 +1,4 @@
-// FlyFox's knowledge base: short study notes for each subject on the FAA
+// PilotFox's knowledge base: short study notes for each subject on the FAA
 // knowledge tests. Each topic lists the tests it shows up on. Sections
 // carry a heading and a paragraph, a list, or a table ({ head, rows }).
 // Sources: 14 CFR Parts 61, 91 and 107, the AIM, the PHAK and the
@@ -167,7 +167,7 @@ export const TOPICS = [
       },
       {
         h: "Winds aloft (FB) code",
-        p: "Each group reads DDSS±TT: direction in tens of degrees true, speed in knots, temperature in °C. 2725-08 at 9,000 ft is 270° at 25 knots, minus 8 °C. 9900 is light and variable. For 100–199 knots, 50 is added to the direction: 7319 is 230° at 119 knots. No temperature is given at 3,000 ft, and above 24,000 ft the minus sign is left off. Levels within 1,500 ft of the station are left blank. FlyFox's Winds tab shows the same code for any spot.",
+        p: "Each group reads DDSS±TT: direction in tens of degrees true, speed in knots, temperature in °C. 2725-08 at 9,000 ft is 270° at 25 knots, minus 8 °C. 9900 is light and variable. For 100–199 knots, 50 is added to the direction: 7319 is 230° at 119 knots. No temperature is given at 3,000 ft, and above 24,000 ft the minus sign is left off. Levels within 1,500 ft of the station are left blank. PilotFox's Winds tab shows the same code for any spot.",
       },
     ],
   },

@@ -1,0 +1,79 @@
+// The muscle demos: activation data, the 3D push-up rig and the 2D drawing.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { Vector3 } from 'three';
+
+import { MOVEMENTS, effortRgb, efforts, movementFor, muscleForPart, repAt } from '../data/activation.js';
+import { musclesById } from '../data/muscles.js';
+import { exercisesById } from '../data/exercises.js';
+import { normalizeData } from '../state/liftStore.js';
+import { makePushup, restJoints } from '../anatomy3d/pushupRig.js';
+import { FLOOR, SHAPES, makePushup2d } from '../model/pushup2d.js';
+
+const pushup = MOVEMENTS.pushup;
+assert.equal(movementFor(exercisesById.get('push-up')), pushup);
+assert.equal(movementFor(exercisesById.get('diamond-push-up')), null, 'variants wait for their own data');
+
+// Every muscle belongs to a real LiftFox group and matches parts in the 3D model.
+const index = JSON.parse(fs.readFileSync(new URL('../../../../public/anatomy/index.json', import.meta.url)));
+const muscleParts = index.parts.filter(p => p.layer === 'muscles');
+for (const m of pushup.muscles) {
+  assert(musclesById.has(m.group), `${m.id}: unknown group ${m.group}`);
+  assert(m.peak > 0 && m.peak <= 1, `${m.id}: peak out of range`);
+  assert(muscleParts.some(p => muscleForPart(pushup, p.name)?.id === m.id), `${m.id}: matches no 3D part`);
+}
+assert.equal(muscleForPart(pushup, 'Sternocostal part of left pectoralis major').id, 'pecMajor');
+
+// The rep runs top → bottom → top, and the chest works hardest at the bottom.
+assert.equal(repAt(0, pushup.cycleMs).depth, 0);
+assert.equal(repAt(pushup.cycleMs * 0.45, pushup.cycleMs).depth, 1);
+assert.equal(repAt(pushup.cycleMs * 0.9, pushup.cycleMs).depth, 0);
+const top = efforts(pushup, { depth: 0, pressing: false });
+const bottom = efforts(pushup, { depth: 1, pressing: true });
+assert(bottom.pecMajor > top.pecMajor + 0.4);
+assert(bottom.pecMajor > bottom.biceps);
+for (const v of Object.values(bottom)) assert(v >= 0 && v <= 1);
+assert.deepEqual(effortRgb(0), effortRgb(0.1), 'barely working stays grey');
+assert(effortRgb(1)[0] > effortRgb(1)[1] * 5, 'full effort is red');
+
+// 3D rig: hands stay planted, bones keep their length, the chest drops.
+const rig = makePushup();
+const joints = restJoints();
+const upperLen = joints[0].shoulder.distanceTo(joints[0].elbow);
+const foreLen = joints[0].elbow.distanceTo(joints[0].wrist);
+let lastShoulderY = Infinity;
+for (const depth of [0, 0.5, 1]) {
+  const pose = rig.pose(depth);
+  for (const s of pose.sides) {
+    assert(Math.abs(s.shoulder.distanceTo(s.elbow) - upperLen) < 1e-6);
+    assert(Math.abs(s.elbow.distanceTo(s.wrist) - foreLen) < 1e-6);
+    // The forearm rotation lands the wrist where the hand is.
+    const end = joints[0].wrist.clone().sub(joints[0].elbow).applyQuaternion(s.qForeWrist);
+    assert(end.length() > 0);
+    assert(s.elbow.y > 0.05, 'elbow above the floor');
+  }
+  const y = pose.sides[0].shoulder.y;
+  assert(y < lastShoulderY);
+  lastShoulderY = y;
+}
+assert(rig.top > rig.bottom && rig.bottom > 0);
+const wristL = rig.pose(0).sides[0].wrist;
+assert.deepEqual(rig.pose(1).sides[0].wrist.toArray(), wristL.toArray(), 'hands stay put');
+assert(new Vector3(...wristL.toArray()).y < 0.05);
+
+// 2D: every coloured shape has activation data; the body stays above the floor.
+for (const list of Object.values(SHAPES)) {
+  for (const s of list) if (s.muscle) assert(pushup.muscles.some(m => m.id === s.muscle), `2D shape for unknown ${s.muscle}`);
+}
+const rig2 = makePushup2d();
+for (const depth of [0, 1]) {
+  const { bones } = rig2.pose(depth);
+  for (const b of Object.values(bones)) for (const p of [b.from, b.to]) assert(p[1] <= FLOOR + 0.5, 'below the floor');
+}
+
+// Favourites survive saving and loading, without duplicates.
+const saved = normalizeData({ prefs: { favorites: ['push-up', 'push-up', 3, 'squat'] } });
+assert.deepEqual(saved.prefs.favorites, ['push-up', 'squat']);
+assert.deepEqual(normalizeData({}).prefs.favorites, []);
+
+console.log('lift muscle demos ok');

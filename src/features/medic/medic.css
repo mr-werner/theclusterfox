@@ -847,3 +847,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+.mx-study-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+  color: var(--mx-text, #eef3fb);
+}

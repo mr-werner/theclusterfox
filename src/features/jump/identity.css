@@ -1,0 +1,17 @@
+/* JumpFox identity: the shared ClusterFox app bar in high-altitude dusk
+   teal with canopy orange and a rounded, friendly name. */
+
+.appbar[data-app="jumpfox"] {
+  --ab-bg: rgba(8, 21, 31, 0.88);
+  --ab-fg: #eaf3f8;
+  --ab-muted: #93aebd;
+  --ab-line: rgba(130, 200, 230, 0.15);
+  --ab-accent: #ff8a3d;
+  --ab-accent-ink: #2a1100;
+  --ab-font: "Space Grotesk", sans-serif;
+  --ab-name-size: 1.12rem;
+  --ab-name-weight: 700;
+  --ab-name-spacing: 0.01em;
+  --ab-radius: 999px;
+  --ab-menu-bg: #10222e;
+}

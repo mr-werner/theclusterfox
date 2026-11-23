@@ -1,0 +1,20 @@
+/* BookFox identity: an old bookshop after hours. Oxblood leather, gilt
+   tooling, cream paper and a classic book face, with Cormorant for titles
+   like the spine of a cloth-bound edition. */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+.appbar[data-app="bookfox"] {
+  --ab-bg: rgba(26, 14, 16, 0.92);
+  --ab-fg: #f6ead2;
+  --ab-muted: #c5ab8f;
+  --ab-line: rgba(224, 178, 92, 0.18);
+  --ab-accent: #e0b25c;
+  --ab-accent-ink: #2a0d12;
+  --ab-font: "Cormorant Garamond", Georgia, serif;
+  --ab-name-size: 1.5rem;
+  --ab-name-weight: 700;
+  --ab-name-spacing: 0.01em;
+  --ab-name-case: none;
+  --ab-radius: 6px;
+  --ab-menu-bg: #24131a;
+}

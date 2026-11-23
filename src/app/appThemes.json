@@ -12,5 +12,22 @@
   "growfox": "#f3efe2",
   "flyfox": "#08101f",
   "medicfox": "#08111f",
-  "bodyfox": "#0b1315"
+  "bodyfox": "#0b1315",
+  "fluids": "#062236",
+  "heat": "#24110a",
+  "hvac": "#082622",
+  "mechanics": "#181430",
+  "electrical": "#14130a",
+  "manufacturing": "#211709",
+  "studyfox": "#1b1322",
+  "pacefox": "#0d0f14",
+  "beaconfox": "#0d0b08",
+  "roadfox": "#141618",
+  "climbfox": "#f6f2eb",
+  "snowfox": "#eef3f8",
+  "keysfox": "#0e0c0b",
+  "trailfox": "#10160f",
+  "fretfox": "#1a1210",
+  "jumpfox": "#08151f",
+  "bookfox": "#1a0e10"
 }

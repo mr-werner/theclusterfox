@@ -1,0 +1,74 @@
+/* The "Add to Study" button every learning app shows. It borrows the
+   app's own text color and font so it sits naturally in each one; when
+   added it picks up StudyFox's highlighter yellow as a small mark. */
+.add-study {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  flex: none;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.add-study button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: 34px;
+  padding: 0.45em 0.8em;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.add-study button:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  border-color: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+.add-study button:focus-visible {
+  outline: 2px solid #ffd84a;
+  outline-offset: 2px;
+}
+
+.add-study.is-on .add-study-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-width: 0;
+}
+
+.add-study.is-on .add-study-btn svg {
+  color: #e8b400;
+}
+
+.add-study-open {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  background: #ffd84a !important;
+  border-color: #ffd84a !important;
+  color: #2a1a10 !important;
+}
+
+.add-study-open:hover {
+  background: #ffe37a !important;
+}
+
+.add-study.is-compact button {
+  min-height: 30px;
+  padding: 0.35em 0.65em;
+  font-size: 0.78rem;
+}
+
+/* In a title row, sit at the far end. */
+.tf-title-row > .add-study,
+.gf-plants-head > .add-study {
+  margin-left: auto;
+}

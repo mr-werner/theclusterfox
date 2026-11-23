@@ -26,15 +26,32 @@
   --watchfox: #c79bff;
   --scorefox: #d7f34a;
   --planfox: #f5c451;
-  --liftfox: #ff7a6b;
+  --liftfox: #ff2d20;
   --toolfox: #4fd8c4;
   --calmfox: #9aa8ff;
   --mathfox: #ff8ac2;
   --cookfox: #a8c69a;
   --growfox: #7cc576;
   --bodyfox: #3fd0c9;
+  --studyfox: #ffd84a;
+  --trailfox: #e0a15e;
+  --bookfox: #e0b25c;
+  --jumpfox: #ff8a3d;
+  --fretfox: #e8a45a;
+  --snowfox: #1769d1;
+  --keysfox: #f2b544;
   --flyfox: #4c8dff;
+  --climbfox: #e0552a;
+  --roadfox: #ffc23c;
+  --beaconfox: #ffb020;
+  --pacefox: #ff4d8d;
   --medicfox: #5b9dff;
+  --fluids: #5cc8ff;
+  --heat: #ff8a4c;
+  --hvac: #7be0c3;
+  --mechanics: #c6a6ff;
+  --electrical: #ffd25c;
+  --manufacturing: #ffb86b;
 
   --max-width: 1180px;
 }
@@ -326,13 +343,13 @@ select {
 }
 
 .app-icon--liftfox {
-  color: #2e0904;
+  color: #fff;
 
   background:
     linear-gradient(
       145deg,
-      #ffc2b8,
-      #f0604f
+      #ff6a4d,
+      #c80d06
     );
 }
 
@@ -344,6 +361,72 @@ select {
       145deg,
       #b5fff2,
       #2fbfa9
+    );
+}
+
+.app-icon--fluids {
+  color: #03192a;
+
+  background:
+    linear-gradient(
+      145deg,
+      #c4ecff,
+      #2f9fdc
+    );
+}
+
+.app-icon--heat {
+  color: #2a0e02;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd2b8,
+      #e8692c
+    );
+}
+
+.app-icon--hvac {
+  color: #03241b;
+
+  background:
+    linear-gradient(
+      145deg,
+      #cdf7ea,
+      #3fbf9a
+    );
+}
+
+.app-icon--mechanics {
+  color: #170833;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ebe0ff,
+      #9a74f0
+    );
+}
+
+.app-icon--electrical {
+  color: #2a1f00;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff0b8,
+      #f0b82a
+    );
+}
+
+.app-icon--manufacturing {
+  color: #2a1602;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffe2c2,
+      #e8913a
     );
 }
 
@@ -391,6 +474,40 @@ select {
     );
 }
 
+.app-icon--snowfox {
+  color: #0c1c2e;
+
+  background:
+    linear-gradient(
+      160deg,
+      #ffffff,
+      #a9d1ff 55%,
+      #1769d1
+    );
+}
+
+.app-icon--keysfox {
+  color: #f6e7c4;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3a2c1c,
+      #0e0c0b
+    );
+}
+
+.app-icon--trailfox {
+  color: #fff6ea;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e0a15e,
+      #2f4a2c
+    );
+}
+
 .app-icon--medicfox {
   color: #061430;
 
@@ -402,6 +519,83 @@ select {
     );
 }
 
+.app-icon--pacefox {
+  color: #1a0710;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ff4d8d,
+      #ffb547
+    );
+}
+
+.app-icon--beaconfox {
+  color: #1a1203;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd36b,
+      #e08a00
+    );
+}
+
+.app-icon--roadfox {
+  color: #1d1600;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd36a,
+      #e29a12
+    );
+}
+
+.app-icon--climbfox {
+  color: #fff7ee;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f08a4b,
+      #9c3414
+    );
+}
+
+.app-icon--fretfox {
+  color: #1a1210;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd9a8,
+      #c9622e
+    );
+}
+
+.app-icon--jumpfox {
+  color: #fff4ec;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ff8a3d,
+      #12384a
+    );
+}
+
+.app-icon--bookfox {
+  color: #f6dfa4;
+
+  background:
+    linear-gradient(
+      145deg,
+      #8a2a33,
+      #2a0d12
+    );
+}
+
 .app-icon--bodyfox {
   color: #e9fffc;
 
@@ -410,6 +604,17 @@ select {
       145deg,
       #2f9e98,
       #0f3a3d
+    );
+}
+
+.app-icon--studyfox {
+  color: #2a1636;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff1a8,
+      #f5b93a
     );
 }
 
@@ -2561,4 +2766,17 @@ select {
   ::view-transition-new(root) {
     animation: none;
   }
+}
+
+.footer-link {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  color: var(--fox);
+}
+
+.footer-link--donate {
+  color: var(--fox-light);
 }

@@ -9,7 +9,7 @@ import { ConditionsStrip, DayDetail, GradeChip, TypeTags } from "./ui";
 import { useConditions } from "./useConditions";
 
 // Climbing days: where, when, which routes, the forecast for that day and
-// what to pack. Each one shows on the PlanFox calendar automatically.
+// what to pack. Each one shows on the TaskFox calendar automatically.
 export default function PlanTab({ c, tripId, openTrip, openArea, openRoute, goExplore }) {
   const { data } = c;
   const trip = tripId ? data.trips.find(t => t.id === tripId) : null;
@@ -24,7 +24,7 @@ export default function PlanTab({ c, tripId, openTrip, openArea, openRoute, goEx
       <section className="cb-hero cb-hero--small">
         <p className="cb-kicker">Plan</p>
         <h1>Climbing days</h1>
-        <p className="cb-muted">Open any area and tap <strong>Plan a day here</strong>, or tap + on a route. Each day gets its forecast and a gear list, and shows up on your PlanFox calendar.</p>
+        <p className="cb-muted">Open any area and tap <strong>Plan a day here</strong>, or tap + on a route. Each day gets its forecast and a gear list, and shows up on your TaskFox calendar.</p>
       </section>
       {tripId && <p className="cb-error">That plan was deleted or lives in another browser.</p>}
       {upcoming.length === 0 && past.length === 0 && (
@@ -105,7 +105,7 @@ function TripView({ trip, c, openArea, openRoute, onClose }) {
             </a>
           )}
         </div>
-        <p className="cb-muted">On your PlanFox calendar for {dayName(trip.day)}.</p>
+        <p className="cb-muted">On your TaskFox calendar for {dayName(trip.day)}.</p>
       </header>
 
       <section className="cb-section">
@@ -191,11 +191,11 @@ function TripView({ trip, c, openArea, openRoute, onClose }) {
             <small>A pulling and grip workout in LiftFox</small>
           </span>
         </a>
-        <a className="cb-linkcard" href="/plan">
+        <a className="cb-linkcard" href="/task">
           <CalendarDays size={18} aria-hidden="true" />
           <span>
             <strong>See your week</strong>
-            <small>Open PlanFox</small>
+            <small>Open TaskFox</small>
           </span>
         </a>
       </section>

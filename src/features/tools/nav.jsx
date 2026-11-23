@@ -4,7 +4,7 @@
 // (Fluids & Piping at /fluids, and so on) shows the very same pages under
 // its own address, so these wrappers swap the "/tools" at the front of a
 // link for the address of whichever app is showing the page. Saved links
-// (projects, PlanFox) keep the canonical "/tools" form and open anywhere.
+// (projects, TaskFox) keep the canonical "/tools" form and open anywhere.
 
 import { rebase } from "./paths.js";
 import { ToolsBase, useHomeLabel, useToolsBase } from "./navBase.js";

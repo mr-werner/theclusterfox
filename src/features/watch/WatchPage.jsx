@@ -23,7 +23,7 @@ export default function WatchPage() {
   const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : "shows";
   const openTab = id => setParams(id === "shows" ? {} : { tab: id });
   const serviceCount = data.services.length;
-  // Opened from PlanFox with ?t=movie-123: show that saved title.
+  // Opened from TaskFox with ?t=movie-123: show that saved title.
   const linked = params.get("t");
   const linkedTitle = linked ? [...data.watchlist, ...data.favorites, ...data.watched].find(t => `${t.type}-${t.id}` === linked) ?? null : null;
 

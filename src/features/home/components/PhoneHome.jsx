@@ -105,7 +105,7 @@ export default function PhoneHome({ home, alts, originalsById, onAdd, onSearch }
       </button>
 
       {hubApp && (
-        <section className="phone-section" aria-label="PlanFox, your hub">
+        <section className="phone-section" aria-label="TaskFox, your hub">
           <div className="phone-grid phone-original-grid">
             <PhoneTile
               label={hubApp.fullName ?? hubApp.subtitle}

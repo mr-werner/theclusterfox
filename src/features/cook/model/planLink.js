@@ -1,4 +1,4 @@
-// What CookFox puts on the PlanFox calendar: a recipe you started and can
+// What CookFox puts on the TaskFox calendar: a recipe you started and can
 // pick up again, pantry food to use up before it goes off, what's left on
 // the shopping list, and the meals you cooked.
 

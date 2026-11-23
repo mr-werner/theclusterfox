@@ -4,7 +4,7 @@ import { apps } from "../../../app/apps";
 import AppLink from "./AppLink";
 import OriginalIcon from "./OriginalIcon";
 
-// The apps that put things on your PlanFox calendar, shown on its tile.
+// The apps that put things on your TaskFox calendar, shown on its tile.
 const feeders = apps.filter(app => app.id !== "planfox");
 
 // On a computer the tile has room to say what a few of them send.
@@ -19,7 +19,7 @@ const SENDS = [
 const sends = SENDS.map(([id, what]) => ({ app: apps.find(a => a.id === id), what })).filter(s => s.app);
 
 /**
- * PlanFox's tile is the biggest on the home screen, because the calendar is
+ * TaskFox's tile is the biggest on the home screen, because the calendar is
  * where every other app sends what you plan in it. On a computer it takes a
  * 2×2 spot in the grid; on a phone it is a full-width widget.
  */

@@ -8,7 +8,7 @@ export default function TripsTab({ store, openTrip, goPlan }) {
   if (!data.trips.length) {
     return (
       <section className="rf-panel rf-empty">
-        <p>Trips you save show up here and work with no signal. Saved trips with a start date also show up in PlanFox, one day at a time.</p>
+        <p>Trips you save show up here and work with no signal. Saved trips with a start date also show up in TaskFox, one day at a time.</p>
         <button type="button" className="rf-btn" onClick={goPlan}>
           <Route size={15} aria-hidden="true" /> Plan a trip
         </button>

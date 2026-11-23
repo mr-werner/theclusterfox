@@ -20,7 +20,7 @@ export function clock(min) {
   return `${h % 12 === 0 ? 12 : h % 12}:${mm} ${h < 12 ? "AM" : "PM"}`;
 }
 
-/** "HH:MM" (24 h) for minutes after midnight, as PlanFox stores times. */
+/** "HH:MM" (24 h) for minutes after midnight, as TaskFox stores times. */
 export const hhmm = min => {
   const m = ((Math.round(min) % 1440) + 1440) % 1440;
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;

@@ -1,4 +1,4 @@
-// Engineer ToolFox in PlanFox: a planner item (a job, a study session) can
+// Engineer ToolFox in TaskFox: a planner item (a job, a study session) can
 // open a calculator category. Kept small so the calculators themselves only
 // load inside ToolFox.
 

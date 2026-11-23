@@ -95,7 +95,7 @@ for (const id of ['twinkle', 'fur-elise', 'prelude-c']) {
   assert.equal(songBeats(song), 8);
 }
 
-// Saved data and PlanFox.
+// Saved data and TaskFox.
 {
   let data = emptyData();
   data = addRun(data, { songId: 'twinkle', level: 'easy', hands: 'R', mode: 'wait', speed: 0.75, accuracy: 92, stars: 2, seconds: 95, day: '2026-11-10' });

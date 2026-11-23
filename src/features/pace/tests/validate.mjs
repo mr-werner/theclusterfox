@@ -223,7 +223,7 @@ check("bad saved data is cleaned up", () => {
   assert.equal(d.profile.age, 30);
 });
 
-check("PlanFox and the diet planner see the plan", () => {
+check("TaskFox and the diet planner see the plan", () => {
   const plan = makePlan({ eventId: "run-10k", raceDate: addDays(TODAY, 8 * 7 - 1), today: TODAY, days: 4, level: "regular" });
   const raw = { plans: [plan], activePlanId: plan.id, prefs: { trainTime: "06:30" }, activities: [{ id: "x1", sport: "ride", title: "Commute", start: "2026-11-17T08:00:00Z", day: "2026-11-17", sec: 1800, meters: 9000 }] };
   const items = planItems(raw, TODAY, addDays(TODAY, 6), TODAY);

@@ -192,7 +192,7 @@ test("run randomizes the vitals but keeps them believable", () => {
   assert.deepEqual(startRun(skill, { mode: "crawl", seed: 1, scenarioId: "ladder" }).vitals, skill.scenarios.find(s => s.id === "ladder").vitals);
 });
 
-// ── Storage and PlanFox ─────────────────────────────────────────────────
+// ── Storage and TaskFox ─────────────────────────────────────────────────
 test("saved data is cleaned and results add up", () => {
   assert.deepEqual(normalizeData(null), emptyData());
   const junk = normalizeData({ level: "doctor", skills: { nope: {}, bvm: { crawl: { tries: -1, passes: 2 } } }, quiz: { aw1: { right: 1 }, zz: {} }, history: [{ day: "bad" }] });
@@ -210,7 +210,7 @@ test("saved data is cleaned and results add up", () => {
   assert.deepEqual(normalizeData(JSON.parse(JSON.stringify(d))).skills, d.skills);
 });
 
-test("PlanFox shows practice by day and offers every station", () => {
+test("TaskFox shows practice by day and offers every station", () => {
   let d = addResult(emptyData(), { id: "a", day: "2026-11-16", skillId: "bvm", mode: "crawl", pass: false, points: 5, possible: 11, secs: 90 });
   d = addResult(d, { id: "b", day: "2026-11-16", skillId: "bvm", mode: "crawl", pass: true, points: 11, possible: 11, secs: 80 });
   d = addResult(d, { id: "c", day: "2026-12-02", skillId: "trauma", mode: "run", pass: false, points: 20, possible: 30, secs: 500 });

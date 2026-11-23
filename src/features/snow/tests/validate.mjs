@@ -106,7 +106,7 @@ test("sampling a drive and judging road weather", () => {
   assert.equal(worstRoad([{ level: "wet", text: "Rain" }, { level: "snow", text: "Light snow" }]).level, "snow");
 });
 
-test("saved data is cleaned and ski days reach PlanFox", () => {
+test("saved data is cleaned and ski days reach TaskFox", () => {
   const d = normalizeData({ favorites: ["vail", "vail", 3], units: "metric", trips: [{ id: "t1", spot: "alta", day: "2026-12-12", time: "08:30" }, { id: "bad", spot: "x", day: "soon" }], custom: [{ id: "place-1", name: "Mt X", lat: 40, lon: -110 }] });
   assert.deepEqual(d.favorites, ["vail"]);
   assert.equal(d.trips.length, 1);

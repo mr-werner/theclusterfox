@@ -28,7 +28,7 @@ export default function TodayTab({ g }) {
           <Sprout size={28} aria-hidden="true" />
           <div>
             <h3>Start your garden</h3>
-            <p>Add what you grow (or want to grow) and GrowFox builds a care schedule for {today.slice(0, 4)}: watering, trimming, feeding and planting days, all timed to your frost dates. Every job also shows up in PlanFox.</p>
+            <p>Add what you grow (or want to grow) and GrowFox builds a care schedule for {today.slice(0, 4)}: watering, trimming, feeding and planting days, all timed to your frost dates. Every job also shows up in TaskFox.</p>
             <button type="button" className="gf-btn" onClick={() => g.switchTab("plants")}>
               Browse plants
             </button>

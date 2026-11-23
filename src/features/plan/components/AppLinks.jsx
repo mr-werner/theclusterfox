@@ -7,7 +7,7 @@ import { appById, appName } from "../model/appInfo";
 import { formatTime } from "../model/dates";
 import { loadLaunchTargets } from "../state/useAppLinks";
 
-// Apps a planner item can open: everything except PlanFox itself.
+// Apps a planner item can open: everything except TaskFox itself.
 const LINKABLE = apps.filter(a => a.id !== "planfox");
 
 /** The app's own small mark, in its own color. */

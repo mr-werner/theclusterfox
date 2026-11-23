@@ -1,4 +1,4 @@
-// What SkyFox puts on the PlanFox calendar: the outdoor sessions you planned
+// What SkyFox puts on the TaskFox calendar: the outdoor sessions you planned
 // in its Planner, at the hour you picked.
 
 import { normalizeData } from "../state/clocastStore.js";

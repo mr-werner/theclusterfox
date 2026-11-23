@@ -333,7 +333,7 @@ function Nearby({ dz, opts, onPick }) {
   );
 }
 
-// Puts a jump day at this DZ on your PlanFox calendar.
+// Puts a jump day at this DZ on your TaskFox calendar.
 function PlanDay({ dz, j }) {
   const { data, patch } = j;
   const [open, setOpen] = useState(false);
@@ -350,7 +350,7 @@ function PlanDay({ dz, j }) {
       {open ? (
         <form className="jf-inline-form" onSubmit={save}>
           <input type="date" value={day} min={localDay()} onChange={e => setDay(e.target.value)} aria-label="Jump day" />
-          <button type="submit" className="jf-btn is-small">Add to PlanFox</button>
+          <button type="submit" className="jf-btn is-small">Add to TaskFox</button>
           <button type="button" className="jf-link" onClick={() => setOpen(false)}>Cancel</button>
         </form>
       ) : (

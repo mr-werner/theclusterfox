@@ -6,7 +6,7 @@ import { REMINDER_ICONS } from "./reminderIcons";
 
 /**
  * The daily reminders: what they say for the day being looked at, and
- * which ones to send to PlanFox.
+ * which ones to send to TaskFox.
  */
 export default function RemindersPanel({ list, dayLabel, settings, onChange, onClose }) {
   const toggle = id => {
@@ -22,11 +22,11 @@ export default function RemindersPanel({ list, dayLabel, settings, onChange, onC
             <BellRing size={13} aria-hidden="true" /> DAILY REMINDERS
           </p>
           <h2 id="cc-reminders-title">Before you head out {dayLabel}</h2>
-          <p className="cc-muted">These show on your PlanFox calendar every day. Pick the ones you want below.</p>
+          <p className="cc-muted">These show on your TaskFox calendar every day. Pick the ones you want below.</p>
         </div>
         <div className="cc-reminders-actions">
-          <Link className="cc-btn" to="/plan?view=today">
-            <CalendarDays size={15} aria-hidden="true" /> Open PlanFox
+          <Link className="cc-btn" to="/task?view=today">
+            <CalendarDays size={15} aria-hidden="true" /> Open TaskFox
           </Link>
           {onClose && (
             <button type="button" className="cc-icon-btn" onClick={onClose} aria-label="Close reminders">

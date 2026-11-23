@@ -1,6 +1,6 @@
-// What BookFox puts on the PlanFox calendar: the books you read each day
+// What BookFox puts on the TaskFox calendar: the books you read each day
 // (how long, and how far you got), and the books a planned reading block
-// can open. PlanFox loads this module on demand (see src/app/planLinks.js)
+// can open. TaskFox loads this module on demand (see src/app/planLinks.js)
 // and passes in BookFox's saved data exactly as stored.
 import { normalizeData } from "../state/bookStore.js";
 

@@ -32,6 +32,8 @@ const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 // JumpFox carries drop zones, skills diagrams and the logbook, so it loads on demand too.
 const JumpPage = lazy(() => import("./features/jump/JumpPage"));
 // FlyFox carries its question bank and study notes, so it loads on demand too.
+// BookFox brings its reader and catalog, so it loads on demand too.
+const BookPage = lazy(() => import("./features/book/BookPage"));
 // SnowFox carries its resort list and maps, so it loads on demand too.
 const SnowPage = lazy(() => import("./features/snow/SnowPage"));
 // FretFox brings its songs, arranger and audio engine, so it loads on demand too.
@@ -242,6 +244,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <GuitarPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/books"
+                element={
+                    <Suspense fallback={null}>
+                        <BookPage />
                     </Suspense>
                 }
             />

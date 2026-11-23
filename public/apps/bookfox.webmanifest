@@ -1,0 +1,28 @@
+{
+  "id": "/books",
+  "name": "BookFox",
+  "short_name": "BookFox",
+  "start_url": "/books",
+  "scope": "/books",
+  "display": "standalone",
+  "background_color": "#1a0e10",
+  "theme_color": "#1a0e10",
+  "icons": [
+    {
+      "src": "/apps/booksfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/booksfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/booksfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

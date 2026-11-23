@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/f4t/food-search", "destination": "/api/apps/food-search" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }

@@ -3,17 +3,22 @@
 //   kid  Elementary: the basics, in words a young child knows.
 //   bio  Biology: what it is, where it sits and what it does.
 //
-// Sports Medicine and Medical levels are planned; they plug in here with
-// their own fields.
+//   sport Sports Medicine: use, injury and getting back to play.
+//   med   Medical: what goes wrong, and how it is (or can't be) treated.
+//
+// The two clinical levels live in clinical.js.
 
 import { baseName, layerById } from "../model/parts.js";
-import { systemInfo } from "../model/systems.js";
+import { systemInfo, systemOf } from "../model/systems.js";
+import { clinicalText } from "./clinical.js";
 import { kindInfo, KINDS } from "./kinds.js";
 import { noteFor } from "./notes.js";
 
 export const LEVELS = [
-  { id: "kid", name: "Elementary", short: "Kids", blurb: "Just the basics" },
+  { id: "kid", name: "Elementary", short: "Elementary", blurb: "Just the basics" },
   { id: "bio", name: "Biology", short: "Biology", blurb: "How it works" },
+  { id: "sport", name: "Sports Medicine", short: "Sports med", blurb: "Use, injury and return to play" },
+  { id: "med", name: "Medical", short: "Medical", blurb: "What goes wrong and how it's treated" },
 ];
 export const levelById = new Map(LEVELS.map(l => [l.id, l]));
 
@@ -169,6 +174,14 @@ export function explain(part, level) {
     const lead = firstMatch(KID_NOTES, base) ?? KID_KINDS[part.kind] ?? kidFallback(part, sub, group);
     const more = sub?.kid ?? group?.kid ?? null;
     return { lead, more: more && more !== lead ? more : null, context };
+  }
+  if (level === "sport" || level === "med") {
+    const s = systemOf(part);
+    const t = clinicalText(base, part.layer, s.group, s.sub, level);
+    const lead = t.lead ?? (level === "sport"
+      ? `Part of the ${layer.name.toLowerCase()}. Train it gradually, warm up first, and let pain guide how fast you build back after an injury.`
+      : `Part of the ${layer.name.toLowerCase()}. Problems here are diagnosed from the history, an examination and imaging, and treated by their cause.`);
+    return { lead, more: t.more, context, clinical: true };
   }
   const note = noteFor(base);
   const kind = kindInfo(part.kind) ?? fallbackKind(part, base);

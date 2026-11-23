@@ -687,8 +687,8 @@ function PartInfo({ part, parts, level, onLevel, isolated, onClose, onFocus, onH
       {side && <p className="bf-info-side">On the body's {side} side</p>}
       <div className="bf-levels bf-seg" role="radiogroup" aria-label="How much detail">
         {LEVELS.map(l => (
-          <button key={l.id} type="button" role="radio" aria-checked={level === l.id} className={level === l.id ? "is-on" : ""} onClick={() => onLevel(l.id)} title={l.blurb}>
-            {l.name}
+          <button key={l.id} type="button" role="radio" aria-checked={level === l.id} className={level === l.id ? "is-on" : ""} onClick={() => onLevel(l.id)} title={`${l.name}: ${l.blurb}`}>
+            {l.short}
           </button>
         ))}
       </div>
@@ -696,6 +696,7 @@ function PartInfo({ part, parts, level, onLevel, isolated, onClose, onFocus, onH
         <p>{info.lead}</p>
         {info.more && <p className="bf-info-kind">{info.more}</p>}
         {info.context && <p className="bf-info-where">{info.context}</p>}
+        {info.clinical && <p className="bf-info-note">For learning, not medical advice. See a doctor or physio about an injury or symptom.</p>}
       </div>
 
       <div className="bf-actions">

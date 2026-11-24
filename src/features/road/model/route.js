@@ -107,47 +107,92 @@ export function minutesAt(route, mile) {
   return t;
 }
 
+/** Rest breaks on a day: 15 minutes for every two hours of driving that a stop doesn't already cover. */
+export function breakMinutes(driveMinutes, stopCount = 0) {
+  return Math.max(0, Math.floor(driveMinutes / 120) - stopCount) * 15;
+}
+
 /**
- * Split a drive into days of at most `hoursPerDay` behind the wheel. Stops
- * (with .mile and .minutes on this route) happen on the day you reach them
- * and don't count toward driving time. Returns [{ index, fromMile, toMile,
- * driveMinutes, stopMinutes, stops, end: {lat, lon} | null }]; end is the
- * overnight spot, null on the last day.
+ * Split a drive into days. `opts` is the hours you'll drive a day (a
+ * number, as before) or { hours, start, finish, days, snap, breaks }:
+ *  - hours: the most time behind the wheel each day
+ *  - start / finish: minutes after midnight you set off and want to be done;
+ *    a day also ends when its clock (driving, stops and breaks) reaches finish
+ *  - days: { [index]: { start, finish } } to change one day's times
+ *  - snap({ index, fromMile, target, total }): move a day's end to a real
+ *    place (a town with hotels, a campground); returns a mile or null
+ * Stops (with .mile and .minutes on this route) happen on the day you reach
+ * them and don't count toward driving time. Returns [{ index, fromMile,
+ * toMile, driveMinutes, stopMinutes, breakMinutes, startClock, endClock,
+ * stops, end: {lat, lon} | null }]; end is the overnight spot, null on the
+ * last day, and the clocks are minutes after midnight (null without start).
  */
-export function splitDays(route, stops = [], hoursPerDay = 8) {
-  const cap = Math.max(2, Math.min(14, hoursPerDay)) * 60;
+export function splitDays(route, stops = [], opts = 8) {
+  const o = typeof opts === "number" ? { hours: opts } : (opts ?? {});
+  const baseCap = Math.max(1, Math.min(18, o.hours ?? 8)) * 60;
   const cum = cumulative(route.points);
   const total = route.miles;
   const sorted = [...stops].filter(s => Number.isFinite(s.mile)).sort((a, b) => a.mile - b.mile);
+  const withBreaks = o.breaks ?? Number.isFinite(o.start);
   const days = [];
   let fromMile = 0;
   let fromMin = 0;
   let si = 0;
-  while (fromMile < total - 0.5 && days.length < 30) {
-    const endMin = fromMin + cap;
+  while (fromMile < total - 0.5 && days.length < 40) {
+    const index = days.length;
+    const own = o.days?.[index] ?? {};
+    const start = Number.isFinite(own.start) ? own.start : o.start;
+    const finish = Number.isFinite(own.finish) ? own.finish : o.finish;
+    const window = Number.isFinite(start) && Number.isFinite(finish) && finish > start ? finish - start : Infinity;
+    const cap = Number.isFinite(own.hours) ? Math.max(60, own.hours * 60) : baseCap;
+    // Clock time to reach `mile` today: driving, the stops on the way, breaks.
+    const clock = mile => {
+      const drive = minutesAt(route, mile) - fromMin;
+      let stopMin = 0;
+      let n = 0;
+      for (let k = si; k < sorted.length && sorted[k].mile <= mile + 0.01; k++) {
+        stopMin += sorted[k].minutes ?? 45;
+        n += 1;
+      }
+      return { drive, total: drive + stopMin + (withBreaks ? breakMinutes(drive, n) : 0) };
+    };
+    const fits = (mile, slack = 0) => {
+      const c = clock(mile);
+      return c.drive <= cap + slack && c.total <= window + slack;
+    };
     let toMile;
-    if (minutesAt(route, total) <= endMin + 20) toMile = total; // close enough: finish today
+    if (fits(total, 20)) toMile = total; // close enough: finish today
     else {
       let lo = fromMile;
       let hi = total;
       for (let k = 0; k < 40; k++) {
         const mid = (lo + hi) / 2;
-        if (minutesAt(route, mid) <= endMin) lo = mid;
+        if (fits(mid)) lo = mid;
         else hi = mid;
       }
       toMile = Math.max(lo, fromMile + 1);
+      const snapped = o.snap?.({ index, fromMile, target: toMile, total });
+      if (Number.isFinite(snapped) && snapped > fromMile + 1 && snapped < total - 1) toMile = snapped;
     }
     const dayStops = [];
     while (si < sorted.length && sorted[si].mile <= toMile + 0.01) dayStops.push(sorted[si++]);
     const last = toMile >= total;
+    const driveMinutes = Math.round(minutesAt(route, toMile) - fromMin);
+    const stopMinutes = dayStops.reduce((s, p) => s + (p.minutes ?? 45), 0);
+    const rest = withBreaks ? breakMinutes(driveMinutes, dayStops.length) : 0;
     days.push({
-      index: days.length,
+      index,
       fromMile: Math.round(fromMile),
       toMile: Math.round(toMile),
-      driveMinutes: Math.round(minutesAt(route, toMile) - fromMin),
-      stopMinutes: dayStops.reduce((s, p) => s + (p.minutes ?? 45), 0),
+      driveMinutes,
+      stopMinutes,
+      breakMinutes: rest,
+      startClock: Number.isFinite(start) ? start : null,
+      endClock: Number.isFinite(start) ? start + driveMinutes + stopMinutes + rest : null,
       stops: dayStops,
       end: last ? null : pointAt(route.points, cum, toMile),
+      exactFrom: fromMile,
+      exactTo: toMile,
     });
     fromMin = minutesAt(route, toMile);
     fromMile = toMile;

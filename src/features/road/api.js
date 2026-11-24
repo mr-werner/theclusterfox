@@ -10,7 +10,9 @@
 
 import { searchPlaces } from "../../services/weather/openMeteo";
 import { osrmPath, parseOsrm, placesFromOsm } from "./model/route.js";
-import { overpassAlong } from "./data/themes.js";
+import { activityQuery, classifyWiki, overpassAlong } from "./data/themes.js";
+import { corridorFromOsm } from "./model/stays.js";
+import { cumulative, sampleEvery } from "./model/geo.js";
 import { stationsFromOsm } from "./model/fuel.js";
 import { parseForecastDays, shiftYears, typicalDays } from "./model/packing.js";
 
@@ -198,4 +200,141 @@ async function typicalFor(place, dates) {
   const got = bodies.filter(Boolean);
   if (!got.length) throw new Error("The weather service isn't responding. Try again in a moment.");
   return typicalDays(got, dates);
+}
+
+/** A route cut into stretches of about `size` miles, each as points every `step` miles. */
+function stretches(points, size, step) {
+  const cum = cumulative(points);
+  const total = cum[cum.length - 1] ?? 0;
+  const all = sampleEvery(points, cum, step);
+  const out = [];
+  for (let a = 0; a < total; a += size) {
+    const piece = all.filter(p => p.mile >= a - step && p.mile <= a + size + step);
+    if (piece.length >= 2) out.push(piece);
+  }
+  return out;
+}
+
+/** Run jobs a few at a time; each result (or error) goes to onEach as it lands. */
+async function pool(jobs, size, onEach, signal) {
+  let next = 0;
+  const worker = async () => {
+    while (next < jobs.length) {
+      if (signal?.aborted) return;
+      const i = next++;
+      try {
+        onEach(i, await jobs[i](), null);
+      } catch (error) {
+        if (error.name === "AbortError" && signal?.aborted) return;
+        onEach(i, null, error);
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(size, jobs.length) }, worker));
+  if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+}
+
+async function wikiNear(p, signal) {
+  const qs = new URLSearchParams({ action: "query", list: "geosearch", gscoord: `${p.lat.toFixed(4)}|${p.lon.toFixed(4)}`, gsradius: "10000", gslimit: "60", format: "json", origin: "*" });
+  const response = await fetch(`https://en.wikipedia.org/w/api.php?${qs}`, { signal });
+  if (!response.ok) throw new Error(`Wikipedia ${response.status}`);
+  const body = await response.json();
+  return (body?.query?.geosearch ?? []).map(classifyWiki).filter(Boolean);
+}
+
+/**
+ * Things to do along a route, a stretch at a time, from OpenStreetMap and
+ * Wikipedia together, so one busy service doesn't leave you with nothing.
+ * onPart(places so far, { done, total }) fires as each piece lands.
+ * Resolves with every place found; throws only when every lookup failed.
+ */
+export async function fetchActivities(points, { signal, onPart } = {}) {
+  const cum = cumulative(points);
+  const total = cum[cum.length - 1] ?? 0;
+  const pieces = stretches(points, 180, Math.max(2.5, Math.min(5, total / 300)));
+  const wikiSpots = sampleEvery(points, cum, Math.max(12, total / 70));
+  const jobs = [
+    ...pieces.map(piece => () => overpass(activityQuery(piece), { signal, timeout: 40000 }).then(placesFromOsm)),
+    // Wikipedia a few spots at a time, in batches so the queue stays short.
+    ...Array.from({ length: Math.ceil(wikiSpots.length / 6) }, (_, b) => () => Promise.all(wikiSpots.slice(b * 6, b * 6 + 6).map(p => wikiNear(p, signal).catch(() => []))).then(r => r.flat())),
+  ];
+  const found = new Map();
+  let done = 0;
+  let failed = 0;
+  await pool(
+    jobs,
+    3,
+    (i, list, error) => {
+      done += 1;
+      if (error) failed += 1;
+      for (const p of list ?? []) {
+        const key = `${p.name.toLowerCase().replace(/[^a-z0-9]/g, "")}|${p.lat.toFixed(2)}|${p.lon.toFixed(2)}`;
+        const had = found.get(key);
+        // The same place from both sources: keep OSM's, with Wikipedia's link.
+        if (!had) found.set(key, p);
+        else if (!had.wiki && p.wiki) found.set(key, { ...had, wiki: p.wiki, score: had.score + 2 });
+      }
+      onPart?.([...found.values()], { done, total: jobs.length });
+    },
+    signal
+  );
+  if (failed === jobs.length) throw new Error("The map database (OpenStreetMap) and Wikipedia are both busy. Try again in a moment.");
+  return [...found.values()];
+}
+
+function corridorQuery(piece) {
+  const line = piece.map(p => `${p.lat.toFixed(4)},${p.lon.toFixed(4)}`).join(",");
+  return `[out:json][timeout:25];(node(around:16000,${line})["place"~"^(city|town)$"]["name"];nw(around:8000,${line})["tourism"~"^(hotel|motel|guest_house|hostel)$"];nw(around:12000,${line})["tourism"~"^(camp_site|caravan_site)$"];nw(around:2500,${line})["highway"~"^(rest_area|services)$"];nw(around:2500,${line})["amenity"="fuel"];);out center tags;`;
+}
+
+/**
+ * Towns, places to stay and gas stations along a route, a stretch at a
+ * time (see corridorFromOsm). onPart(items so far, { done, total }).
+ */
+export async function fetchCorridor(points, { signal, onPart } = {}) {
+  const cum = cumulative(points);
+  const total = cum[cum.length - 1] ?? 0;
+  const pieces = stretches(points, 160, Math.max(2, Math.min(4, total / 400)));
+  const found = new Map();
+  let done = 0;
+  let failed = 0;
+  await pool(
+    pieces.map(piece => () => overpass(corridorQuery(piece), { signal, timeout: 40000 }).then(corridorFromOsm)),
+    2,
+    (i, list, error) => {
+      done += 1;
+      if (error) failed += 1;
+      for (const item of list ?? []) found.set(item.id, item);
+      onPart?.([...found.values()], { done, total: pieces.length, failed });
+    },
+    signal
+  );
+  if (failed === pieces.length) throw new Error("The map database (OpenStreetMap) is busy, so places to stay and gas stations aren't showing. Try again in a moment.");
+  return [...found.values()];
+}
+
+/**
+ * Hourly forecast for points along the drive (Open-Meteo, keyless), each in
+ * its own time zone: one answer per point, as Open-Meteo returns them.
+ */
+export async function fetchHourlyAlong(points, startDate, endDate, { signal } = {}) {
+  const out = [];
+  for (let i = 0; i < points.length; i += 50) {
+    const batch = points.slice(i, i + 50);
+    const qs = new URLSearchParams({
+      latitude: batch.map(p => p.lat.toFixed(2)).join(","),
+      longitude: batch.map(p => p.lon.toFixed(2)).join(","),
+      hourly: "temperature_2m,precipitation_probability,weather_code,wind_gusts_10m,snowfall",
+      temperature_unit: "fahrenheit",
+      wind_speed_unit: "mph",
+      timezone: "auto",
+      start_date: startDate,
+      end_date: endDate,
+    });
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${qs}`, { signal });
+    if (!response.ok) throw new Error("The weather service isn't responding. Try again in a moment.");
+    const body = await response.json();
+    out.push(...(Array.isArray(body) ? body : [body]));
+  }
+  return out;
 }

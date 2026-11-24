@@ -12,7 +12,10 @@ import { addDays, emptyData, normalizeData } from "../state/roadStore.js";
 import { planItems, launchTargets } from "../model/planLink.js";
 import { parseEia } from "../../../../api/road/[route].js";
 import { dateRange, feel, packingList, parseForecastDays, scheduleStays, shiftYears, summarize, tripLength, typicalDays, weatherSource } from "../model/packing.js";
-import { cleanPack } from "../state/roadStore.js";
+import { cleanPack, cleanDrive } from "../state/roadStore.js";
+import { corridorFromOsm, estimatePrice, hotelTowns, parseCharge, pickNight, placeOnRoute, stayLinks } from "../model/stays.js";
+import { dayWiggle, drivingWarning, fmtClock, gasPlan, parseClock, roadHazard, threePlans, timeline, toClock, weatherAlong } from "../model/days.js";
+import { activityQuery, classifyWiki } from "../data/themes.js";
 
 const shapes = JSON.parse(readFileSync(new URL("../data/stateShapes.json", import.meta.url), "utf8"));
 
@@ -255,7 +258,7 @@ test("saved data and TaskFox", () => {
     games: { plates: { CO: true, zz: true }, bingo: { seed: 5, marks: [1, 99] } },
   };
   const d = normalizeData(raw);
-  assert.equal(d.hoursPerDay, 14);
+  assert.equal(d.hoursPerDay, 16);
   assert.equal(d.vehicle.rangeMi, 700);
   assert.equal(d.vehicle.plug, "nacs");
   assert.equal(d.trips.length, 1);
@@ -339,6 +342,158 @@ test("pack settings clean up", () => {
   assert.deepEqual(p.checked, { coat: true });
   assert.equal(cleanPack(null).stays.length, 1);
   assert.equal(normalizeData({}).pack.stays[0].id, "end");
+});
+
+
+test("hotel prices by brand, stars and town size", () => {
+  assert.equal(estimatePrice({ kind: "hotel", name: "Motel 6 Rawlins", brand: "Motel 6" }), 68);
+  assert.equal(estimatePrice({ kind: "hotel", name: "Days Inn by Wyndham Rawlins" }), 68, "a Days Inn is a Days Inn");
+  assert.equal(estimatePrice({ kind: "hotel", name: "Hampton Inn Rock Springs" }), 128);
+  assert.equal(estimatePrice({ kind: "hotel", name: "Hilton Garden Inn" }), 128);
+  assert.equal(estimatePrice({ kind: "hotel", name: "Denver Marriott" }, 700000), Math.round(185 * 1.3));
+  assert.equal(estimatePrice({ kind: "hotel", name: "The Old Inn", stars: 4 }), 205);
+  assert.equal(estimatePrice({ kind: "camp", name: "KOA Journey" }), 58);
+  assert.equal(estimatePrice({ kind: "camp", name: "Elk Camp", charge: 22 }), 22);
+  assert.equal(estimatePrice({ kind: "rest", name: "Rest area" }), 0);
+  assert.equal(parseCharge("25 USD/night"), 25);
+  assert.equal(parseCharge("free"), null);
+});
+
+const osm = { elements: [
+  { type: "node", id: 1, lat: 41.79, lon: -107.24, tags: { place: "town", name: "Rawlins", population: "8,221" } },
+  { type: "node", id: 2, lat: 41.59, lon: -109.22, tags: { place: "city", name: "Rock Springs", population: "23526" } },
+  ...Array.from({ length: 8 }, (_, i) => ({ type: "node", id: 10 + i, lat: 41.59 + i * 0.002, lon: -109.21, tags: { tourism: i % 2 ? "motel" : "hotel", name: i % 2 ? "Super 8" : "Hampton Inn", brand: i % 2 ? "Super 8" : "Hampton Inn" } })),
+  { type: "way", id: 30, center: { lat: 41.79, lon: -107.23 }, tags: { tourism: "hotel", name: "Hampton Inn Rawlins" } },
+  { type: "node", id: 40, lat: 41.6, lon: -108.6, tags: { tourism: "camp_site", name: "Sage Flat", fee: "no" } },
+  { type: "node", id: 41, lat: 41.62, lon: -109.0, tags: { tourism: "camp_site", name: "Rock Springs KOA" } },
+  { type: "node", id: 42, lat: 41.65, lon: -108.3, tags: { highway: "rest_area", name: "Point of Rocks Rest Area" } },
+  { type: "node", id: 43, lat: 41.6, lon: -109.15, tags: { amenity: "fuel", brand: "Love's", name: "Love's Travel Stop" } },
+  { type: "node", id: 44, lat: 41.31, lon: -105.6, tags: { amenity: "fuel", brand: "Shell", opening_hours: "24/7" } },
+  { type: "node", id: 45, lat: 41.31, lon: -105.6, tags: { tourism: "camp_site", access: "private", name: "Private" } },
+] };
+
+test("places to stay and gas from OpenStreetMap", () => {
+  const items = corridorFromOsm(osm);
+  const kinds = items.reduce((m, i) => ({ ...m, [i.kind]: (m[i.kind] ?? 0) + 1 }), {});
+  assert.deepEqual(kinds, { town: 2, hotel: 9, free: 1, camp: 1, rest: 1, fuel: 2, truck: 1 });
+  assert.equal(items.find(i => i.kind === "town" && i.name === "Rawlins").pop, 8221);
+  assert.ok(items.find(i => i.id === "osm:node/43").truck, "Love's is a truck stop");
+  const towns = hotelTowns(items, 100);
+  const rs = towns.find(t => t.town.name === "Rock Springs");
+  assert.equal(rs.count, 8);
+  assert.equal(rs.fit, 4, "the Super 8s fit $100");
+  assert.ok(rs.lo < rs.hi);
+});
+
+const samplesDS = sampleEvery(line, cum, 1);
+const placedDS = placeOnRoute(corridorFromOsm(osm), samplesDS);
+
+test("a night in the town with the most hotels, with other options", () => {
+  const rsMile = placedDS.find(p => p.name === "Rock Springs").mile;
+  const n = pickNight(placedDS, { target: rsMile + 10, lo: rsMile - 150, hi: rsMile + 20, pref: "city", budget: 100 });
+  assert.equal(n.pick.kind, "city");
+  assert.equal(n.pick.name, "Rock Springs", "8 hotels beat 1");
+  assert.ok(n.pick.inBudget);
+  assert.equal(n.options.camp.name, "Rock Springs KOA");
+  assert.equal(n.options.free.price, 0);
+  assert.equal(n.options.truck.name, "Love's");
+  assert.equal(n.options.rest.name, "Point of Rocks Rest Area");
+  const camp = pickNight(placedDS, { target: rsMile, lo: rsMile - 150, hi: rsMile + 20, pref: "free", budget: 0 });
+  assert.equal(camp.pick.name, "Sage Flat");
+  const none = pickNight(placedDS, { target: 5, lo: 0, hi: 10, pref: "city" });
+  assert.equal(none.pick, null);
+  const links = stayLinks(n.pick, { checkin: "2026-12-01", checkout: "2026-12-02" });
+  assert.match(links[0].href, /booking\.com.*ss=Rock\+Springs.*checkin=2026-12-01/);
+});
+
+test("your driving day: times, warnings and clean settings", () => {
+  assert.equal(parseClock("08:30"), 510);
+  assert.equal(parseClock("8:5"), null);
+  assert.equal(toClock(510), "08:30");
+  assert.equal(fmtClock(1050), "5:30 pm");
+  assert.match(fmtClock(1440 + 60), /next day/);
+  assert.equal(drivingWarning(7), null);
+  assert.equal(drivingWarning(9).level, "warn");
+  assert.equal(drivingWarning(10.5).level, "danger");
+  assert.match(drivingWarning(12).text, /11/);
+  const d = cleanDrive({ start: 600, finish: 500, stay: "nope", budget: -4, flex: 9999 });
+  assert.equal(d.finish, 600 + 600, "a finish before the start becomes a 10-hour day");
+  assert.equal(d.stay, "city");
+  assert.equal(d.budget, 0);
+  assert.equal(d.flex, 240);
+  assert.equal(normalizeData({ hoursPerDay: 15 }).hoursPerDay, 15, "longer days are allowed now");
+  assert.equal(normalizeData({ hoursPerDay: 40 }).hoursPerDay, 16);
+});
+
+test("days end at your stop time and snap to a place to sleep", () => {
+  // 4 hours a day allowed but only 3 on the clock (with breaks and a stop).
+  const days = splitDays(route, [{ id: "a", mile: 60, minutes: 60 }], { hours: 4, start: 480, finish: 660 });
+  assert.ok(days.length >= 3);
+  assert.ok(days.every(d => d.endClock <= 660 + 21), "every day is done by 11");
+  assert.equal(days[0].startClock, 480);
+  assert.equal(days[0].stopMinutes, 60);
+  const own = splitDays(route, [], { hours: 4, start: 480, finish: 1080, days: { 0: { start: 360, finish: 420 } } });
+  assert.equal(own[0].startClock, 360);
+  assert.ok(own[0].driveMinutes <= 61, "the first day's own short window");
+  const snapped = splitDays(route, [], { hours: 5, snap: ({ target }) => target - 20 });
+  assert.equal(snapped[0].toMile, Math.round(snapped[0].exactTo));
+  assert.equal(snapped[1].fromMile, snapped[0].toMile, "the next day starts where you slept");
+});
+
+test("three plans: as planned, push on, ease off", () => {
+  const plans = threePlans(route, [], { drive: { start: 480, finish: 1080, flex: 60, stay: "city", budget: 120 }, hoursPerDay: 4, places: placedDS });
+  assert.ok(plans.further.days.length <= plans.planned.days.length);
+  assert.ok(plans.earlier.days.length >= plans.planned.days.length);
+  assert.ok(Math.max(...plans.further.days.map(d => d.driveMinutes)) > Math.max(...plans.planned.days.map(d => d.driveMinutes)));
+  assert.equal(plans.planned.nights.length, plans.planned.days.length);
+  assert.equal(plans.planned.nights.at(-1), null, "no night after you arrive");
+  const withPick = plans.planned.days.findIndex((d, i) => plans.planned.nights[i]?.pick);
+  if (withPick >= 0) near(plans.planned.days[withPick].exactTo, plans.planned.nights[withPick].pick.mile, 0.01, "the day ends at the pick");
+  const w = dayWiggle(route, plans.planned.days[0], { drive: { flex: 90, stay: "city", budget: 0 }, places: placedDS });
+  assert.ok("further" in w && "earlier" in w);
+  assert.equal(threePlans(route, [], { hoursPerDay: 1, drive: { start: 480, finish: 1080, flex: 90 } }).earlier, undefined, "can't ease off below an hour");
+});
+
+test("gas where you're already stopping", () => {
+  const stations = [{ mile: 200, off: 0.2, name: "A" }, { mile: 240, off: 0.5, name: "B" }, { mile: 290, off: 0.1, name: "C" }];
+  const plan = gasPlan(520, { first: 300, next: 300 }, stations, [{ mile: 241, name: "Lunch" }]);
+  assert.equal(plan[0].station.name, "B", "fill up at lunch");
+  assert.equal(plan[0].anchor.name, "Lunch");
+  const plain = gasPlan(520, { first: 300, next: 300 }, stations, []);
+  assert.equal(plain[0].station.name, "C", "otherwise go as far as is safe");
+  assert.equal(gasPlan(200, { first: 300, next: 300 }, stations).length, 0);
+});
+
+test("weather when you'll be there", () => {
+  const days = splitDays(route, [], { hours: 4, start: 480, finish: 1200 });
+  const pts = timeline(route, days, { every: 90 });
+  assert.equal(pts[0].minutes, 480);
+  assert.ok(pts.some(p => p.day === 1 && p.minutes >= 1440 + 480));
+  assert.ok(pts.filter(p => p.end).length === days.length);
+  const body = { utc_offset_seconds: -25200, hourly: { time: ["2026-12-01T08:00", "2026-12-01T09:00"], temperature_2m: [20, 25], precipitation_probability: [80, 10], weather_code: [73, 1], wind_gusts_10m: [10, 50], snowfall: [0.5, 0] } };
+  const got = weatherAlong([{ minutes: 480 }, { minutes: 545 }, { minutes: 3000 }], [body, body, body], "2026-12-01");
+  assert.equal(got[0].weather.temp, 20);
+  assert.equal(got[1].weather.temp, 25, "rounds to the nearest hour");
+  assert.equal(got[2].weather, null, "not forecast yet");
+  assert.equal(roadHazard(got[0].weather), "Snow on the road");
+  assert.equal(roadHazard(got[1].weather), "Strong crosswinds");
+  assert.equal(roadHazard({ temp: 30, rain: 60, code: 61 }), "Possible ice");
+  assert.equal(roadHazard({ temp: 60, rain: 10, code: 1 }), null);
+});
+
+test("lighter activity lookups and Wikipedia's places", () => {
+  const q = activityQuery(sampleEvery(line, cum, 50));
+  assert.match(q, /\[timeout:25\]/);
+  assert.ok(!/boundary/.test(q), "no slow park boundaries");
+  assert.equal((q.match(/out center tags 90;/g) ?? []).length, 4);
+  const falls = classifyWiki({ pageid: 1, title: "Fish Creek Falls", lat: 40.48, lon: -106.78 });
+  assert.equal(falls.theme, "scenic");
+  assert.equal(falls.label, "Waterfall");
+  assert.match(falls.wiki, /Fish_Creek_Falls/);
+  assert.equal(classifyWiki({ pageid: 2, title: "Rawlins High School", lat: 41, lon: -107 }), null);
+  assert.equal(classifyWiki({ pageid: 3, title: "Rawlins, Wyoming", lat: 41, lon: -107 }), null);
+  assert.equal(classifyWiki({ pageid: 4, title: "Wyoming Frontier Prison Museum", lat: 41, lon: -107 }).theme, "history");
+  assert.equal(classifyWiki({ pageid: 5, title: "Fort Laramie National Historic Site", lat: 42, lon: -104 }).theme, "history");
 });
 
 console.log(`RoadTripFox: ${passed} checks passed`);

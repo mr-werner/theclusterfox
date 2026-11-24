@@ -37,7 +37,7 @@ export function PlantCare({ g, plant, entry, hours }) {
           </ul>
         </>
       ) : (
-        g.climate && <p className="gf-hint">Nothing due this week. Jobs show up on Today and in PlanFox when they come around.</p>
+        g.climate && <p className="gf-hint">Nothing due this week. Jobs show up on Today and in TaskFox when they come around.</p>
       )}
       {check.cadence.length > 0 && <p className="gf-hint">Usually: {check.cadence.map(c => `${c.name.toLowerCase()} ${c.word.toLowerCase()}`).join(", ")}.</p>}
       {check.watch.length > 0 && (

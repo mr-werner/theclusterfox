@@ -32,7 +32,7 @@ export function vfrAltitudes(magCourse) {
 
 export default function PlanTab({ f, openFlight }) {
   const { data, patch } = f;
-  // Opened from PlanFox: load that saved flight.
+  // Opened from TaskFox: load that saved flight.
   useEffect(() => {
     if (openFlight) patch({ route: openFlight.route, altitudeFt: openFlight.altitudeFt, departAt: openFlight.departAt && Date.parse(openFlight.departAt) > Date.now() ? openFlight.departAt : null });
   }, [openFlight?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -349,7 +349,7 @@ export default function PlanTab({ f, openFlight }) {
             <div className="fy-row-between">
               <h2>Navigation log</h2>
               <button type="button" className="fy-btn is-small" onClick={saveFlight} disabled={saved}>
-                <BookmarkPlus size={15} /> {saved ? "Saved — it's on your PlanFox calendar" : "Save flight"}
+                <BookmarkPlus size={15} /> {saved ? "Saved — it's on your TaskFox calendar" : "Save flight"}
               </button>
             </div>
             <div className="fy-scroll-x">

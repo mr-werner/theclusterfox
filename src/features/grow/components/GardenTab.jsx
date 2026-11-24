@@ -53,7 +53,7 @@ export default function GardenTab({ g }) {
       <div className="gf-plants-head">
         <h1>My garden</h1>
         <p className="gf-hint">
-          {data.garden.length - planned} growing{planned ? ` · ${planned} planned` : ""}. Every care job here also shows up on your PlanFox calendar.
+          {data.garden.length - planned} growing{planned ? ` · ${planned} planned` : ""}. Every care job here also shows up on your TaskFox calendar.
         </p>
       </div>
       {groups.map(({ spot, entries }) => (

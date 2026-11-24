@@ -1,5 +1,5 @@
 // JumpFox's saved data, in this browser: your home DZ, wind limit, logbook,
-// planned jump days and saved events. Plain functions so tests and PlanFox
+// planned jump days and saved events. Plain functions so tests and TaskFox
 // can use them. The logbook downloads as CSV or a JSON backup (see
 // model/logbook.js) so it's never only in one browser.
 

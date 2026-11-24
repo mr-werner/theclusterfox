@@ -51,7 +51,7 @@ export default function GrowPage() {
   const spotsById = useMemo(() => new Map(spots.map(s => [s.id, s])), [spots]);
   const ratingFor = useCallback((plant, light = null) => rate(plant, climate, light), [climate]);
 
-  // A PlanFox link (?task=…&day=…) opens Today on that day's job; ?entry= opens My garden.
+  // A TaskFox link (?task=…&day=…) opens Today on that day's job; ?entry= opens My garden.
   const taskParam = params.get("task");
   const entryParam = params.get("entry");
   const requested = params.get("tab");

@@ -138,3 +138,53 @@ export async function bodyfox() {
   const items = NOTES.map((n, i) => ({ id: String(i), title: nameOf(n) || `Part ${i + 1}`, text: n.text ?? "" }));
   return { groups: [{ title: "Body parts with notes", items }] };
 }
+
+export async function leapfox() {
+  const { drills = [], KINDS = [] } = await import("../../leap/data/drills.js");
+  const { GOALS = [] } = await import("../../leap/data/goals.js");
+  const kindName = new Map(KINDS.map(k => [k.id, k.name]));
+  const legs = { two: "two feet", one: "one foot", split: "alternating", either: "any" };
+  const items = drills.map(d => ({
+    id: d.id,
+    title: d.name,
+    meta: [legs[d.legs], `level ${d.level}`, `${d.reps} ${d.unit}${d.perSide ? " each side" : ""}`].filter(Boolean).join(" · "),
+    text: d.tip,
+    list: d.steps,
+    group: d.kind,
+    href: `/leap?tab=drills&drill=${encodeURIComponent(d.id)}`,
+  }));
+  const goals = GOALS.map(g => ({
+    id: `goal-${g.id}`,
+    title: g.name,
+    meta: [`${g.takeoff === "both" ? "one & two feet" : g.takeoff === "one" ? "one-foot" : "two-foot"} takeoff`, g.approach ? "with sprints" : null].filter(Boolean).join(" · "),
+    text: g.blurb,
+    list: [`Sport drills: ${g.sport.join(", ")}`, `Tests: ${g.tests.join(", ")}`],
+  }));
+  return { groups: [{ title: "Sports & events", items: goals }, ...groupBy(items, i => i.group, k => kindName.get(k) ?? cap(k))] };
+}
+
+export async function readyfox() {
+  const [{ JOBS = [], BRANCHES = [], EVENTS = {}, SOURCES = {} }, { AFT_TABLES = {} }, scoring] = await Promise.all([
+    import("../../ready/data/jobs.js"),
+    import("../../ready/data/aftTables.js"),
+    import("../../ready/model/scoring.js"),
+  ]);
+  const branchName = new Map(BRANCHES.map(b => [b.id, b.name]));
+  const items = JOBS.map(j => {
+    const std = scoring.standardsFor?.(j, { sex: "m", age: 20 }, AFT_TABLES) ?? [];
+    const fmt = (id, v) => (v == null ? "–" : typeof v === "object" ? Object.entries(v).map(([k, n]) => `${n} ${k}`).join(" or ") : scoring.fmtResult?.(id, v) ?? String(v));
+    return {
+      id: j.id,
+      title: j.name,
+      meta: [j.code, j.test.name, j.test.scoring === "aft" && `pass ${j.test.passTotal}+ (60 per event)`].filter(Boolean).join(" · "),
+      text: [j.blurb, j.test.note].filter(Boolean).join(" "),
+      list: [
+        ...std.map(s => `${EVENTS[s.id]?.name}: min ${fmt(s.id, s.min)}${s.aim != null ? `, aim ${fmt(s.id, s.aim)}` : ""}${j.test.scoring === "aft" ? " (age 17-21)" : ""}`),
+        ...j.test.sources.map(id => `Source: ${SOURCES[id]?.name} (${SOURCES[id]?.url})`),
+      ],
+      group: j.branch,
+      href: "/ready",
+    };
+  });
+  return { groups: groupBy(items, i => i.group, k => branchName.get(k) ?? cap(k)) };
+}

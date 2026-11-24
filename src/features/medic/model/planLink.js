@@ -1,6 +1,6 @@
-// What MedicFox puts on the PlanFox calendar: the skill stations you
+// What MedicFox puts on the TaskFox calendar: the skill stations you
 // practiced each day, and a station a planned study block can open.
-// PlanFox loads this module on demand (see src/app/planLinks.js) and
+// TaskFox loads this module on demand (see src/app/planLinks.js) and
 // passes in MedicFox's saved data exactly as stored.
 import { SKILLS, skillById } from "../data/skills.js";
 import { normalizeData } from "../state/medicStore.js";

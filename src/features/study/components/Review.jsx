@@ -53,7 +53,7 @@ function ReviewRun({ store, loaded }) {
             ? `${tally.right} of ${tally.total} right. What you missed comes back sooner; what you knew waits longer.`
             : "Nothing is due and you've met today's new cards. Practice any deck as much as you like, or come back tomorrow."}
         </p>
-        <p className="sy-muted sy-small">PlanFox shows tomorrow's review on your calendar at {formatTime(store.data.settings.time)}.</p>
+        <p className="sy-muted sy-small">TaskFox shows tomorrow's review on your calendar at {formatTime(store.data.settings.time)}.</p>
         <div className="sy-row">
           <Link to="/study" className="sy-btn">
             Back to my shelf

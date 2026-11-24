@@ -117,7 +117,7 @@ export default function PlanTab({ data, linked, week, start, today, onWeek, acti
           <strong>{days.filter(d => training[d].length).length}</strong>
           <small>
             {linked.hasTrainingApp ? (
-              <>from <Link to="/lift?tab=plans">LiftFox</Link>, <Link to="/pace">PaceFox</Link> and your own</>
+              <>from <Link to="/lift?tab=plans">LiftFox</Link>, <Link to="/pace">PaceFox</Link>, <Link to="/leap">LeapFox</Link> and your own</>
             ) : (
               <>add workouts below, or plan in <Link to="/lift">LiftFox</Link> or <Link to="/pace">PaceFox</Link></>
             )}

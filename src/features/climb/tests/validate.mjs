@@ -124,7 +124,7 @@ test("adding a route joins the upcoming plan at that area, or starts one", () =>
   assert.equal(upcomingTripAt(trips, "area1", "2026-11-21"), null, "a past plan doesn't count");
 });
 
-test("planned days show on PlanFox and link back", () => {
+test("planned days show on TaskFox and link back", () => {
   const raw = {
     trips: [
       { id: "t1", title: "Muir day", day: "2026-11-21", time: "08:00", area: { uuid: "z", name: "Muir Valley" }, routes: [{ uuid: "a", name: "Serpentine" }] },

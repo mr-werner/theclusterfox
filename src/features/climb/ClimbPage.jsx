@@ -23,7 +23,7 @@ const TABS = [
 // ClimbFox: climbing routes, packaged. Find crags on a map or by name,
 // read every route under an area with filters, see the week's climbing
 // conditions, keep a to-do list and a tick log, and plan climbing days
-// with a gear list that land on your PlanFox calendar. Route data is
+// with a gear list that land on your TaskFox calendar. Route data is
 // OpenBeta's open, public-domain database.
 export default function ClimbPage() {
   const store = useClimbData();

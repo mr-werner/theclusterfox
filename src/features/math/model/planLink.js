@@ -1,4 +1,4 @@
-// MathFox in PlanFox: a planner item (homework, say) can open MathFox, or a
+// MathFox in TaskFox: a planner item (homework, say) can open MathFox, or a
 // problem you solved recently.
 
 import { cleanHistory } from "../state/history.js";

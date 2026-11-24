@@ -1,4 +1,4 @@
-// FuelFox in PlanFox: each planned day's meals, what to cook that day, and a
+// FuelFox in TaskFox: each planned day's meals, what to cook that day, and a
 // reminder to weigh in. A planner item can also open F4T or a saved meal.
 
 import { normalizeData } from "../state/f4tStore.js";

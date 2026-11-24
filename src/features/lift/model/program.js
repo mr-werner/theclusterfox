@@ -1,5 +1,6 @@
 import { generateWorkout, GOALS } from "./generate.js";
 import { musclesById } from "../data/muscles.js";
+import { trainForById } from "../data/trainFor.js";
 
 // Long-term plans: a weekly split, blocks of four weeks that get a little
 // harder each week, and an easy (deload) week to finish every block.
@@ -56,8 +57,10 @@ function weekNote(weekInBlock, deload) {
  * Builds the whole plan. Exercises stay the same within a block so progress
  * is easy to track, and change at the start of each new block.
  */
-export function buildProgram({ goal = "size", daysPerWeek = 3, minutes = 45, weeks = 8, level = 1, gear = [], focus = [], startDate, seed = 1 }) {
+export function buildProgram({ goal = "size", daysPerWeek = 3, minutes = 45, weeks = 8, level = 1, gear = [], focus = [], startDate, seed = 1, trainFor = null }) {
   const planGoal = PLAN_GOALS[goal] ?? PLAN_GOALS.size;
+  // A sport or lifestyle goal steers every session toward what carries over.
+  const profile = trainFor ? trainForById.get(trainFor) ?? null : null;
   const train = planGoal.train;
   const split = SPLITS[daysPerWeek] ?? SPLITS[3];
   const focused = focus.filter(m => musclesById.has(m));
@@ -73,7 +76,7 @@ export function buildProgram({ goal = "size", daysPerWeek = 3, minutes = 45, wee
         const muscles = [...day.muscles, ...extra];
         const weights = Object.fromEntries(focused.map(m => [m, 1.8]));
         const workout = generateWorkout({
-          muscles, goal: train, minutes, gear, level, weights,
+          muscles, goal: train, minutes, gear, level, weights, trainFor: profile?.id ?? null,
           seed: seed * 101 + block * 17 + dayIndex * 7 + 1,
         });
         return { dayId, name: day.name, muscles, workout };
@@ -98,6 +101,7 @@ export function buildProgram({ goal = "size", daysPerWeek = 3, minutes = 45, wee
         weekday: (SCHEDULES[daysPerWeek] ?? SCHEDULES[3])[d],
         muscles: t.muscles,
         warmup: t.workout.warmup,
+        ...(t.workout.extras ? { extras: t.workout.extras } : {}),
         cooldown: t.workout.cooldown,
         items: t.workout.items.map(item => {
           let sets = item.sets;
@@ -124,6 +128,7 @@ export function buildProgram({ goal = "size", daysPerWeek = 3, minutes = 45, wee
     level,
     gear,
     focus: focused,
+    trainFor: profile?.id ?? null,
     startDate: startDate ?? null,
     seed,
     schedule: list,
@@ -176,6 +181,7 @@ export function progress(program, completed = {}) {
 }
 
 export function planTitle(program) {
-  const goal = PLAN_GOALS[program.goal]?.name ?? "Training";
+  const sport = program.trainFor ? trainForById.get(program.trainFor)?.name : null;
+  const goal = sport ?? PLAN_GOALS[program.goal]?.name ?? "Training";
   return `${goal}: ${program.weeks} weeks, ${program.daysPerWeek} days a week`;
 }

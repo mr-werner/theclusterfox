@@ -2,6 +2,8 @@
 // browser, and mirrored to the account when signed in. Long-term plans are
 // only made for signed-in people (see LiftPage).
 
+import { trainForById } from "../data/trainFor.js";
+
 export const STORAGE_KEY = "liftfox-data-v1";
 export const MAX_HISTORY = 120;
 const MAX_TOMBSTONES = 200;
@@ -9,7 +11,7 @@ const MAX_TOMBSTONES = 200;
 export function emptyData() {
   return {
     version: 1,
-    prefs: { muscles: [], goal: "size", minutes: 45, gear: [], level: 1, unit: "lb", restSound: true, favorites: [] },
+    prefs: { muscles: [], goal: "size", minutes: 45, gear: [], level: 1, unit: "lb", restSound: true, favorites: [], trainFor: null },
     // The workout being followed right now (see model/generate.js).
     current: null,
     // Finished workouts: { id, date, title, goal, minutes, muscles, setsDone, setsTotal, loads, planId, sessionId, updatedAt }
@@ -58,6 +60,8 @@ function cleanPrefs(prefs) {
     restSound: prefs.restSound !== false,
     // Starred exercises, by id.
     favorites: [...new Set(strings(prefs.favorites))].slice(0, 300),
+    // A sport, activity or lifestyle goal from data/trainFor.js, or null.
+    trainFor: trainForById.has(prefs.trainFor) ? prefs.trainFor : null,
   };
 }
 
@@ -86,6 +90,7 @@ function cleanCurrent(w) {
     title: typeof w.title === "string" ? w.title.slice(0, 80) : "Workout",
     items: w.items.map(cleanItem).filter(Boolean),
     warmup: strings(w.warmup),
+    extras: strings(w.extras),
     cooldown: strings(w.cooldown),
     warmupDone: w.warmupDone === true,
     cooldownDone: w.cooldownDone === true,

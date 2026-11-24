@@ -1,5 +1,5 @@
 // Geometry for RoadFox: distances in miles, positions along a route, and
-// which state a point is in. Plain functions so tests and PlanFox can use them.
+// which state a point is in. Plain functions so tests and TaskFox can use them.
 // Points are { lat, lon }.
 
 const R_MI = 3958.8;

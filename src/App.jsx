@@ -27,6 +27,7 @@ const CalmPage = lazy(() => import("./features/calm/CalmPage"));
 const MathPage = lazy(() => import("./features/math/MathPage"));
 // CookFox carries its recipe library, so it loads on demand too.
 const CookPage = lazy(() => import("./features/cook/CookPage"));
+const GroceryPage = lazy(() => import("./features/grocery/GroceryPage"));
 // GrowFox carries its plant library, so it loads on demand too.
 const GrowPage = lazy(() => import("./features/grow/GrowPage"));
 // JumpFox carries drop zones, skills diagrams and the logbook, so it loads on demand too.
@@ -47,14 +48,18 @@ const FlyPage = lazy(() => import("./features/fly/FlyPage"));
 // ClimbFox reads routes live from OpenBeta, and loads on demand like the rest.
 const ClimbPage = lazy(() => import("./features/climb/ClimbPage"));
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
-// RoadFox carries its state outlines and games, so it loads on demand too.
+// RoadTripFox carries its state outlines and games, so it loads on demand too.
 const RoadPage = lazy(() => import("./features/road/RoadPage"));
 // BeaconFox is saved for offline use on its own, so it is its own chunk.
 const BeaconPage = lazy(() => import("./features/beacon/BeaconPage"));
 // PaceFox carries its plan builder and live recorder, so it loads on demand too.
 const PacePage = lazy(() => import("./features/pace/PacePage"));
+// LeapFox builds its jump plans in the browser, so it loads on demand too.
+const LeapPage = lazy(() => import("./features/leap/LeapPage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
 const BodyPage = lazy(() => import("./features/body/BodyPage"));
+// ReadyFox carries the Army's full AFT score tables, so it loads on demand too.
+const ReadyPage = lazy(() => import("./features/ready/ReadyPage"));
 // StudyFox loads other apps' material on demand, so it loads on demand too.
 const StudyPage = lazy(() => import("./features/study/StudyPage"));
 
@@ -63,6 +68,20 @@ const StudyPage = lazy(() => import("./features/study/StudyPage"));
 function RedirectToPilot() {
     const { search, hash } = useLocation();
     return <Navigate to={`/pilot${search}${hash}`} replace />;
+}
+
+// RoadTripFox used to be RoadFox at /road; old links (and saved planner
+// items) keep working.
+function RedirectToRoadTrip() {
+    const { search, hash } = useLocation();
+    return <Navigate to={`/roadtrip${search}${hash}`} replace />;
+}
+
+// TaskFox used to be PlanFox at /plan; old links, bookmarks, installed
+// home-screen apps and "open in planner" links saved by other apps keep working.
+function RedirectToTask() {
+    const { search, hash } = useLocation();
+    return <Navigate to={`/task${search}${hash}`} replace />;
 }
 
 // Feedback, Donate and the developer area are small but rarely opened.
@@ -88,7 +107,8 @@ export default function App() {
             <Route path="/clocast" element={<ClocastPage />} />
             <Route path="/watch" element={<WatchPage />} />
             <Route path="/sports" element={<SportsPage />} />
-            <Route path="/plan" element={<PlanPage />} />
+            <Route path="/task" element={<PlanPage />} />
+            <Route path="/plan" element={<RedirectToTask />} />
             <Route path="/lift" element={<LiftPage />} />
             <Route
                 path="/calm"
@@ -131,6 +151,14 @@ export default function App() {
                 }
             />
             <Route
+                path="/grocery"
+                element={
+                    <Suspense fallback={null}>
+                        <GroceryPage />
+                    </Suspense>
+                }
+            />
+            <Route
                 path="/grow"
                 element={
                     <Suspense fallback={null}>
@@ -139,10 +167,26 @@ export default function App() {
                 }
             />
             <Route
+                path="/ready"
+                element={
+                    <Suspense fallback={null}>
+                        <ReadyPage />
+                    </Suspense>
+                }
+            />
+            <Route
                 path="/pace"
                 element={
                     <Suspense fallback={null}>
                         <PacePage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/leap"
+                element={
+                    <Suspense fallback={null}>
+                        <LeapPage />
                     </Suspense>
                 }
             />
@@ -215,8 +259,9 @@ export default function App() {
                     </Suspense>
                 }
             />
+            <Route path="/road" element={<RedirectToRoadTrip />} />
             <Route
-                path="/road"
+                path="/roadtrip"
                 element={
                     <Suspense fallback={null}>
                         <RoadPage />

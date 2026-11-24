@@ -1,7 +1,7 @@
 // TrailFox's saved data, in this browser: trails you've looked at or saved
 // (with their line, elevation profile and points of interest, so they work
 // offline), planned hikes, the hike you're recording and past hikes.
-// Plain functions so tests and PlanFox can use them.
+// Plain functions so tests and TaskFox can use them.
 
 export const STORAGE_KEY = "trailfox-data-v1";
 const MAX_RECENT = 12;

@@ -226,8 +226,8 @@ test("bad saved data is cleaned up", () => {
   assert.deepEqual(normalizeData(null), emptyData());
 });
 
-// ── PlanFox and StudyFox ──────────────────────────────────────────────
-test("PlanFox shows reading days and can open books", () => {
+// ── TaskFox and StudyFox ──────────────────────────────────────────────
+test("TaskFox shows reading days and can open books", () => {
   let d = openBook(emptyData(), PP);
   d = logReading(d, { day: "2026-11-17", book: "1342", secs: 1500, from: 0.12, to: 0.18 });
   d = logReading(d, { day: "2026-11-10", book: "1342", secs: 10, from: 0.1, to: 0.1 });

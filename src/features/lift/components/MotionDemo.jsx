@@ -7,6 +7,11 @@ import { effortCss, efforts as effortsAt, repAt } from "../data/activation";
 // three.js only loads when someone opens the 3D view.
 const PushupDemo3D = lazy(() => import("./PushupDemo3D"));
 
+// The 2D drawing for each rig, and which rigs have a 3D pose yet (keep in
+// step with anatomy3d/rigs.js, which is left out here so three.js stays lazy).
+const VIEWS_2D = { pushup: PushupDemo2D };
+const HAS_3D = new Set(["pushup"]);
+
 const VIEW_KEY = "liftfox-demo-view";
 const readView = () => {
   try {
@@ -39,7 +44,10 @@ function useRepClock(movement, running, speed) {
  * the 3D body, with every working muscle shading red by how hard it works.
  */
 export default function MotionDemo({ movement, exerciseName }) {
-  const [view, setView] = useState(readView);
+  const has3d = HAS_3D.has(movement.rig);
+  const Demo2D = VIEWS_2D[movement.rig] ?? PushupDemo2D;
+  const [savedView, setView] = useState(readView);
+  const view = has3d ? savedView : "2d";
   const [playing, setPlaying] = useState(() => !reducedMotion());
   const [speed, setSpeed] = useState(1);
   const [picked, setPicked] = useState(null);
@@ -65,14 +73,14 @@ export default function MotionDemo({ movement, exerciseName }) {
     <div className="lp-demo">
       <div className="lp-stage">
         <div className="lp-toolbar">
-          <div className="lp-views" role="radiogroup" aria-label="Demo view">
+          {has3d && <div className="lp-views" role="radiogroup" aria-label="Demo view">
             <button type="button" role="radio" aria-checked={view === "2d"} onClick={() => chooseView("2d")}>
               <Square size={14} aria-hidden="true" /> 2D
             </button>
             <button type="button" role="radio" aria-checked={view === "3d"} onClick={() => chooseView("3d")}>
               <Box size={14} aria-hidden="true" /> 3D
             </button>
-          </div>
+          </div>}
           <span className={`lp-phase ${rep.pressing ? "is-press" : ""}`} aria-live="off">{rep.label}</span>
           <div className="lp-play">
             <button type="button" className="lp-iconbtn" onClick={() => setPlaying(p => !p)} aria-label={playing ? "Pause" : "Play"}>
@@ -85,7 +93,7 @@ export default function MotionDemo({ movement, exerciseName }) {
         </div>
 
         {view === "2d" ? (
-          <PushupDemo2D depth={rep.depth} efforts={efforts} onPick={setPicked} />
+          <Demo2D depth={rep.depth} efforts={efforts} onPick={setPicked} options={movement.rigOptions} />
         ) : (
           <Suspense fallback={<div className="lp-3d"><p className="lp-3d-status">Loading the 3D body…</p></div>}>
             <PushupDemo3D movement={movement} playing={playing} speed={speed} onFrame={on3dFrame} onFail={on3dFail} />

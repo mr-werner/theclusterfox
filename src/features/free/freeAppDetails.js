@@ -493,6 +493,11 @@ export const freeAppDetails = {
   "Hrvatska enciklopedija": { note: "Free public encyclopedia from the Miroslav Krleža Lexicographic Institute." },
   "Edutorij": { note: "Free public repository from CARNET, Croatia's academic network." },
   "Hrvatski jezični portal": { note: "Free dictionary from publisher Znanje and Novi Liber." },
+  "MédiaKlikk": { limits: ["region"], note: "Public and free; some films and sports are Hungary only." },
+  "MédiaKlikk Rádió": { note: "Live public radio and archives, available worldwide." },
+  "Magyar Elektronikus Könyvtár": { note: "Free public library run by the National Széchényi Library." },
+  "Hungaricana": { note: "Free public portal from Hungarian libraries, archives and museums." },
+  "Helyesírás": { note: "Free public service; no account needed." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -826,4 +831,9 @@ export const freeAppCountries = {
   "Hrvatska enciklopedija": "Croatia",
   "Edutorij": "Croatia",
   "Hrvatski jezični portal": "Croatia",
+  "MédiaKlikk": "Hungary",
+  "MédiaKlikk Rádió": "Hungary",
+  "Magyar Elektronikus Könyvtár": "Hungary",
+  "Hungaricana": "Hungary",
+  "Helyesírás": "Hungary",
 };

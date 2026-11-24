@@ -54,6 +54,8 @@ const RoadPage = lazy(() => import("./features/road/RoadPage"));
 const BeaconPage = lazy(() => import("./features/beacon/BeaconPage"));
 // PaceFox carries its plan builder and live recorder, so it loads on demand too.
 const PacePage = lazy(() => import("./features/pace/PacePage"));
+// LeapFox builds its jump plans in the browser, so it loads on demand too.
+const LeapPage = lazy(() => import("./features/leap/LeapPage"));
 // BodyFox brings three.js and its 3D body, so it loads on demand too.
 const BodyPage = lazy(() => import("./features/body/BodyPage"));
 // ReadyFox carries the Army's full AFT score tables, so it loads on demand too.
@@ -177,6 +179,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <PacePage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/leap"
+                element={
+                    <Suspense fallback={null}>
+                        <LeapPage />
                     </Suspense>
                 }
             />

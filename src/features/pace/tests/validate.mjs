@@ -217,6 +217,8 @@ check("splits, routes, downsampling and GPX", () => {
 check("bad saved data is cleaned up", () => {
   const d = normalizeData({ prefs: { unit: "furlongs" }, plans: [{ eventId: "nope" }, 5], activities: [{ sport: "swim" }, null], profile: { ftp: 9999, age: 30 } });
   assert.equal(d.prefs.unit, "mi");
+  assert.equal(d.prefs.batterySaver, false, "battery saver is off unless chosen");
+  assert.equal(normalizeData({ prefs: { batterySaver: true } }).prefs.batterySaver, true);
   assert.deepEqual(d.plans, []);
   assert.deepEqual(d.activities, []);
   assert.equal(d.profile.ftp, null);

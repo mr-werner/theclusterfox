@@ -160,6 +160,10 @@ export default function SetupTab({ store, sensors }) {
             <input type="checkbox" checked={prefs.keepAwake} onChange={e => setPrefs({ keepAwake: e.target.checked })} />
             Keep the screen on while recording
           </label>
+          <label>
+            <input type="checkbox" checked={prefs.batterySaver} onChange={e => setPrefs({ batterySaver: e.target.checked })} />
+            Battery saver screen while recording: true black with dim numbers, which uses the least power on OLED phones
+          </label>
         </div>
       </section>
 

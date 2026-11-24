@@ -110,7 +110,7 @@ export function cleanActivity(a) {
     powerAvg: num(a.powerAvg, 1, 2500),
     rpe: num(a.rpe, 1, 10),
     notes: str(a.notes, 600),
-    source: ["gps", "indoor", "manual", "gpx"].includes(a.source) ? a.source : "manual",
+    source: ["gps", "indoor", "manual", "gpx", "watch"].includes(a.source) ? a.source : "manual",
     planId: str(a.planId, 40) || null,
     sessionId: str(a.sessionId, 20) || null,
     sessionType: KINDS.includes(a.sessionType) ? a.sessionType : null,

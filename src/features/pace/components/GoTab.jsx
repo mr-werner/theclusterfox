@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Info, MapPin, Play, Warehouse } from "lucide-react";
 
 import { SPORTS } from "../data/events";
@@ -9,10 +9,12 @@ import { FuelTip } from "./SessionDetail";
 import Sensors from "./Sensors";
 import LiveView from "./LiveView";
 import { SessionShape, SportIcon, StepList } from "./ui";
+import RowWorkouts from "./RowWorkouts";
+import { hasDistanceSteps, rowWorkoutById, rowWorkoutSteps, timeOnly } from "../data/rowWorkouts";
 
 /** Before you start: what, where, which sensors. Then the live screen. */
 export default function GoTab({ store, recorder, sensors, preset, defaultSport, onClearPreset, onSaved }) {
-  const { data, setPrefs } = store;
+  const { data, setPrefs, setProfile } = store;
   const { unit } = data.prefs;
   const plan = preset?.plan ?? null;
   const session = preset?.session ?? null;
@@ -20,11 +22,19 @@ export default function GoTab({ store, recorder, sensors, preset, defaultSport, 
   const sport = plan?.sport ?? sportPick;
   const indoorDefault = sport === "row" && plan?.eventId && /2k|6k/.test(plan.eventId);
   const [where, setWhere] = useState(null);
-  const mode = where ?? (indoorDefault ? "indoor" : "gps");
+  const [rowPick, setRowPick] = useState(null);
+  const [rowLen, setRowLen] = useState("standard");
+  const mode = where ?? (indoorDefault || (sport === "row" && rowPick) ? "indoor" : "gps");
+  const workout = !plan && sport === "row" && rowPick ? rowWorkoutById.get(rowPick) : null;
+  const workoutSteps = useMemo(() => (workout ? rowWorkoutSteps(workout.id, rowLen, data.profile) : null), [workout, rowLen, data.profile]);
+  const machineOn = ["machine", "pm5"].some(k => sensors.devices[k]?.status === "on");
+  const measuresDistance = mode === "gps" || machineOn;
+  const distanceWarn = hasDistanceSteps(workoutSteps) && !measuresDistance;
 
   if (recorder.live) return <LiveView store={store} recorder={recorder} sensors={sensors} onSaved={onSaved} />;
 
-  const steps = plan && session ? stepsFor(plan, session) : null;
+  const planSteps = plan && session ? stepsFor(plan, session) : null;
+  const steps = planSteps ?? (workoutSteps ? (measuresDistance ? workoutSteps : timeOnly(workoutSteps)) : null);
 
   function start() {
     if (!plan) setPrefs({ sport });
@@ -35,7 +45,7 @@ export default function GoTab({ store, recorder, sensors, preset, defaultSport, 
       planId: plan?.id ?? null,
       sessionId: session?.id ?? null,
       sessionType: session?.type ?? null,
-      title: plan && session ? sessionTitle(plan, session) : null,
+      title: plan && session ? sessionTitle(plan, session) : workout ? `${workout.name}: ${workout.detail(rowLen)}` : null,
     });
   }
 
@@ -53,9 +63,9 @@ export default function GoTab({ store, recorder, sensors, preset, defaultSport, 
               Just record instead
             </button>
           </div>
-          <SessionShape steps={steps} />
+          <SessionShape steps={planSteps} />
           <p className="pc-why">{sessionWhy(session.type)}</p>
-          <StepList steps={steps} sport={plan.sport} profile={data.profile} unit={unit} />
+          <StepList steps={planSteps} sport={plan.sport} profile={data.profile} unit={unit} />
           <FuelTip minutes={session.minutes} type={session.type} />
         </section>
       ) : (
@@ -69,8 +79,14 @@ export default function GoTab({ store, recorder, sensors, preset, defaultSport, 
               </button>
             ))}
           </div>
-          <p className="pc-hint">Records time, distance, pace and heart rate. Pick a session from your plan to get step-by-step voice cues.</p>
+          <p className="pc-hint">
+            Records time, distance, pace and heart rate. {sport === "row" ? "Pick a rowing workout below, or a session from your plan, for step-by-step voice cues." : "Pick a session from your plan to get step-by-step voice cues."}
+          </p>
         </section>
+      )}
+
+      {!plan && sport === "row" && (
+        <RowWorkouts pick={rowPick} length={rowLen} steps={workoutSteps} onPick={setRowPick} onLength={setRowLen} profile={data.profile} setProfile={setProfile} unit={unit} />
       )}
 
       <section className="pc-card">
@@ -89,6 +105,11 @@ export default function GoTab({ store, recorder, sensors, preset, defaultSport, 
         </div>
         <p className="pc-label">Sensors (optional)</p>
         <Sensors sensors={sensors} sport={sport} />
+        {distanceWarn && (
+          <p className="pc-warn">
+            This workout has distance pieces. Connect your rowing machine above (or row outdoors with GPS) so each piece ends on the meter. Without it, each piece runs for the time it would take at your target split.
+          </p>
+        )}
       </section>
 
       <button type="button" className="pc-btn pc-btn-go" onClick={start}>
@@ -110,7 +131,7 @@ export default function GoTab({ store, recorder, sensors, preset, defaultSport, 
             <strong>Voice cues</strong> play through your phone speaker or Bluetooth headphones: each step, its target, every {sport === "row" ? "500 m" : unit === "km" ? "kilometer" : "mile"}, and a nudge when you drift out of your zone.
           </li>
           <li>
-            <strong>Need GPS with the screen off?</strong> Record on your watch or another app and import the GPX file in the Log.
+            <strong>Got a watch?</strong> Turn on heart rate broadcast (Garmin, Coros, Polar, Suunto) and connect it above as a heart rate monitor. Or record on the watch and import the FIT, TCX or GPX file in the Log afterwards.
           </li>
           <li>
             <strong>Add it to your home screen</strong> (Share → Add to Home Screen on iPhone, or Install app in Chrome) so it opens full screen like an app.

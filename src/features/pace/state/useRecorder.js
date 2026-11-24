@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { activeSec, addFix, addSensor, finishLive, newLive, pause as pauseLive, resume as resumeLive, splitAnnouncement, splitMeters, stepAnnouncement, stepAt } from "../model/live";
+import { activeSec, addFix, addSensor, endDistanceStep, finishLive, newLive, paceCallout, pause as pauseLive, progressCallout, readyAnnouncement, resume as resumeLive, splitAnnouncement, splitMeters, stepAnnouncement, stepAt, trackDistanceStep } from "../model/live";
 import { recentSpeed } from "../model/geo";
 import { judge, zoneTarget } from "../model/zones";
 import { loadLive, saveLive } from "./paceStore";
@@ -57,6 +57,9 @@ const buzz = pattern => {
 
 const SAVE_EVERY_MS = 4000;
 const NAG_EVERY_SEC = 75;
+// Rowing: say the split this often during a piece (steady state less often).
+const ROW_CALL_WORK_SEC = 30;
+const ROW_CALL_STEADY_SEC = 90;
 
 /**
  * Records a run, ride or row: GPS (outdoors), Bluetooth readings, the
@@ -177,7 +180,9 @@ export function useRecorder({ prefs, profile, sensors }) {
 
   // Where you are in the session, how fast you're going, and what to say.
   const sec = live ? activeSec(live, now) : 0;
-  const at = live ? stepAt(live.steps, sec) : null;
+  const at = live ? stepAt(live.steps, sec, live.marks) : null;
+  const stepFrom = at && live.mStart?.[at.index];
+  const metersLeft = at?.step.meters && !at.done && stepFrom != null ? Math.max(0, at.step.meters - (live.meters - stepFrom)) : null;
   const speed = live?.mode === "gps" ? recentSpeed(live.points, 20, now) : sensors.values.speed ?? (sensors.values.split ? 500 / sensors.values.split : null);
   const target = at && sport ? zoneTarget(at.step.zone, sport, profile, prefs.unit) : null;
   const metricValue = !target?.metric
@@ -189,27 +194,48 @@ export function useRecorder({ prefs, profile, sensors }) {
         : target.metric === "power"
           ? sensors.values.power ?? null
           : sensors.values.hr ?? null;
+  const splitNow = sport === "row" ? sensors.values.split ?? (speed > 0.5 ? 500 / speed : null) : null;
   const verdict = target?.metric && at && at.step.kind !== "rest" && at.step.kind !== "warm" && at.step.kind !== "cool" && at.into > 20 ? judge(target.metric, target.low, target.high, metricValue) : null;
 
   useEffect(() => {
-    const l = liveRef.current;
-    if (!l || l.status !== "running") return;
+    const l0 = liveRef.current;
+    if (!l0 || l0.status !== "running") return;
     const p = prefsRef.current;
+    // Distance pieces end when the meters are done.
+    const { live: l, metersLeft: mLeft } = trackDistanceStep(l0, at, sec);
     const cues = { ...l.cues };
-    let changed = false;
+    let changed = l !== l0;
 
     // A new step: say it, buzz, chime.
     if (at && at.index !== cues.step) {
       const t = zoneTarget(at.step.zone, l.sport, profileRef.current, p.unit);
-      const fresh = cues.step === -1 || sec - (cues.stepAt ?? 0) > 2;
+      const nt = at.next ? zoneTarget(at.next.zone, l.sport, profileRef.current, p.unit) : null;
+      const fresh = cues.step === -1 || sec - (cues.stepAt ?? 0) > 2 || at.step.meters || l.steps[cues.step]?.meters;
       cues.step = at.index;
       cues.stepAt = sec;
       cues.nagAt = sec;
+      cues.paceAt = sec;
       changed = true;
       if (fresh) {
         beep(at.step.kind === "work" ? 1175 : 660, 220);
         buzz(at.step.kind === "work" ? [250, 120, 250] : [180]);
-        if (p.voice) speak(stepAnnouncement(at.step, t, p.unit), { interrupt: true });
+        if (p.voice) speak(stepAnnouncement(at.step, t, p.unit, at.next, nt), { interrupt: true });
+      }
+    }
+    // Near the end of a rest: get ready for the next piece.
+    if (at?.step.kind === "rest" && at.step.sec >= 25 && at.left != null && at.left <= 10.5 && at.left > 4 && at.next && cues.ready !== at.index) {
+      cues.ready = at.index;
+      changed = true;
+      if (p.voice) speak(readyAnnouncement(at.next));
+    }
+    // Halfway, "250 to go", "30 seconds left".
+    if (at && !at.done && (at.step.kind === "work" || at.step.kind === "steady")) {
+      const c = progressCallout(at.step, { into: at.into, left: at.left, metersLeft: mLeft });
+      const key = c && `${at.index}:${c.key}`;
+      if (c && cues.prog !== key) {
+        cues.prog = key;
+        changed = true;
+        if (p.voice) speak(c.text);
       }
     }
     // Countdown pips into the next step.
@@ -219,6 +245,11 @@ export function useRecorder({ prefs, profile, sensors }) {
         beeped.current = key;
         beep(880, 90, 0.18);
       }
+    }
+    // The last 3 strokes-worth of a distance piece get pips too.
+    if (mLeft != null && mLeft > 0 && mLeft <= 20 && beeped.current !== `${at.index}:m`) {
+      beeped.current = `${at.index}:m`;
+      beep(880, 90, 0.18);
     }
     if (at?.done && !cues.finished) {
       cues.finished = true;
@@ -235,10 +266,21 @@ export function useRecorder({ prefs, profile, sensors }) {
       cues.split = n;
       cues.splitAt = sec;
       changed = true;
-      if (p.voice && p.splitCues && splitSec > 0) speak(splitAnnouncement(n, splitSec, l.sport, p.unit));
+      // During a rowing piece the split callouts below say more; skip this one there.
+      const inPiece = l.sport === "row" && at && (at.step.kind === "work" || at.step.kind === "steady");
+      if (p.voice && p.splitCues && splitSec > 0 && !inPiece) speak(splitAnnouncement(n, splitSec, l.sport, p.unit));
     }
-    // Off target for a while? A gentle word.
-    if (verdict && verdict !== "ok" && sec - (cues.nagAt ?? 0) > NAG_EVERY_SEC) {
+    // Rowing pieces: call the split every so often, and say if it's on target.
+    const rowPiece = l.sport === "row" && at && !at.done && (at.step.kind === "work" || at.step.kind === "steady") && at.step.zone >= 2 && at.step.zone < 6;
+    const every = at?.step.kind === "work" ? ROW_CALL_WORK_SEC : ROW_CALL_STEADY_SEC;
+    if (rowPiece && at.into > 15 && sec - (cues.paceAt ?? 0) >= every) {
+      cues.paceAt = sec;
+      cues.nagAt = sec;
+      changed = true;
+      const line = paceCallout(splitNow, verdict);
+      if (p.voice && p.splitCues && line) speak(line);
+    } else if (verdict && verdict !== "ok" && sec - (cues.nagAt ?? 0) > NAG_EVERY_SEC) {
+      // Off target for a while? A gentle word.
       cues.nagAt = sec;
       changed = true;
       if (p.voice) speak(verdict === "fast" ? "A little hard. Ease off into your zone." : "A little easy. Pick it up into your zone.");
@@ -246,8 +288,8 @@ export function useRecorder({ prefs, profile, sensors }) {
       cues.nagAt = sec;
       changed = true;
     }
-    if (changed) setLive(cur => (cur ? { ...cur, cues } : cur));
-  }, [now, at, sec, verdict]);
+    if (changed) setLive(cur => (cur ? { ...cur, cues, marks: l.marks, mStart: l.mStart } : cur));
+  }, [now, at, sec, verdict, splitNow]);
 
   // ---- Controls ----
   const start = useCallback(opts => {
@@ -275,8 +317,12 @@ export function useRecorder({ prefs, profile, sensors }) {
     setLive(l => {
       if (!l?.steps) return l;
       const t = Date.now();
-      const s = stepAt(l.steps, activeSec(l, t));
-      if (!s || s.left == null) return l;
+      const sec = activeSec(l, t);
+      const s = stepAt(l.steps, sec, l.marks);
+      if (!s || s.done) return l;
+      // A distance piece ends here and now.
+      if (s.step.meters) return endDistanceStep(l, s.index, sec);
+      if (s.left == null) return l;
       const shift = s.left * 1000 + 50;
       const segments = l.segments.map((seg, i) => (i === 0 ? { ...seg, from: seg.from - shift } : seg));
       return { ...l, segments, skipped: (l.skipped ?? 0) + s.left };
@@ -301,5 +347,5 @@ export function useRecorder({ prefs, profile, sensors }) {
     }
   }, []);
 
-  return { live, now, sec, at, speed, target, metricValue, verdict, gps, awake, start, pause, resume, skipStep, finish, clear };
+  return { live, now, sec, at, metersLeft, speed, target, metricValue, verdict, gps, awake, start, pause, resume, skipStep, finish, clear };
 }

@@ -737,3 +737,21 @@
 }
 .pc-saver ~ .pc-sheet { z-index: 95; }
 .pc-saver-controls button:first-child { min-width: 140px; justify-content: center; }
+
+.pc-now-sub { margin: 0 0 4px; color: var(--pc-muted); font-size: 0.9rem; }
+
+/* Rowing workouts on the Go tab */
+.pc-roww-groups { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; margin-top: 6px; scrollbar-width: none; }
+.pc-roww-groups button { flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--pc-line); background: transparent; color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer; }
+.pc-roww-groups button.is-on { background: var(--pc-accent); border-color: var(--pc-accent); color: var(--pc-ink); font-weight: 700; }
+.pc-roww-blurb { margin: 8px 0; font-size: 0.9rem; color: var(--pc-muted); }
+.pc-roww-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.pc-roww-list button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 58px; padding: 10px 12px; text-align: left; border-radius: 12px; border: 1px solid var(--pc-line); background: var(--pc-surface-2); color: inherit; font: inherit; cursor: pointer; }
+.pc-roww-list button small { color: var(--pc-muted); font-size: 0.84rem; }
+.pc-roww-list button.is-on { border-color: var(--pc-accent); box-shadow: inset 0 0 0 1px var(--pc-accent); }
+.pc-roww-picked { margin-top: 14px; border-top: 1px solid var(--pc-line); padding-top: 12px; }
+.pc-roww-picked h3 { margin: 10px 0 4px; font-size: 1.05rem; }
+.pc-roww-len { display: inline-flex; border: 1px solid var(--pc-line); border-radius: 999px; overflow: hidden; }
+.pc-roww-len button { min-height: 34px; padding: 0 14px; border: 0; background: transparent; color: inherit; font: inherit; font-size: 0.88rem; cursor: pointer; }
+.pc-roww-len button.is-on { background: var(--pc-accent); color: var(--pc-ink); font-weight: 700; }
+.pc-roww-2k { margin: 10px 0; }

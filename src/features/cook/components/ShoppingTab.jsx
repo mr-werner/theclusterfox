@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Check, ClipboardCopy, Minus, PackageCheck, Plus, Sprout, Trash2, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Check, ClipboardCopy, Minus, PackageCheck, Plus, ShoppingBasket, Sprout, Trash2, X } from "lucide-react";
 import { ingredientsById, AISLES } from "../data/ingredients";
 import { recipesById } from "../data/recipes";
 import { amountText } from "../model/units";
@@ -173,6 +174,16 @@ export default function ShoppingTab({ data, today, garden, setShopping, patchDat
               </ul>
             </div>
           ))}
+
+          {list.some(i => !i.checked) && (
+            <Link className="ck-panel ck-grocery-link" to="/grocery?from=cookfox">
+              <ShoppingBasket size={22} aria-hidden="true" />
+              <span>
+                <strong>Take this list to GroceryFox</strong>
+                <span className="ck-muted">Add it to your everyday grocery list, clip coupons and keep a monthly budget.</span>
+              </span>
+            </Link>
+          )}
 
           {list.some(i => !i.checked) && <StoresPanel list={list} />}
         </>

@@ -46,6 +46,7 @@
   --roadfox: #ffc23c;
   --beaconfox: #ffb020;
   --pacefox: #ff4d8d;
+  --readyfox: #c8b26a;
   --medicfox: #5b9dff;
   --fluids: #5cc8ff;
   --heat: #ff8a4c;
@@ -528,6 +529,17 @@ select {
       145deg,
       #ff4d8d,
       #ffb547
+    );
+}
+
+.app-icon--readyfox {
+  color: #15170f;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e3cf8a,
+      #6f8a42
     );
 }
 

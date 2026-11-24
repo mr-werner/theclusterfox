@@ -1,0 +1,28 @@
+{
+  "id": "/ready",
+  "name": "ReadyFox",
+  "short_name": "ReadyFox",
+  "start_url": "/ready",
+  "scope": "/ready",
+  "display": "standalone",
+  "background_color": "#0f120d",
+  "theme_color": "#0f120d",
+  "icons": [
+    {
+      "src": "/apps/readyfox-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/readyfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apps/readyfox-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

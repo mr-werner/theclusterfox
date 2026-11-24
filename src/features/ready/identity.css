@@ -1,0 +1,45 @@
+/* ReadyFox identity: a field manual at dawn. Olive drab and brass on a
+   dark canvas, stencil lettering like a footlocker, and condensed
+   numerals for scores and times. */
+@import url("https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Barlow+Condensed:wght@500;600;700&display=swap");
+
+.appbar[data-app="readyfox"] {
+  --ab-bg: rgba(15, 18, 13, 0.92);
+  --ab-fg: #ecebdf;
+  --ab-muted: #a2a690;
+  --ab-line: rgba(200, 178, 106, 0.18);
+  --ab-accent: #c8b26a;
+  --ab-accent-ink: #15170f;
+  --ab-font: "Saira Stencil One", "Space Grotesk", sans-serif;
+  --ab-name-size: 1.3rem;
+  --ab-name-weight: 400;
+  --ab-name-spacing: 0.06em;
+  --ab-name-case: uppercase;
+  --ab-radius: 6px;
+  --ab-menu-bg: #181c14;
+}
+
+.rf {
+  --rf-bg: #0f120d;
+  --rf-surface: #171b14;
+  --rf-surface-2: #20261b;
+  --rf-line: rgba(214, 200, 150, 0.12);
+  --rf-text: #ecebdf;
+  --rf-muted: #a2a690;
+  --rf-accent: #c8b26a;
+  --rf-olive: #7f9a4e;
+  --rf-ink: #15170f;
+  --rf-good: #9cc46a;
+  --rf-great: #e7cf7a;
+  --rf-bad: #e5734f;
+  --rf-brass: linear-gradient(135deg, #e3cf8a, #b39448 60%, #8d7536);
+  --rf-display: "Saira Stencil One", "Space Grotesk", sans-serif;
+  --rf-num: "Barlow Condensed", "DM Sans", sans-serif;
+
+  min-height: 100vh;
+  color: var(--rf-text);
+  background:
+    radial-gradient(800px 380px at 90% -160px, rgba(200, 178, 106, 0.13), transparent 70%),
+    radial-gradient(700px 360px at 0% -120px, rgba(127, 154, 78, 0.14), transparent 70%),
+    var(--rf-bg);
+}

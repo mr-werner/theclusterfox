@@ -17,7 +17,7 @@ export const PRICES = {
   rice: 3, "cooked-rice": 1.5, "brown-rice": 3.5, "cooked-brown-rice": 1.7, couscous: 8, quinoa: 10,
   "rolled-oats": 4, "chia-seeds": 12, "red-lentils": 5, "brown-lentils": 4,
   "peanut-butter": 6, tahini: 18, dijon: 12, panko: 10, "nutritional-yeast": 35,
-  tamari: 16, "coconut-aminos": 25, "rice-vinegar": 8, gochujang: 18, peanuts: 9, olives: 18, raisins: 9,
+  tamari: 16, "popcorn-kernels": 5, "coconut-aminos": 25, "rice-vinegar": 8, gochujang: 18, peanuts: 9, olives: 18, raisins: 9,
   // Spices
   oregano: 100, thyme: 100, "smoked-paprika": 70, cumin: 60, "chili-powder": 50, "curry-powder": 70,
   "red-pepper-flakes": 60, cinnamon: 50, "bay-leaf": 0.15, "garam-masala": 80, turmeric: 60, coriander: 60,
@@ -32,7 +32,7 @@ export const PRICES = {
   egg: 0.35,
   // Meat & fish
   "chicken-thighs": 8, "chicken-breast": 9, "ground-beef": 12, "ground-turkey": 11, "ground-pork": 8,
-  "pork-chops": 9, "pork-shoulder": 7, "beef-chuck": 15, salmon: 22, cod: 20, shrimp: 22,
+  "pork-chops": 9, "pork-shoulder": 7, "beef-chuck": 15, "flank-steak": 20, "canned-tuna": 14, salmon: 22, cod: 20, shrimp: 22,
   // Produce (counted items are priced per one; a garlic "one" is a clove)
   garlic: 0.07, onion: 0.9, "red-onion": 1, "green-onion": 0.12, carrot: 0.2, celery: 0.25,
   "bell-pepper": 1.2, lemon: 0.7, lime: 0.4, avocado: 1.3, cucumber: 0.9, banana: 0.3, zucchini: 1,
@@ -43,7 +43,7 @@ export const PRICES = {
   // Frozen
   "peas-carrots": 4, "frozen-corn": 4, "frozen-peas": 4,
   // Bread
-  "corn-tortillas": 0.1, "flour-tortillas": 0.3, bread: 0.5, pita: 0.5,
+  "corn-tortillas": 0.1, "flour-tortillas": 0.3, bread: 0.5, pita: 0.5, "burger-buns": 0.6,
 };
 
 // For an ingredient this table doesn't know yet, a typical price for its aisle.

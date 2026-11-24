@@ -1980,3 +1980,52 @@
 .pf-cell .pf-count {
   display: none;
 }
+
+/* Where TaskFox's weather and events are for, always in view. */
+.pf-where {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 10px 4px 0;
+  color: var(--pf-muted);
+  font-size: 0.86rem;
+}
+
+.pf-where > span {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.pf-where > svg {
+  flex: none;
+  color: var(--pf-accent);
+}
+
+.pf-where strong {
+  color: var(--pf-ink);
+  font-weight: 600;
+}
+
+.pf-where .pf-link-btn {
+  padding: 2px 4px;
+  font-size: 0.86rem;
+}
+
+.pf-where-uses {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.pf-where-sheet .pf-note a {
+  color: var(--pf-accent);
+}
+
+.pf-weather-where {
+  margin: 0;
+  font-size: 0.82rem;
+}

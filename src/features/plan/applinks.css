@@ -25,6 +25,7 @@
 .pf [data-app="climbfox"] { --app: var(--climbfox, #e0552a); }
 .pf [data-app="medicfox"] { --app: var(--medicfox, #5b9dff); }
 .pf [data-app="roadfox"] { --app: var(--roadfox, #ffc23c); }
+.pf [data-app="tripfox"] { --app: var(--tripfox, #3fb6a8); }
 .pf [data-app="pacefox"] { --app: var(--pacefox, #ff4d8d); }
 .pf [data-app="leapfox"] { --app: var(--leapfox, #d4ff3a); }
 .pf [data-app="readyfox"] { --app: var(--readyfox, #c8b26a); }

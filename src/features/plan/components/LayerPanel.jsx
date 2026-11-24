@@ -172,7 +172,7 @@ export default function LayerPanel({ data, update, toggleLayer, status, errors, 
       <>
           <p className="pf-note">Pick where you fly from and up to three places you'd like to go. The cheapest days each month are marked on the calendar.</p>
           <button type="button" className="pf-btn" onClick={onPlanTrip}>
-            Plan a trip: best dates, airlines, nonstop
+            Plan a whole trip in TripFox: fares, weather, stays, budget
           </button>
           {data.flights.from ? (
             <ul className="pf-chips" aria-label="Flying from">

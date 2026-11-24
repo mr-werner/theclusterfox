@@ -44,6 +44,7 @@
   --flyfox: #4c8dff;
   --climbfox: #e0552a;
   --roadfox: #ffc23c;
+  --tripfox: #3fb6a8;
   --beaconfox: #ffb020;
   --pacefox: #ff4d8d;
   --leapfox: #d4ff3a;
@@ -563,6 +564,17 @@ select {
       145deg,
       #ffd36b,
       #e08a00
+    );
+}
+
+.app-icon--tripfox {
+  color: #08302c;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffd9a8,
+      #3fb6a8
     );
 }
 

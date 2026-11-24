@@ -340,6 +340,7 @@ export default function DayPanel({ skyfox, onLaunch, onClose, onOpenDetail, onPl
             <p className="pf-weather-main">
               {describeWeather(weather.code)}, {formatTemp(weather.high, units)} / {formatTemp(weather.low, units)}
             </p>
+            {place && <p className="pf-muted pf-weather-where">In {place.name}</p>}
             {details ? (
               <details className="pf-fold">
                 <summary>Feels like, wind, UV, air and more</summary>
@@ -437,7 +438,7 @@ export default function DayPanel({ skyfox, onLaunch, onClose, onOpenDetail, onPl
       )}
 
       <button type="button" className="pf-btn pf-day-trip" onClick={() => onPlanTrip(null)}>
-        <Plane size={15} aria-hidden="true" /> Plan a trip leaving {day === today ? "today" : "this day"}
+        <Plane size={15} aria-hidden="true" /> Plan a trip leaving {day === today ? "today" : "this day"} in TripFox
       </button>
 
       {layers.garden && (

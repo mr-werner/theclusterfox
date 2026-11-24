@@ -42,6 +42,7 @@ export const PLAN_LINKS = [
   { app: "leapfox", storageKey: "leapfox-data-v1", load: () => import("../features/leap/model/planLink.js") },
   { app: "readyfox", storageKey: "readyfox-data-v1", load: () => import("../features/ready/model/planLink.js") },
   { app: "roadfox", storageKey: "roadfox-data-v1", load: () => import("../features/road/model/planLink.js") },
+  { app: "tripfox", storageKey: "tripfox-data-v1", load: () => import("../features/trip/model/planLink.js") },
   { app: "medicfox", storageKey: "medicfox-data-v1", load: () => import("../features/medic/model/planLink.js") },
   { app: "studyfox", storageKey: "studyfox-data-v1", load: () => import("../features/study/model/planLink.js") },
 ];

@@ -1,0 +1,28 @@
+/* TripFox identity: a postcard and a luggage tag. Warm paper, ink, a sea
+   teal for the way there and a sunset coral for the good stuff. */
+.appbar[data-app="tripfox"] {
+  --ab-bg: rgba(245, 239, 227, 0.92);
+  --ab-fg: #1f2a2c;
+  --ab-muted: #6b716c;
+  --ab-line: rgba(31, 42, 44, 0.12);
+  --ab-accent: #0f7c72;
+  --ab-accent-ink: #fff;
+  --ab-font: "Young Serif", Georgia, serif;
+  --ab-name-size: 1.25rem;
+  --ab-name-weight: 400;
+  --ab-name-spacing: 0;
+  --ab-radius: 12px;
+  --ab-menu-bg: #fbf7ee;
+}
+
+@media (prefers-color-scheme: dark) {
+  .appbar[data-app="tripfox"] {
+    --ab-bg: rgba(16, 26, 29, 0.92);
+    --ab-fg: #f1ece1;
+    --ab-muted: #9fa9a6;
+    --ab-line: rgba(241, 236, 225, 0.1);
+    --ab-accent: #4fc7b8;
+    --ab-accent-ink: #062521;
+    --ab-menu-bg: #17252a;
+  }
+}

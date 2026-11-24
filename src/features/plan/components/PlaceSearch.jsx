@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { LoaderCircle, LocateFixed, MapPin, Search, X } from "lucide-react";
 
 import { searchPlaces } from "../../../services/weather/openMeteo";
+import { placeName } from "../../../services/geo/reverse";
 
 // Search for a town or city, or use the device's location.
 export default function PlaceSearch({ place, onPick, placeholder = "Search a city or town", allowLocate = true, allowClear = false }) {
@@ -48,9 +49,11 @@ export default function PlaceSearch({ place, onPick, placeholder = "Search a cit
     }
     setBusy(true);
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
+      async ({ coords }) => {
+        // Name the spot so the app can say where it's showing weather for.
+        const named = await placeName(coords.latitude, coords.longitude);
         setBusy(false);
-        choose({ id: "here", name: "My location", region: "", latitude: coords.latitude, longitude: coords.longitude });
+        choose({ id: "here", name: named?.name ?? "My location", region: named?.region ?? "", latitude: coords.latitude, longitude: coords.longitude });
       },
       () => {
         setBusy(false);

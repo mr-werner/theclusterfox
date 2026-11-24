@@ -1,19 +1,42 @@
 import { Dumbbell, HeartPulse, Sparkles, Zap } from "lucide-react";
 
 import MuscleMap from "./MuscleMap";
+import TrainForPicker from "./TrainForPicker";
 import { GearPicker, LevelPicker, Segment } from "./Pickers";
 import { DURATIONS, GOALS } from "../model/generate";
 import { muscleName } from "../data/muscles";
+import { priorityMuscles, trainForById } from "../data/trainFor";
 
 const GOAL_ICONS = { strength: Zap, size: Dumbbell, stamina: HeartPulse };
 
 /** The inputs for a single workout: muscles, goal, time, gear and level. */
 export default function WorkoutBuilder({ prefs, onPrefs, onGenerate }) {
-  const { muscles, goal, minutes, gear, level } = prefs;
+  const { muscles, goal, minutes, gear, level, trainFor } = prefs;
   const toggle = id => onPrefs({ muscles: muscles.includes(id) ? muscles.filter(m => m !== id) : [...muscles, id] });
+  // Picking a sport or goal fills in its muscles and how to train them;
+  // both stay editable below.
+  const pickTrainFor = id => {
+    const profile = id ? trainForById.get(id) : null;
+    onPrefs(profile ? { trainFor: id, muscles: priorityMuscles(profile), goal: profile.goal } : { trainFor: null });
+  };
 
   return (
     <div className="lf-builder">
+      <section className="lf-panel" aria-labelledby="lf-trainfor-title">
+        <div className="lf-panel-head">
+          <div>
+            <h2 id="lf-trainfor-title">Training for something? <span className="lf-muted">(optional)</span></h2>
+          </div>
+          {trainFor && (
+            <button type="button" className="lf-link" onClick={() => pickTrainFor(null)}>
+              Clear
+            </button>
+          )}
+        </div>
+        <p className="lf-muted">Pick a sport, activity or goal and we'll pick the muscles and moves that help most.</p>
+        <TrainForPicker value={trainFor} onChange={pickTrainFor} />
+      </section>
+
       <section className="lf-panel" aria-labelledby="lf-muscles-title">
         <div className="lf-panel-head">
           <div>

@@ -1,6 +1,6 @@
 // Skydiving events and boogies that come around every year. Dates move
 // each year, so this says when they usually happen and links to the
-// organizer; save one with its real date to put it on your PlanFox calendar.
+// organizer; save one with its real date to put it on your TaskFox calendar.
 // month: 1-12, when it usually starts. dzId links to the host drop zone.
 
 export const EVENTS = [

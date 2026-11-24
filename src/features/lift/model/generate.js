@@ -1,5 +1,6 @@
 import { canDo, exercises, exercisesById } from "../data/exercises.js";
 import { muscleName, musclesById, REGIONS } from "../data/muscles.js";
+import { trainForById } from "../data/trainFor.js";
 
 // How each goal is trained. Seconds are rough averages used to fit the time.
 export const GOALS = {
@@ -87,8 +88,14 @@ export function availableExercises({ gear = [], level = 1 }) {
 /**
  * Builds one workout that hits the chosen muscles in the time available.
  * weights (optional) gives some muscles more attention than others.
+ * trainFor (optional) is a sport, activity or lifestyle goal from
+ * data/trainFor.js: its muscle weights and favourite exercises steer the
+ * picks, and its warm-up drill and extra work join the workout.
  */
-export function generateWorkout({ muscles = [], goal = "size", minutes = 45, gear = [], level = 1, seed = 1, weights = {}, exclude = [] }) {
+export function generateWorkout({ muscles = [], goal = "size", minutes = 45, gear = [], level = 1, seed = 1, weights = {}, exclude = [], trainFor = null }) {
+  const profile = trainFor ? trainForById.get(trainFor) ?? null : null;
+  if (profile) weights = { ...profile.muscles, ...weights };
+  const favor = new Set(profile?.favor ?? []);
   const targets = muscles.filter(m => musclesById.has(m));
   const focus = targets.length ? targets : FULL_BODY;
   const g = GOALS[goal] ?? GOALS.size;
@@ -114,6 +121,8 @@ export function generateWorkout({ muscles = [], goal = "size", minutes = 45, gea
       // Prefer the gear people chose over bodyweight when they have it.
       score += Math.min(exercise.gear.length, 1) * 0.35;
       if (picked.some(p => p.exercise.demo === exercise.demo)) score -= 1.6;
+      // Moves that carry over to the sport or goal.
+      if (favor.has(exercise.id)) score += 1.4;
       // Match the challenge to the person.
       score -= Math.abs(level - exercise.level) * 0.35;
       score += random() * 0.9;
@@ -163,9 +172,10 @@ export function generateWorkout({ muscles = [], goal = "size", minutes = 45, gea
     gear,
     level,
     seed,
-    warmup: warmupFor(focus, items, minutes),
+    warmup: warmupFor(focus, items, minutes, profile),
     cooldown: cooldownFor(focus, minutes),
     items,
+    ...(profile ? { trainFor: profile.id, extras: profile.extras } : {}),
   };
   return { ...workout, estMinutes: estimateMinutes(workout) };
 }
@@ -192,9 +202,10 @@ const REGION_WARMUPS = {
   lower: "Bodyweight squats and leg swings, 10 each side",
 };
 
-function warmupFor(focus, items, minutes) {
+function warmupFor(focus, items, minutes, profile) {
   const regions = [...new Set(focus.map(m => musclesById.get(m).region))];
   const steps = [`Easy cardio for ${minutes >= 30 ? "2–3 minutes" : "1 minute"}: march, jog in place, jumping jacks or a bike`];
+  if (profile?.warmup) steps.push(profile.warmup);
   for (const r of regions) steps.push(REGION_WARMUPS[r]);
   const first = items[0] && exercisesById.get(items[0].exerciseId);
   if (first && first.gear.length) steps.push(`One light set of ${first.name.toLowerCase()} with about half your working weight`);

@@ -1321,7 +1321,7 @@ body.sheet-open {
   }
 }
 
-/* ---------- PlanFox: the biggest tile, since every app feeds it ---------- */
+/* ---------- TaskFox: the biggest tile, since every app feeds it ---------- */
 
 .home-original-grid {
   grid-auto-flow: dense;
@@ -1588,7 +1588,7 @@ body.sheet-open {
   }
 }
 
-/* ---------- Categories: PlanFox leads, then apps grouped by what they're for ---------- */
+/* ---------- Categories: TaskFox leads, then apps grouped by what they're for ---------- */
 
 .home-hub-row {
   display: grid;
@@ -1761,7 +1761,7 @@ body.sheet-open {
   }
 }
 
-/* Phone: category chips under PlanFox, then a labeled grid per category. */
+/* Phone: category chips under TaskFox, then a labeled grid per category. */
 .phone-category-chips {
   display: flex;
   gap: 8px;

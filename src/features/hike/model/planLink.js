@@ -1,6 +1,6 @@
-// What TrailFox puts on the PlanFox calendar: each planned hike on its
+// What TrailFox puts on the TaskFox calendar: each planned hike on its
 // day and start time, opening that trail's plan (weather, start times and
-// gear) in TrailFox. PlanFox loads this module on demand (see
+// gear) in TrailFox. TaskFox loads this module on demand (see
 // src/app/planLinks.js) with TrailFox's saved data.
 import { normalizeData } from "../state/hikeStore.js";
 import { summarize } from "./profile.js";

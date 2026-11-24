@@ -218,13 +218,13 @@ export default function TrailView({ h, f, trail, go }) {
                 {dayHours.length > 0 && <HourStrip hours={dayHours} from={startMin} to={startMin + s.minutes} f={f} label={wx.data.twoSpots ? `Up high (${f.ele(spots.high.ele)})` : "At the trailhead"} />}
                 <div className="hk-plan-actions">
                   <button type="button" className="hk-btn" onClick={plan}>
-                    <CalendarPlus size={16} /> {trail.plan?.day === chosenDay && trail.plan.start === hhmm(startMin) ? "In PlanFox" : "Plan this hike"}
+                    <CalendarPlus size={16} /> {trail.plan?.day === chosenDay && trail.plan.start === hhmm(startMin) ? "In TaskFox" : "Plan this hike"}
                   </button>
                   <ShareTripPlan trail={trail} s={s} f={f} day={chosenDay} start={startMin} turn={turn} />
                 </div>
                 {trail.plan && (
                   <p className="hk-fine">
-                    On your PlanFox calendar for {dayLabel(trail.plan.day, today).toLowerCase()} at {clock(fromHhmm(trail.plan.start) ?? 0)}.{" "}
+                    On your TaskFox calendar for {dayLabel(trail.plan.day, today).toLowerCase()} at {clock(fromHhmm(trail.plan.start) ?? 0)}.{" "}
                     <button type="button" className="hk-link" onClick={() => update({ plan: null })}>Remove</button>
                   </p>
                 )}

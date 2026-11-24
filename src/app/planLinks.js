@@ -1,7 +1,7 @@
-// How the other ClusterFox apps show up in PlanFox.
+// How the other ClusterFox apps show up in TaskFox.
 //
 // Each app that has something to do on a given day (a workout, a planned
-// walk, a recipe you started) lists it here. PlanFox reads the app's own
+// walk, a recipe you started) lists it here. TaskFox reads the app's own
 // saved data from this browser, asks its planLink module for the days it
 // is showing, and puts what comes back on the calendar. Tapping one opens
 // the app right where you need to be.
@@ -48,9 +48,9 @@ export const PLAN_LINKS = [
 /** True for a link that stays on this site, like "/lift?plan=abc". */
 export const isSitePath = href => typeof href === "string" && href.startsWith("/") && !href.startsWith("//") && href.length <= 600;
 
-/** The PlanFox link that adds "open this in <app>" to your planner. */
+/** The TaskFox link that adds "open this in <app>" to your planner. */
 export function planAddHref({ app, href, title }) {
   const params = new URLSearchParams({ add: app, open: href });
   if (title) params.set("title", title);
-  return `/plan?${params}`;
+  return `/task?${params}`;
 }

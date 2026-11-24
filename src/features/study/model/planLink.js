@@ -1,6 +1,6 @@
-// What StudyFox puts on the PlanFox calendar: the review due each day, at
-// the study time you picked, so PlanFox can remind you when it's time.
-// Days you studied show as done. PlanFox loads this on demand (see
+// What StudyFox puts on the TaskFox calendar: the review due each day, at
+// the study time you picked, so TaskFox can remind you when it's time.
+// Days you studied show as done. TaskFox loads this on demand (see
 // src/app/planLinks.js) and passes in StudyFox's saved data as stored.
 import { normalizeData } from "../state/studyStore.js";
 import { addDays } from "./dates.js";

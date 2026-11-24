@@ -1,6 +1,6 @@
-// What JumpFox puts on the PlanFox calendar: planned jump days at a DZ
+// What JumpFox puts on the TaskFox calendar: planned jump days at a DZ
 // (opening the jump check for it), saved events and boogies, the jumps you
-// logged each day, and when your reserve is due for a repack. PlanFox loads
+// logged each day, and when your reserve is due for a repack. TaskFox loads
 // this module on demand (see src/app/planLinks.js) with JumpFox's saved data.
 import { dzById } from "../data/dropzones.js";
 import { normalizeData } from "../state/jumpStore.js";

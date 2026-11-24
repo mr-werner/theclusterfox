@@ -1,5 +1,5 @@
-// What PilotFox puts on the PlanFox calendar: each saved flight on its
-// departure day, opening that flight in the planner. PlanFox loads this
+// What PilotFox puts on the TaskFox calendar: each saved flight on its
+// departure day, opening that flight in the planner. TaskFox loads this
 // module on demand (see src/app/planLinks.js) with PilotFox's saved data.
 import { normalizeData } from "../state/flyStore.js";
 

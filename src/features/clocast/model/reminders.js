@@ -1,6 +1,6 @@
 // Daily reminders: the small things worth remembering before heading out
 // (sunscreen, sunglasses, an umbrella, what to wear, the air). People pick
-// which ones they want in SkyFox, and PlanFox shows them on each day.
+// which ones they want in SkyFox, and TaskFox shows them on each day.
 // Plain functions, testable in Node.
 
 import { activitiesById } from "../data/activities.js";

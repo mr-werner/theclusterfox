@@ -1,6 +1,6 @@
 // ClimbFox's saved data, in this browser: favorite areas, your to-do list,
 // your ticks (what you've climbed) and planned climbing days. Plain
-// functions so tests and PlanFox can use them.
+// functions so tests and TaskFox can use them.
 
 export const STORAGE_KEY = "climbfox-data-v1";
 

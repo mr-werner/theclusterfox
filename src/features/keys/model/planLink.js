@@ -1,6 +1,6 @@
-// What KeysFox puts on the PlanFox calendar: the songs you practiced each
+// What KeysFox puts on the TaskFox calendar: the songs you practiced each
 // day, and songs a planned practice block can open.
-// PlanFox loads this module on demand (see src/app/planLinks.js).
+// TaskFox loads this module on demand (see src/app/planLinks.js).
 import { SONGS, songById } from "../data/songs.js";
 import { normalizeData } from "../state/keysStore.js";
 

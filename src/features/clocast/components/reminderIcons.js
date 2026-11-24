@@ -1,4 +1,4 @@
-// One icon per daily reminder, shared by SkyFox and PlanFox.
+// One icon per daily reminder, shared by SkyFox and TaskFox.
 import { Bug, GlassWater, Glasses, Leaf, Shirt, Snowflake, Sun, Sunset, Umbrella, Wind } from "lucide-react";
 
 export const REMINDER_ICONS = {

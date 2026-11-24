@@ -80,9 +80,9 @@ export default function SpotDetail({ spot, s, day: askedDay, setDay, back }) {
           <div className="sf-plan-row">
             <button type="button" className={`sf-btn${tripOn ? " is-done" : ""}`} onClick={toggleTrip}>
               {tripOn ? <Check size={16} aria-hidden="true" /> : <CalendarPlus size={16} aria-hidden="true" />}
-              {tripOn ? "On your PlanFox calendar" : `Plan ${kind === "backcountry" ? "a tour" : "a ski day"} ${day === view.today ? "today" : "on " + new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { weekday: "long" })}`}
+              {tripOn ? "On your TaskFox calendar" : `Plan ${kind === "backcountry" ? "a tour" : "a ski day"} ${day === view.today ? "today" : "on " + new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { weekday: "long" })}`}
             </button>
-            {tripOn && <small className="sf-muted">PlanFox shows it with a link back here to check conditions.</small>}
+            {tripOn && <small className="sf-muted">TaskFox shows it with a link back here to check conditions.</small>}
           </div>
           <DayDetail spot={spot} top={top} base={top ? view.baseFor(top) : null} topHours={wx.data.summit} baseHours={wx.data.base} units={units} kind={kind} />
         </>

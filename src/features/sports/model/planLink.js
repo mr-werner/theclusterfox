@@ -1,4 +1,4 @@
-// ScoreFox in PlanFox. Games already show on the calendar through the
+// ScoreFox in TaskFox. Games already show on the calendar through the
 // Sports layer; a planner item (game night) can open ScoreFox to see where
 // to watch.
 

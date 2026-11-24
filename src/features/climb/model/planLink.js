@@ -1,5 +1,5 @@
-// What ClimbFox puts on the PlanFox calendar: each planned climbing day,
-// opening that plan with its routes, forecast and gear list. PlanFox loads
+// What ClimbFox puts on the TaskFox calendar: each planned climbing day,
+// opening that plan with its routes, forecast and gear list. TaskFox loads
 // this module on demand (see src/app/planLinks.js) with ClimbFox's data.
 import { normalizeData } from "../state/climbStore.js";
 

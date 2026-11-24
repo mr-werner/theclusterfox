@@ -78,7 +78,7 @@ export default async function handler(req, res) {
       response = await fetch(url, {
         redirect: "manual",
         signal: controller.signal,
-        headers: { accept: "text/calendar, text/plain;q=0.8, */*;q=0.5", "user-agent": "TheClusterFox-PlanFox/1.0" },
+        headers: { accept: "text/calendar, text/plain;q=0.8, */*;q=0.5", "user-agent": "TheClusterFox-TaskFox/1.0" },
       });
       if (response.status < 300 || response.status >= 400) break;
       const next = feedUrl(new URL(response.headers.get("location") ?? "", url).toString());

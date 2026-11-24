@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import { CalendarCheck, Check, ChevronDown, Lock, Play, Plus, Target, Trash2 } from "lucide-react";
 
 import MuscleMap from "./MuscleMap";
+import TrainForPicker from "./TrainForPicker";
 import { withNext } from "../../../lib/redirect";
 import { GearPicker, LevelPicker, Segment } from "./Pickers";
 import HowTo from "./HowTo";
 import { describeItem } from "../model/format";
 import { exercisesById } from "../data/exercises";
 import { muscleName } from "../data/muscles";
+import { priorityMuscles, trainForById } from "../data/trainFor";
 import {
   buildProgram, DAYS_PER_WEEK, nextSession, PLAN_GOALS, PLAN_LENGTHS, planTitle, progress, sessionDate, toIsoDay, WEEKDAYS,
 } from "../model/program";
@@ -47,10 +49,16 @@ function PlanBuilder({ prefs, onSave, onCancel }) {
     level: prefs.level,
     gear: prefs.gear,
     focus: [],
+    trainFor: null,
     startDate: toIsoDay(new Date()),
   }));
   const [showFocus, setShowFocus] = useState(false);
   const set = change => setForm(f => ({ ...f, ...change }));
+  // A sport or lifestyle goal sets the plan goal and focus muscles to suit it.
+  const pickTrainFor = id => {
+    const profile = id ? trainForById.get(id) : null;
+    set(profile ? { trainFor: id, goal: profile.planGoal, focus: priorityMuscles(profile).slice(0, 3) } : { trainFor: null, focus: [] });
+  };
 
   function save() {
     onSave(buildProgram({ ...form, seed: Math.floor(Math.random() * 1e6) + 1 }));
@@ -58,6 +66,12 @@ function PlanBuilder({ prefs, onSave, onCancel }) {
 
   return (
     <div className="lf-builder">
+      <section className="lf-panel">
+        <h2>Training for something? <span className="lf-muted">(optional)</span></h2>
+        <p className="lf-muted">Every session leans toward what helps your sport, activity or goal most.</p>
+        <TrainForPicker value={form.trainFor} onChange={pickTrainFor} />
+      </section>
+
       <section className="lf-panel">
         <h2>What's the overall goal?</h2>
         <div className="lf-goals lf-goals--four" role="radiogroup" aria-label="Plan goal">

@@ -699,3 +699,41 @@
   .pc-week-dots { display: none; }
   .pc-week-head { grid-template-columns: 40px 1fr 20px; }
 }
+
+/* Battery saver: true black (OLED pixels off) and dim gray text only. */
+.pc-saver {
+  position: fixed;
+  inset: 0;
+  z-index: 90; /* above the app bar, so the whole screen is black */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  color: #6b6b6b;
+  background: #000;
+  text-align: center;
+}
+.pc-saver-state { margin: 0; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: #4a4a4a; }
+.pc-saver-clock { font-family: var(--pc-num); font-size: clamp(3.4rem, 17vw, 5.5rem); font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; color: #7a7a7a; }
+.pc-saver-row { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: center; }
+.pc-saver-row div { display: flex; flex-direction: column; }
+.pc-saver-row strong { font-family: var(--pc-num); font-size: 1.8rem; font-weight: 500; font-variant-numeric: tabular-nums; color: #7a7a7a; }
+.pc-saver-row span { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: #4a4a4a; }
+.pc-saver-step { margin: 0; font-size: 1.05rem; color: #6b6b6b; }
+.pc-saver-controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 12px; }
+.pc-saver-controls button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid #262626;
+  border-radius: 14px;
+  color: #6b6b6b !important;
+  background: #000;
+  cursor: pointer;
+}
+.pc-saver ~ .pc-sheet { z-index: 95; }
+.pc-saver-controls button:first-child { min-width: 140px; justify-content: center; }

@@ -158,7 +158,7 @@ test("generated questions always have three different choices and the right answ
   assert.ok(fb.choices[fb.answer].startsWith(`${String(d.dir).padStart(3, "0")}° true at ${d.kt} knots`));
 });
 
-test("saved data is cleaned, study progress tracked, and flights go to PlanFox", () => {
+test("saved data is cleaned, study progress tracked, and flights go to TaskFox", () => {
   assert.equal(normalizeData(null).aircraft.tas, 120);
   const d = normalizeData({ aircraft: { tas: 9999, gph: "x" }, route: [{ id: "KDEN", lat: 39, lon: -104 }, { bad: 1 }], flights: [{ id: "f1", route: [{ id: "A", lat: 1, lon: 1 }, { id: "B", lat: 2, lon: 2 }], departAt: "2026-11-20T15:30:00.000Z", minutes: 75 }] });
   assert.equal(d.aircraft.tas, 600);

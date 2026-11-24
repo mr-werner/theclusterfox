@@ -29,8 +29,9 @@ function intervalName(sec, kind) {
   return sec < 60 ? `${sec} sec` : `${sec / 60} min`;
 }
 
-export default function SessionSetup({ session, prefs, setPrefs, voices, favorite, onToggleFavorite, onBack, onStart, hideHead = false }) {
-  const [minutes, setMinutes] = useState(session.minutes);
+export default function SessionSetup({ session, startMinutes, prefs, setPrefs, voices, favorite, onToggleFavorite, onBack, onStart, hideHead = false }) {
+  // Start from the length the person picked last time, or the suggested one.
+  const [minutes, setMinutes] = useState(startMinutes ?? session.minutes);
   const [trying, setTrying] = useState(false);
   const tryRef = useRef(null);
   const goal = goalsById.get(session.goal) ?? { name: "Breathe" };

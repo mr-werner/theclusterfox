@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 import { GOAL_ICONS } from "./icons";
 import { MOODS, PRACTICES, moodBlurb } from "../data/moods";
 
-export default function MoodHome({ favorites, onPick, onOpenSession }) {
+export default function MoodHome({ favorites, lengths = {}, onPick, onOpenSession }) {
   return (
     <section className="cm-home" aria-labelledby="cm-ask">
       <h1 id="cm-ask" className="cm-ask">
@@ -57,7 +57,7 @@ export default function MoodHome({ favorites, onPick, onOpenSession }) {
             {favorites.map(s => (
               <button key={s.id} type="button" onClick={() => onOpenSession(s.id)}>
                 <strong>{s.title}</strong>
-                <span>{s.minutes} min</span>
+                <span>{lengths[s.id] ? `${lengths[s.id]} min` : "Any length"}</span>
               </button>
             ))}
           </div>

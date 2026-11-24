@@ -26,7 +26,7 @@ const TABS = [
 const VIRTUAL = new Set(["breathe", "quick", "favorites", ...PRACTICES.map(p => p.id)]);
 
 export default function CalmPage() {
-  const { data, setPrefs, toggleFavorite, addHistory, setMood, clearHistory } = useCalmData();
+  const { data, setPrefs, toggleFavorite, setLength, addHistory, setMood, clearHistory } = useCalmData();
   const voices = useVoices();
   const [params, setParams] = useSearchParams();
   const [run, setRun] = useState(null); // { session, config }
@@ -46,6 +46,7 @@ export default function CalmPage() {
 
   const startRun = (session, { minutes, voice }) => {
     const p = data.prefs;
+    setLength(session.id, minutes);
     setRun({
       session,
       config: {
@@ -110,6 +111,7 @@ export default function CalmPage() {
       <SessionSetup
         key={open.id}
         session={open}
+        startMinutes={data.lengths[open.id]}
         favorite={data.favorites.includes(open.id)}
         onBack={() => go({ goal: params.get("from") || undefined })}
         onStart={cfg => startRun(open, cfg)}
@@ -123,7 +125,7 @@ export default function CalmPage() {
       <div className="cm-breathe">
         <BackLink onClick={() => go({})} />
         <BreathBuilder value={data.prefs.custom} onChange={c => setPrefs({ custom: c })} />
-        <SessionSetup session={custom} favorite={false} hideHead onBack={() => go({})} onStart={cfg => startRun(custom, cfg)} {...setupProps} />
+        <SessionSetup session={custom} startMinutes={data.lengths[custom.id]} favorite={false} hideHead onBack={() => go({})} onStart={cfg => startRun(custom, cfg)} {...setupProps} />
       </div>
     );
   } else if (goal) {
@@ -157,6 +159,7 @@ export default function CalmPage() {
               <SessionCard
                 key={s.id}
                 session={s}
+                chosenMinutes={data.lengths[s.id]}
                 favorite={data.favorites.includes(s.id)}
                 onOpen={openSession}
                 onToggleFavorite={toggleFavorite}
@@ -167,7 +170,7 @@ export default function CalmPage() {
       </section>
     );
   } else {
-    body = <MoodHome favorites={favorites} onPick={id => go({ goal: id })} onOpenSession={openSession} />;
+    body = <MoodHome favorites={favorites} lengths={data.lengths} onPick={id => go({ goal: id })} onOpenSession={openSession} />;
   }
 
   return (

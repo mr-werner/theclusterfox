@@ -10,6 +10,7 @@
 
 import { searchPlaces } from "../../services/weather/openMeteo.js";
 import { M_PER_FT, canadaLevel, inGeometry } from "./model/snow.js";
+import { parseLiftie } from "../../../api/plan/_snow.js";
 
 const FORECAST = "https://api.open-meteo.com/v1/forecast";
 const HOURLY = [
@@ -313,7 +314,22 @@ async function server(params, { signal } = {}) {
   return json(`/api/plan/snow?${new URLSearchParams(params)}`, { signal }, "SnowFox's data service isn't responding.");
 }
 
-export const fetchLifts = (liftieId, opts) => server({ kind: "lifts", id: liftieId }, opts);
+// Liftie sometimes turns away server requests, so if ours fails, ask it
+// straight from the browser before giving up.
+export async function fetchLifts(liftieId, opts = {}) {
+  try {
+    return await server({ kind: "lifts", id: liftieId }, opts);
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    const body = await json(`https://liftie.info/api/resort/${encodeURIComponent(liftieId)}`, { signal: opts.signal }, error.message).catch(e => {
+      if (e.name === "AbortError") throw e;
+      throw error;
+    });
+    const lifts = parseLiftie(body);
+    if (!lifts) throw error;
+    return { ...lifts, source: "Liftie" };
+  }
+}
 export const fetchSnotel = ({ lat, lon }, opts) => server({ kind: "snotel", lat: lat.toFixed(4), lon: lon.toFixed(4) }, opts).then(b => b.sites ?? []);
 
 export { searchPlaces };

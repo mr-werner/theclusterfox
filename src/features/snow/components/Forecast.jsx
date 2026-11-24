@@ -2,16 +2,35 @@ import { CloudSnow, Gauge, Mountain, Thermometer, Users, Wind } from "lucide-rea
 
 import WeatherIcon from "../../clocast/components/WeatherIcon";
 import { describeWeather } from "../../../services/weather/openMeteo";
-import { compass, crowdOutlook, fmtElev, fmtHour, fmtSnow, fmtTemp, fmtWind, M_PER_FT, scoreDay, windHold } from "../model/snow";
+import { compass, crowdOutlook, fmtDepth, fmtElev, fmtHour, fmtSnow, fmtTemp, fmtWind, liftFraction, M_PER_FT, scoreDay, windHold } from "../model/snow";
 import { Card } from "./ui";
 
 const dayName = (day, today) => (day === today ? "Today" : new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" }));
 const dateText = day => new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-/** The headline: snow that fell, snow coming, and how the top and base feel now. */
-export function NowPanel({ spot, totals, nowTop, nowBase, units }) {
+/** The headline: snow that fell, snow coming, how deep it is, lifts open, and how the top and base feel now. */
+export function NowPanel({ spot, totals, nowTop, nowBase, lifts, units }) {
+  const lift = liftFraction(lifts);
+  const resort = spot.kind === "resort";
   return (
     <div className="sf-now">
+      <dl className="sf-now-stats">
+        <div>
+          <dt>{resort ? "Base depth" : `Depth at ${spot.lowName ?? "the bottom"}`}</dt>
+          <dd>{Number.isFinite(nowBase?.depth) ? fmtDepth(nowBase.depth, units) : "–"}</dd>
+        </div>
+        <div>
+          <dt>{resort ? "Summit depth" : `Depth at ${spot.highName ?? "the top"}`}</dt>
+          <dd>{Number.isFinite(nowTop?.depth) ? fmtDepth(nowTop.depth, units) : "–"}</dd>
+        </div>
+        {resort && (
+          <div>
+            <dt>Lifts open</dt>
+            <dd>{lift ? `${lift.open}/${lift.total}` : spot.liftie ? "–" : "Not tracked"}</dd>
+          </div>
+        )}
+      </dl>
+      <p className="sf-now-stats-note">Depths are weather-model estimates. Measured depths from nearby sensors are under Snow on the ground.</p>
       <div className="sf-now-snow">
         <div>
           <small>Last 24h</small>

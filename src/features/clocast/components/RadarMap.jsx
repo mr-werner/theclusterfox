@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { CloudRain, Flame, LoaderCircle, Minus, Pause, Play, Plus, Satellite, Wind } from "lucide-react";
+import { CloudRain, Flame, LoaderCircle, Minus, Pause, Play, Plus, Satellite, Wind, X } from "lucide-react";
 
 import { fetchWindGrid } from "../../../services/weather/openMeteo";
 import { project, satelliteFor, tileBbox, tilesFor, windGrid } from "../model/mapTiles";
+import { acresText, fetchWildfires } from "../model/wildfires";
 
 // The weather map: OpenStreetMap, darkened to sit in the glass panels, with
 // free layers on top. Tiles are placed by hand, so no map library is needed.
 //   Rain      RainViewer radar, the last two hours every 10 minutes (to zoom 7)
 //   Clouds    NASA GIBS geostationary infrared, the latest image (to zoom 6)
 //   Wind      Open-Meteo wind right now on a grid of points, drawn as arrows
-//   Fires     NASA GIBS VIIRS fire hotspots from the last two days
+//   Fires     Active US wildfires from NIFC (named, with size and containment),
+//             plus NASA GIBS VIIRS heat spots from the last two days worldwide
 const FRAMES_URL = "https://api.rainviewer.com/public/weather-maps.json";
 const BASE_URL = "https://tile.openstreetmap.org";
 const GIBS_WMTS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
@@ -52,7 +54,7 @@ function fireUrl(tile, day) {
 const windColor = ms => (ms < 4 ? "#9ad8ff" : ms < 8 ? "#7fe0b0" : ms < 13 ? "#f2c14e" : ms < 18 ? "#f59f4a" : "#f27a6c");
 const windNumber = (ms, units) => Math.round(units === "metric" ? ms * 3.6 : ms * 2.23694);
 
-function Tiles({ tiles, className, src, style }) {
+function Tiles({ tiles, className, src, style, onError }) {
   return tiles.map(tile => (
     <img
       key={tile.key}
@@ -61,6 +63,7 @@ function Tiles({ tiles, className, src, style }) {
       style={{ left: tile.left, top: tile.top, width: tile.size, height: tile.size, ...style }}
       alt=""
       draggable="false"
+      onError={onError}
     />
   ));
 }
@@ -76,7 +79,23 @@ export default function RadarMap({ place, units, layers, onLayers }) {
   const [playing, setPlaying] = useState(true);
   // Wind readings by grid point, kept while the map is open.
   const [wind, setWind] = useState({ status: "idle", points: {} });
+  // Named wildfires (US), fetched the first time the Fires layer is on.
+  const [fires, setFires] = useState({ status: "idle", list: [] });
+  const [picked, setPicked] = useState(null);
+  const [heatFailed, setHeatFailed] = useState(false);
   const on = new Set(layers);
+  const firesOn = on.has("fires");
+
+  useEffect(() => {
+    if (!firesOn || fires.status !== "idle") return undefined;
+    let live = true;
+    fetchWildfires()
+      .then(list => live && setFires({ status: "ready", list }))
+      .catch(() => live && setFires({ status: "error", list: [] }));
+    return () => {
+      live = false;
+    };
+  }, [firesOn, fires.status]);
 
   useEffect(() => {
     const el = box.current;
@@ -121,6 +140,20 @@ export default function RadarMap({ place, units, layers, onLayers }) {
 
   // Wind arrows: fetch the grid points we haven't seen yet, a moment after
   // the map stops moving.
+  // Wildfires inside the view, placed in screen pixels.
+  const left = center.x - size.width / 2;
+  const top = center.y - size.height / 2;
+  const visibleFires =
+    ready && firesOn
+      ? fires.list
+          .map(fire => {
+            const p = project(fire.lat, fire.lon, zoom);
+            return { ...fire, left: p.x - left, top: p.y - top };
+          })
+          .filter(f => f.left >= -12 && f.top >= -12 && f.left <= size.width + 12 && f.top <= size.height + 12)
+      : [];
+  const pickedFire = visibleFires.find(f => f.id === picked) ?? null;
+
   const grid = ready && on.has("wind") ? windGrid(center, zoom, size.width, size.height) : [];
   const missing = grid.filter(point => !(point.key in wind.points));
   const missingKey = missing.map(point => point.key).join("|");
@@ -224,8 +257,23 @@ export default function RadarMap({ place, units, layers, onLayers }) {
 
         {on.has("fires") && (
           <>
-            <Tiles tiles={tiles.map(t => ({ ...t, key: `y-${t.key}` }))} className="cc-radar-fires" src={t => fireUrl(t, utcDay(1))} />
-            <Tiles tiles={tiles.map(t => ({ ...t, key: `t-${t.key}` }))} className="cc-radar-fires" src={t => fireUrl(t, utcDay(0))} />
+            <Tiles tiles={tiles.map(t => ({ ...t, key: `y-${t.key}` }))} className="cc-radar-fires" src={t => fireUrl(t, utcDay(1))} onError={() => setHeatFailed(true)} />
+            <Tiles tiles={tiles.map(t => ({ ...t, key: `t-${t.key}` }))} className="cc-radar-fires" src={t => fireUrl(t, utcDay(0))} onError={() => setHeatFailed(true)} />
+            {[...visibleFires].reverse().map(fire => {
+              const big = (fire.acres ?? 0) >= 10000 ? "is-big" : (fire.acres ?? 0) >= 1000 ? "is-mid" : "";
+              return (
+                <button
+                  key={fire.id}
+                  type="button"
+                  className={`cc-fire-pin ${big} ${fire.id === picked ? "is-picked" : ""}`}
+                  style={{ left: fire.left, top: fire.top }}
+                  onClick={() => setPicked(id => (id === fire.id ? null : fire.id))}
+                  aria-label={`${fire.name} fire, ${acresText(fire.acres)}${fire.contained !== null ? `, ${Math.round(fire.contained)}% contained` : ""}`}
+                >
+                  <Flame size={big === "is-big" ? 18 : 14} aria-hidden="true" />
+                </button>
+              );
+            })}
           </>
         )}
 
@@ -272,6 +320,28 @@ export default function RadarMap({ place, units, layers, onLayers }) {
         )}
         {on.has("rain") && radar.status === "error" && <p className="cc-radar-status">Rain radar isn’t available right now.</p>}
         {on.has("wind") && wind.status === "error" && <p className="cc-radar-status">Wind isn’t available right now.</p>}
+        {firesOn && fires.status === "idle" && (
+          <p className="cc-radar-status">
+            <LoaderCircle size={16} className="spin" aria-hidden="true" /> Loading wildfires…
+          </p>
+        )}
+        {firesOn && pickedFire && (
+          <div className="cc-fire-card" role="status">
+            <button type="button" className="cc-fire-close" onClick={() => setPicked(null)} aria-label="Close">
+              <X size={14} />
+            </button>
+            <strong>
+              <Flame size={14} aria-hidden="true" /> {pickedFire.name} Fire
+            </strong>
+            <span>
+              {acresText(pickedFire.acres)}
+              {pickedFire.contained !== null ? ` · ${Math.round(pickedFire.contained)}% contained` : " · containment not reported"}
+            </span>
+            {pickedFire.discovered && (
+              <small>Started {new Date(pickedFire.discovered).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</small>
+            )}
+          </div>
+        )}
         {on.has("clouds") && !satellite && (
           <p className="cc-radar-status">No live cloud satellite covers this part of the world yet.</p>
         )}
@@ -300,13 +370,34 @@ export default function RadarMap({ place, units, layers, onLayers }) {
       <ul className="cc-radar-key">
         {on.has("clouds") && <li>Clouds: latest infrared image. Bright and colored areas are high, cold cloud tops.</li>}
         {on.has("wind") && <li>Wind: arrows point where the wind is blowing, in {units === "metric" ? "km/h" : "mph"} right now.</li>}
-        {on.has("fires") && <li>Fires: red dots are heat spots seen by satellite in the last two days.</li>}
+        {firesOn && (
+          <li>
+            {fires.status === "error"
+              ? "Fires: the wildfire list isn’t responding right now. "
+              : fires.status === "ready"
+                ? visibleFires.length
+                  ? `Fires: ${visibleFires.length} active wildfire${visibleFires.length === 1 ? "" : "s"} in view. Tap a flame for its size and containment. `
+                  : "Fires: no active wildfires reported in view (named fires are tracked in the US). "
+                : "Fires: "}
+            Small red dots are heat spots seen by satellite in the last two days, which also catch farm burns and flares.
+            {heatFailed && " Satellite heat spots aren’t loading right now."}
+          </li>
+        )}
       </ul>
 
       <p className="cc-radar-credit">
         {on.has("rain") && (
           <>
             Radar <a href="https://www.rainviewer.com/" target="_blank" rel="noreferrer">RainViewer</a> ·{" "}
+          </>
+        )}
+        {firesOn && (
+          <>
+            Wildfires{" "}
+            <a href="https://data-nifc.opendata.arcgis.com/" target="_blank" rel="noreferrer">
+              NIFC
+            </a>{" "}
+            ·{" "}
           </>
         )}
         {(on.has("clouds") || on.has("fires")) && (

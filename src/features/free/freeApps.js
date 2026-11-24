@@ -446,6 +446,7 @@ const categories = [
       { name: "TaiwanPlus", alt: "Netflix", url: "https://www.taiwanplus.com/", mark: "T+", color: "#d7282f", description: "Taiwan's public English-language channel, with news, travel and culture shows." },
       { name: "mewatch", alt: "Netflix", url: "https://www.mewatch.sg/", mark: "me", color: "#7b2cbf", description: "Mediacorp's free streaming for Singapore dramas, variety shows and live channels." },
       { name: "HRTi", alt: "Netflix", url: "https://hrti.hrt.hr/", mark: "HR", color: "#0057a8", description: "Croatian public TV streaming, with series, documentaries and live HRT channels." },
+      { name: "MédiaKlikk", alt: "Netflix", url: "https://mediaklikk.hu/", mark: "MK", color: "#e30613", description: "Hungarian public TV streaming, with M1, Duna and M5 channels, films and series." },
     ],
   },
   {
@@ -546,6 +547,7 @@ const categories = [
       { name: "National Education Radio", alt: "SiriusXM", url: "https://www.ner.gov.tw/", mark: "NE", color: "#2e8b57", description: "Taiwanese public radio for learning, culture and podcasts, live and on demand." },
       { name: "meListen", alt: "SiriusXM", url: "https://www.melisten.sg/", mark: "mL", color: "#ff5a36", description: "Mediacorp radio stations and podcasts from Singapore, live and on demand." },
       { name: "HRT Radio", alt: "SiriusXM", url: "https://radio.hrt.hr/", mark: "HR", color: "#0057a8", description: "Croatian public radio, including HR1, HR2 and HR3, live and on demand." },
+      { name: "MédiaKlikk Rádió", alt: "SiriusXM", url: "https://mediaklikk.hu/radio", mark: "MK", color: "#e30613", description: "Hungarian public radio, including Kossuth, Petőfi and Bartók, live and on demand." },
     ],
   },
   {
@@ -587,6 +589,8 @@ const categories = [
       { name: "Biblioteca Virtual Banrepcultural", alt: "Scribd", url: "https://www.banrepcultural.org/biblioteca-virtual", mark: "BV", color: "#00457c", description: "Free digital library from Colombia's central bank, with books, maps and historic documents." },
       { name: "NewspaperSG", alt: "Newspapers.com", url: "https://eresources.nlb.gov.sg/newspapers", mark: "NS", color: "#c8102e", description: "Free archive of Singapore and Malaya newspapers going back to 1831." },
       { name: "NLB Mobile", alt: "Kindle Unlimited", url: "https://www.nlb.gov.sg/main/visit-us/nlb-mobile-app", mark: "NL", color: "#e2231a", description: "Singapore's National Library app for free e-books, audiobooks and magazines." },
+      { name: "Magyar Elektronikus Könyvtár", alt: "Kindle Unlimited", url: "https://mek.oszk.hu/", mark: "ME", color: "#2f5d8a", description: "Hungarian Electronic Library with tens of thousands of free e-books from the National Széchényi Library." },
+      { name: "Hungaricana", alt: "Newspapers.com", url: "https://hungaricana.hu/", mark: "Hu", color: "#7a1f2b", description: "Free Hungarian public collections portal with digitized books, archives, maps and photos." },
     ],
   },
   {
@@ -827,6 +831,7 @@ const categories = [
       { name: "Málið.is", alt: "paid dictionaries", url: "https://malid.is/", mark: "Má", color: "#003da5", description: "Official Icelandic dictionaries, spelling and inflection in one search." },
       { name: "MOE Revised Mandarin Dictionary", alt: "paid dictionaries", url: "https://dict.revised.moe.edu.tw/", mark: "國", color: "#8b0000", description: "Taiwan's official Mandarin dictionary, with pronunciations, meanings and examples." },
       { name: "Hrvatski jezični portal", alt: "paid dictionaries", url: "https://hjp.znanje.hr/", mark: "HJ", color: "#c8102e", description: "Free Croatian dictionary with meanings, grammar and word forms." },
+      { name: "Helyesírás", alt: "Grammarly", url: "https://helyesiras.mta.hu/", mark: "He", color: "#00659c", description: "Official Hungarian spelling guide and checker from the Hungarian Research Centre for Linguistics." },
     ],
   },
 ];

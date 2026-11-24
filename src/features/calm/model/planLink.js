@@ -1,4 +1,4 @@
-// What CalmFox puts on the PlanFox calendar: the sessions you finished, so
+// What CalmFox puts on the TaskFox calendar: the sessions you finished, so
 // the day shows the time you took for yourself. Planner items can open any
 // session ("Opens in" on an item), say a sleep session every night.
 

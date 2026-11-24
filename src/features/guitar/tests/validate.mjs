@@ -178,7 +178,7 @@ test("store: practice log, best scores, imports, junk", () => {
   assert.equal(normalizeData({ prefs: { speed: 99, part: "x" } }).prefs.speed, 0.75);
 });
 
-test("PlanFox shows practice and can open songs", () => {
+test("TaskFox shows practice and can open songs", () => {
   const d = addPractice(emptyData(), { songId: "greensleeves", title: "Greensleeves", part: "rhythm", level: "hard", minutes: 12, accuracy: 81, day: "2026-11-12" });
   const items = planItems(d, "2026-11-01", "2026-11-30");
   assert.equal(items.length, 1);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Pause, Play, SkipForward, Square, Sun, Trash2, Volume2, VolumeX } from "lucide-react";
+import { BatteryLow, Check, Pause, Play, SkipForward, Square, Sun, Trash2, Volume2, VolumeX } from "lucide-react";
 
 import { fmtClock, fmtDistance, fmtRate, M_PER_MI } from "../model/units";
 import { routePath } from "../model/geo";
@@ -116,6 +116,58 @@ function FinishSheet({ live, recorder, store, onSaved, onClose }) {
   );
 }
 
+/**
+ * Battery saver: a true black screen with a few dim numbers. On OLED phones
+ * black pixels are switched off, so this draws far less power than the
+ * normal live view. No gradients, colors, route or animation.
+ */
+function SaverView({ live, sec, at, speed, unit, hr, paused, onPause, onResume, onFinish, onExit }) {
+  return (
+    <div className="pc-saver" role="region" aria-label="Battery saver screen">
+      <p className="pc-saver-state">{paused ? "Paused" : live.title}</p>
+      <strong className="pc-saver-clock">{fmtClock(sec)}</strong>
+      <div className="pc-saver-row">
+        <div>
+          <strong>{live.meters ? fmtDistance(live.meters, live.sport === "row" ? "m" : unit) : "0"}</strong>
+          <span>distance</span>
+        </div>
+        <div>
+          <strong>{speed ? fmtRate(live.sport, speed, unit) : "–"}</strong>
+          <span>{live.sport === "row" ? "split" : live.sport === "ride" ? "speed" : "pace"}</span>
+        </div>
+        {hr != null && (
+          <div>
+            <strong>{hr}</strong>
+            <span>bpm</span>
+          </div>
+        )}
+      </div>
+      {at && (
+        <p className="pc-saver-step">
+          {at.done ? "Session done" : `${at.step.label}${at.step.rep && at.step.kind === "work" ? ` ${at.step.rep[0]}/${at.step.rep[1]}` : ""} · ${at.left != null ? fmtClock(Math.ceil(at.left)) : fmtClock(at.into)}`}
+        </p>
+      )}
+      <div className="pc-saver-controls">
+        {paused ? (
+          <button type="button" onClick={onResume}>
+            <Play size={18} /> Resume
+          </button>
+        ) : (
+          <button type="button" onClick={onPause}>
+            <Pause size={18} /> Pause
+          </button>
+        )}
+        <button type="button" onClick={onFinish}>
+          <Square size={16} /> Finish
+        </button>
+        <button type="button" onClick={onExit} aria-pressed="true">
+          <BatteryLow size={16} /> Saver off
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** The screen you look at while training. Big numbers, big buttons. */
 export default function LiveView({ store, recorder, sensors, onSaved }) {
   const { data, setPrefs } = store;
@@ -126,6 +178,47 @@ export default function LiveView({ store, recorder, sensors, onSaved }) {
   const paused = live.status === "paused";
   const avg = sec > 0 && live.meters > 0 ? live.meters / sec : null;
   const total = live.steps?.reduce((n, s) => n + s.sec, 0) ?? 0;
+  const saver = data.prefs.batterySaver;
+  const finish = () => {
+    if (!paused) recorder.pause();
+    setFinishing(true);
+  };
+  const finishSheet = finishing && (
+    <FinishSheet
+      live={live}
+      recorder={recorder}
+      store={store}
+      onSaved={a => {
+        setFinishing(false);
+        onSaved(a);
+      }}
+      onClose={() => {
+        setFinishing(false);
+        recorder.resume();
+      }}
+    />
+  );
+
+  if (saver) {
+    return (
+      <>
+        <SaverView
+          live={live}
+          sec={sec}
+          at={at}
+          speed={speed}
+          unit={unit}
+          hr={v.hr}
+          paused={paused}
+          onPause={recorder.pause}
+          onResume={recorder.resume}
+          onFinish={finish}
+          onExit={() => setPrefs({ batterySaver: false })}
+        />
+        {finishSheet}
+      </>
+    );
+  }
 
   const metric = (label, value, sub) => (
     <div className="pc-metric">
@@ -149,6 +242,9 @@ export default function LiveView({ store, recorder, sensors, onSaved }) {
         </span>
         <button type="button" className="pc-pill is-button" onClick={() => setPrefs({ voice: !data.prefs.voice })} aria-pressed={data.prefs.voice}>
           {data.prefs.voice ? <Volume2 size={13} /> : <VolumeX size={13} />} Voice {data.prefs.voice ? "on" : "off"}
+        </button>
+        <button type="button" className="pc-pill is-button" onClick={() => setPrefs({ batterySaver: true })} aria-pressed="false">
+          <BatteryLow size={13} aria-hidden="true" /> Battery saver
         </button>
       </div>
       {gps.error && gps.status !== "ok" && <p className="pc-warn">{gps.error}</p>}
@@ -209,10 +305,7 @@ export default function LiveView({ store, recorder, sensors, onSaved }) {
         <button
           type="button"
           className="pc-btn pc-btn-stop"
-          onClick={() => {
-            if (!paused) recorder.pause();
-            setFinishing(true);
-          }}
+          onClick={finish}
         >
           <Square size={18} /> Finish
         </button>
@@ -223,7 +316,7 @@ export default function LiveView({ store, recorder, sensors, onSaved }) {
         <Sensors sensors={sensors} sport={live.sport} compact />
       </details>
 
-      {finishing && <FinishSheet live={live} recorder={recorder} store={store} onSaved={a => { setFinishing(false); onSaved(a); }} onClose={() => { setFinishing(false); recorder.resume(); }} />}
+      {finishSheet}
     </div>
   );
 }

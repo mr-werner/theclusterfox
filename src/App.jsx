@@ -72,6 +72,13 @@ function RedirectToRoadTrip() {
     return <Navigate to={`/roadtrip${search}${hash}`} replace />;
 }
 
+// TaskFox used to be PlanFox at /plan; old links, bookmarks, installed
+// home-screen apps and "open in planner" links saved by other apps keep working.
+function RedirectToTask() {
+    const { search, hash } = useLocation();
+    return <Navigate to={`/task${search}${hash}`} replace />;
+}
+
 // Feedback, Donate and the developer area are small but rarely opened.
 const FeedbackPage = lazy(() => import("./features/site/FeedbackPage"));
 const DonatePage = lazy(() => import("./features/site/DonatePage"));
@@ -95,7 +102,8 @@ export default function App() {
             <Route path="/clocast" element={<ClocastPage />} />
             <Route path="/watch" element={<WatchPage />} />
             <Route path="/sports" element={<SportsPage />} />
-            <Route path="/plan" element={<PlanPage />} />
+            <Route path="/task" element={<PlanPage />} />
+            <Route path="/plan" element={<RedirectToTask />} />
             <Route path="/lift" element={<LiftPage />} />
             <Route
                 path="/calm"

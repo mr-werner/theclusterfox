@@ -31,7 +31,7 @@ export function emptyData() {
     // Training goals: { id, activityId, perWeek, minutes, timeOfDay, updatedAt }
     goals: [],
     deletedGoalIds: [],
-    // Daily reminders PlanFox shows: { on: [reminder ids], airSensitive }.
+    // Daily reminders TaskFox shows: { on: [reminder ids], airSensitive }.
     reminders: defaultReminderSettings(),
     // Pilot view: adds the Aloft tab with winds at altitude.
     aviation: false,

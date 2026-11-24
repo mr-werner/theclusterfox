@@ -4,7 +4,7 @@ import { localDay } from "../model/snow";
 import { findSpot } from "../model/spots";
 import { Card } from "./ui";
 
-// Planned ski days and tours. Each one also shows on the PlanFox calendar.
+// Planned ski days and tours. Each one also shows on the TaskFox calendar.
 export default function TripsTab({ s, open }) {
   const { data, patch } = s;
   const today = localDay(new Date());
@@ -41,12 +41,12 @@ export default function TripsTab({ s, open }) {
         title="Planned days"
         icon={CalendarDays}
         aside={
-          <a className="sf-link" href="/plan">
-            Open PlanFox <ExternalLink size={13} aria-hidden="true" />
+          <a className="sf-link" href="/task">
+            Open TaskFox <ExternalLink size={13} aria-hidden="true" />
           </a>
         }
       >
-        {upcoming.length ? <ul className="sf-trip-list">{upcoming.map(row)}</ul> : <p className="sf-muted">No ski days planned yet. Open a mountain, pick a day and tap “Plan a ski day”. It goes on your PlanFox calendar with a link back to that day's conditions.</p>}
+        {upcoming.length ? <ul className="sf-trip-list">{upcoming.map(row)}</ul> : <p className="sf-muted">No ski days planned yet. Open a mountain, pick a day and tap “Plan a ski day”. It goes on your TaskFox calendar with a link back to that day's conditions.</p>}
       </Card>
       {past.length > 0 && (
         <Card title="Recent days" icon={CalendarDays}>

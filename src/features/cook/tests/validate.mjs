@@ -275,7 +275,8 @@ assert.equal(renderTemps("Cook to {temp:63}.", "F"), "Cook to 145°F.");
   assert(spicy.results[0].recipe.tastes.includes("spicy"));
 
   // Search finds titles and ingredients.
-  assert(discover(recipes, emptyData().profile, { ...emptyFilters(), q: "salmon" }).results.length === 1);
+  const salmon = discover(recipes, emptyData().profile, { ...emptyFilters(), q: "salmon" }).results.map(r => r.recipe.id).sort();
+  assert.deepEqual(salmon, ["glazed-salmon-rice-bowls", "honey-garlic-salmon"]);
   assert(discover(recipes, emptyData().profile, { ...emptyFilters(), q: "feta" }).results.some(r => r.recipe.id === "shakshuka"));
 }
 

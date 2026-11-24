@@ -151,7 +151,7 @@ check("plans, weigh-ins and workouts merge between devices", () => {
   assert.equal(m.weights[0].lbs, 181);
 });
 
-check("PlanFox gets the day's meals and what to cook", () => {
+check("TaskFox gets the day's meals and what to cook", () => {
   const raw = { plan: { "2026-11-16": { slots: { dinner: { recipeId: "koshari", portions: 1 } } }, "2026-11-17": { slots: { lunch: { recipeId: "koshari", portions: 1, leftover: true } } } } };
   const items = planItems(raw, "2026-11-16", "2026-11-17");
   assert(items.some(i => i.id === "meals:2026-11-16" && i.href === "/f4t?day=2026-11-16"));

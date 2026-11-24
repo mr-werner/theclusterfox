@@ -144,7 +144,7 @@ export default function SetupTab({ store, sensors }) {
           <label>
             Usual training time
             <input type="time" value={prefs.trainTime ?? ""} onChange={e => setPrefs({ trainTime: e.target.value || null })} />
-            <small>Puts sessions at this time in PlanFox</small>
+            <small>Puts sessions at this time in TaskFox</small>
           </label>
         </div>
         <div className="pc-toggles">
@@ -159,6 +159,10 @@ export default function SetupTab({ store, sensors }) {
           <label>
             <input type="checkbox" checked={prefs.keepAwake} onChange={e => setPrefs({ keepAwake: e.target.checked })} />
             Keep the screen on while recording
+          </label>
+          <label>
+            <input type="checkbox" checked={prefs.batterySaver} onChange={e => setPrefs({ batterySaver: e.target.checked })} />
+            Battery saver screen while recording: true black with dim numbers, which uses the least power on OLED phones
           </label>
         </div>
       </section>

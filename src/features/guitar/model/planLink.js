@@ -1,5 +1,5 @@
-// What FretFox puts on the PlanFox calendar: the songs you practiced each
-// day, and songs a planned practice block can open. PlanFox loads this
+// What FretFox puts on the TaskFox calendar: the songs you practiced each
+// day, and songs a planned practice block can open. TaskFox loads this
 // module on demand (see src/app/planLinks.js) and passes in FretFox's
 // saved data exactly as stored.
 import { SONGS, EXERCISES } from "../data/songs.js";

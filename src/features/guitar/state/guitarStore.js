@@ -1,5 +1,5 @@
 // Everything FretFox remembers: how you like to practice, your best score
-// on each song, a practice log for PlanFox, and songs you imported. Saved
+// on each song, a practice log for TaskFox, and songs you imported. Saved
 // in this browser and, when signed in, to the ClusterFox account.
 
 export const STORAGE_KEY = "fretfox-data-v1";

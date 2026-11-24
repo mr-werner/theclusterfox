@@ -12,6 +12,7 @@ import { generateWorkout, workoutTitle } from "./model/generate";
 import { nextSession, PLAN_GOALS, toIsoDay } from "./model/program";
 import { useLiftData } from "./state/useLiftData";
 import { musclesById } from "./data/muscles";
+import { trainForById } from "./data/trainFor";
 import { withNext } from "../../lib/redirect";
 import "./lift.css";
 import "./identity.css";
@@ -71,7 +72,8 @@ export default function LiftPage() {
 
   function build(seed = Math.floor(Math.random() * 1e6) + 1) {
     const workout = generateWorkout({ ...data.prefs, seed });
-    startWorkout({ ...workout, title: workoutTitle(data.prefs.muscles) });
+    const sport = trainForById.get(data.prefs.trainFor);
+    startWorkout({ ...workout, title: sport ? `${sport.name}: ${workoutTitle(data.prefs.muscles).toLowerCase()}` : workoutTitle(data.prefs.muscles) });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -87,6 +89,8 @@ export default function LiftPage() {
       level: program.level,
       warmup: session.warmup,
       cooldown: session.cooldown,
+      extras: session.extras ?? [],
+      trainFor: program.trainFor ?? null,
       items: session.items.map(item => ({ ...item, done: Array(item.sets).fill(false), load: "" })),
       planId: plan.id,
       sessionId: session.id,
@@ -94,7 +98,7 @@ export default function LiftPage() {
     openTab("workout");
   }
 
-  // Opened from PlanFox: ?plan=&session= starts that session, ?next=1 the
+  // Opened from TaskFox: ?plan=&session= starts that session, ?next=1 the
   // next one in your plan. A workout already in progress is left alone.
   const linkPlan = params.get("plan");
   const linkSession = params.get("session");

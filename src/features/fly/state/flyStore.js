@@ -1,5 +1,5 @@
 // FlyFox's saved data, in this browser: your aircraft, home airport, saved
-// flights and study progress. Plain functions so tests and PlanFox can use them.
+// flights and study progress. Plain functions so tests and TaskFox can use them.
 
 export const STORAGE_KEY = "flyfox-data-v1";
 

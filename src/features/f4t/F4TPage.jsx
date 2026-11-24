@@ -168,7 +168,7 @@ export default function F4TPage() {
   }
 
   // Where you are: ?tab=plan|shop|off|me, ?week=<first day>, ?day=<day> (from
-  // PlanFox), and for the off-plan screen ?day=&slot= to compare against.
+  // TaskFox), and for the off-plan screen ?day=&slot= to compare against.
   const [params, setParams] = useSearchParams();
   const tab = TABS.some(t => t.id === params.get("tab")) ? params.get("tab") : params.get("meal") ? "off" : "plan";
   const focusDay = isDay(params.get("day")) ? params.get("day") : null;
@@ -188,14 +188,14 @@ export default function F4TPage() {
     window.scrollTo({ top: 0 });
   };
 
-  // Opened from PlanFox on a day: bring that day into view.
+  // Opened from TaskFox on a day: bring that day into view.
   useEffect(() => {
     if (tab !== "plan" || !focusDay) return;
     const t = setTimeout(() => document.getElementById(`fp-day-${focusDay}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
     return () => clearTimeout(t);
   }, [tab, focusDay]);
 
-  // Opened from PlanFox with ?meal=<id>: load that saved meal once.
+  // Opened from TaskFox with ?meal=<id>: load that saved meal once.
   const linkedMeal = data.meals.find(m => m.id === params.get("meal")) ?? null;
   const [handledMealId, setHandledMealId] = useState(null);
   if (linkedMeal && linkedMeal.id !== handledMealId) {

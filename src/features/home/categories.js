@@ -2,7 +2,7 @@ import { categories, categoryOf, MORE_CATEGORY } from "../../app/apps.js";
 import { isOriginalKey, keyId } from "./state/homeStore.js";
 
 /**
- * Splits the home screen's original apps into PlanFox (the hub, shown on its
+ * Splits the home screen's original apps into TaskFox (the hub, shown on its
  * own above everything) and the category sections, keeping the order the
  * person arranged them in within each category. Empty categories are left
  * out; apps without a known category go in "More apps" at the end.

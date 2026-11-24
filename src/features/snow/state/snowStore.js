@@ -1,5 +1,5 @@
 // SnowFox's saved data, in this browser: favorite mountains, home (for drive
-// times), units and planned ski days. Plain functions so tests and PlanFox
+// times), units and planned ski days. Plain functions so tests and TaskFox
 // can use them.
 
 export const STORAGE_KEY = "snowfox-data-v1";

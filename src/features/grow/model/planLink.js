@@ -1,5 +1,5 @@
-// What GrowFox puts on the PlanFox calendar: the garden jobs due each day,
-// each one opening straight to that job in GrowFox. PlanFox loads this
+// What GrowFox puts on the TaskFox calendar: the garden jobs due each day,
+// each one opening straight to that job in GrowFox. TaskFox loads this
 // module on demand (see src/app/planLinks.js) and passes in GrowFox's
 // saved data exactly as stored.
 import { plantsById } from "../data/plants.js";

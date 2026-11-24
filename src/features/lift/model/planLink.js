@@ -1,4 +1,4 @@
-// What LiftFox puts on the PlanFox calendar: the sessions of your active
+// What LiftFox puts on the TaskFox calendar: the sessions of your active
 // plan on the days they fall, workouts you finished, and a workout still
 // in progress. Tapping one opens LiftFox ready to train.
 

@@ -54,7 +54,7 @@ export function usePlanData() {
         setSyncStatus("synced");
       } catch (error) {
         if (cancelled) return;
-        console.warn("PlanFox sync:", error.message);
+        console.warn("TaskFox sync:", error.message);
         setSyncStatus(error instanceof SyncUnavailableError ? "unavailable" : "error");
       }
     })();
@@ -74,7 +74,7 @@ export function usePlanData() {
         await pushRemoteData(userId, toRemote(data));
         setSyncStatus("synced");
       } catch (error) {
-        console.warn("PlanFox sync:", error.message);
+        console.warn("TaskFox sync:", error.message);
         setSyncStatus(error instanceof SyncUnavailableError ? "unavailable" : "error");
       }
     }, PUSH_DELAY_MS);

@@ -1,7 +1,8 @@
 // Checks GrowFox's plant data and garden math: node src/features/grow/tests/validate.mjs
 import assert from "node:assert/strict";
 
-import { PLANTS, TYPES, TAGS, plantsById } from "../data/plants.js";
+import { PLANTS, TYPES, TAGS, plantsById, INDOOR_PLANTS, INDOOR_TYPES, SPECIALTY_PLANTS, SPECIALTY_TYPES, ALL_PLANTS, typeOf } from "../data/plants.js";
+import { rateIndoor, roomLight, indoorClimate, isInside, INDOOR_LIGHT } from "../model/indoor.js";
 import { computeClimate, zoneFromMinF, climateFromZone, seasonFor, effectiveClimate } from "../model/climate.js";
 import { plantingWindows, ANCHORS, PERIODS, windowsBetween, yearStrip } from "../model/calendar.js";
 import { rate, cadence, entryTasks, KINDS } from "../model/care.js";
@@ -355,6 +356,116 @@ test("care feedback for planted things and the lawn", () => {
   const fall = lawnAdvice({ grass: fescue, climate: c, todayNum: s.ff - 20 });
   assert.match(fall.feed, /big feed/);
   assert.match(lawnAdvice({ grass: plantsById.get("bermuda"), climate: c, todayNum: s.ff - 20 }).feed, /No feeding/);
+});
+
+test("every houseplant and specialty grow is complete and valid", () => {
+  const ids = new Set(PLANTS.map(p => p.id));
+  const kinds = new Set([...INDOOR_TYPES, ...SPECIALTY_TYPES].map(t => t.id));
+  for (const p of [...INDOOR_PLANTS, ...SPECIALTY_PLANTS]) {
+    assert.ok(!ids.has(p.id), `duplicate ${p.id}`);
+    ids.add(p.id);
+    assert.ok(kinds.has(p.type) && typeOf(p).one, `${p.id} type`);
+    assert.ok(p.name && p.latin && p.tip && p.size && p.soil, `${p.id} text`);
+    assert.match(p.color, /^#[0-9a-f]{6}$/i, `${p.id} color`);
+    assert.ok(["indoor", "outdoor", "both"].includes(p.setting), `${p.id} setting`);
+    assert.ok(p.base >= 1 && p.base <= 5 && [1, 2, 3].includes(p.water), `${p.id} base/water`);
+    if (p.setting !== "outdoor") {
+      assert.ok(p.light?.length && p.light.every(l => INDOOR_LIGHT[l]), `${p.id} indoor light`);
+      assert.ok([1, 2, 3].includes(p.humidity) && typeof p.petSafe === "boolean", `${p.id} humidity/pets`);
+      assert.equal(p.tags.includes("petsafe"), p.petSafe, `${p.id} petsafe tag matches`);
+    }
+    if (p.setting !== "indoor") {
+      assert.ok(p.sun?.length && [1, 2, 3].includes(p.heat) && p.when && (p.zones || p.days), `${p.id} outdoor fields`);
+      assert.ok(plantingWindows(p, seasonFor(climateFromZone(6), 2026)).length, `${p.id} planting windows`);
+    }
+    assert.ok(p.care.length, `${p.id} care`);
+    for (const c of p.care) {
+      assert.ok(KINDS[c.kind], `${p.id} care kind ${c.kind}`);
+      for (const a of c.anchors) assert.ok(ANCHORS[a] || PERIODS[a] || a === "harvest", `${p.id} anchor ${a}`);
+    }
+    for (const t of p.tags) assert.ok(TAGS[t], `${p.id} tag ${t}`);
+  }
+  assert.ok(INDOOR_PLANTS.length >= 25);
+  for (const t of INDOOR_TYPES) assert.ok(INDOOR_PLANTS.some(p => p.type === t.id), `no ${t.id}`);
+  assert.equal(plantsById.size, ALL_PLANTS.length);
+});
+
+test("restricted grows carry a law notice and a safety section", () => {
+  for (const p of SPECIALTY_PLANTS) {
+    assert.ok(["open", "restricted"].includes(p.legal), `${p.id} legal`);
+    assert.ok(p.law && p.guide?.overview && p.guide.stages.length && p.guide.safety.length, `${p.id} guide`);
+    for (const st of p.guide.stages) assert.ok(st.name && st.time && st.steps.length, `${p.id} stage`);
+  }
+  const restricted = SPECIALTY_PLANTS.filter(p => p.legal === "restricted").map(p => p.id).sort();
+  assert.deepEqual(restricted, ["cannabis", "psilocybin"]);
+  for (const id of restricted) assert.match(plantsById.get(id).law, /illegal|Schedule I/);
+});
+
+test("window light depends on direction, distance and hemisphere", () => {
+  assert.equal(roomLight({ window: "S", distance: "sill" }).id, "bright");
+  assert.equal(roomLight({ window: "S", distance: "far" }).id, "medium");
+  assert.equal(roomLight({ window: "N", distance: "near" }).id, "low");
+  assert.equal(roomLight({ window: "N", distance: "sill" }, "S").id, "bright");
+  assert.equal(roomLight({ window: "E", distance: "near" }).id, "medium");
+  assert.equal(roomLight({ window: "grow" }).id, "bright");
+  assert.equal(roomLight({ window: "N", distance: "near", light: "bright" }).id, "bright");
+});
+
+test("houseplants are rated for the light, air and pets in your home", () => {
+  const snake = plantsById.get("snakeplant");
+  const fiddle = plantsById.get("fiddleleaf");
+  const fern = plantsById.get("bostonfern");
+  assert.equal(rateIndoor(snake, "low").score, 1);
+  assert.equal(rateIndoor(fiddle, "low").score, 6);
+  assert.ok(rateIndoor(fiddle, "medium").score > rateIndoor(fiddle, "bright").score);
+  assert.ok(rateIndoor(fern, "medium", { air: "dry" }).score > rateIndoor(fern, "medium", { air: "humid" }).score);
+  assert.ok(rateIndoor(snake, "low", { air: "average", pets: true }).reasons.some(r => /Toxic/.test(r)));
+  assert.ok(!rateIndoor(plantsById.get("spiderplant"), "medium", { air: "average", pets: true }).reasons.some(r => /Toxic/.test(r)));
+});
+
+test("indoor plants get care jobs all year without a place set", () => {
+  const pothos = { id: "p", plantId: "pothos", status: "growing", planted: "2026-01-05", inside: true };
+  const plant = plantsById.get("pothos");
+  assert.ok(isInside(pothos, plant));
+  const count = (entry, p, from, n) => Array.from({ length: n }, (_, i) => entryTasks(entry, p, null, dayKey(dayNum(from) + i), { gardenDay: 6 }).length).reduce((a, b) => a + b, 0);
+  const winter = count(pothos, plant, "2026-12-01", 28);
+  const summer = count(pothos, plant, "2026-06-01", 28);
+  assert.ok(winter > 0 && summer > winter, `winter ${winter}, summer ${summer}`);
+  // A mushroom grow runs whenever it's started and finishes after harvest.
+  const oyster = plantsById.get("oyster");
+  const grow = { id: "o", plantId: "oyster", status: "growing", planted: "2026-12-01" };
+  assert.ok(count(grow, oyster, "2026-12-01", 20) > 0);
+  assert.ok(count(grow, oyster, "2026-12-29", 7) > 0, "misting and picking once it fruits");
+  assert.equal(count(grow, oyster, "2027-02-01", 14), 0);
+  // Cannabis can go either way; indoors it follows its own calendar.
+  const can = plantsById.get("cannabis");
+  assert.ok(!isInside({ inside: false }, can) && isInside({ inside: true }, can));
+  assert.ok(count({ id: "c", plantId: "cannabis", status: "growing", planted: "2026-12-01", inside: true }, can, "2026-12-01", 14) > 0);
+  assert.equal(indoorClimate("S").lastFrost, 258);
+});
+
+test("saved indoor spots, home and entries survive a round trip", () => {
+  const data = normalizeData({
+    rooms: [{ id: "r1", name: "Kitchen", window: "E", distance: "sill" }, { id: "bad" , window: "Z" }],
+    home: { air: "dry", pets: true },
+    prefs: { specialtyOk: true },
+    garden: [
+      { id: "a", plantId: "pothos", roomId: "r1" },
+      { id: "b", plantId: "cannabis", inside: true, roomId: "r1" },
+      { id: "c", plantId: "tomato", inside: true, roomId: "r1" },
+    ],
+  });
+  assert.equal(data.rooms[0].window, "E");
+  assert.equal(data.rooms[1].window, "S");
+  assert.deepEqual(data.home, { air: "dry", pets: true });
+  assert.equal(data.prefs.specialtyOk, true);
+  assert.equal(normalizeData({}).prefs.specialtyOk, false);
+  const [a, b, c] = data.garden;
+  assert.ok(a.inside && a.roomId === "r1");
+  assert.ok(b.inside && b.roomId === "r1");
+  assert.ok(!c.inside && c.roomId === null);
+  const plan = planItems({ garden: [{ id: "a", plantId: "pothos", planted: "2026-01-01" }] }, "2026-06-01", "2026-06-30");
+  assert.ok(plan.length > 0, "indoor jobs reach TaskFox without a place");
 });
 
 console.log(`\n${passed} GrowFox checks passed`);

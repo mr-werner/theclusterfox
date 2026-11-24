@@ -5,10 +5,11 @@ import { entryTasks } from "../model/care";
 import { nextWindows, ACTIONS } from "../model/calendar";
 import { addDays, niceDate, shortDate, dayNum } from "../model/dates";
 import { LIGHT } from "../model/sun";
+import { INDOOR_LIGHT, isInside } from "../model/indoor";
 import { PlantArt, RatingBadge } from "./ui";
 
 function nextJob(entry, plant, g) {
-  if (!g.climate) return null;
+  if (!g.climate && !isInside(entry, plant)) return null;
   for (let i = 0; i < 60; i++) {
     const day = addDays(g.today, i);
     const t = entryTasks(entry, plant, g.climate, day, g.data.prefs).find(x => !g.data.done[x.id]);
@@ -20,11 +21,16 @@ function nextJob(entry, plant, g) {
 export default function GardenTab({ g }) {
   const { data } = g;
   const groups = useMemo(() => {
-    const out = data.spots.map(s => ({ spot: s, entries: data.garden.filter(e => e.spotId === s.id) })).filter(x => x.entries.length);
-    const loose = data.garden.filter(e => !e.spotId);
+    const outside = data.garden.filter(e => !e.inside);
+    const inside = data.garden.filter(e => e.inside);
+    const out = data.spots.map(s => ({ spot: s, entries: outside.filter(e => e.spotId === s.id) })).filter(x => x.entries.length);
+    const loose = outside.filter(e => !e.spotId);
     if (loose.length) out.push({ spot: null, entries: loose });
-    return out;
-  }, [data.spots, data.garden]);
+    const ins = g.rooms.map(r => ({ room: r, entries: inside.filter(e => e.roomId === r.id) })).filter(x => x.entries.length);
+    const looseIn = inside.filter(e => !e.roomId);
+    if (looseIn.length) ins.push({ room: null, entries: looseIn });
+    return { out, ins };
+  }, [data.spots, data.garden, g.rooms]);
 
   useEffect(() => {
     if (g.entryParam) document.getElementById(`gf-entry-${g.entryParam}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -37,7 +43,7 @@ export default function GardenTab({ g }) {
           <Sprout size={28} aria-hidden="true" />
           <div>
             <h2>Nothing planted yet</h2>
-            <p>Add the trees, shrubs, flowers, vegetables and lawn you already have, and the ones you want to plant. GrowFox schedules their care and planting days.</p>
+            <p>Add the trees, shrubs, flowers, vegetables and lawn you already have, your houseplants, and the ones you want to grow. GrowFox schedules their care and planting days, outside and in.</p>
             <button type="button" className="gf-btn" onClick={() => g.switchTab("plants")}>
               Browse plants
             </button>
@@ -56,7 +62,8 @@ export default function GardenTab({ g }) {
           {data.garden.length - planned} growing{planned ? ` · ${planned} planned` : ""}. Every care job here also shows up on your TaskFox calendar.
         </p>
       </div>
-      {groups.map(({ spot, entries }) => (
+      {groups.out.length > 0 && groups.ins.length > 0 && <h2 className="gf-garden-split">Outdoor garden</h2>}
+      {groups.out.map(({ spot, entries }) => (
         <section key={spot?.id ?? "none"} className="gf-card">
           <div className="gf-card-head">
             <h2>{spot ? spot.name : "No spot set"}</h2>
@@ -69,16 +76,30 @@ export default function GardenTab({ g }) {
           </ul>
         </section>
       ))}
+      {groups.ins.length > 0 && <h2 className="gf-garden-split">Indoor garden</h2>}
+      {groups.ins.map(({ room, entries }) => (
+        <section key={room?.id ?? "none-in"} className="gf-card">
+          <div className="gf-card-head">
+            <h2>{room ? room.name : "Indoors, no spot set"}</h2>
+            {room && <span className={`gf-light gf-light--in-${room.lightId}`}>{INDOOR_LIGHT[room.lightId].name} light</span>}
+          </div>
+          <ul className="gf-entries">
+            {entries.map(e => (
+              <Entry key={e.id} g={g} entry={e} room={room} />
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }
 
-function Entry({ g, entry, spot }) {
+function Entry({ g, entry, spot, room }) {
   const plant = plantsById.get(entry.plantId);
   const [editing, setEditing] = useState(false);
-  const r = g.climate ? g.ratingFor(plant, spot?.light ?? null) : null;
+  const r = entry.inside ? g.indoorRating(plant, room?.lightId ?? null) : g.climate ? g.ratingFor(plant, spot?.light ?? null) : null;
   const job = nextJob(entry, plant, g);
-  const windows = entry.status === "planned" && g.climate ? nextWindows(plant, g.climate, g.todayNum) : [];
+  const windows = entry.status === "planned" && g.climate && !entry.inside && plant.when ? nextWindows(plant, g.climate, g.todayNum) : [];
   const focus = g.entryParam === entry.id;
   return (
     <li className={`gf-entry${focus ? " gf-entry--focus" : ""}`} id={`gf-entry-${entry.id}`}>
@@ -122,12 +143,12 @@ function Entry({ g, entry, spot }) {
 
 function EntryForm({ g, entry, onDone }) {
   const [name, setName] = useState(entry.name);
-  const [spotId, setSpotId] = useState(entry.spotId ?? "");
+  const [spotId, setSpotId] = useState((entry.inside ? entry.roomId : entry.spotId) ?? "");
   const [planted, setPlanted] = useState(entry.planted ?? "");
   const [qty, setQty] = useState(entry.qty);
   const [note, setNote] = useState(entry.note);
   const save = () => {
-    g.updateEntry(entry.id, { name: name.trim(), spotId: spotId || null, planted: entry.status === "growing" ? planted || null : null, qty: Number(qty) || 1, note });
+    g.updateEntry(entry.id, { name: name.trim(), spotId: !entry.inside && spotId ? spotId : null, roomId: entry.inside && spotId ? spotId : null, planted: entry.status === "growing" ? planted || null : null, qty: Number(qty) || 1, note });
     onDone();
   };
   return (
@@ -140,7 +161,7 @@ function EntryForm({ g, entry, onDone }) {
         <span>Spot</span>
         <select value={spotId} onChange={e => setSpotId(e.target.value)}>
           <option value="">No particular spot</option>
-          {g.data.spots.map(s => (
+          {(entry.inside ? g.rooms : g.data.spots).map(s => (
             <option key={s.id} value={s.id}>
               {s.name}
             </option>

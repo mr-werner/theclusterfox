@@ -47,7 +47,8 @@ export function YearStrip({ plant, climate, year, today, label = false }) {
 
 export default function CalendarTab({ g }) {
   const { climate, data, todayNum } = g;
-  const mine = useMemo(() => [...new Set(data.garden.map(e => e.plantId))].map(id => plantsById.get(id)), [data.garden]);
+  // Only what grows outside has planting dates.
+  const mine = useMemo(() => [...new Set(data.garden.filter(e => !e.inside).map(e => e.plantId))].map(id => plantsById.get(id)).filter(p => p.when), [data.garden]);
   const [show, setShow] = useState(mine.length ? "mine" : "vegetable");
   const [yearOffset, setYearOffset] = useState(0);
   const year = yearOf(todayNum) + yearOffset;

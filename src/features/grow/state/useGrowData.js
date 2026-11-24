@@ -87,11 +87,19 @@ export function useGrowData() {
     const y = d.yard ?? defaultYard();
     return { yard: { ...y, objects: y.objects.filter(o => o.id !== id) } };
   }), [patch]);
+  const addRoom = useCallback(room => {
+    const id = newId();
+    patch(d => ({ rooms: [...d.rooms, { light: "", note: "", ...room, id }] }));
+    return id;
+  }, [patch]);
+  const updateRoom = useCallback((id, p) => patch(d => ({ rooms: d.rooms.map(r => (r.id === id ? { ...r, ...p } : r)) })), [patch]);
+  const removeRoom = useCallback(id => patch(d => ({ rooms: d.rooms.filter(r => r.id !== id), garden: d.garden.map(e => (e.roomId === id ? { ...e, roomId: null } : e)) })), [patch]);
+  const setHome = useCallback(p => patch(d => ({ home: { ...d.home, ...p } })), [patch]);
   const updateSpot = useCallback((id, p) => patch(d => ({ spots: d.spots.map(s => (s.id === id ? { ...s, ...p } : s)) })), [patch]);
   const removeSpot = useCallback(id => patch(d => ({ spots: d.spots.filter(s => s.id !== id), garden: d.garden.map(e => (e.spotId === id ? { ...e, spotId: null } : e)) })), [patch]);
   const addEntry = useCallback(entry => {
     const id = newId();
-    patch(d => ({ garden: [...d.garden, { qty: 1, name: "", note: "", spotId: null, planted: null, ...entry, id, added: new Date().toISOString() }] }));
+    patch(d => ({ garden: [...d.garden, { qty: 1, name: "", note: "", spotId: null, roomId: null, inside: false, planted: null, ...entry, id, added: new Date().toISOString() }] }));
     return id;
   }, [patch]);
   const updateEntry = useCallback((id, p) => patch(d => ({ garden: d.garden.map(e => (e.id === id ? { ...e, ...p } : e)) })), [patch]);
@@ -123,6 +131,10 @@ export function useGrowData() {
     removeObject,
     updateSpot,
     removeSpot,
+    addRoom,
+    updateRoom,
+    removeRoom,
+    setHome,
     addEntry,
     updateEntry,
     removeEntry,

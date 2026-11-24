@@ -1,21 +1,24 @@
 import { useMemo, useState } from "react";
-import { Plus, Check, Lightbulb } from "lucide-react";
-import { TYPES, TAGS } from "../data/plants";
+import { Plus, Check, Lightbulb, Scale, ShieldAlert, ListOrdered } from "lucide-react";
+import { TAGS, LAW_NOTICE, typeOf, growsIndoors, growsOutdoors } from "../data/plants";
+import { INDOOR_LIGHT, lightNeed } from "../model/indoor";
 import { cadence, CADENCE_WORDS, FREQ, KINDS, sunNeed } from "../model/care";
 import { ACTIONS, ANCHORS, anchorDays, nextWindows } from "../model/calendar";
 import { zoneLabel } from "../model/climate";
 import { LIGHT } from "../model/sun";
 import { houseSides, plantFit } from "../model/yard";
 import { shortDate, yearOf } from "../model/dates";
-import { PlantArt, RatingBadge, Sheet, SunNeeds } from "./ui";
+import { IndoorLight, PlantArt, RatingBadge, Sheet, SunNeeds } from "./ui";
 import { YearStrip } from "./CalendarTab";
 import YardMap from "./YardMap";
 
 const WATER = ["", "Low: handles dry spells", "Average", "High: likes steady moisture"];
 const HEAT = ["", "Prefers cool summers", "Average", "Loves heat"];
+const INDOOR_WATER = ["", "Let it dry out between drinks", "When the top inch is dry", "Keep it evenly moist"];
+const HUMIDITY = ["", "Likes dry air", "Average home air", "Wants humid air"];
 const PERIOD_NAMES = { growing: "through the growing season", summer: "in summer", spring: "in spring", lateSpring: "in late spring", fall: "in fall", winter: "in winter", all: "all year", harvest: "while it's producing" };
 
-function careWhen(c, climate, year) {
+function careWhen(c, climate, year, indoorOnly = false) {
   const freq = FREQ[c.freq];
   if (c.freq === "never") return "Never";
   const first = c.firstYear ? " (first year)" : "";
@@ -26,15 +29,20 @@ function careWhen(c, climate, year) {
     });
     return `Once a year${names.length > 1 ? " each" : ""}: ${names.join(", ")}${first}`;
   }
-  return `${freq.name} ${PERIOD_NAMES[c.anchors[0] ?? "growing"] ?? ""}${first}`;
+  const period = c.anchors[0] ?? "growing";
+  const when = indoorOnly && period === "growing" ? "in spring and summer" : indoorOnly && period === "winter" ? "in the darker months" : PERIOD_NAMES[period] ?? "";
+  return `${freq.name} ${when}${first}`;
 }
 
 export default function PlantDetail({ g, plant, onClose }) {
   const { climate, data, todayNum } = g;
-  const type = TYPES.find(t => t.id === plant.type);
-  const r = climate ? g.ratingFor(plant) : null;
-  const care = cadence(plant, climate);
-  const windows = climate ? nextWindows(plant, climate, todayNum) : [];
+  const type = typeOf(plant);
+  const canOut = growsOutdoors(plant) && Boolean(plant.sun);
+  const canIn = growsIndoors(plant) && Boolean(plant.light);
+  const r = canOut && climate ? g.ratingFor(plant) : null;
+  const care = cadence(plant, canOut ? climate : null);
+  const windows = canOut && climate && plant.when ? nextWindows(plant, climate, todayNum) : [];
+  const locked = plant.legal === "restricted" && !data.prefs.specialtyOk;
   const year = yearOf(todayNum);
   const inGarden = data.garden.filter(e => e.plantId === plant.id);
 
@@ -59,9 +67,13 @@ export default function PlantDetail({ g, plant, onClose }) {
           </div>
         </header>
 
-        {r && (
+        {plant.law && <LawBlock g={g} plant={plant} locked={locked} />}
+
+        {canIn && !locked && <IndoorVerdict g={g} plant={plant} />}
+
+        {r && !locked && (
           <section className={`gf-block gf-verdict gf-verdict--${r.score}`}>
-            <h3>How hard to keep alive here</h3>
+            <h3>{canIn ? "Outdoors where you live" : "How hard to keep alive here"}</h3>
             <div className="gf-verdict-row">
               <RatingBadge result={r} />
               <span>{r.rating.hint}</span>
@@ -89,8 +101,11 @@ export default function PlantDetail({ g, plant, onClose }) {
           </section>
         )}
 
+        {!locked && plant.guide && <GuideBlock plant={plant} />}
+
+        {!locked && canOut && (
         <section className="gf-block">
-          <h3>Where to plant it</h3>
+          <h3>{canIn ? "Where to plant it outside" : "Where to plant it"}</h3>
           <p className="gf-light-need">
             <SunNeeds sun={plant.sun} withText />
           </p>
@@ -98,9 +113,13 @@ export default function PlantDetail({ g, plant, onClose }) {
           <WhereOnProperty g={g} plant={plant} />
           <p className="gf-hint">Soil: {plant.soil}. Spacing: {plant.spacing}. Grows {plant.size}.</p>
         </section>
+        )}
 
+        {!locked && canIn && <WhereIndoors g={g} plant={plant} />}
+
+        {!locked && canOut && plant.when && (
         <section className="gf-block">
-          <h3>When to plant</h3>
+          <h3>When to plant{canIn ? " outside" : ""}</h3>
           {climate ? (
             <>
               <ul className="gf-windows">
@@ -122,7 +141,9 @@ export default function PlantDetail({ g, plant, onClose }) {
             <p className="gf-hint">Set your place to see dates for your area.</p>
           )}
         </section>
+        )}
 
+        {!locked && (
         <section className="gf-block">
           <h3>How often it needs you</h3>
           <div className="gf-cadence" role="table" aria-label="Care frequency">
@@ -139,7 +160,7 @@ export default function PlantDetail({ g, plant, onClose }) {
                 <span role="rowheader">{c.name}</span>
                 {c.word == null ? (
                   <span role="cell" className="gf-cadence-need">
-                    <SunNeeds sun={plant.sun} /> {c.need}
+                    {canOut ? <SunNeeds sun={plant.sun} /> : <IndoorLight light={plant.light} />} {c.need}
                   </span>
                 ) : CADENCE_WORDS.map(w => (
                   <span key={w} role="cell" className={c.word === w ? "on" : ""}>
@@ -153,42 +174,64 @@ export default function PlantDetail({ g, plant, onClose }) {
             {plant.care.map((c, i) => (
               <li key={i}>
                 <strong>{KINDS[c.kind].name}</strong>
-                <span>{careWhen(c, climate, year)}</span>
+                <span>{careWhen(c, canOut ? climate : null, year, !canOut)}</span>
                 {c.note && <p>{c.note}</p>}
               </li>
             ))}
           </ul>
           {care.some(c => c.adjusted) && <p className="gf-hint">Watering is bumped up a step for your dry summers.</p>}
         </section>
+        )}
 
+        {!locked && (
         <section className="gf-block gf-facts-block">
           <h3>At a glance</h3>
           <dl className="gf-facts">
+            {canIn && (
+              <>
+                <div>
+                  <dt>Light indoors</dt>
+                  <dd>{plant.light.map(l => INDOOR_LIGHT[l].name).join(", ")}</dd>
+                </div>
+                <div>
+                  <dt>Humidity</dt>
+                  <dd>{HUMIDITY[plant.humidity]}</dd>
+                </div>
+                <div>
+                  <dt>Pets</dt>
+                  <dd>{plant.petSafe ? "Non-toxic to cats and dogs" : "Toxic to cats and dogs"}</dd>
+                </div>
+              </>
+            )}
+            {canOut && (
             <div>
               <dt>Hardy in</dt>
               <dd>{plant.zones ? `Zones ${plant.zones[0]}–${plant.zones[1]}` : plant.when === "coolSow" || plant.when === "coolVeg" ? "Cool season, takes light frost" : "Frost tender, one season"}</dd>
             </div>
+            )}
             {plant.days && (
               <div>
                 <dt>Days to {plant.type === "annual" ? "bloom" : "harvest"}</dt>
-                <dd>{plant.days}</dd>
+                <dd>{plant.indoorDays && canOut ? `${plant.days} outdoors, ${plant.indoorDays} indoors` : plant.days}</dd>
               </div>
             )}
             <div>
               <dt>Water</dt>
-              <dd>{WATER[plant.water]}</dd>
+              <dd>{canOut ? WATER[plant.water] : INDOOR_WATER[plant.water]}</dd>
             </div>
-            <div>
-              <dt>Heat</dt>
-              <dd>{HEAT[plant.heat]}</dd>
-            </div>
+            {canOut && (
+              <div>
+                <dt>Heat</dt>
+                <dd>{HEAT[plant.heat]}</dd>
+              </div>
+            )}
             {plant.season && (
               <div>
                 <dt>Grass type</dt>
                 <dd>{plant.season === "cool" ? "Cool season (green spring and fall)" : "Warm season (green in summer, brown in winter)"}</dd>
               </div>
             )}
-            {climate && (
+            {climate && canOut && (
               <div>
                 <dt>Your zone</dt>
                 <dd>{zoneLabel(climate.zone)}</dd>
@@ -199,8 +242,9 @@ export default function PlantDetail({ g, plant, onClose }) {
             <Lightbulb size={16} aria-hidden="true" /> {plant.tip}
           </p>
         </section>
+        )}
 
-        <AddToGarden g={g} plant={plant} inGarden={inGarden} windows={windows} />
+        {!locked && <AddToGarden g={g} plant={plant} inGarden={inGarden} windows={windows} canIn={canIn} canOut={canOut} />}
       </div>
     </Sheet>
   );
@@ -264,16 +308,17 @@ function WhereOnProperty({ g, plant }) {
 
 const joinOr = names => (names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}`);
 
-function AddToGarden({ g, plant, inGarden, windows }) {
+function AddToGarden({ g, plant, inGarden, windows, canIn, canOut }) {
   const [open, setOpen] = useState(false);
   const plantNow = windows.some(w => w.open);
   const [status, setStatus] = useState("growing");
+  const [inside, setInside] = useState(!canOut);
   const [spotId, setSpotId] = useState("");
   const [planted, setPlanted] = useState(g.today);
   const [qty, setQty] = useState(1);
 
   const save = () => {
-    g.addEntry({ plantId: plant.id, status, spotId: spotId || null, planted: status === "growing" ? planted : null, qty: Number(qty) || 1 });
+    g.addEntry({ plantId: plant.id, status, inside, spotId: !inside && spotId ? spotId : null, roomId: inside && spotId ? spotId : null, planted: status === "growing" ? planted : null, qty: Number(qty) || 1 });
     setOpen(false);
   };
 
@@ -293,9 +338,19 @@ function AddToGarden({ g, plant, inGarden, windows }) {
         </button>
       ) : (
         <div className="gf-form">
+          {canIn && canOut && (
+            <div className="gf-seg" role="group" aria-label="Indoors or outdoors">
+              <button type="button" className={!inside ? "on" : ""} onClick={() => { setInside(false); setSpotId(""); }}>
+                Outdoors
+              </button>
+              <button type="button" className={inside ? "on" : ""} onClick={() => { setInside(true); setSpotId(""); }}>
+                Indoors
+              </button>
+            </div>
+          )}
           <div className="gf-seg" role="group" aria-label="Status">
             <button type="button" className={status === "growing" ? "on" : ""} onClick={() => setStatus("growing")}>
-              It's in the ground
+              {inside ? (plant.cycle ? "Started it" : "I have it") : "It's in the ground"}
             </button>
             <button type="button" className={status === "planned" ? "on" : ""} onClick={() => setStatus("planned")}>
               Planning to plant
@@ -303,9 +358,11 @@ function AddToGarden({ g, plant, inGarden, windows }) {
           </div>
           {status === "growing" ? (
             <label>
-              <span>Planted on</span>
+              <span>{inside && plant.cycle ? "Started on" : "Planted on"}</span>
               <input type="date" value={planted} max={g.today} onChange={e => setPlanted(e.target.value)} />
             </label>
+          ) : inside ? (
+            <p className="gf-hint">It'll sit in My garden as planned until you start it.</p>
           ) : (
             <p className="gf-hint">{plantNow ? "Its planting window is open now." : "You'll get a reminder"} on your Today list and in TaskFox when it's time to plant.</p>
           )}
@@ -313,11 +370,17 @@ function AddToGarden({ g, plant, inGarden, windows }) {
             <span>Spot</span>
             <select value={spotId} onChange={e => setSpotId(e.target.value)}>
               <option value="">No particular spot</option>
-              {g.data.spots.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.name} · {LIGHT[s.light].name}
-                </option>
-              ))}
+              {inside
+                ? g.rooms.map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} · {INDOOR_LIGHT[r.lightId].name} light
+                    </option>
+                  ))
+                : g.data.spots.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} · {LIGHT[s.light].name}
+                    </option>
+                  ))}
             </select>
           </label>
           <label>
@@ -334,6 +397,159 @@ function AddToGarden({ g, plant, inGarden, windows }) {
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+// What to know about the law, and for restricted grows a one-time "I'll check" before the guide.
+function LawBlock({ g, plant, locked }) {
+  const [ok, setOk] = useState(false);
+  const restricted = plant.legal === "restricted";
+  return (
+    <section className={`gf-block gf-law${restricted ? " gf-law--restricted" : ""}`}>
+      <h3>
+        <Scale size={18} aria-hidden="true" /> {restricted ? "Illegal in many places: check your local law" : "The law"}
+      </h3>
+      <p>{plant.law}</p>
+      {restricted && <p className="gf-hint">{LAW_NOTICE}</p>}
+      {locked && (
+        <div className="gf-law-gate">
+          <label className="gf-toggle">
+            <input type="checkbox" checked={ok} onChange={e => setOk(e.target.checked)} /> I'm an adult, I understand this guide is for education only, and I'll check the law where I live before growing anything.
+          </label>
+          <button type="button" className="gf-btn" disabled={!ok} onClick={() => g.setPrefs({ specialtyOk: true })}>
+            Show the guide
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function GuideBlock({ plant }) {
+  const { guide } = plant;
+  return (
+    <section className="gf-block gf-guide">
+      <h3>
+        <ListOrdered size={18} aria-hidden="true" /> Step by step
+      </h3>
+      <p>{guide.overview}</p>
+      <ol className="gf-stages">
+        {guide.stages.map(st => (
+          <li key={st.name}>
+            <div className="gf-stage-head">
+              <strong>{st.name}</strong>
+              <em>{st.time}</em>
+            </div>
+            <ul>
+              {st.steps.map(x => (
+                <li key={x}>{x}</li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
+      {guide.harvest?.length > 0 && (
+        <>
+          <h4>Harvest</h4>
+          <ul className="gf-guide-list">
+            {guide.harvest.map(x => (
+              <li key={x}>{x}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      {guide.after?.length > 0 && (
+        <>
+          <h4>After the harvest</h4>
+          <ul className="gf-guide-list">
+            {guide.after.map(x => (
+              <li key={x}>{x}</li>
+            ))}
+          </ul>
+        </>
+      )}
+      {guide.safety?.length > 0 && (
+        <div className="gf-safety">
+          <h4>
+            <ShieldAlert size={16} aria-hidden="true" /> Stay safe
+          </h4>
+          <ul className="gf-guide-list">
+            {guide.safety.map(x => (
+              <li key={x}>{x}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// How it does in your home: overall, then spot by spot.
+function IndoorVerdict({ g, plant }) {
+  const r = g.indoorRating(plant);
+  return (
+    <section className={`gf-block gf-verdict gf-verdict--${r.score}`}>
+      <h3>{plant.setting === "indoor" ? "How hard to keep alive in your home" : "Indoors in your home"}</h3>
+      <div className="gf-verdict-row">
+        <RatingBadge result={r} />
+        <span>{r.rating.hint}</span>
+      </div>
+      {r.reasons.length > 0 && (
+        <ul className="gf-reasons">
+          {r.reasons.map(x => (
+            <li key={x}>{x}</li>
+          ))}
+        </ul>
+      )}
+      {g.rooms.length > 0 && (
+        <div className="gf-spot-fit">
+          <h4>In your indoor spots</h4>
+          <ul>
+            {g.rooms.map(room => (
+              <li key={room.id}>
+                <span>
+                  {room.name} <small>({INDOOR_LIGHT[room.lightId].name.toLowerCase()} light)</small>
+                </span>
+                <RatingBadge result={g.indoorRating(plant, room.lightId)} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function WhereIndoors({ g, plant }) {
+  const fits = g.rooms.filter(r => plant.light.includes(r.lightId));
+  const best = INDOOR_LIGHT[plant.light[0]];
+  return (
+    <section className="gf-block">
+      <h3>{plant.setting === "indoor" ? "Where to keep it" : "Where to keep it inside"}</h3>
+      <p className="gf-light-need">
+        <IndoorLight light={plant.light} withText />
+      </p>
+      <p>{lightNeed(plant)}.</p>
+      <p className="gf-where">
+        <strong>By the window:</strong>{" "}
+        {plant.light[0] === "bright"
+          ? `On or right beside a ${g.hemisphere === "S" ? "north" : "south"}- or west-facing window, or under a grow light for 12–16 hours a day.`
+          : plant.light[0] === "medium"
+            ? `Near an east window, or a few feet back from a ${g.hemisphere === "S" ? "north" : "south"} or west one, out of hot direct sun.`
+            : `Anywhere with some daylight: a ${g.hemisphere === "S" ? "south" : "north"} window or across a room. It won't grow in a windowless spot without a lamp.`}
+      </p>
+      {fits.length > 0 && (
+        <p className="gf-where">
+          <strong>Your spots that fit:</strong> {fits.map(r => r.name).join(", ")}.
+        </p>
+      )}
+      <p className="gf-hint">
+        Soil: {plant.soil}. Grows {plant.size}. {best.hint}.{" "}
+        <button type="button" className="gf-link" onClick={() => g.go({ tab: "indoor" })}>
+          {g.rooms.length ? "Edit your indoor spots" : "Set up your indoor spots"}
+        </button>
+      </p>
     </section>
   );
 }

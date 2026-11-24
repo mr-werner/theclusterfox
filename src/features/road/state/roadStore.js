@@ -13,10 +13,19 @@ export function emptyData() {
     departDate: null, // "YYYY-MM-DD"
     hoursPerDay: 7,
     vehicle: { ...VEHICLE_PRESETS[1] },
+    pack: emptyPack(),
     trips: [],
     games: { plates: {}, bingo: null, alphabet: null, trivia: { right: 0, asked: 0 } },
     updatedAt: null,
   };
+}
+
+/**
+ * Where you're staying and what you've packed. The first stay is the trip's
+ * end (place null); others are places you go on to. checked: { itemId: true }.
+ */
+export function emptyPack() {
+  return { stays: [{ id: "end", place: null, nights: 2 }], roundTrip: false, checked: {} };
 }
 
 const isObj = v => v && typeof v === "object" && !Array.isArray(v);
@@ -50,6 +59,18 @@ function cleanStop(s) {
   return { ...p, label: str(s.label, 30), theme: str(s.theme, 12), mile: num(s.mile, 0, 0, 20000), minutes: num(s.minutes, 45, 0, 600), wiki: /^https:\/\//.test(s.wiki ?? "") ? s.wiki : null };
 }
 
+export function cleanPack(p) {
+  if (!isObj(p)) return emptyPack();
+  const stays = (Array.isArray(p.stays) ? p.stays : [])
+    .filter(isObj)
+    .slice(0, 6)
+    .map((s, i) => ({ id: i === 0 ? "end" : str(s.id, 40) || `s${i}`, place: i === 0 ? null : cleanPlace(s.place), nights: num(Math.round(s.nights), 2, 1, 30) }))
+    .filter((s, i) => i === 0 || s.place);
+  const checked = {};
+  for (const [k, v] of Object.entries(isObj(p.checked) ? p.checked : {}).slice(0, 80)) if (v === true && /^[a-z-]{1,30}$/.test(k)) checked[k] = true;
+  return { stays: stays.length ? stays : emptyPack().stays, roundTrip: p.roundTrip === true, checked };
+}
+
 function cleanTrip(t) {
   if (!isObj(t) || !str(t.id, 40)) return null;
   const from = cleanPlace(t.from);
@@ -72,6 +93,7 @@ function cleanTrip(t) {
       .filter(isObj)
       .slice(0, 30)
       .map(d => ({ driveMinutes: num(d.driveMinutes, 0, 0, 2000), stopMinutes: num(d.stopMinutes, 0, 0, 2000), miles: num(d.miles, 0, 0, 2000), endName: str(d.endName, 60), stopNames: (Array.isArray(d.stopNames) ? d.stopNames : []).map(s => str(s, 90)).slice(0, 10) })),
+    pack: cleanPack(t.pack),
     createdAt: str(t.createdAt, 30),
   };
 }
@@ -91,6 +113,7 @@ export function normalizeData(raw) {
     departDate: isDay(raw.departDate) ? raw.departDate : null,
     hoursPerDay: num(raw.hoursPerDay, base.hoursPerDay, 2, 14),
     vehicle: cleanVehicle(raw.vehicle),
+    pack: cleanPack(raw.pack),
     trips: (Array.isArray(raw.trips) ? raw.trips : []).map(cleanTrip).filter(Boolean).slice(0, 40),
     games: { plates, bingo, alphabet, trivia: isObj(g.trivia) ? { right: num(g.trivia.right, 0, 0), asked: num(g.trivia.asked, 0, 0) } : base.games.trivia },
     updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : null,

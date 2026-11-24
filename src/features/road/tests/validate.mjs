@@ -1,4 +1,4 @@
-// RoadFox checks: node src/features/road/tests/validate.mjs
+// RoadTripFox checks: node src/features/road/tests/validate.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
@@ -11,6 +11,8 @@ import { bingoCard, bingoLines, BINGO_ITEMS, triviaQuestion, seeded } from "../d
 import { addDays, emptyData, normalizeData } from "../state/roadStore.js";
 import { planItems, launchTargets } from "../model/planLink.js";
 import { parseEia } from "../../../../api/road/[route].js";
+import { dateRange, feel, packingList, parseForecastDays, scheduleStays, shiftYears, summarize, tripLength, typicalDays, weatherSource } from "../model/packing.js";
+import { cleanPack } from "../state/roadStore.js";
 
 const shapes = JSON.parse(readFileSync(new URL("../data/stateShapes.json", import.meta.url), "utf8"));
 
@@ -266,11 +268,77 @@ test("saved data and TaskFox", () => {
   assert.deepEqual(items.map(i => i.day), ["2026-11-20", "2026-11-21"]);
   assert.equal(items[0].title, "Road trip day 1: to Rock Springs");
   assert.equal(items[1].title, "Road trip day 2: to Salt Lake City");
-  assert.equal(items[0].href, "/road?trip=t1&day=1");
+  assert.equal(items[0].href, "/roadtrip?trip=t1&day=1");
   assert.ok(items[0].detail.includes("Big Falls"));
   assert.equal(planItems(raw, "2026-12-01", "2026-12-31").length, 0);
   assert.equal(planItems(null, "2026-11-01", "2026-11-30").length, 0);
-  assert.ok(launchTargets(raw).some(t => t.href === "/road?trip=t1"));
+  assert.ok(launchTargets(raw).some(t => t.href === "/roadtrip?trip=t1"));
 });
 
-console.log(`RoadFox: ${passed} checks passed`);
+test("stays chain one after another and pick forecast or typical weather", () => {
+  const stays = scheduleStays([{ id: "end", place: DEN, nights: 3 }, { id: "b", place: SLC, nights: 2 }], "2026-12-30");
+  assert.equal(stays[0].arrive, "2026-12-30");
+  assert.equal(stays[0].leave, "2027-01-02");
+  assert.equal(stays[1].arrive, "2027-01-02");
+  assert.equal(stays[1].dates.length, 3);
+  assert.deepEqual(dateRange("2026-02-27", "2026-03-01"), ["2026-02-27", "2026-02-28", "2026-03-01"]);
+  assert.equal(weatherSource(["2026-11-25", "2026-11-30"], "2026-11-23"), "forecast");
+  assert.equal(weatherSource(["2026-12-05", "2026-12-12"], "2026-11-23"), "typical", "past the 16-day forecast");
+  assert.equal(shiftYears("2028-02-29", 1), "2027-02-28");
+  assert.equal(shiftYears("2027-01-02", 3), "2024-01-02");
+  assert.equal(tripLength(2, [3, 2], false), 7);
+  assert.equal(tripLength(2, [3], true), 6, "the drive back starts the day you leave");
+});
+
+test("weather from the forecast and from past years", () => {
+  const f = parseForecastDays({ daily: { time: ["2026-11-25", "2026-11-26"], temperature_2m_max: [40, 50], temperature_2m_min: [20, 30], weather_code: [73, 61], precipitation_probability_max: [80, null], snowfall_sum: [3, 0] } });
+  assert.equal(f["2026-11-25"].snow, true);
+  assert.equal(f["2026-11-26"].rain, 60, "a rain code with no chance given counts as likely");
+  const year = (hi, rain, snow) => ({ daily: { temperature_2m_max: [hi], temperature_2m_min: [hi - 20], precipitation_sum: [rain], snowfall_sum: [snow], weather_code: [0] } });
+  const t = typicalDays([year(30, 5, 2), year(40, 0, 0), year(50, 0, 0)], ["2026-12-20"]);
+  near(t["2026-12-20"].hi, 40, 0.01);
+  near(t["2026-12-20"].lo, 20, 0.01);
+  assert.equal(t["2026-12-20"].rain, 33);
+  assert.equal(t["2026-12-20"].snow, false, "snow in one year of three isn't typical");
+  assert.equal(typicalDays([null], ["2026-12-20"])["2026-12-20"], undefined);
+});
+
+test("packing list follows the weather", () => {
+  const day = (hi, lo, rain = 0, snow = false) => ({ hi, lo, rain, snow, code: null });
+  const hot = packingList([{ name: "Phoenix", days: [day(95, 72), day(97, 74), day(96, 73)] }], { driveDays: 1, totalDays: 3 });
+  const ids = list => list.groups.flatMap(g => g.items.map(i => i.id));
+  const qty = (list, id) => list.groups.flatMap(g => g.items).find(i => i.id === id)?.qty;
+  assert.ok(ids(hot).includes("swimsuit") && ids(hot).includes("sunscreen") && ids(hot).includes("shorts"));
+  assert.ok(!ids(hot).includes("coat") && !ids(hot).includes("hat-gloves") && !ids(hot).includes("rain-jacket"));
+  assert.equal(qty(hot, "underwear"), 4);
+
+  const cold = packingList([{ name: "Denver", days: [day(28, 10, 70, true), day(30, 12, 20), day(25, 8, 50, true)] }], { driveDays: 2, totalDays: 12 });
+  assert.ok(["coat", "thermals", "hat-gloves", "scarf", "rain-jacket", "boots", "car-kit", "laundry"].every(id => ids(cold).includes(id)), ids(cold).join());
+  assert.ok(!ids(cold).includes("shorts") && !ids(cold).includes("swimsuit"));
+  assert.equal(qty(cold, "underwear"), 8, "a week of clothes, then laundry");
+  assert.ok(cold.groups.flatMap(g => g.items).find(i => i.id === "coat").why.includes("Denver"));
+
+  const mixed = packingList([{ name: "San Diego", days: [day(75, 60)] }, { name: "Flagstaff", days: [day(42, 25)] }], { driveDays: 1, totalDays: 4 });
+  assert.ok(ids(mixed).includes("tees") && ids(mixed).includes("long-sleeves") && ids(mixed).includes("coat"));
+  assert.ok(!ids(mixed).includes("thermals"));
+  assert.equal(packingList([], { totalDays: 2 }).groups.length > 0, true, "basics with no weather yet");
+
+  const s = summarize([day(70, 45, 50), day(80, 55)]);
+  assert.equal(s.rainyDays, 1);
+  assert.equal(feel(s), "Mild with cool evenings, a chance of rain");
+});
+
+test("pack settings clean up", () => {
+  const p = cleanPack({ stays: [{ id: "x", place: { lat: 1, lon: 2, name: "A" }, nights: 99 }, { id: "b", place: null, nights: 2 }, { id: "c", place: SLC, nights: 0.4 }], roundTrip: "yes", checked: { coat: true, "BAD id": true, socks: 1 } });
+  assert.equal(p.stays.length, 2, "the first stay is the trip's end; others need a place");
+  assert.equal(p.stays[0].id, "end");
+  assert.equal(p.stays[0].place, null);
+  assert.equal(p.stays[0].nights, 30);
+  assert.equal(p.stays[1].nights, 1);
+  assert.equal(p.roundTrip, false);
+  assert.deepEqual(p.checked, { coat: true });
+  assert.equal(cleanPack(null).stays.length, 1);
+  assert.equal(normalizeData({}).pack.stays[0].id, "end");
+});
+
+console.log(`RoadTripFox: ${passed} checks passed`);

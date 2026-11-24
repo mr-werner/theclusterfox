@@ -1,8 +1,8 @@
 {
   "id": "/road",
-  "name": "RoadFox",
-  "short_name": "RoadFox",
-  "start_url": "/road",
+  "name": "RoadTripFox",
+  "short_name": "RoadTripFox",
+  "start_url": "/roadtrip",
   "scope": "/road",
   "display": "standalone",
   "background_color": "#141618",

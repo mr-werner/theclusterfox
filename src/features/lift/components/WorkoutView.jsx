@@ -4,6 +4,7 @@ import { Check, ChevronDown, Play, RefreshCw, Repeat, Shuffle, Timer, Trash2, Tr
 import HowTo from "./HowTo";
 import FocusMode from "./FocusMode";
 import { exercisesById } from "../data/exercises";
+import { trainForById } from "../data/trainFor";
 import { alternatives, GOALS, swapItem } from "../model/generate";
 import { describeItem, formatRest, restFor } from "../model/format";
 
@@ -220,6 +221,15 @@ export default function WorkoutView({ workout, history, prefs, setPrefs, onChang
           />
         ))}
       </ol>
+
+      {workout.extras?.length > 0 && (
+        <Checklist
+          title={`Extra work: ${trainForById.get(workout.trainFor)?.name ?? "outside the gym"}`}
+          steps={workout.extras}
+          done={workout.extrasDone === true}
+          onToggle={() => onChange({ extrasDone: !workout.extrasDone })}
+        />
+      )}
 
       {workout.cooldown.length > 0 && (
         <Checklist title="Cool-down stretches" steps={workout.cooldown} done={workout.cooldownDone} onToggle={() => onChange({ cooldownDone: !workout.cooldownDone })} />

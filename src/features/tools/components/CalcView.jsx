@@ -12,6 +12,9 @@ import { inputRows, reportCsv, reportText, resultRows } from "../model/report";
 import { reportSnapshot } from "../model/projects";
 import { captureFromPage } from "../model/capture";
 import SaveToProject from "./SaveToProject";
+import { TermCard } from "./TermInfo";
+import { useTerm } from "./useTerm";
+import { termFor, termsOnPage, usesFor } from "../glossary";
 
 // Drawings and tables a saved calc takes along when the page doesn't mark its own
 // (data-report-figure / data-report-table; see model/capture.js).
@@ -100,6 +103,14 @@ export default function CalcView({ id, prefsApi }) {
   const showVisual = !wideVisual && (!useDiagram || ["moody", "line"].includes(output.visual?.type));
   const primary = output.results.find((r) => r.primary);
   const others = output.results.filter((r) => !r.primary);
+  const inTerm = (input) => termFor(calc.id, "in", input.id);
+  const outTerm = (r) => termFor(calc.id, "out", r.id);
+  const pageTerms = termsOnPage(
+    calc.id,
+    calc.inputs.filter((i) => i.type !== "preset" && isVisible(i, values)),
+    output.results
+  );
+  const uses = usesFor(calc.id);
 
   function copy(text, key) {
     navigator.clipboard?.writeText(text).then(
@@ -216,12 +227,13 @@ export default function CalcView({ id, prefsApi }) {
                   unit={unitFor(input.dim)}
                   onValue={(v) => set(input.id, v)}
                   onUnit={(u) => setUnit(input.dim, u)}
+                  term={inTerm(input)}
                 />
               );
-            if (input.type === "choice") return <ChoiceField key={input.id} id={fid} label={input.label} options={input.options} value={values[input.id]} onChange={(v) => set(input.id, v)} />;
+            if (input.type === "choice") return <ChoiceField key={input.id} id={fid} label={input.label} options={input.options} value={values[input.id]} onChange={(v) => set(input.id, v)} term={inTerm(input)} />;
             if (input.type === "preset")
               return <PresetField key={input.id} id={fid} label={input.label} options={input.options} value={matchingPreset(input, values)} onPick={(label) => setValues((cur) => applyPreset(calc, cur, input.id, label))} />;
-            return <TextField key={input.id} id={fid} label={input.label} value={values[input.id]} onChange={(v) => set(input.id, v)} />;
+            return <TextField key={input.id} id={fid} label={input.label} value={values[input.id]} onChange={(v) => set(input.id, v)} term={inTerm(input)} />;
           })}
           <p className="tf-tip">Tip: type 4.7k, 1 1/4 or 3/8. Arrow keys nudge a value.</p>
         </section>
@@ -230,16 +242,14 @@ export default function CalcView({ id, prefsApi }) {
         <div className="tf-results-col">
           <section className="tf-card tf-results" aria-live="polite" aria-label="Results">
             {primary ? (
-              <div className="tf-primary">
-                <span className="tf-primary-label">{primary.label}</span>
-                <div className="tf-primary-value">
-                  <output>{primary.text !== undefined ? primary.text : fmt(fromSI(primary.value, primary.dim, outUnitFor(primary)))}</output>
-                  {primary.text === undefined && <UnitSelect dim={primary.dim} unit={outUnitFor(primary)} onChange={(u) => setOutUnits((o) => ({ ...o, [primary.id]: u }))} label={primary.label} />}
-                  <button type="button" className="tf-copy" onClick={() => copy(resultText(primary), primary.id)} title="Copy">
-                    {copied === primary.id ? <Check size={16} /> : <Copy size={16} />}
-                  </button>
-                </div>
-              </div>
+              <PrimaryResult
+                r={primary}
+                term={outTerm(primary)}
+                unit={outUnitFor(primary)}
+                onUnit={(u) => setOutUnits((o) => ({ ...o, [primary.id]: u }))}
+                copied={copied === primary.id}
+                onCopy={() => copy(resultText(primary), primary.id)}
+              />
             ) : (
               <div className="tf-primary is-empty">
                 <span className="tf-primary-label">Result</span>
@@ -251,16 +261,15 @@ export default function CalcView({ id, prefsApi }) {
             {others.length > 0 && (
               <dl className="tf-result-list">
                 {others.map((r) => (
-                  <div key={r.id} className="tf-result">
-                    <dt>{r.label}</dt>
-                    <dd>
-                      <span className="tf-result-num">{r.text !== undefined ? r.text : fmt(fromSI(r.value, r.dim, outUnitFor(r)))}</span>
-                      {r.text === undefined && <UnitSelect dim={r.dim} unit={outUnitFor(r)} onChange={(u) => setOutUnits((o) => ({ ...o, [r.id]: u }))} label={r.label} compact />}
-                      <button type="button" className="tf-copy is-small" onClick={() => copy(resultText(r), r.id)} title="Copy">
-                        {copied === r.id ? <Check size={14} /> : <Copy size={14} />}
-                      </button>
-                    </dd>
-                  </div>
+                  <ResultRow
+                    key={r.id}
+                    r={r}
+                    term={outTerm(r)}
+                    unit={outUnitFor(r)}
+                    onUnit={(u) => setOutUnits((o) => ({ ...o, [r.id]: u }))}
+                    copied={copied === r.id}
+                    onCopy={() => copy(resultText(r), r.id)}
+                  />
                 ))}
               </dl>
             )}
@@ -291,6 +300,40 @@ export default function CalcView({ id, prefsApi }) {
       {wideVisual && <Visual visual={output.visual} system={prefs.system} unit={unitFor} />}
 
       <section className="tf-card tf-about">
+        {uses && (
+          <div className="tf-about-block tf-uses">
+            <h2>Where this is used</h2>
+            <div className="tf-use-fields" aria-label="Industries">
+              {uses.fields.map((f) => (
+                <span key={f} className="tf-use-field">
+                  {f}
+                </span>
+              ))}
+            </div>
+            <ul className="tf-use-examples">
+              {uses.examples.map((x) => (
+                <li key={x}>{x}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {pageTerms.length > 0 && (
+          <div className="tf-about-block tf-terms">
+            <h2>What the terms mean</h2>
+            <p className="tf-muted tf-small">Tap the ? beside any input or result to see its meaning right there, or open one below.</p>
+            <div className="tf-term-list">
+              {pageTerms.map((t) => (
+                <details key={t.key} className="tf-term-item">
+                  <summary>
+                    <span>{t.name}</span>
+                    {t.symbol && <span className="tf-term-symbol">{t.symbol}</span>}
+                  </summary>
+                  <TermCard term={t} compact />
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="tf-about-block">
           <h2>Equations</h2>
           <div className="tf-formulas">
@@ -341,5 +384,47 @@ export default function CalcView({ id, prefsApi }) {
         <p>Engineer ToolFox. Check results before relying on them for design.</p>
       </footer>
     </article>
+  );
+}
+
+/** The headline result, with its meaning a tap away. */
+function PrimaryResult({ r, term, unit, onUnit, copied, onCopy }) {
+  const info = useTerm(term);
+  return (
+    <div className="tf-primary">
+      <span className="tf-primary-label">
+        {r.label}
+        {info.button}
+      </span>
+      <div className="tf-primary-value">
+        <output>{r.text !== undefined ? r.text : fmt(fromSI(r.value, r.dim, unit))}</output>
+        {r.text === undefined && <UnitSelect dim={r.dim} unit={unit} onChange={onUnit} label={r.label} />}
+        <button type="button" className="tf-copy" onClick={onCopy} title="Copy">
+          {copied ? <Check size={16} /> : <Copy size={16} />}
+        </button>
+      </div>
+      {info.panel}
+    </div>
+  );
+}
+
+/** One result line, with its meaning a tap away. */
+function ResultRow({ r, term, unit, onUnit, copied, onCopy }) {
+  const info = useTerm(term);
+  return (
+    <div className={`tf-result ${info.open ? "is-open" : ""}`}>
+      <dt>
+        {r.label}
+        {info.button}
+      </dt>
+      <dd>
+        <span className="tf-result-num">{r.text !== undefined ? r.text : fmt(fromSI(r.value, r.dim, unit))}</span>
+        {r.text === undefined && <UnitSelect dim={r.dim} unit={unit} onChange={onUnit} label={r.label} compact />}
+        <button type="button" className="tf-copy is-small" onClick={onCopy} title="Copy">
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+        </button>
+      </dd>
+      {info.panel && <dd className="tf-result-term">{info.panel}</dd>}
+    </div>
   );
 }

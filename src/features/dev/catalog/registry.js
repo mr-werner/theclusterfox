@@ -12,6 +12,7 @@ export const CATALOGS = [
   { appId: "toolfox", what: "Every builder, calculator and reference table", load: loaders.toolfox },
   { appId: "bodyfox", what: "Every body part write-up", load: loaders.bodyfox },
   { appId: "leapfox", what: "Every jump drill and the sports and events it plans for", load: loaders.leapfox },
+  { appId: "readyfox", what: "Every job, its fitness test minimums and the official sources", load: loaders.readyfox },
 ];
 
 export const catalogFor = appId => CATALOGS.find(c => c.appId === appId) ?? null;

@@ -51,5 +51,5 @@ export const GEAR_TIPS = [
   "Rent student gear until your A license. Your canopy size will change fast at first.",
   "A used rig needs a rigger's inspection before you jump it, every time you buy one.",
   "Write down the serial numbers and dates of manufacture: insurance, resale and safety notices need them.",
-  "Reserves get repacked every 180 days in the US. Put the due date on your PlanFox calendar.",
+  "Reserves get repacked every 180 days in the US. Put the due date on your TaskFox calendar.",
 ];

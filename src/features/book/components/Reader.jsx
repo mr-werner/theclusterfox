@@ -336,7 +336,7 @@ function ReaderBody({ bookKey, text, meta, data, store, at, onClose, onAbout }) 
     return () => clearTimeout(t);
   }, [bookKey, cur, progress, savePlace]);
 
-  // ── Reading time, for the goal and PlanFox ──
+  // ── Reading time, for the goal and TaskFox ──
   const activity = useRef(0);
   const startProgress = useRef(progress);
   const pending = useRef(0);

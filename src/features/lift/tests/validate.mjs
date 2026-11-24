@@ -160,3 +160,40 @@ console.log('LiftFox: all checks passed');
   assert.equal(normalizeData({ prefs: { unit: 'stone' } }).prefs.unit, 'lb');
 }
 console.log('LiftFox records check out.');
+
+// Training for a sport, activity or lifestyle goal.
+{
+  const { trainFor, trainForById, TRAIN_FOR_KINDS, priorityMuscles } = await import('../data/trainFor.js');
+  const { PLAN_GOALS } = await import('../model/program.js');
+  const seen = new Set();
+  for (const t of trainFor) {
+    assert(!seen.has(t.id), `duplicate trainFor ${t.id}`);
+    seen.add(t.id);
+    assert(TRAIN_FOR_KINDS.some(k => k.id === t.kind), `${t.id}: unknown kind`);
+    assert(GOALS[t.goal], `${t.id}: unknown goal ${t.goal}`);
+    assert(PLAN_GOALS[t.planGoal], `${t.id}: unknown plan goal ${t.planGoal}`);
+    for (const m of Object.keys(t.muscles)) assert(musclesById.has(m), `${t.id}: unknown muscle ${m}`);
+    for (const id of t.favor) assert(exercisesById.has(id), `${t.id}: unknown exercise ${id}`);
+    assert(t.why && t.warmup && t.extras.length >= 2, `${t.id}: needs why, warm-up and extras`);
+    // A bodyweight beginner still gets a workout, and it leans toward the sport.
+    for (const [gear, level] of [[[], 1], [gym, 3]]) {
+      const w = generateWorkout({ muscles: priorityMuscles(t), goal: t.goal, minutes: 45, gear, level, seed: 7, trainFor: t.id });
+      assert(w.items.length >= 3, `${t.id}: workout too short`);
+      assert.equal(w.trainFor, t.id);
+      assert(w.warmup.includes(t.warmup), `${t.id}: sport warm-up missing`);
+      const top = priorityMuscles(t)[0];
+      assert(w.items.some(i => exercisesById.get(i.exerciseId).primary.includes(top)), `${t.id}: nothing for ${top}`);
+    }
+    const plan = buildProgram({ goal: t.planGoal, daysPerWeek: 3, weeks: 4, gear: gym, level: 2, trainFor: t.id });
+    assert.equal(plan.trainFor, t.id);
+    assert(plan.schedule[0].sessions[0].extras.length >= 2, `${t.id}: plan sessions miss extras`);
+  }
+  // Favoured moves show up more often than without the profile.
+  const ball = trainForById.get('basketball');
+  const count = trainForId => [1, 2, 3, 4, 5, 6].reduce((n, seed) => n + generateWorkout({ muscles: priorityMuscles(ball), goal: 'strength', minutes: 45, gear: gym, level: 3, seed, trainFor: trainForId })
+    .items.filter(i => ball.favor.includes(i.exerciseId)).length, 0);
+  assert(count('basketball') > count(null), 'basketball favours its moves');
+  assert.equal(normalizeData({ prefs: { trainFor: 'basketball' } }).prefs.trainFor, 'basketball');
+  assert.equal(normalizeData({ prefs: { trainFor: 'quidditch' } }).prefs.trainFor, null);
+  console.log(`LiftFox: ${trainFor.length} sport and goal profiles check out.`);
+}

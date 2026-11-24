@@ -1,4 +1,4 @@
-// WatchFox in PlanFox: a planner item (movie night) can open a title on
+// WatchFox in TaskFox: a planner item (movie night) can open a title on
 // your watchlist, with where it's streaming.
 
 import { normalizeData } from "../state/watchStore.js";

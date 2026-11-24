@@ -28,7 +28,7 @@ export default function GearTab({ j }) {
 
       <section className="jf-card">
         <h2><ShieldCheck size={18} aria-hidden="true" /> Reserve repack</h2>
-        <p className="jf-muted">US reserves must be repacked by a rigger every 180 days. JumpFox puts the due date on your PlanFox calendar.</p>
+        <p className="jf-muted">US reserves must be repacked by a rigger every 180 days. JumpFox puts the due date on your TaskFox calendar.</p>
         <label className="jf-field is-inline">
           <span>Last packed</span>
           <input type="date" value={data.reserveRepackedOn ?? ""} onChange={e => patch({ reserveRepackedOn: e.target.value || null })} />

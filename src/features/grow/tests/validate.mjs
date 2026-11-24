@@ -213,7 +213,7 @@ test("saved data is cleaned on load", () => {
   assert.equal(shifted.zone, 7.5);
 });
 
-test("PlanFox gets dated jobs that open GrowFox", () => {
+test("TaskFox gets dated jobs that open GrowFox", () => {
   const c = computeClimate(synthetic(40), 40);
   const raw = { ...emptyData(), climate: c, garden: [{ id: "g1", plantId: "tomato", status: "growing", planted: "2026-04-01" }], done: {} };
   const items = planItems(raw, "2026-07-01", "2026-07-14");

@@ -217,13 +217,15 @@ check("splits, routes, downsampling and GPX", () => {
 check("bad saved data is cleaned up", () => {
   const d = normalizeData({ prefs: { unit: "furlongs" }, plans: [{ eventId: "nope" }, 5], activities: [{ sport: "swim" }, null], profile: { ftp: 9999, age: 30 } });
   assert.equal(d.prefs.unit, "mi");
+  assert.equal(d.prefs.batterySaver, false, "battery saver is off unless chosen");
+  assert.equal(normalizeData({ prefs: { batterySaver: true } }).prefs.batterySaver, true);
   assert.deepEqual(d.plans, []);
   assert.deepEqual(d.activities, []);
   assert.equal(d.profile.ftp, null);
   assert.equal(d.profile.age, 30);
 });
 
-check("PlanFox and the diet planner see the plan", () => {
+check("TaskFox and the diet planner see the plan", () => {
   const plan = makePlan({ eventId: "run-10k", raceDate: addDays(TODAY, 8 * 7 - 1), today: TODAY, days: 4, level: "regular" });
   const raw = { plans: [plan], activePlanId: plan.id, prefs: { trainTime: "06:30" }, activities: [{ id: "x1", sport: "ride", title: "Commute", start: "2026-11-17T08:00:00Z", day: "2026-11-17", sec: 1800, meters: 9000 }] };
   const items = planItems(raw, TODAY, addDays(TODAY, 6), TODAY);

@@ -1,5 +1,5 @@
 // What KeysFox remembers: your practice settings, your best run on each
-// song (per difficulty and hand) and a practice log for PlanFox. Saved in
+// song (per difficulty and hand) and a practice log for TaskFox. Saved in
 // this browser and, when signed in, to the ClusterFox account.
 // Songs you import are kept separately (see importedSongs.js) because they
 // can be large; they stay on this device.

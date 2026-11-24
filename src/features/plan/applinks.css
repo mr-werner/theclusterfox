@@ -1,4 +1,4 @@
-/* PlanFox: things from the other ClusterFox apps, and the buttons that open them. */
+/* TaskFox: things from the other ClusterFox apps, and the buttons that open them. */
 
 .pf {
   --l-apps: #b9a6ff;
@@ -27,6 +27,7 @@
 .pf [data-app="roadfox"] { --app: var(--roadfox, #ffc23c); }
 .pf [data-app="pacefox"] { --app: var(--pacefox, #ff4d8d); }
 .pf [data-app="leapfox"] { --app: var(--leapfox, #d4ff3a); }
+.pf [data-app="readyfox"] { --app: var(--readyfox, #c8b26a); }
 .pf [data-app="fluids"] { --app: var(--fluids); }
 .pf [data-app="heat"] { --app: var(--heat); }
 .pf [data-app="hvac"] { --app: var(--hvac); }

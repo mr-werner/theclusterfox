@@ -6,7 +6,7 @@ import { newId } from "../state/jumpStore";
 import { fmtDay, localDay } from "./format";
 
 // Boogies and events: the yearly ones with when they usually happen, plus
-// the ones you've saved with a date, which show on your PlanFox calendar.
+// the ones you've saved with a date, which show on your TaskFox calendar.
 export default function EventsTab({ j, openDz }) {
   const { data, patch } = j;
   const thisMonth = new Date().getMonth() + 1;

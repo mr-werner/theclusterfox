@@ -202,6 +202,11 @@ export const ingredients = [
   { id: "dill", name: "fresh dill, chopped", unit: "g", us: "volume", gPerCup: 9, aisle: "produce", n: [43, 3.5, 7, 1.1, 2.1, 0, 61] },
   { id: "orange", name: "orange", plural: "oranges", unit: "each", gEach: 140, aisle: "produce", n: [47, 0.9, 11.8, 0.1, 2.4, 9.4, 0] },
   { id: "pineapple", name: "ripe pineapple", plural: "ripe pineapples", unit: "each", gEach: 900, aisle: "produce", n: [50, 0.5, 13.1, 0.1, 1.4, 9.9, 1] },
+  // Added with the fifth batch of recipes
+  { id: "flank-steak", name: "flank steak", unit: "g", us: "weight", aisle: "meat", animal: "meat", aliases: ["beef", "steak", "skirt steak", "meat"], n: [155, 21, 0, 7.2, 0, 0, 54] },
+  { id: "canned-tuna", name: "canned tuna in water, drained", unit: "g", us: "weight", aisle: "pantry", allergens: ["fish"], animal: "fish", aliases: ["tuna", "fish"], n: [116, 25.5, 0, 0.8, 0, 0, 338] },
+  { id: "burger-buns", name: "burger bun", plural: "burger buns", unit: "each", gEach: 60, aisle: "bakery", allergens: ["gluten"], aliases: ["buns", "hamburger buns", "wheat"], n: [279, 9.5, 50, 4.3, 2, 6, 480], note: "Many buns contain milk, egg or sesame. Check the label." },
+  { id: "popcorn-kernels", name: "popcorn kernels", unit: "g", us: "volume", gPerCup: 200, aisle: "pantry", aliases: ["popcorn", "corn"], n: [387, 13, 78, 4.5, 15, 0.9, 8] },
 ];
 
 export const ingredientsById = new Map(ingredients.map(i => [i.id, i]));

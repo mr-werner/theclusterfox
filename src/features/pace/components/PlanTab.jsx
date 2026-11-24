@@ -121,8 +121,8 @@ export default function PlanTab({ store, today, focusId, onFocus, onStart }) {
       <section className="pc-weeks" aria-label="All weeks">
         <div className="pc-section-head">
           <h2>The plan</h2>
-          <Link className="pc-link" to="/plan">
-            <CalendarRange size={15} /> Also on your PlanFox calendar
+          <Link className="pc-link" to="/task">
+            <CalendarRange size={15} /> Also on your TaskFox calendar
           </Link>
         </div>
         {plan.weeks.map(w => {

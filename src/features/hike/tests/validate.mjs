@@ -254,7 +254,7 @@ test("saved data is cleaned, recent views capped, saved trails kept", () => {
   assert.equal(d.active.points.length, 1);
 });
 
-test("planned hikes show up in PlanFox", () => {
+test("planned hikes show up in TaskFox", () => {
   const raw = { trails: [{ id: "osm-r77", name: "Mesa Trail", line: north, profile: [[0, 1700], [2000, 1900]], plan: { day: "2026-07-10", start: "06:30" } }] };
   const items = planItems(raw, "2026-07-01", "2026-07-31");
   assert.equal(items.length, 1);

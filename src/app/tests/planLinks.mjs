@@ -1,4 +1,4 @@
-// Every app's PlanFox link: right shape, right days, safe links.
+// Every app's TaskFox link: right shape, right days, safe links.
 import assert from 'node:assert/strict';
 import { isSitePath, PLAN_LINKS, planAddHref } from '../planLinks.js';
 import { apps } from '../apps.js';
@@ -28,7 +28,7 @@ assert(isSitePath('/lift?plan=a'));
 assert(!isSitePath('//evil.example'));
 assert(!isSitePath('https://evil.example'));
 assert(!isSitePath('javascript:alert(1)'));
-assert.equal(planAddHref({ app: 'calmfox', href: '/calm?s=sleep', title: 'Wind down' }), '/plan?add=calmfox&open=%2Fcalm%3Fs%3Dsleep&title=Wind+down');
+assert.equal(planAddHref({ app: 'calmfox', href: '/calm?s=sleep', title: 'Wind down' }), '/task?add=calmfox&open=%2Fcalm%3Fs%3Dsleep&title=Wind+down');
 
 const load = id => PLAN_LINKS.find(l => l.app === id).load();
 
@@ -98,7 +98,7 @@ const load = id => PLAN_LINKS.find(l => l.app === id).load();
 // Malformed answers are dropped before they reach the calendar.
 assert.equal(cleanAppItems('x', [{ id: 1, day: 'soon', title: 'a', href: '/x' }, { id: 2, day: '2026-11-01', title: 'b', href: 'https://evil.example' }, { id: 3, day: '2026-11-01', title: 'ok', href: '/ok', time: 'noon' }]).length, 1);
 
-// PlanFox: app items become entries with a launch link, behind the apps layer.
+// TaskFox: app items become entries with a launch link, behind the apps layer.
 {
   const layers = { ...emptyData().layers };
   assert.equal(layers.apps, true, 'on for new calendars');

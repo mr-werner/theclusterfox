@@ -162,3 +162,29 @@ export async function leapfox() {
   }));
   return { groups: [{ title: "Sports & events", items: goals }, ...groupBy(items, i => i.group, k => kindName.get(k) ?? cap(k))] };
 }
+
+export async function readyfox() {
+  const [{ JOBS = [], BRANCHES = [], EVENTS = {}, SOURCES = {} }, { AFT_TABLES = {} }, scoring] = await Promise.all([
+    import("../../ready/data/jobs.js"),
+    import("../../ready/data/aftTables.js"),
+    import("../../ready/model/scoring.js"),
+  ]);
+  const branchName = new Map(BRANCHES.map(b => [b.id, b.name]));
+  const items = JOBS.map(j => {
+    const std = scoring.standardsFor?.(j, { sex: "m", age: 20 }, AFT_TABLES) ?? [];
+    const fmt = (id, v) => (v == null ? "–" : typeof v === "object" ? Object.entries(v).map(([k, n]) => `${n} ${k}`).join(" or ") : scoring.fmtResult?.(id, v) ?? String(v));
+    return {
+      id: j.id,
+      title: j.name,
+      meta: [j.code, j.test.name, j.test.scoring === "aft" && `pass ${j.test.passTotal}+ (60 per event)`].filter(Boolean).join(" · "),
+      text: [j.blurb, j.test.note].filter(Boolean).join(" "),
+      list: [
+        ...std.map(s => `${EVENTS[s.id]?.name}: min ${fmt(s.id, s.min)}${s.aim != null ? `, aim ${fmt(s.id, s.aim)}` : ""}${j.test.scoring === "aft" ? " (age 17-21)" : ""}`),
+        ...j.test.sources.map(id => `Source: ${SOURCES[id]?.name} (${SOURCES[id]?.url})`),
+      ],
+      group: j.branch,
+      href: "/ready",
+    };
+  });
+  return { groups: groupBy(items, i => i.group, k => branchName.get(k) ?? cap(k)) };
+}

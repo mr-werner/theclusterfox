@@ -1,6 +1,6 @@
 // Routes and stops for RoadFox: read OSRM answers, place OpenStreetMap
 // places along a route, pick the best stops for each theme and split the
-// drive into days. Plain functions so tests and PlanFox can use them.
+// drive into days. Plain functions so tests and TaskFox can use them.
 
 import { classify, THEMES } from "../data/themes.js";
 import { cumulative, locate, pointAt, sampleEvery } from "./geo.js";

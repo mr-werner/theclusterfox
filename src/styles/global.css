@@ -31,6 +31,7 @@
   --calmfox: #9aa8ff;
   --mathfox: #ff8ac2;
   --cookfox: #a8c69a;
+  --groceryfox: #ffd84a;
   --growfox: #7cc576;
   --bodyfox: #3fd0c9;
   --studyfox: #ffd84a;
@@ -46,6 +47,7 @@
   --beaconfox: #ffb020;
   --pacefox: #ff4d8d;
   --leapfox: #d4ff3a;
+  --readyfox: #c8b26a;
   --medicfox: #5b9dff;
   --fluids: #5cc8ff;
   --heat: #ff8a4c;
@@ -542,6 +544,17 @@ select {
     );
 }
 
+.app-icon--readyfox {
+  color: #15170f;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e3cf8a,
+      #6f8a42
+    );
+}
+
 .app-icon--beaconfox {
   color: #1a1203;
 
@@ -627,6 +640,17 @@ select {
       145deg,
       #fff1a8,
       #f5b93a
+    );
+}
+
+.app-icon--groceryfox {
+  color: #0d3a22;
+
+  background:
+    linear-gradient(
+      145deg,
+      #fff2a8,
+      #4fc184
     );
 }
 

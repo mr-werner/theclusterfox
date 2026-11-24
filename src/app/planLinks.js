@@ -1,7 +1,7 @@
-// How the other ClusterFox apps show up in PlanFox.
+// How the other ClusterFox apps show up in TaskFox.
 //
 // Each app that has something to do on a given day (a workout, a planned
-// walk, a recipe you started) lists it here. PlanFox reads the app's own
+// walk, a recipe you started) lists it here. TaskFox reads the app's own
 // saved data from this browser, asks its planLink module for the days it
 // is showing, and puts what comes back on the calendar. Tapping one opens
 // the app right where you need to be.
@@ -40,6 +40,7 @@ export const PLAN_LINKS = [
   { app: "climbfox", storageKey: "climbfox-data-v1", load: () => import("../features/climb/model/planLink.js") },
   { app: "pacefox", storageKey: "pacefox-data-v1", load: () => import("../features/pace/model/planLink.js") },
   { app: "leapfox", storageKey: "leapfox-data-v1", load: () => import("../features/leap/model/planLink.js") },
+  { app: "readyfox", storageKey: "readyfox-data-v1", load: () => import("../features/ready/model/planLink.js") },
   { app: "roadfox", storageKey: "roadfox-data-v1", load: () => import("../features/road/model/planLink.js") },
   { app: "medicfox", storageKey: "medicfox-data-v1", load: () => import("../features/medic/model/planLink.js") },
   { app: "studyfox", storageKey: "studyfox-data-v1", load: () => import("../features/study/model/planLink.js") },
@@ -48,9 +49,9 @@ export const PLAN_LINKS = [
 /** True for a link that stays on this site, like "/lift?plan=abc". */
 export const isSitePath = href => typeof href === "string" && href.startsWith("/") && !href.startsWith("//") && href.length <= 600;
 
-/** The PlanFox link that adds "open this in <app>" to your planner. */
+/** The TaskFox link that adds "open this in <app>" to your planner. */
 export function planAddHref({ app, href, title }) {
   const params = new URLSearchParams({ add: app, open: href });
   if (title) params.set("title", title);
-  return `/plan?${params}`;
+  return `/task?${params}`;
 }

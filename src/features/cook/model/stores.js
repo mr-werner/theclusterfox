@@ -93,10 +93,13 @@ export function unitPrice(item, store, { typed = {}, live = {}, chosen = {} } = 
 //   common           -> how many items have a price at every store (the fair comparison)
 //   best             -> cheapest store on those common items, and how much it saves
 //   split            -> cheapest store for each item, and what that saves over `best`
-export function compareStores(items, stores, prices) {
+// `adjust(price, item, store)` can change a price before it counts (GroceryFox
+// takes clipped coupons off this way).
+export function compareStores(items, stores, prices, adjust = null) {
   const rows = items.map(item => {
     const cells = stores.map(s => {
-      const p = unitPrice(item, s, prices);
+      const found = unitPrice(item, s, prices);
+      const p = found && adjust ? adjust(found, item, s) : found;
       return p ? { ...p, cost: cents(p.price * item.count) } : null;
     });
     const costs = cells.map(c => c?.cost ?? Infinity);

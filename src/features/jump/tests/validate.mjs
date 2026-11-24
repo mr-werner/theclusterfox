@@ -154,7 +154,7 @@ test("JSON backup round-trip", () => {
   assert.throws(() => fromBackup("nope"), /backup/);
 });
 
-test("PlanFox: jump days, events, logged jumps and reserve repack", () => {
+test("TaskFox: jump days, events, logged jumps and reserve repack", () => {
   const items = planItems(raw, "2026-11-01", "2026-11-30");
   const plan = items.find(i => i.id === "plan:p1");
   assert.equal(plan.title, "Jump at Skydive Perris");

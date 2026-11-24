@@ -1,5 +1,5 @@
-// What SnowFox puts on the PlanFox calendar: each planned ski day, opening
-// that mountain's conditions for that day. PlanFox loads this module on
+// What SnowFox puts on the TaskFox calendar: each planned ski day, opening
+// that mountain's conditions for that day. TaskFox loads this module on
 // demand (see src/app/planLinks.js) with SnowFox's saved data.
 import { normalizeData } from "../state/snowStore.js";
 import { RESORTS } from "../data/resorts.js";

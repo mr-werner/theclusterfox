@@ -1,29 +1,33 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Bookmark, Fuel, Gamepad2, Route } from "lucide-react";
+import { Bookmark, Fuel, Gamepad2, Luggage, Route } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import { useRoadData } from "./state/useRoadData";
 import { useTrip } from "./state/useTrip";
 import shapes from "./data/stateShapes.json";
 import { cumulative, statesAlong } from "./model/geo";
+import { splitDays } from "./model/route";
 import PlanTab from "./components/PlanTab";
 import FuelTab from "./components/FuelTab";
 import GamesTab from "./components/GamesTab";
 import TripsTab from "./components/TripsTab";
+import PackTab from "./components/PackTab";
 import "./road.css";
 import "./identity.css";
 
 const TABS = [
   { id: "plan", name: "Trip", icon: Route },
+  { id: "pack", name: "Pack", icon: Luggage },
   { id: "fuel", name: "Fuel", icon: Fuel },
   { id: "games", name: "Games", icon: Gamepad2 },
   { id: "saved", name: "Saved", icon: Bookmark },
 ];
 
-// RoadFox: the road trip planner. It's the journey, not the destination:
-// routes built around scenery, food, history or the outdoors, split into
-// days, with gas or charging stops, this week's gas prices, and car games.
+// RoadTripFox (it was RoadFox, at /road): the road trip planner. It's the
+// journey, not the destination: routes built around scenery, food, history
+// or the outdoors, split into days, a packing list from the weather where
+// you're staying, gas or charging stops, this week's gas prices, and car games.
 export default function RoadPage() {
   const store = useRoadData();
   const [params, setParams] = useSearchParams();
@@ -64,6 +68,7 @@ export default function RoadPage() {
   const pageStore = useMemo(() => ({ data: savedTrip ? { ...data, from, to, departDate: savedTrip.departDate, hoursPerDay: savedTrip.hoursPerDay } : data, patch }), [data, savedTrip, from, to, patch]);
 
   const current = trip.routes.find(r => r.id === selectedId) ?? trip.routes[0] ?? null;
+  const driveDays = savedTrip ? savedTrip.days.length || 1 : current ? splitDays(current.route, current.stops, data.hoursPerDay).length : 1;
   const routeStates = useMemo(() => (current ? statesAlong(shapes, current.route.points, cumulative(current.route.points), 10).map(s => s.code) : []), [current]);
 
   function runFresh() {
@@ -75,12 +80,12 @@ export default function RoadPage() {
     trip.run();
   }
 
-  const planTitle = from && to ? `Road trip: ${from.name} to ${to.name}` : "Plan a road trip in RoadFox";
+  const planTitle = from && to ? `Road trip: ${from.name} to ${to.name}` : "Plan a road trip in RoadTripFox";
 
   return (
     <div className="rf">
-      <AppBar appId="roadfox" planTitle={planTitle} planHref={savedTrip ? `/road?trip=${savedTrip.id}` : undefined} />
-      <nav className="rf-tabs" aria-label="RoadFox sections">
+      <AppBar appId="roadfox" planTitle={planTitle} planHref={savedTrip ? `/roadtrip?trip=${savedTrip.id}` : undefined} />
+      <nav className="rf-tabs" aria-label="RoadTripFox sections">
         {TABS.map(t => {
           const Icon = t.icon;
           return (
@@ -93,6 +98,7 @@ export default function RoadPage() {
       </nav>
       <main className="rf-main">
         {tab === "plan" && <PlanTab store={pageStore} trip={{ ...trip, run: runFresh }} selectedId={current?.id} setSelectedId={setSelectedId} savedTrip={savedTrip} openDay={Number(params.get("day")) || null} />}
+        {tab === "pack" && <PackTab store={store} savedTrip={savedTrip} to={to} driveDays={driveDays} goPlan={() => go({})} />}
         {tab === "fuel" && <FuelTab store={store} current={current} goPlan={() => go({})} />}
         {tab === "games" && <GamesTab store={store} routeStates={routeStates} game={params.get("game")} setGame={g => go({ tab: "games", game: g, trip: savedTrip?.id })} />}
         {tab === "saved" && <TripsTab store={store} openTrip={id => go({ trip: id })} goPlan={() => go({})} />}

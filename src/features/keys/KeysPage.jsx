@@ -19,7 +19,7 @@ export default function KeysPage() {
   const songId = params.get("song");
   const song = useMemo(() => (songId ? songById.get(songId) ?? imported.find(s => s.id === songId) ?? null : null), [songId, imported]);
 
-  // Links from PlanFox can pick the level and hand.
+  // Links from TaskFox can pick the level and hand.
   const linkLevel = params.get("level");
   const linkHands = params.get("hands");
   useEffect(() => {

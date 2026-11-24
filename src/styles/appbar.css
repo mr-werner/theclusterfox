@@ -260,7 +260,7 @@
   }
 }
 
-/* "Plan this": puts the open page on the PlanFox calendar. */
+/* "Plan this": puts the open page on the TaskFox calendar. */
 .appbar-plan {
   display: inline-flex;
   flex: none;

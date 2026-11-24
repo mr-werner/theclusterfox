@@ -227,7 +227,7 @@ test("car games", () => {
   }
 });
 
-test("saved data and PlanFox", () => {
+test("saved data and TaskFox", () => {
   assert.deepEqual(normalizeData(null), emptyData());
   assert.deepEqual(normalizeData("junk"), emptyData());
   const raw = {

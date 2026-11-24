@@ -1,5 +1,5 @@
 // RoadFox's saved data, in this browser: your trip settings, car, saved
-// trips and game progress. Plain functions so tests and PlanFox can use them.
+// trips and game progress. Plain functions so tests and TaskFox can use them.
 
 import { VEHICLE_PRESETS } from "../model/fuel.js";
 

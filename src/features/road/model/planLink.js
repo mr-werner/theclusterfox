@@ -1,5 +1,5 @@
-// What RoadFox puts on the PlanFox calendar: each saved trip with a start
-// date shows on every day of the drive, opening that trip. PlanFox loads
+// What RoadFox puts on the TaskFox calendar: each saved trip with a start
+// date shows on every day of the drive, opening that trip. TaskFox loads
 // this module on demand (see src/app/planLinks.js) with RoadFox's data.
 import { addDays, normalizeData } from "../state/roadStore.js";
 import { fmtMinutes } from "./geo.js";

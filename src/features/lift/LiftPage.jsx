@@ -94,7 +94,7 @@ export default function LiftPage() {
     openTab("workout");
   }
 
-  // Opened from PlanFox: ?plan=&session= starts that session, ?next=1 the
+  // Opened from TaskFox: ?plan=&session= starts that session, ?next=1 the
   // next one in your plan. A workout already in progress is left alone.
   const linkPlan = params.get("plan");
   const linkSession = params.get("session");

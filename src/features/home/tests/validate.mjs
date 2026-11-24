@@ -71,13 +71,13 @@ test("bad saved data is cleaned up", () => {
   assert.deepEqual(l.removed, ["o:cook"]);
 });
 
-// Categories: PlanFox is the hub; every other app sits in exactly one section.
+// Categories: TaskFox is the hub; every other app sits in exactly one section.
 const { apps, categories } = await import("../../../app/apps.js");
 const { groupOriginals, sectionOf } = await import("../categories.js");
 const byId = new Map(apps.map(app => [app.id, app]));
 const allKeys = homeKeys(emptyLayout(), apps.map(app => app.id));
 
-test("PlanFox is the hub and every other app is in one category", () => {
+test("TaskFox is the hub and every other app is in one category", () => {
   const { hub, sections } = groupOriginals(allKeys, byId);
   assert.equal(hub, "o:planfox");
   const placed = sections.flatMap(s => s.keys);

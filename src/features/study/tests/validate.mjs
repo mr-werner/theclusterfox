@@ -1,6 +1,6 @@
 // StudyFox checks: node src/features/study/tests/validate.mjs
 // Loads every app's study material the way StudyFox does, and checks the
-// review schedule, the practice rounds, and what shows up in PlanFox.
+// review schedule, the practice rounds, and what shows up in TaskFox.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
@@ -188,8 +188,8 @@ await test("today's review: due first, then new, capped per day", () => {
   assert.equal(q.length, 13);
 });
 
-// ── PlanFox ─────────────────────────────────────────────────────────────
-await test("PlanFox shows reviews at your study time and days you studied", () => {
+// ── TaskFox ─────────────────────────────────────────────────────────────
+await test("TaskFox shows reviews at your study time and days you studied", () => {
   assert.deepEqual(planItems(null, TODAY, TODAY), []);
   let data = addDeck(emptyData(), { app: "medicfox", id: "cpr", title: "CPR" });
   let items = planItems(data, TODAY, addDays(TODAY, 3), TODAY);

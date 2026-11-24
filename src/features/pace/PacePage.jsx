@@ -60,7 +60,7 @@ export default function PacePage() {
 
   const plan = data.plans.find(p => p.id === data.activePlanId) ?? data.plans[0] ?? null;
 
-  // ?next=1 (from PlanFox) means the next session of the active plan.
+  // ?next=1 (from TaskFox) means the next session of the active plan.
   const nextParam = params.get("next");
   useEffect(() => {
     if (!nextParam || !plan) return;

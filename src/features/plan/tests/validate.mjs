@@ -416,7 +416,7 @@ assert.deepEqual(flightData.flights.to.map(t => t.code), ['NYC', 'DEN', 'LAX'], 
 assert.equal(flightData.nearby.radius, 25);
 assert.deepEqual(flightData.nearby.kinds, ['music']);
 
-console.log('PlanFox checks passed.');
+console.log('TaskFox checks passed.');
 
 // Today view: quick add, what's due, and moving one-offs.
 {
@@ -453,5 +453,5 @@ console.log('PlanFox checks passed.');
   const saved = norm({ items: [{ ...items[1] }, { ...items[0], priority: "urgent!!" }] });
   assert.equal(saved.items.find(i => i.id === "urgent").priority, "high");
   assert.equal(saved.items.find(i => i.id === "later").priority, "normal", "unknown priorities fall back to normal");
-  console.log("PlanFox: Today view checks out.");
+  console.log("TaskFox: Today view checks out.");
 }

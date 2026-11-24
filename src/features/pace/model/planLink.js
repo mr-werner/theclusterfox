@@ -1,4 +1,4 @@
-// What PaceFox puts on the PlanFox calendar: the sessions of your active
+// What PaceFox puts on the TaskFox calendar: the sessions of your active
 // plan on their days (at your usual training time, if you set one), your
 // race, and workouts you logged. Tapping one opens PaceFox ready to go.
 

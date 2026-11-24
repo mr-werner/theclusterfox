@@ -115,12 +115,12 @@ export default function AppBar({ appId, children, planTitle, planHref, backTo })
       {children && <div className="appbar-extra">{children}</div>}
 
       {appId !== "planfox" && (
-        // Put whatever is open here on your PlanFox calendar, ready to start.
+        // Put whatever is open here on your TaskFox calendar, ready to start.
         <button
           type="button"
           className="appbar-plan"
           onClick={() => openInApp("planfox", planAddHref({ app: appId, href: planHref ?? here, title: planTitle }), navigate)}
-          title="Add this to your PlanFox calendar"
+          title="Add this to your TaskFox calendar"
         >
           <CalendarPlus size={16} aria-hidden="true" />
           <span>Plan this</span>

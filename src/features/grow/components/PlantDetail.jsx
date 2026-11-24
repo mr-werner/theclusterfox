@@ -307,7 +307,7 @@ function AddToGarden({ g, plant, inGarden, windows }) {
               <input type="date" value={planted} max={g.today} onChange={e => setPlanted(e.target.value)} />
             </label>
           ) : (
-            <p className="gf-hint">{plantNow ? "Its planting window is open now." : "You'll get a reminder"} on your Today list and in PlanFox when it's time to plant.</p>
+            <p className="gf-hint">{plantNow ? "Its planting window is open now." : "You'll get a reminder"} on your Today list and in TaskFox when it's time to plant.</p>
           )}
           <label>
             <span>Spot</span>

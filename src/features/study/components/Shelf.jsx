@@ -61,7 +61,7 @@ export default function Shelf({ store }) {
           <div className="sy-remind">
             <button type="button" className={`sy-toggle${data.settings.remind ? " is-on" : ""}`} onClick={() => setSettings({ remind: !data.settings.remind })} aria-pressed={data.settings.remind}>
               {data.settings.remind ? <Bell size={15} aria-hidden="true" /> : <BellOff size={15} aria-hidden="true" />}
-              {data.settings.remind ? "PlanFox reminds me at" : "No PlanFox reminder"}
+              {data.settings.remind ? "TaskFox reminds me at" : "No TaskFox reminder"}
             </button>
             {data.settings.remind && (
               <input type="time" value={data.settings.time} onChange={e => e.target.value && setSettings({ time: e.target.value })} aria-label="Study time" />
@@ -77,7 +77,7 @@ export default function Shelf({ store }) {
               ))}
             </select>
           </label>
-          {data.settings.remind && <p className="sy-muted sy-small">Your review sits on your PlanFox calendar at {formatTime(data.settings.time)} each day something is due.</p>}
+          {data.settings.remind && <p className="sy-muted sy-small">Your review sits on your TaskFox calendar at {formatTime(data.settings.time)} each day something is due.</p>}
         </div>
       </section>
 
@@ -134,7 +134,7 @@ function EmptyShelf() {
       <p className="sy-kicker">Your study shelf</p>
       <h1>Learn from every app, in one place</h1>
       <p className="sy-lede">
-        Press <strong>Add to Study</strong> in any learning app, or pick from the library here. StudyFox links to the material (it stays up to date in its own app) and turns it into flashcards, quizzes, matching, sorting, fill in the blank and practice problems. Spaced review brings each thing back just before you'd forget it, and PlanFox reminds you when it's time.
+        Press <strong>Add to Study</strong> in any learning app, or pick from the library here. StudyFox links to the material (it stays up to date in its own app) and turns it into flashcards, quizzes, matching, sorting, fill in the blank and practice problems. Spaced review brings each thing back just before you'd forget it, and TaskFox reminds you when it's time.
       </p>
       <Link to="/study?tab=library" className="sy-btn is-big">
         <Library size={18} aria-hidden="true" /> Browse the library

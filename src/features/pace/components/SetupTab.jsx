@@ -144,7 +144,7 @@ export default function SetupTab({ store, sensors }) {
           <label>
             Usual training time
             <input type="time" value={prefs.trainTime ?? ""} onChange={e => setPrefs({ trainTime: e.target.value || null })} />
-            <small>Puts sessions at this time in PlanFox</small>
+            <small>Puts sessions at this time in TaskFox</small>
           </label>
         </div>
         <div className="pc-toggles">

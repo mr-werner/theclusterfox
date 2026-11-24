@@ -20,7 +20,7 @@ test("every league has a known sport, a unique id and a source", () => {
     assert.ok(sports.has(l.sport), l.id);
     assert.ok(l.source === "espn" ? l.path : l.tsdb, l.id);
   });
-  // Leagues picked before (and PlanFox's) keep working.
+  // Leagues picked before (and TaskFox's) keep working.
   LEAGUES.forEach(l => assert.ok(sportsLeaguesById.has(l.id), l.id));
 });
 

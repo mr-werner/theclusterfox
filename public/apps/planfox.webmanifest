@@ -1,9 +1,9 @@
 {
   "id": "/plan",
-  "name": "PlanFox",
-  "short_name": "PlanFox",
-  "start_url": "/plan",
-  "scope": "/plan",
+  "name": "TaskFox",
+  "short_name": "TaskFox",
+  "start_url": "/task",
+  "scope": "/task",
   "display": "standalone",
   "background_color": "#17130f",
   "theme_color": "#17130f",

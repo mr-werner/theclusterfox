@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Bell, CalendarDays, CalendarPlus, ListChecks, Settings2, Sparkles, LayoutGrid, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, Layers, List, LoaderCircle, LocateFixed, Plus, X } from "lucide-react";
+import { Bell, CalendarDays, CalendarPlus, ListChecks, Settings2, Sparkles, LayoutGrid, ChevronLeft, ChevronRight, Cloud, CloudOff, HardDrive, Layers, List, LoaderCircle, LocateFixed, MapPin, Plane, Plus, X } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import { openInApp } from "../../lib/launchApp";
@@ -11,7 +11,6 @@ import DayPanel, { Tip } from "./components/DayPanel";
 import ItemEditor from "./components/ItemEditor";
 import LayerPanel from "./components/LayerPanel";
 import CalendarLinker from "./components/CalendarLinker";
-import TripPlanner from "./components/TripPlanner";
 import DetailModal from "./components/DetailModal";
 import TrainingPlanner from "./components/TrainingPlanner";
 import TodayView from "./components/TodayView";
@@ -24,7 +23,7 @@ import { moveItem } from "./model/tasks";
 import { planSessions, TIMES } from "./model/training";
 import { THEMES, togglePreset } from "./state/planStore";
 import { usePlanData } from "./state/usePlanData";
-import { fareCurrency, useLayerData } from "./state/useLayerData";
+import { useLayerData } from "./state/useLayerData";
 import { useAppItems } from "./state/useAppLinks";
 import { useSkyFoxReminders } from "./state/useSkyFoxReminders";
 import { dayReminders } from "../clocast/model/reminders";
@@ -99,6 +98,8 @@ function BadgeButton({ icon: Icon, label, badge, tone, pressed, onClick, showLab
   );
 }
 
+const placeLabel = place => (place.region ? `${place.name}, ${place.region}` : place.name);
+
 const placeKey = place => `${place.latitude.toFixed(3)},${place.longitude.toFixed(3)}`;
 
 export default function PlanPage() {
@@ -121,13 +122,6 @@ export default function PlanPage() {
   const [showPlanner, setShowPlanner] = useState(false);
   const [showLinker, setShowLinker] = useState(false);
   const [detail, setDetail] = useState(null);
-  // Trip planner: { day, code } it opened with, or null when closed.
-  const [tripStart, setTripStart] = useState(null);
-  const saveTrip = trip =>
-    update(current => ({
-      flights: { ...current.flights, to: [...current.flights.to.filter(t => t.code !== trip.code), trip].slice(-3) },
-      layers: { ...current.layers, flights: true },
-    }));
   // Cheap flight days need airports first, so turning it on opens settings.
   const toggleWithSetup = id => {
     toggleLayer(id);
@@ -175,6 +169,14 @@ export default function PlanPage() {
   const appItems = useAppItems({ enabled: data.layers.apps, hiddenApps: data.hiddenApps, from, to });
   const navigate = useNavigate();
   const launch = link => openInApp(link.app, link.href, navigate);
+  // Trips are planned in TripFox now. It opens with the day (and the
+  // place a cheap fare is for) already filled in.
+  const planTrip = ({ day, code } = {}) => {
+    const q = new URLSearchParams({ new: "1" });
+    if (day && day >= today) q.set("start", day);
+    if (code) q.set("fly", code);
+    navigate(`/trip?${q}`);
+  };
   const entriesByDay = useMemo(
     () =>
       buildEntries({
@@ -375,6 +377,50 @@ export default function PlanPage() {
           </div>
         </div>
 
+        <p className="pf-where">
+          <MapPin size={14} aria-hidden="true" />
+          {data.place ? (
+            <span>
+              Weather and events for <strong>{placeLabel(data.place)}</strong>
+            </span>
+          ) : (
+            <span>Set your location to see weather and things to do nearby</span>
+          )}
+          <button type="button" className="pf-link-btn" aria-expanded={sheet === "place"} onClick={() => toggleSheet("place")}>
+            {data.place ? "Change" : "Set location"}
+          </button>
+        </p>
+
+        {sheet === "place" && (
+          <section className="pf-panel pf-sheet pf-where-sheet" aria-label="Your location">
+            <header className="pf-sheet-head">
+              <div>
+                <h2>Your location</h2>
+                <p className="pf-muted">TaskFox uses this one place for the forecast, what to wear, weather reminders and alerts, and the concerts, games and shows near you.</p>
+              </div>
+              <button type="button" className="pf-icon-btn" onClick={() => setSheet(null)} aria-label="Close location">
+                <X size={18} />
+              </button>
+            </header>
+            <PlaceSearch place={data.place} onPick={place => place && update({ place })} />
+            {data.place && (
+              <ul className="pf-where-uses">
+                <li>
+                  <strong>Weather:</strong> {data.layers.weather ? `the forecast for ${data.place.name}` : "off (turn it on in Layers)"}
+                </li>
+                <li>
+                  <strong>Things to do:</strong>{" "}
+                  {data.layers.nearby ? `events within ${data.nearby.radius} miles of ${data.place.name}` : "off (turn on Nearby events in Layers)"}
+                </li>
+              </ul>
+            )}
+            <p className="pf-note">
+              <Plane size={13} aria-hidden="true" /> Going somewhere? Plan the weather, things to do, places to stay and the budget for the trip in{" "}
+              <Link to="/trip">TripFox</Link>.
+            </p>
+          </section>
+        )}
+
         {sheet === "heads" && (
           <section className="pf-panel pf-sheet pf-heads" aria-label="Heads up">
             <header className="pf-sheet-head">
@@ -499,35 +545,11 @@ export default function PlanPage() {
               setShowLayers(false);
               setShowPlanner(true);
             }}
-            onPlanTrip={() => {
-              setShowLayers(false);
-              setTripStart({ day: selected });
-            }}
+            onPlanTrip={() => planTrip({ day: selected })}
             onOpenLinker={() => {
               setShowLayers(false);
               setShowLinker(true);
             }}
-          />
-        )}
-
-        {tripStart && (
-          <TripPlanner
-            key={`${tripStart.day}|${tripStart.code ?? ""}`}
-            home={data.flights.from}
-            trips={data.flights.to}
-            start={tripStart}
-            today={today}
-            currency={fareCurrency(data.units, data.country)}
-            onSetHome={from => update(current => ({ flights: { ...current.flights, from, to: current.flights.to.filter(t => t.code !== from?.code) } }))}
-            onSave={trip => {
-              saveTrip(trip);
-              setTripStart(null);
-            }}
-            onRemove={code => {
-              update(current => ({ flights: { ...current.flights, to: current.flights.to.filter(t => t.code !== code) } }));
-              setTripStart(null);
-            }}
-            onClose={() => setTripStart(null)}
           />
         )}
 
@@ -646,10 +668,7 @@ export default function PlanPage() {
                 setDayOpen(false);
                 setShowLinker(true);
               }}
-                onPlanTrip={code => {
-                setDayOpen(false);
-                setTripStart({ day: selected, code });
-              }}
+                onPlanTrip={code => planTrip({ day: selected, code })}
                 onOpenDetail={setDetail}
                 today={today}
                 now={now}

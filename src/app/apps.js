@@ -1,5 +1,5 @@
 import Parachute from "../components/icons/Parachute.js";
-import { Activity, Ambulance, BookOpen, CalendarRange, CarFront, ChefHat, ChevronsUp, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, Guitar, Medal, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, ShoppingBasket, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
+import { Activity, Ambulance, BookOpen, CalendarRange, CarFront, ChefHat, ChevronsUp, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Flame, Flashlight, Flower2, GraduationCap, Guitar, Luggage, Medal, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, ShoppingBasket, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
 // The home screen groups apps into these, in this order. TaskFox is the hub
 // above them all. An app without a category (or with one not listed here)
@@ -275,6 +275,16 @@ export const apps = [
     icon: Flashlight,
     accent: "beaconfox",
     category: "outdoors",
+  },
+  {
+    id: "tripfox",
+    category: "outdoors",
+    name: "Trip",
+    subtitle: "TripFox",
+    description: "Weather • Things to do • Stays • Budget",
+    path: "/trip",
+    icon: Luggage,
+    accent: "tripfox",
   },
   {
     id: "roadfox",

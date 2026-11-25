@@ -50,6 +50,7 @@ const ClimbPage = lazy(() => import("./features/climb/ClimbPage"));
 const MedicPage = lazy(() => import("./features/medic/MedicPage"));
 // RoadTripFox carries its state outlines and games, so it loads on demand too.
 const RoadPage = lazy(() => import("./features/road/RoadPage"));
+const TripPage = lazy(() => import("./features/trip/TripPage"));
 // BeaconFox is saved for offline use on its own, so it is its own chunk.
 const BeaconPage = lazy(() => import("./features/beacon/BeaconPage"));
 // PaceFox carries its plan builder and live recorder, so it loads on demand too.
@@ -256,6 +257,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <BeaconPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/trip"
+                element={
+                    <Suspense fallback={null}>
+                        <TripPage />
                     </Suspense>
                 }
             />

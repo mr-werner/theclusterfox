@@ -37,7 +37,7 @@ export default function StoresPanel({ list }) {
     const here = { lat, lon };
     // OpenStreetMap from the browser, Kroger's stores and the site's features from ours.
     Promise.allSettled([
-      fetchOsm(lat, lon, r),
+      fetchOsm(lat, lon, r, { signal: controller.signal }),
       getJson(`/api/cook/stores?lat=${lat}&lon=${lon}&radius=${r}`, { signal: controller.signal }),
     ]).then(([osm, ours]) => {
       if (controller.signal.aborted) return;

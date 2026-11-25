@@ -5,10 +5,12 @@ import { plantsById } from "../data/plants.js";
 import { FACINGS } from "../model/sun.js";
 import { isDayKey } from "../model/dates.js";
 import { cleanYard, EXTENT } from "../model/yard.js";
+import { AIR, DISTANCES, INDOOR_LIGHT, WINDOWS } from "../model/indoor.js";
 
 export const STORAGE_KEY = "growfox-data-v1";
 export const MAX_GARDEN = 300;
 export const MAX_SPOTS = 40;
+export const MAX_ROOMS = 40;
 export const MAX_DONE = 3000;
 export const THEMES = [
   { id: "meadow", name: "Meadow", hint: "Light linen and fern green" },
@@ -23,7 +25,7 @@ const SOILS = ["", "clay", "loam", "sand", "wet", "rocky"];
 export function emptyData() {
   return {
     version: 1,
-    prefs: { theme: "meadow", units: "us", gardenDay: 6 },
+    prefs: { theme: "meadow", units: "us", gardenDay: 6, specialtyOk: false },
     place: null, // { id, name, region, latitude, longitude }
     climate: null, // see model/climate.js computeClimate
     manualZone: null, // a zone picked by hand when there's no place
@@ -31,7 +33,9 @@ export function emptyData() {
     zoneShift: 0, // -1..1 in half zones: "my garden runs colder/warmer"
     yard: null, // your house, trees, fences and sheds for the sun map (model/yard.js); null until set up
     spots: [], // { id, name, facing (FACINGS id | "open"), light, auto (light from the map), x, y (meters on the map, or null), soil, note }
-    garden: [], // { id, plantId, spotId, status: "growing"|"planned", planted, name, qty, note, added }
+    rooms: [], // indoor spots: { id, name, window (WINDOWS id), distance (DISTANCES id), light ("" = from the window, or an INDOOR_LIGHT id), note }
+    home: { air: "average", pets: false }, // for rating houseplants
+    garden: [], // { id, plantId, spotId, roomId, inside, status: "growing"|"planned", planted, name, qty, note, added }
     done: {}, // taskId -> ISO time
     updatedAt: null,
   };
@@ -91,12 +95,28 @@ function cleanSpot(s) {
   };
 }
 
-function cleanEntry(e, spotIds) {
+function cleanRoom(r) {
+  if (!isObject(r) || typeof r.id !== "string") return null;
+  return {
+    id: r.id.slice(0, 40),
+    name: str(r.name, 60) || "Indoor spot",
+    window: WINDOWS.some(w => w.id === r.window) ? r.window : "S",
+    distance: DISTANCES.some(d => d.id === r.distance) ? r.distance : "near",
+    light: INDOOR_LIGHT[r.light] ? r.light : "",
+    note: str(r.note, 300),
+  };
+}
+
+function cleanEntry(e, spotIds, roomIds) {
   if (!isObject(e) || typeof e.id !== "string" || !plantsById.has(e.plantId)) return null;
+  const plant = plantsById.get(e.plantId);
+  const inside = plant.setting === "indoor" ? true : plant.setting === "outdoor" ? false : e.inside === true;
   return {
     id: e.id.slice(0, 40),
     plantId: e.plantId,
-    spotId: spotIds.has(e.spotId) ? e.spotId : null,
+    inside,
+    spotId: !inside && spotIds.has(e.spotId) ? e.spotId : null,
+    roomId: inside && roomIds.has(e.roomId) ? e.roomId : null,
     status: e.status === "planned" ? "planned" : "growing",
     planted: isDayKey(e.planted) ? e.planted : null,
     name: str(e.name, 60),
@@ -112,6 +132,9 @@ export function normalizeData(value) {
   const p = isObject(value.prefs) ? value.prefs : {};
   const spots = (Array.isArray(value.spots) ? value.spots : []).map(cleanSpot).filter(Boolean).slice(0, MAX_SPOTS);
   const spotIds = new Set(spots.map(s => s.id));
+  const rooms = (Array.isArray(value.rooms) ? value.rooms : []).map(cleanRoom).filter(Boolean).slice(0, MAX_ROOMS);
+  const roomIds = new Set(rooms.map(r => r.id));
+  const h = isObject(value.home) ? value.home : {};
   const done = {};
   if (isObject(value.done)) {
     const entries = Object.entries(value.done).filter(([k, v]) => typeof k === "string" && k.length < 120 && typeof v === "string");
@@ -123,6 +146,7 @@ export function normalizeData(value) {
       theme: THEME_IDS.includes(p.theme) ? p.theme : base.prefs.theme,
       units: p.units === "metric" ? "metric" : "us",
       gardenDay: num(p.gardenDay, 0, 6, 6),
+      specialtyOk: p.specialtyOk === true,
     },
     place: cleanPlace(value.place),
     climate: cleanClimate(value.climate),
@@ -131,7 +155,9 @@ export function normalizeData(value) {
     zoneShift: num(value.zoneShift, -1, 1, 0),
     yard: isObject(value.yard) ? cleanYard(value.yard) : null,
     spots,
-    garden: (Array.isArray(value.garden) ? value.garden : []).map(e => cleanEntry(e, spotIds)).filter(Boolean).slice(0, MAX_GARDEN),
+    rooms,
+    home: { air: AIR.some(a => a.id === h.air) ? h.air : "average", pets: h.pets === true },
+    garden: (Array.isArray(value.garden) ? value.garden : []).map(e => cleanEntry(e, spotIds, roomIds)).filter(Boolean).slice(0, MAX_GARDEN),
     done,
     updatedAt: typeof value.updatedAt === "string" ? value.updatedAt : null,
   };

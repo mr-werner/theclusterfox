@@ -4,6 +4,7 @@
 import { cToF } from "./climate.js";
 import { anchorDays, inPeriod, windowsBetween, ACTIONS } from "./calendar.js";
 import { dayNum, dayKey, weekday, dateOfMonth, yearOf } from "./dates.js";
+import { indoorClimate, isInside, lightNeed } from "./indoor.js";
 
 // ── Difficulty for your area ───────────────────────────────────
 
@@ -108,6 +109,7 @@ export const CADENCE_WORDS = ["Daily", "Weekly", "Monthly", "Seasonal", "Never"]
 
 export const KINDS = {
   water: { name: "Water", verb: "Water", group: "water" },
+  mist: { name: "Mist", verb: "Mist", group: "water" },
   trim: { name: "Trim", verb: "Trim", group: "trim" },
   deadhead: { name: "Deadhead", verb: "Deadhead", group: "trim" },
   divide: { name: "Divide", verb: "Divide", group: "trim" },
@@ -120,6 +122,7 @@ export const KINDS = {
   mow: { name: "Mow", verb: "Mow", group: "other" },
   aerate: { name: "Aerate", verb: "Aerate", group: "other" },
   harvest: { name: "Harvest", verb: "Harvest", group: "other" },
+  repot: { name: "Repot", verb: "Repot", group: "other" },
 };
 
 export const GROUPS = [
@@ -164,7 +167,7 @@ export function cadence(plant, climate) {
     }
     if (g.id === "sun") {
       // Sunlight isn't a chore you repeat: say how much the plant needs.
-      return { ...g, word: null, need: sunNeed(plant), detail: "Pick the right spot once; the light there does the rest", adjusted: false };
+      return { ...g, word: null, need: plant.sun ? sunNeed(plant) : lightNeed(plant), detail: "Pick the right spot once; the light there does the rest", adjusted: false };
     }
     return { ...g, word, detail, adjusted: items.some(c => c.adjusted) };
   });
@@ -189,7 +192,11 @@ export function sunNeed(plant) {
  * prefs.gardenDay: weekday (0 = Sunday) for weekly jobs.
  */
 export function entryTasks(entry, plant, climate, day, prefs = {}) {
-  if (!plant || !climate) return [];
+  if (!plant) return [];
+  // Inside, care follows the light, not the frost dates, and needs no place set.
+  const inside = isInside(entry, plant);
+  if (inside) climate = indoorClimate(climate?.hemisphere ?? prefs.hemisphere ?? "N");
+  if (!climate) return [];
   const d = dayNum(day);
   const key = dayKey(d);
   const gardenDay = prefs.gardenDay ?? 6;
@@ -197,6 +204,7 @@ export function entryTasks(entry, plant, climate, day, prefs = {}) {
   const name = entry.name || plant.name;
 
   if (entry.status === "planned") {
+    if (inside) return out;
     // Planting reminders on the day each window opens.
     for (const w of windowsBetween(plant, climate, d, d)) {
       if (w.action === "harvest" || w.start !== d) continue;
@@ -208,7 +216,10 @@ export function entryTasks(entry, plant, climate, day, prefs = {}) {
   const planted = entry.planted ? dayNum(entry.planted) : null;
   if (planted != null && d < planted) return out;
   // Annuals and vegetables finish at the first fall frost after planting.
-  if (!plant.zones && planted != null && !climate.frostless) {
+  // A grow from start to harvest (mushrooms, cannabis) finishes three weeks after harvest.
+  const days = inside ? plant.indoorDays ?? plant.days : plant.days;
+  if (plant.cycle && planted != null && days && d > planted + days + 21) return out;
+  if (!inside && !plant.zones && planted != null && !climate.frostless) {
     const ff = windowsEndAfter(climate, planted);
     if (d > ff + (isFrostHardy(plant) ? 42 : 0) && plant.when !== "garlic") return out;
   }
@@ -216,17 +227,18 @@ export function entryTasks(entry, plant, climate, day, prefs = {}) {
   for (const [i, c] of plant.care.entries()) {
     if (c.freq === "never") continue;
     if (c.firstYear && planted != null && d > planted + 365) continue;
-    const { freq } = climateFreq(c, climate);
+    const { freq } = inside ? { freq: c.freq } : climateFreq(c, climate);
     let due = false;
     if (freq === "yearly") {
       const anchors = c.anchors.length ? c.anchors : ["spring"];
       due = anchors.some(a => anchorDays(a, climate, yearOf(d)).includes(d));
     } else {
-      const period = c.anchors[0] ?? "growing";
-      let inside;
-      if (period === "harvest") inside = harvestOpen(plant, climate, planted, d);
-      else inside = inPeriod(period, climate, d);
-      if (inside) due = onCadence(freq, d, planted, gardenDay);
+      // An indoor grow runs whenever you start it, not with the seasons.
+      const period = inside && plant.cycle && c.anchors[0] !== "harvest" ? "all" : c.anchors[0] ?? "growing";
+      let open;
+      if (period === "harvest") open = harvestOpen(days, climate, planted, d);
+      else open = inPeriod(period, climate, d);
+      if (open) due = onCadence(freq, d, planted, gardenDay);
     }
     if (!due) continue;
     const verb = KINDS[c.kind]?.verb ?? c.kind;
@@ -250,9 +262,9 @@ function windowsEndAfter(climate, planted) {
   return Infinity;
 }
 
-function harvestOpen(plant, climate, planted, d) {
-  if (planted == null || !plant.days) return inPeriod("summer", climate, d);
-  return d >= planted + plant.days;
+function harvestOpen(days, climate, planted, d) {
+  if (planted == null || !days) return inPeriod(climate.indoor ? "all" : "summer", climate, d);
+  return d >= planted + days;
 }
 
 function onCadence(freq, d, planted, gardenDay) {

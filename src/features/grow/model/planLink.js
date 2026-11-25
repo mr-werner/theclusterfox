@@ -17,13 +17,15 @@ export function planItems(raw, fromDay, toDay) {
   if (!raw) return [];
   const data = normalizeData(raw);
   const climate = effectiveClimate(data);
-  if (!climate || !data.garden.length) return [];
+  // Indoor plants get jobs even with no place set.
+  if (!data.garden.length || (!climate && !data.garden.some(e => e.inside))) return [];
+  const prefs = { ...data.prefs, hemisphere: data.hemisphere };
   const from = dayNum(fromDay);
   const to = Math.min(dayNum(toDay), from + MAX_DAYS);
   const out = [];
   for (let d = from; d <= to; d++) {
     const day = dayKey(d);
-    for (const t of dayTasks(data.garden, plantsById, climate, day, data.prefs)) {
+    for (const t of dayTasks(data.garden, plantsById, climate, day, prefs)) {
       out.push({ id: t.id, day, time: null, title: t.title, detail: t.note.slice(0, 120), href: taskHref(t.id, day), action: t.kind === "plant" ? "Plant" : KINDS[t.kind]?.name ?? "Open", done: Boolean(data.done[t.id]) });
     }
   }

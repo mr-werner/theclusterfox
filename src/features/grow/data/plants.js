@@ -24,6 +24,11 @@
 //             ~new: only in the first year after planting
 //   size, spacing, soil, tip, tags
 
+import { INDOOR, INDOOR_TYPES } from "./indoor.js";
+import { SPECIALTY, SPECIALTY_TYPES, LAW_NOTICE } from "./specialty.js";
+
+export { INDOOR_TYPES, SPECIALTY_TYPES, LAW_NOTICE };
+
 export const TYPES = [
   { id: "vegetable", name: "Vegetables", one: "Vegetable" },
   { id: "fruit", name: "Fruit", one: "Fruit" },
@@ -48,6 +53,7 @@ export const TAGS = {
   acid: "Needs acidic soil",
   toxic: "Poisonous if eaten by pets or kids",
   container: "Grows well in a pot",
+  petsafe: "Safe around cats and dogs",
 };
 
 const plants = [
@@ -1180,5 +1186,21 @@ export function parseCare(line) {
   return { kind: m[1], freq: m[2], anchors: m[3] ? m[3].split(",") : [], firstYear: Boolean(m[4]), note: m[5] ?? "" };
 }
 
-export const PLANTS = plants.map(p => ({ ...p, care: p.care.map(parseCare), tags: p.tags ?? [] }));
-export const plantsById = new Map(PLANTS.map(p => [p.id, p]));
+const parse = setting => p => ({ setting, ...p, care: p.care.map(parseCare), tags: p.tags ?? [] });
+
+/** The outdoor library: everything the yard, calendar and planting advice work from. */
+export const PLANTS = plants.map(parse("outdoor"));
+/** Houseplants (data/indoor.js). */
+export const INDOOR_PLANTS = INDOOR.map(parse("indoor"));
+/** Specialty grows with step-by-step guides (data/specialty.js). */
+export const SPECIALTY_PLANTS = SPECIALTY.map(parse("outdoor"));
+export const ALL_PLANTS = [...PLANTS, ...INDOOR_PLANTS, ...SPECIALTY_PLANTS];
+export const plantsById = new Map(ALL_PLANTS.map(p => [p.id, p]));
+
+export const ALL_TYPES = [...TYPES, ...INDOOR_TYPES, ...SPECIALTY_TYPES];
+const typesById = new Map(ALL_TYPES.map(t => [t.id, t]));
+export const typeOf = plant => typesById.get(plant.type) ?? { id: plant.type, name: plant.type, one: plant.type };
+
+/** Can it grow outside / inside? */
+export const growsOutdoors = p => p.setting !== "indoor";
+export const growsIndoors = p => p.setting !== "outdoor";

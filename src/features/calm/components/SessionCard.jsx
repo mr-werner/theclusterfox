@@ -2,7 +2,13 @@ import { Star } from "lucide-react";
 import { STYLES, styleOf } from "../data/sessions";
 import { STYLE_ICONS } from "./icons";
 
-export default function SessionCard({ session, favorite, onOpen, onToggleFavorite }) {
+// Every session can run for any length, so the card says so: it shows the
+// length the person last picked, or just that any length works.
+function lengthLabel(chosenMinutes) {
+  return chosenMinutes ? `Your ${chosenMinutes} min` : "Any length";
+}
+
+export default function SessionCard({ session, chosenMinutes, favorite, onOpen, onToggleFavorite }) {
   const style = styleOf(session);
   const Icon = STYLE_ICONS[style];
   return (
@@ -12,7 +18,7 @@ export default function SessionCard({ session, favorite, onOpen, onToggleFavorit
           <Icon size={20} />
         </span>
         <span className="cm-card-meta">
-          {STYLES[style].name} · {session.minutes} min
+          {STYLES[style].name} · {lengthLabel(chosenMinutes)}
         </span>
         <h3>{session.title}</h3>
         <p>{session.summary}</p>

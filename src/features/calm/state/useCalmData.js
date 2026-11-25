@@ -18,6 +18,8 @@ export function useCalmData() {
     []
   );
 
+  const setLength = useCallback((id, minutes) => setData(d => (d.lengths[id] === minutes ? d : { ...d, lengths: { ...d.lengths, [id]: minutes } })), []);
+
   const addHistory = useCallback(
     entry => setData(d => ({ ...d, history: [entry, ...d.history.filter(h => h.id !== entry.id)].slice(0, MAX_HISTORY) })),
     []
@@ -32,5 +34,5 @@ export function useCalmData() {
 
   const syncStatus = useAccountSync("calm_user_data", data, doc => setData(normalizeData(doc)), emptyData());
 
-  return { data, syncStatus, setPrefs, toggleFavorite, addHistory, setMood, clearHistory };
+  return { data, syncStatus, setPrefs, toggleFavorite, setLength, addHistory, setMood, clearHistory };
 }

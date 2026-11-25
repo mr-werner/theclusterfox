@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CalendarPlus, Check, ChevronLeft, Mountain, Trash2 } from "lucide-react";
 
-import { fetchMountain } from "../api";
+import { fetchLifts, fetchMountain } from "../api";
 import { useLoad } from "../model/useLoad";
 import { dailyFrom, fmtElev, hourAt, localDay, scoreDay, snowTotals } from "../model/snow";
 import { DayDetail, DayPicker, NowPanel } from "./Forecast";
@@ -16,6 +16,8 @@ export default function SpotDetail({ spot, s, day: askedDay, setDay, back }) {
   const { data, patch } = s;
   const units = data.units;
   const wx = useLoad(`${spot.id}-${spot.base}-${spot.summit}`, signal => fetchMountain(spot, { signal }));
+  // Live lifts feed both the headline (8/12 open) and the Lifts card.
+  const lifts = useLoad(spot.kind === "resort" && spot.liftie ? `lifts-${spot.liftie}` : null, signal => fetchLifts(spot.liftie, { signal }));
 
   const view = useMemo(() => {
     if (!wx.data) return null;
@@ -75,7 +77,7 @@ export default function SpotDetail({ spot, s, day: askedDay, setDay, back }) {
       {wx.error && <Problem text={wx.error} />}
       {view && (
         <>
-          <NowPanel spot={spot} totals={view.totals} nowTop={view.nowTop} nowBase={view.nowBase} units={units} />
+          <NowPanel spot={spot} totals={view.totals} nowTop={view.nowTop} nowBase={view.nowBase} lifts={lifts.data} units={units} />
           <DayPicker days={view.ahead} scores={view.scores} picked={day} onPick={setDay} today={view.today} units={units} />
           <div className="sf-plan-row">
             <button type="button" className={`sf-btn${tripOn ? " is-done" : ""}`} onClick={toggleTrip}>
@@ -90,8 +92,8 @@ export default function SpotDetail({ spot, s, day: askedDay, setDay, back }) {
 
       <div className="sf-grid">
         {kind === "backcountry" && <AvalancheCard spot={spot} emphasize />}
-        {kind === "resort" && <LiftsCard spot={spot} />}
-        {view && <SnowpackCard spot={spot} summitHours={wx.data.summit} units={units} />}
+        {kind === "resort" && <LiftsCard spot={spot} live={lifts} />}
+        {view && <SnowpackCard spot={spot} summitHours={wx.data.summit} baseHours={wx.data.base} units={units} />}
         {kind !== "backcountry" && <AvalancheCard spot={spot} />}
         <DriveCard spot={spot} s={s} day={day ?? localDay(new Date())} units={units} />
         {kind === "resort" && <TrailMap spot={spot} />}

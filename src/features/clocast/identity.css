@@ -1014,7 +1014,85 @@
 }
 
 .cc-radar-fires {
-  filter: drop-shadow(0 0 3px rgba(255, 90, 40, 0.9));
+  filter: drop-shadow(0 0 2px rgba(255, 90, 40, 1)) drop-shadow(0 0 4px rgba(255, 90, 40, 0.8));
+}
+
+/* Named wildfires: a flame you can tap, larger for bigger fires. */
+.cc-fire-pin {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: #e8590c;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.cc-fire-pin.is-mid {
+  background: #d9480f;
+}
+
+.cc-fire-pin.is-big {
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  background: #c92a2a;
+}
+
+.cc-fire-pin.is-picked {
+  outline: 3px solid #ffd43b;
+  outline-offset: 1px;
+}
+
+.cc-fire-card {
+  position: absolute;
+  z-index: 3;
+  inset: auto auto 10px 10px;
+  display: grid;
+  gap: 2px;
+  max-width: min(280px, calc(100% - 70px));
+  padding: 8px 30px 8px 10px;
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(8, 22, 38, 0.88);
+  font-size: 0.86rem;
+}
+
+.cc-fire-card strong {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cc-fire-card strong svg {
+  color: #ff8a4c;
+}
+
+.cc-fire-card small {
+  opacity: 0.75;
+}
+
+.cc-fire-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
 }
 
 .cc-radar-wind {

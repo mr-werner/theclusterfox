@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { RESORTS } from "../data/resorts.js";
 import { BACKCOUNTRY } from "../data/backcountry.js";
 import { ROAD_SITES } from "../data/roads.js";
-import { crowdOutlook, dailyFrom, fmtSnow, fmtTemp, inGeometry, REGIONS, roadWeather, samplePath, scoreDay, skiHolidays, snowTotals, windHold, worstRoad } from "../model/snow.js";
+import { crowdOutlook, dailyFrom, fmtSnow, liftFraction, fmtTemp, inGeometry, REGIONS, roadWeather, samplePath, scoreDay, skiHolidays, snowTotals, windHold, worstRoad } from "../model/snow.js";
 import { normalizeData } from "../state/snowStore.js";
 import { launchTargets, planItems } from "../model/planLink.js";
 import { parseTrailMap } from "../api.js";
@@ -139,6 +139,9 @@ test("lift status and SNOTEL parsing", () => {
   assert.equal(l.hold, 1);
   assert.equal(l.closed, 2);
   assert.equal(parseLiftie({}), null);
+  assert.deepEqual(liftFraction(l), { open: 1, total: 4 });
+  assert.equal(liftFraction({ lifts: [], open: 0 }), null);
+  assert.equal(liftFraction(null), null);
   const st = parseStations([{ stationTriplet: "842:CO:SNTL", name: "Vail Mountain", latitude: 39.62, longitude: -106.38, elevation: 10300, endDate: "2100-01-01 00:00" }, { stationTriplet: "1:CO:SNTL", latitude: 1, longitude: 1, endDate: "2010-01-01" }]);
   assert.equal(st.length, 1);
   const data = parseSnotelData([{ stationTriplet: "842:CO:SNTL", data: [{ stationElement: { elementCode: "SNWD" }, values: [{ date: "2026-12-07", value: 20 }, { date: "2026-12-08", value: 22 }, { date: "2026-12-09", value: 23 }, { date: "2026-12-10", value: 30 }] }, { stationElement: { elementCode: "WTEQ" }, values: [{ date: "2026-12-10", value: 5.1 }] }] }]);

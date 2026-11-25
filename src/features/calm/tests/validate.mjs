@@ -216,6 +216,9 @@ for (const s of sessions) {
   const cleaned = normalizeData({ prefs: { custom: { in: 99, hold: -3, out: 6, rest: "x" }, theme: "purple" } }).prefs;
   assert.deepEqual(cleaned.custom, { in: 10, hold: 0, out: 6, rest: 0 }, "custom rhythm is clamped");
   assert.equal(cleaned.theme, "auto");
+  const lengths = normalizeData({ lengths: { "box-breathing": 15, bad: 0, worse: 500, odd: "7" } }).lengths;
+  assert.deepEqual(lengths, { "box-breathing": 15 }, "remembered lengths keep only whole minutes from 1 to 120");
+  assert.deepEqual(normalizeData({}).lengths, {});
 }
 
 console.log(`CalmFox: ${sessions.length} sessions across ${goals.length} goals, all checks passed.`);

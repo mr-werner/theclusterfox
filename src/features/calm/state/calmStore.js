@@ -29,6 +29,8 @@ export function emptyData() {
       theme: "auto",
     },
     favorites: [],
+    // The length the person last picked for each session: { [sessionId]: minutes }.
+    lengths: {},
     // { id, date (YYYY-MM-DD), startedAt, sessionId, title, goal, minutes, planned, mood }
     history: [],
   };
@@ -67,6 +69,11 @@ function cleanPrefs(p) {
   };
 }
 
+function cleanLengths(l) {
+  if (!isObject(l)) return {};
+  return Object.fromEntries(Object.entries(l).filter(([id, n]) => id.length <= 80 && Number.isInteger(n) && n >= 1 && n <= 120));
+}
+
 function cleanEntry(e) {
   if (!isObject(e) || !e.id || typeof e.sessionId !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(e.date ?? "")) return null;
   return {
@@ -88,6 +95,7 @@ export function normalizeData(value) {
   return {
     ...base,
     prefs: cleanPrefs(value.prefs),
+    lengths: cleanLengths(value.lengths),
     favorites: Array.isArray(value.favorites) ? [...new Set(value.favorites.filter(x => typeof x === "string"))] : [],
     history: Array.isArray(value.history) ? value.history.map(cleanEntry).filter(Boolean).slice(0, MAX_HISTORY) : [],
   };

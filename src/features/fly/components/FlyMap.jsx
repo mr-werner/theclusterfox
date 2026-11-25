@@ -23,7 +23,9 @@ function fitView(points, width, height) {
   return { zoom: MIN_Z, center: project(mid.lat, mid.lon, MIN_Z) };
 }
 
-export default function FlyMap({ fit = [], fitKey, route = [], markers = [], hazards = [], circles = [], height = 380, onPick, children, label = "Map" }) {
+// overlay: an optional tile layer on top of the map, { url(tile), maxZoom, className },
+// stretched from maxZoom when the map is zoomed in further (radar stops at 7).
+export default function FlyMap({ fit = [], fitKey, route = [], markers = [], hazards = [], circles = [], overlay = null, height = 380, onPick, children, label = "Map" }) {
   const box = useRef(null);
   const [size, setSize] = useState({ w: 600, h: height });
   const [view, setView] = useState(() => fitView(fit, 600, height));
@@ -57,6 +59,7 @@ export default function FlyMap({ fit = [], fitKey, route = [], markers = [], haz
     return { x, y: p.y - top };
   };
   const tiles = tilesFor(center, zoom, size.w, size.h);
+  const overlayTiles = overlay ? tilesFor(center, zoom, size.w, size.h, overlay.maxZoom ?? zoom) : [];
 
   function zoomBy(dz, ox = size.w / 2, oy = size.h / 2) {
     setView(v => {
@@ -117,6 +120,9 @@ export default function FlyMap({ fit = [], fitKey, route = [], markers = [], haz
         {tiles.map(t => (
           <img key={t.key} className="fy-tile" src={`${BASE}/${t.z}/${t.x}/${t.y}.png`} alt="" draggable={false} style={{ left: t.left, top: t.top, width: t.size, height: t.size }} />
         ))}
+        {overlayTiles.map(t => (
+          <img key={`o-${t.key}`} className={`fy-tile fy-tile-overlay ${overlay.className ?? ""}`} src={overlay.url(t)} alt="" draggable={false} style={{ left: t.left, top: t.top, width: t.size, height: t.size }} />
+        ))}
         <svg className="fy-map-svg" width={size.w} height={size.h} viewBox={`0 0 ${size.w} ${size.h}`}>
           {hazards.map(h => (
             <polygon key={h.id} className={`fy-hz fy-hz--${h.hazard}`} points={h.coords.map(([la, lo]) => { const p = at(la, lo); return `${p.x},${p.y}`; }).join(" ")}>
@@ -126,7 +132,11 @@ export default function FlyMap({ fit = [], fitKey, route = [], markers = [], haz
           {circles.map(c => {
             const p = at(c.lat, c.lon);
             const r = c.nm * nmPx / Math.cos((c.lat * Math.PI) / 180);
-            return <circle key={c.id} cx={p.x} cy={p.y} r={r} className={`fy-ring ${c.className ?? ""}`} />;
+            return (
+              <circle key={c.id} cx={p.x} cy={p.y} r={Math.max(c.minPx ?? 0, r)} className={`fy-ring ${c.className ?? ""}`}>
+                {c.title && <title>{c.title}</title>}
+              </circle>
+            );
           })}
           {routePts.length > 1 && (
             <>

@@ -3,6 +3,7 @@
 // OpenStreetMap flight-school lookups straight from the browser.
 
 import { searchPlaces } from "../../services/weather/openMeteo";
+import { overpass } from "../../lib/osm/overpass.js";
 
 async function get(path, params, { signal } = {}) {
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ""));
@@ -69,8 +70,6 @@ async function nearby(center, signal, skip) {
     .slice(0, 8);
 }
 
-const OVERPASS = "https://overpass-api.de/api/interpreter";
-
 /**
  * Flight schools and flying clubs mapped in OpenStreetMap within radiusKm
  * of a point. Coverage depends on local mappers, so it's a start, not a
@@ -86,15 +85,13 @@ export async function fetchFlightSchools({ lat, lon }, radiusKm = 80, { signal }
     nwr["club"="flying"]${around};
     nwr["name"~"flight (school|training|academy|center|centre)|aviation (academy|training)|flying club|aero club|aeroclub",i]${around};
   );out center tags 80;`;
-  let response;
+  let body;
   try {
-    response = await fetch(OVERPASS, { method: "POST", body: new URLSearchParams({ data: query }), signal });
+    body = await overpass(query, { signal });
   } catch (error) {
-    if (error.name === "AbortError") throw error;
-    throw new Error("Couldn't reach the OpenStreetMap school directory right now. The links below still work.");
+    if (error.name === "AbortError" || error.kind === "offline") throw error;
+    throw new Error("Couldn't reach the OpenStreetMap school directory right now. The links below still work.", { cause: error });
   }
-  if (!response.ok) throw new Error("The map database is busy. Try again in a minute.");
-  const body = await response.json();
   const seen = new Set();
   return (body.elements ?? [])
     .map(e => ({

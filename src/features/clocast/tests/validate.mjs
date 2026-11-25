@@ -321,3 +321,26 @@ console.log(`PASS: CloCast model, ${activities.length} activities, ${Object.valu
   assert.deepEqual(normalize({ mapLayers: ['fires', 'nope', 'wind'] }).mapLayers, ['fires', 'wind']);
   console.log('SkyFox map layers check out.');
 }
+
+// Named wildfires from NIFC.
+{
+  const { parseWildfires, acresText } = await import('../model/wildfires.js');
+  const now = Date.UTC(2026, 10, 24);
+  const day = 86400000;
+  const fires = parseWildfires({
+    features: [
+      { attributes: { OBJECTID: 1, IncidentName: 'ASPEN ACRES', IncidentSize: 102007, PercentContained: 96, ModifiedOnDateTime_dt: now - 5 * day }, geometry: { x: -105.07, y: 38.02 } },
+      { attributes: { OBJECTID: 2, IncidentName: 'Out', IncidentSize: 50, PercentContained: 100, ModifiedOnDateTime_dt: now }, geometry: { x: -110, y: 40 } },
+      { attributes: { OBJECTID: 3, IncidentName: 'Stale', IncidentSize: 900, PercentContained: 20, ModifiedOnDateTime_dt: now - 90 * day }, geometry: { x: -110, y: 40 } },
+      { attributes: { OBJECTID: 4, IncidentName: 'little creek', IncidentSize: 0.2, PercentContained: null }, geometry: { x: -100, y: 35 } },
+      { attributes: { OBJECTID: 5, IncidentName: 'No place' }, geometry: null },
+      { attributes: { OBJECTID: 6, IncidentName: 'Forgotten', IncidentSize: 0.1, PercentContained: null, FireDiscoveryDateTime: now - 200 * day, ModifiedOnDateTime_dt: now }, geometry: { x: -100, y: 35 } },
+    ],
+  }, now);
+  assert.deepEqual(fires.map(f => f.name), ['Aspen Acres', 'Little Creek'], 'contained, stale and placeless fires are dropped, biggest first');
+  assert.equal(fires[1].contained, null);
+  assert.equal(acresText(102007), '102,007 acres');
+  assert.equal(acresText(0.2), 'Under an acre');
+  assert.equal(acresText(null), 'Size not reported');
+  console.log('SkyFox wildfires check out.');
+}

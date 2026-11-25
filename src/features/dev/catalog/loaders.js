@@ -34,9 +34,9 @@ export async function cookfox() {
 }
 
 export async function growfox() {
-  const { PLANTS = [], TYPES = [] } = await import("../../grow/data/plants.js");
-  const typeName = new Map(TYPES.map(t => [t.id, t.name]));
-  const items = PLANTS.map(p => ({
+  const { ALL_PLANTS = [], ALL_TYPES = [] } = await import("../../grow/data/plants.js");
+  const typeName = new Map(ALL_TYPES.map(t => [t.id, t.name]));
+  const items = ALL_PLANTS.map(p => ({
     id: p.id,
     title: p.name,
     meta: [p.latin, p.size, p.spacing && `space ${p.spacing}`, p.days && `${p.days} days`].filter(Boolean).join(" · "),

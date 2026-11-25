@@ -26,7 +26,7 @@ function NumberField({ label, value, onChange, min, max, hint, placeholder }) {
 }
 
 /** A time typed as text, saved as seconds once it parses. */
-function TimeField({ label, seconds, onChange, placeholder, hint }) {
+export function TimeField({ label, seconds, onChange, placeholder, hint }) {
   const [text, setText] = useState(seconds ? fmtClock(seconds) : "");
   const bad = text && !parseClock(text);
   return (

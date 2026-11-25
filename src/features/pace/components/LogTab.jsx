@@ -2,8 +2,9 @@ import { useMemo, useRef, useState } from "react";
 import { ChevronDown, Download, FileUp, Plus, Trash2, X } from "lucide-react";
 
 import { SPORTS } from "../data/events";
-import { guessSport, movingSeconds, parseGpx, routePath, splits as splitList, toGpx, trackDistance, downsample, compact } from "../model/geo";
-import { addDays, fmtClock, fmtDay, fmtDistance, fmtMinutes, fmtRate, mondayOf, parseClock, toIsoDay, M_PER_MI } from "../model/units";
+import { routePath, toGpx } from "../model/geo";
+import { importedActivity, readActivityFile } from "../model/fileImport";
+import { addDays, fmtClock, fmtDay, fmtDistance, fmtMinutes, fmtRate, mondayOf, parseClock, M_PER_MI } from "../model/units";
 import { loadTracks } from "../state/paceStore";
 import { gapNote } from "../model/live";
 import { SportIcon } from "./ui";
@@ -171,6 +172,33 @@ function Detail({ a, unit, onDelete, onPatch }) {
   );
 }
 
+/** Where to find the file on each kind of watch or app. */
+function WatchHelp() {
+  return (
+    <details className="pc-notes pc-watch-help">
+      <summary>Getting a workout off your watch</summary>
+      <p>Record on your watch as normal, then bring the file here. PaceFox reads FIT, TCX and GPX files, and zip files of them. A workout on a day your plan has a session of the same sport counts as that session.</p>
+      <ul>
+        <li>
+          <strong>Garmin:</strong> in Garmin Connect on the web, open the activity, then the gear menu, then Export Original. Pick the zip it downloads.
+        </li>
+        <li>
+          <strong>Strava</strong> (works for almost any watch that syncs to Strava, Apple Watch included): open the activity on the web, then the three-dot menu, then Export Original or Export GPX.
+        </li>
+        <li>
+          <strong>Apple Watch:</strong> websites can't read Apple Health. Let the Workout app sync to Strava and export from there, or use an iPhone app such as HealthFit or RunGap to save the workout as a FIT file.
+        </li>
+        <li>
+          <strong>Coros, Polar, Suunto, Wahoo:</strong> each app can export a workout as FIT or GPX (in the activity's share or export menu), or sync to Strava.
+        </li>
+        <li>
+          <strong>Concept2 PM5:</strong> sync it to the Concept2 Logbook with the ErgData app, then open the workout on log.concept2.com and export it as TCX or FIT. Or connect the PM5 live on the Go tab.
+        </li>
+      </ul>
+    </details>
+  );
+}
+
 export default function LogTab({ store, today, openId, onOpen }) {
   const { data, addActivity, deleteActivity, updateActivity } = store;
   const { unit } = data.prefs;
@@ -180,38 +208,27 @@ export default function LogTab({ store, today, openId, onOpen }) {
 
   async function importFiles(files) {
     let ok = 0;
+    const errors = [];
+    const matched = [];
     for (const f of files) {
       try {
-        const g = parseGpx(await f.text());
-        const pts = g.points.map(compact);
-        const meters = trackDistance(pts);
-        const sec = movingSeconds(pts) || (pts.at(-1).t - pts[0].t) / 1000;
-        const sport = guessSport(g.type, meters / Math.max(1, sec));
-        const hrs = pts.map(p => p.hr).filter(Boolean);
-        const unitM = sport === "row" ? 500 : unit === "km" ? 1000 : M_PER_MI;
-        addActivity(
-          {
-            id: `g${pts[0].t.toString(36)}`,
-            sport,
-            title: g.name || SPORTS[sport].name,
-            start: new Date(pts[0].t).toISOString(),
-            day: toIsoDay(pts[0].t),
-            sec,
-            meters,
-            hrAvg: hrs.length ? Math.round(hrs.reduce((n, h) => n + h, 0) / hrs.length) : null,
-            hrMax: hrs.length ? Math.max(...hrs) : null,
-            source: "gpx",
-            splits: splitList(pts, unitM).map(s => s.sec),
-            splitUnit: sport === "row" ? "500m" : unit,
-          },
-          downsample(pts, 600)
-        );
-        ok += 1;
+        const read = await readActivityFile(f.name, new Uint8Array(await f.arrayBuffer()));
+        if (!read.length) throw new Error("No workouts found.");
+        for (const { workout } of read) {
+          const { activity, track } = importedActivity(workout, { unit, plans: data.plans });
+          if (addActivity(activity, track)) {
+            ok += 1;
+            if (activity.sessionId) matched.push(activity.title);
+          }
+        }
       } catch (e) {
-        setMsg(`${f.name}: ${e.message}`);
+        errors.push(`${f.name}: ${e.message}`);
       }
     }
-    if (ok) setMsg(`Imported ${ok} workout${ok === 1 ? "" : "s"}.`);
+    const parts = [];
+    if (ok) parts.push(`Imported ${ok} workout${ok === 1 ? "" : "s"}.${matched.length ? ` ${matched.length === 1 ? "It counts" : `${matched.length} count`} for that day's plan session.` : ""}`);
+    parts.push(...errors);
+    setMsg(parts.join(" ") || null);
   }
 
   const byDay = useMemo(() => {
@@ -229,12 +246,12 @@ export default function LogTab({ store, today, openId, onOpen }) {
           <Plus size={16} /> Add by hand
         </button>
         <button type="button" className="pc-btn pc-btn-quiet" onClick={() => file.current?.click()}>
-          <FileUp size={16} /> Import GPX
+          <FileUp size={16} /> Import from a watch
         </button>
         <input
           ref={file}
           type="file"
-          accept=".gpx,application/gpx+xml,application/xml,text/xml"
+          accept=".fit,.tcx,.gpx,.zip,.gz,application/gpx+xml,application/xml,text/xml,application/zip,application/gzip,application/octet-stream"
           multiple
           hidden
           onChange={e => {
@@ -244,6 +261,7 @@ export default function LogTab({ store, today, openId, onOpen }) {
         />
       </div>
       {msg && <p className="pc-hint" role="status">{msg}</p>}
+      <WatchHelp />
       {adding && (
         <AddForm
           unit={unit}
@@ -260,7 +278,7 @@ export default function LogTab({ store, today, openId, onOpen }) {
       {!data.activities.length && (
         <section className="pc-card pc-empty">
           <h3>No workouts yet</h3>
-          <p>Record one on the Go tab, add one by hand, or import GPX files from your watch, Strava or Garmin Connect.</p>
+          <p>Record one on the Go tab, add one by hand, or import FIT, TCX or GPX files from your watch, Strava, Garmin Connect or the Concept2 Logbook.</p>
         </section>
       )}
 

@@ -13,6 +13,10 @@ import { normalizeData } from "../state/paceStore.js";
 import { planItems, launchTargets } from "../model/planLink.js";
 import { paceWorkouts } from "../model/fuelLink.js";
 import { addDays, fmtClock, parseClock, weekdayOf, fmtPace } from "../model/units.js";
+import { ROW_WORKOUTS, ROW_GROUPS, LENGTHS, rowWorkoutSteps, timeOnly, hasDistanceSteps } from "../data/rowWorkouts.js";
+import { trackDistanceStep, endDistanceStep, paceCallout, progressCallout, readyAnnouncement } from "../model/live.js";
+import { parsePm5General, parsePm5Additional, parsePm5Stroke } from "../model/bluetooth.js";
+import { parseFit, sampleSplits, unzip, readActivityFile, importedActivity } from "../model/fileImport.js";
 
 let passed = 0;
 const check = (name, fn) => {
@@ -248,5 +252,249 @@ check("clock and pace formatting", () => {
   assert.equal(parseClock("abc"), null);
   assert.equal(fmtPace(450, "mi"), "7:30 /mi");
 });
+
+// ---- Rowing workouts ---------------------------------------------------------
+
+check("every rowing workout builds sensible steps at every length", () => {
+  const groups = new Set(ROW_GROUPS.map(g => g.id));
+  assert(ROW_WORKOUTS.length >= 12);
+  assert.equal(new Set(ROW_WORKOUTS.map(w => w.id)).size, ROW_WORKOUTS.length);
+  for (const w of ROW_WORKOUTS) {
+    assert(groups.has(w.group), `${w.id} group`);
+    for (const len of LENGTHS.map(l => l.id)) {
+      for (const profile of [null, { row2k: 420 }]) {
+        const steps = rowWorkoutSteps(w.id, len, profile);
+        assert(steps.length >= 2, `${w.id} steps`);
+        assert(steps.every(st => st.sec > 0 && st.zone >= 1 && st.zone <= 6 && st.label), `${w.id} ${len} steps valid`);
+        assert(steps.some(st => st.kind === "work" || st.kind === "steady"), `${w.id} has work`);
+        assert(steps.every(st => !st.meters || (st.meters >= 250 && st.kind === "work")), `${w.id} distance steps`);
+        const min = stepsSeconds(steps) / 60;
+        assert(min >= 12 && min <= 90, `${w.id} ${len} is ${min} min`);
+        assert(typeof w.detail(len) === "string" && w.detail(len).length > 3);
+        // Rest only ever sits between pieces, never at the end.
+        assert.notEqual(steps.at(-1).kind, "rest");
+      }
+    }
+  }
+  // Longer is longer.
+  assert(stepsSeconds(rowWorkoutSteps("8x500", "long")) > stepsSeconds(rowWorkoutSteps("8x500", "short")));
+  // A faster rower's distance pieces are estimated shorter.
+  const slow = rowWorkoutSteps("4x1000", "standard", { row2k: 540 }).find(st => st.meters);
+  const fast = rowWorkoutSteps("4x1000", "standard", { row2k: 400 }).find(st => st.meters);
+  assert(fast.sec < slow.sec);
+  // 4 x 1000 m with 3 rests between, grouped for display.
+  const four = rowWorkoutSteps("4x1000", "standard", null);
+  assert.equal(four.filter(st => st.meters === 1000).length, 4);
+  assert.equal(four.filter(st => st.kind === "rest").length, 3);
+  const g = groupSteps(four).find(x => x.set);
+  assert.equal(g.n, 4);
+  assert.equal(g.work.meters, 1000);
+  // Without anything measuring distance, pieces run on time.
+  assert(hasDistanceSteps(four));
+  assert(!hasDistanceSteps(timeOnly(four)));
+  assert(timeOnly(four).filter(st => st.estimated).length === 4);
+});
+
+check("distance pieces end on the meter, then the rest runs on time", () => {
+  const steps = [
+    { label: "Warm up", kind: "warm", sec: 60, zone: 1 },
+    { label: "500 m", kind: "work", meters: 500, sec: 120, zone: 5, rep: [1, 2] },
+    { label: "Rest", kind: "rest", sec: 90, zone: 1, rep: [1, 2] },
+    { label: "500 m", kind: "work", meters: 500, sec: 120, zone: 5, rep: [2, 2] },
+  ];
+  let live = { ...newLive({ sport: "row", mode: "indoor", steps, now: 0 }), meters: 0 };
+  const at = (sec, l = live) => stepAt(steps, sec, l.marks);
+  assert.equal(at(30).index, 0);
+  assert.equal(at(30).left, 30);
+  // Into the first piece: no time left, it runs until 500 m.
+  let a = at(100);
+  assert.equal(a.index, 1);
+  assert.equal(a.left, null);
+  live = { ...live, meters: 120 };
+  let r = trackDistanceStep(live, a, 100);
+  live = r.live;
+  assert.equal(live.mStart[1], 120);
+  assert.equal(r.metersLeft, 500);
+  // Still going at 250 s (slow rower): still the piece.
+  live = { ...live, meters: 500 };
+  r = trackDistanceStep(live, at(250), 250);
+  assert.equal(r.metersLeft, 120);
+  assert.equal(at(250).index, 1);
+  // Done at 280 s with a little overshoot.
+  live = { ...live, meters: 630 };
+  r = trackDistanceStep(live, at(280), 280);
+  live = r.live;
+  assert.equal(live.marks[1], 280);
+  assert.equal(live.mStart[2], 620, "overshoot carries into the next step");
+  a = at(300);
+  assert.equal(a.index, 2);
+  assert.equal(a.left, 70);
+  // After the rest, the second piece starts.
+  assert.equal(at(371).index, 3);
+  // Skip ends a distance piece right away, and the last one ends the session.
+  live = endDistanceStep(live, 3, 400);
+  assert(at(401).done);
+});
+
+check("rowing callouts: rest says what's next, splits, halfway, get ready", () => {
+  const rest = { label: "Rest", kind: "rest", sec: 120, zone: 1, cue: "Breathe." };
+  const piece = { label: "1000 m", kind: "work", meters: 1000, sec: 230, zone: 4, rep: [2, 4] };
+  const t = zoneTarget(4, "row", { row2k: 420 });
+  const sayRest = stepAnnouncement(rest, null, "mi", piece, t);
+  assert.match(sayRest, /^Rest, 2 minutes\./);
+  assert.match(sayRest, /Next: 1000 meters, at 1 \d\d to 1 \d\d splits\./);
+  const sayPiece = stepAnnouncement(piece, t, "mi");
+  assert.match(sayPiece, /^2 of 4\. 1000 m, 1000 meters\. Aim for/);
+  assert.equal(paceCallout(112, "ok"), "1 52 split. On target.");
+  assert.equal(paceCallout(125, "slow"), "2 oh 5 split. Push a little.");
+  assert.equal(paceCallout(null, "ok"), null);
+  assert.equal(progressCallout(piece, { metersLeft: 490 })?.key, "half");
+  assert.equal(progressCallout(piece, { metersLeft: 240 })?.key, "250");
+  assert.equal(progressCallout(piece, { metersLeft: 700 }), null);
+  const timedPiece = { label: "8 min", kind: "work", sec: 480, zone: 4 };
+  assert.equal(progressCallout(timedPiece, { into: 241, left: 239 })?.key, "half");
+  assert.equal(progressCallout(timedPiece, { into: 451, left: 29 })?.key, "30");
+  assert.equal(readyAnnouncement(piece), "Ten seconds. Piece 2 of 4. Get ready.");
+});
+
+// ---- Concept2 PM5 ----------------------------------------------------------------
+
+check("Concept2 PM5 status data", () => {
+  const g = new DataView(new Uint8Array([0x10, 0x27, 0x00, 0xe8, 0x03, 0x00, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 120]).buffer);
+  const gen = parsePm5General(g);
+  assert.equal(gen.elapsed, 100);
+  assert.equal(gen.distance, 100);
+  // speed 4.2 m/s, rate 28, hr 255 (none), pace 1:59.04
+  const a = new DataView(new Uint8Array([0, 0, 0, 0x68, 0x10, 28, 255, 0x80, 0x2e, 0, 0]).buffer);
+  assert.deepEqual(parsePm5Additional(a), { speed: 4.2, strokeRate: 28, split: 119.04 });
+  const st = new DataView(new Uint8Array([0, 0, 0, 0xc8, 0x00, 0, 0]).buffer);
+  assert.deepEqual(parsePm5Stroke(st), { power: 200 });
+});
+
+// ---- Watch files --------------------------------------------------------------------
+
+/** A tiny FIT file: a session and some records, little-endian. */
+function makeFit({ sport = 15, records, session }) {
+  const out = [];
+  const u8 = n => out.push(n & 0xff);
+  const u16 = n => { u8(n); u8(n >> 8); };
+  const u32 = n => { u16(n & 0xffff); u16(n >>> 16); };
+  const i32 = n => u32(n >>> 0);
+  // Definition local 0 = record: timestamp(253,u32) lat(0,s32) lon(1,s32) hr(3,u8) dist(5,u32) power(7,u16)
+  u8(0x40); u8(0); u8(0); u16(20); u8(6);
+  [[253, 4, 0x86], [0, 4, 0x85], [1, 4, 0x85], [3, 1, 0x02], [5, 4, 0x86], [7, 2, 0x84]].forEach(([a, b, c]) => { u8(a); u8(b); u8(c); });
+  for (const r of records) {
+    u8(0x00); u32(r.ts); i32(r.lat == null ? 0x7fffffff : Math.round(r.lat / (180 / 2 ** 31))); i32(r.lon == null ? 0x7fffffff : Math.round(r.lon / (180 / 2 ** 31))); u8(r.hr ?? 0xff); u32(Math.round(r.d * 100)); u16(r.power ?? 0xffff);
+  }
+  // A compressed-timestamp record (local 1 = record without timestamp): +3 s
+  u8(0x41); u8(0); u8(0); u16(20); u8(1); u8(5); u8(4); u8(0x86);
+  const last = records.at(-1);
+  u8(0x80 | (1 << 5) | ((last.ts + 3) & 0x1f)); u32(Math.round((last.d + 12) * 100));
+  // Definition local 2 = session: start(2) sport(5,enum) timer(8) dist(9) hrAvg(16) hrMax(17)
+  u8(0x42); u8(0); u8(0); u16(18); u8(6);
+  [[2, 4, 0x86], [5, 1, 0x00], [8, 4, 0x86], [9, 4, 0x86], [16, 1, 0x02], [17, 1, 0x02]].forEach(([a, b, c]) => { u8(a); u8(b); u8(c); });
+  u8(0x02); u32(session.start); u8(sport); u32(session.timer * 1000); u32(session.dist * 100); u8(session.hrAvg); u8(session.hrMax);
+  const data = Uint8Array.from(out);
+  const header = new Uint8Array(14);
+  const hv = new DataView(header.buffer);
+  hv.setUint8(0, 14); hv.setUint8(1, 0x20); hv.setUint16(2, 2132, true); hv.setUint32(4, data.length, true);
+  header.set([0x2e, 0x46, 0x49, 0x54], 8);
+  const file = new Uint8Array(14 + data.length + 2);
+  file.set(header);
+  file.set(data, 14);
+  return file;
+}
+
+const FIT_TS = 1100000000; // 2024-11-08 in FIT seconds
+const fitRow = makeFit({
+  records: Array.from({ length: 41 }, (_, i) => ({ ts: FIT_TS + i * 30, d: i * 125, hr: 140 + (i % 10), power: 180 })),
+  session: { start: FIT_TS, timer: 1200, dist: 5000, hrAvg: 145, hrMax: 162 },
+});
+
+check("reads a FIT file from a watch or rowing machine", () => {
+  const w = parseFit(fitRow);
+  assert.equal(w.type, "rowing");
+  assert.equal(w.start, (FIT_TS + 631065600) * 1000);
+  assert.equal(w.sec, 1200);
+  assert.equal(w.meters, 5000);
+  assert.equal(w.hrAvg, 145);
+  assert.equal(w.hrMax, 162);
+  assert.equal(w.powerAvg, 180);
+  assert.equal(w.points.length, 0, "an indoor row has no route");
+  assert.equal(w.samples.length, 42, "the compressed-timestamp record is read too");
+  assert.equal(w.samples.at(-1).t - w.samples.at(-2).t, 3000);
+  // 500 m every 2 minutes.
+  const sp = sampleSplits(w.samples, 500);
+  assert.equal(sp.length, 10);
+  assert(sp.every(x => Math.abs(x - 120) < 0.01));
+  const { activity, track } = importedActivity(w, { unit: "mi" });
+  assert.equal(activity.sport, "row");
+  assert.equal(activity.splitUnit, "500m");
+  assert.equal(activity.source, "watch");
+  assert.equal(track, null);
+  assert(normalizeData({ activities: [activity] }).activities[0].source === "watch");
+
+  // An outdoor run with GPS.
+  const run = parseFit(makeFit({
+    sport: 1,
+    records: Array.from({ length: 60 }, (_, i) => ({ ts: FIT_TS + i * 5, lat: 40 + i * 0.0001, lon: -105, d: i * 15, hr: 150 })),
+    session: { start: FIT_TS, timer: 300, dist: 885, hrAvg: 150, hrMax: 155 },
+  }));
+  assert.equal(run.type, "running");
+  assert.equal(run.points.length, 60);
+  assert(Math.abs(run.points[10].lat - 40.001) < 1e-6);
+  const r = importedActivity(run, { unit: "km" });
+  assert.equal(r.activity.sport, "run");
+  assert(r.track.length > 10);
+});
+
+check("a FIT workout counts for that day's plan session", () => {
+  const w = parseFit(fitRow);
+  const day = new Date(w.start).toISOString().slice(0, 10);
+  const plan = makePlan({ eventId: "row-2k", raceDate: addDays(day, 70), today: addDays(day, -14), days: 6, level: "regular" });
+  const has = allSessions(plan).find(x => x.day === day);
+  const { activity } = importedActivity(w, { plans: [plan] });
+  if (has) {
+    assert.equal(activity.planId, plan.id);
+    assert.equal(activity.sessionId, has.id);
+  }
+  const { activity: none } = importedActivity(w, { plans: [{ ...plan, sport: "run" }] });
+  assert.equal(none.sessionId, null);
+});
+
+assert.throws(() => parseFit(new Uint8Array(20)), /isn't a FIT file/);
+
+// Zip (Garmin's Export Original) and gzip (Strava's bulk export).
+async function deflate(bytes, format) {
+  const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream(format));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+function makeZip(name, data, compressed) {
+  const enc = new TextEncoder().encode(name);
+  const local = new Uint8Array(30 + enc.length + compressed.length);
+  const lv = new DataView(local.buffer);
+  lv.setUint32(0, 0x04034b50, true); lv.setUint16(8, 8, true); lv.setUint32(18, compressed.length, true); lv.setUint32(22, data.length, true); lv.setUint16(26, enc.length, true);
+  local.set(enc, 30); local.set(compressed, 30 + enc.length);
+  const central = new Uint8Array(46 + enc.length);
+  const cv = new DataView(central.buffer);
+  cv.setUint32(0, 0x02014b50, true); cv.setUint16(10, 8, true); cv.setUint32(20, compressed.length, true); cv.setUint32(24, data.length, true); cv.setUint16(28, enc.length, true); cv.setUint32(42, 0, true);
+  central.set(enc, 46);
+  const end = new Uint8Array(22);
+  const ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, 1, true); ev.setUint16(10, 1, true); ev.setUint32(12, central.length, true); ev.setUint32(16, local.length, true);
+  const out = new Uint8Array(local.length + central.length + end.length);
+  out.set(local); out.set(central, local.length); out.set(end, local.length + central.length);
+  return out;
+}
+const zip = makeZip("12345_ACTIVITY.fit", fitRow, await deflate(fitRow, "deflate-raw"));
+const inside = await unzip(zip);
+assert.equal(inside.length, 1);
+assert.deepEqual([...inside[0].bytes], [...fitRow]);
+const fromZip = await readActivityFile("export.zip", zip);
+assert.equal(fromZip[0].workout.meters, 5000);
+const fromGz = await readActivityFile("activity.fit.gz", await deflate(fitRow, "gzip"));
+assert.equal(fromGz[0].workout.sec, 1200);
+passed += 1;
+console.log("  ✓ reads zip and gzip exports");
 
 console.log(`PaceFox: ${passed} checks passed.`);

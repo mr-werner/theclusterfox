@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarDays, Compass, Settings2, Sprout, Sun, Leaf, MapPin } from "lucide-react";
+import { CalendarDays, Compass, Settings2, Sprout, Sun, Leaf, MapPin, Armchair } from "lucide-react";
 
 import AppBar from "../../components/AppBar";
 import { plantsById } from "./data/plants";
 import { effectiveClimate, zoneLabel } from "./model/climate";
 import { rate } from "./model/care";
+import { rateIndoor, roomLight } from "./model/indoor";
 import { dayNum, todayKey } from "./model/dates";
 import { defaultYard, sunGrid, withMapLight } from "./model/yard";
 import { useGrowData } from "./state/useGrowData";
@@ -15,6 +16,7 @@ import PlantDetail from "./components/PlantDetail";
 import CalendarTab from "./components/CalendarTab";
 import YardTab from "./components/YardTab";
 import GardenTab from "./components/GardenTab";
+import IndoorTab from "./components/IndoorTab";
 import SettingsSheet from "./components/SettingsSheet";
 import "./grow.css";
 import "./identity.css";
@@ -23,7 +25,8 @@ const TABS = [
   { id: "today", name: "Today", icon: Sun },
   { id: "plants", name: "Plants", icon: Leaf },
   { id: "calendar", name: "Calendar", icon: CalendarDays },
-  { id: "yard", name: "Sun & spots", icon: Compass },
+  { id: "yard", name: "Sun & spots", short: "Yard", icon: Compass },
+  { id: "indoor", name: "Indoors", icon: Armchair },
   { id: "garden", name: "My garden", icon: Sprout },
 ];
 
@@ -47,9 +50,14 @@ export default function GrowPage() {
   const yardGrid = useMemo(() => sunGrid(yard, sunLat), [yard, sunLat]);
   // Spots placed on the map take their light from it.
   const spots = useMemo(() => withMapLight(data.spots, yardGrid), [data.spots, yardGrid]);
-  const view = useMemo(() => ({ ...data, spots }), [data, spots]);
+  const view = useMemo(() => ({ ...data, spots, prefs: { ...data.prefs, hemisphere: data.hemisphere } }), [data, spots]);
   const spotsById = useMemo(() => new Map(spots.map(s => [s.id, s])), [spots]);
   const ratingFor = useCallback((plant, light = null) => rate(plant, climate, light), [climate]);
+  // Indoors: each room's light from its window, and ratings for your home.
+  const hemisphere = climate?.hemisphere ?? data.hemisphere ?? "N";
+  const rooms = useMemo(() => data.rooms.map(r => ({ ...r, lightInfo: roomLight(r, hemisphere), lightId: roomLight(r, hemisphere).id })), [data.rooms, hemisphere]);
+  const roomsById = useMemo(() => new Map(rooms.map(r => [r.id, r])), [rooms]);
+  const indoorRating = useCallback((plant, light = null) => rateIndoor(plant, light, data.home), [data.home]);
 
   // A TaskFox link (?task=…&day=…) opens Today on that day's job; ?entry= opens My garden.
   const taskParam = params.get("task");
@@ -85,6 +93,10 @@ export default function GrowPage() {
     todayNum: dayNum(today),
     spotsById,
     ratingFor,
+    indoorRating,
+    rooms,
+    roomsById,
+    hemisphere,
     openPlant,
     go,
     switchTab,
@@ -113,7 +125,8 @@ export default function GrowPage() {
           return (
             <button key={t.id} type="button" className={t.id === tab ? "active" : ""} aria-current={t.id === tab ? "page" : undefined} onClick={() => switchTab(t.id)}>
               <Icon size={18} aria-hidden="true" />
-              <span>{t.name}</span>
+              <span className="gf-tab-long">{t.name}</span>
+              <span className="gf-tab-short">{t.short ?? t.name}</span>
             </button>
           );
         })}
@@ -124,6 +137,7 @@ export default function GrowPage() {
         {tab === "plants" && <PlantsTab g={ctx} />}
         {tab === "calendar" && <CalendarTab g={ctx} />}
         {tab === "yard" && <YardTab g={ctx} />}
+        {tab === "indoor" && <IndoorTab g={ctx} />}
         {tab === "garden" && <GardenTab g={ctx} />}
       </main>
 

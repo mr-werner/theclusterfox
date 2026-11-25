@@ -470,3 +470,44 @@
   .rf-stays .rf-stop-body { flex-basis: calc(100% - 60px); }
   .rf-stays .rf-nights { margin-left: 22px; }
 }
+
+/* Your driving day, three plans, nights, gas and weather on the road */
+.rf input[type="time"] { color-scheme: dark; }
+.rf-driveday { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--rf-line); }
+.rf-driveday .rf-options label span { display: inline-flex; align-items: center; gap: 5px; }
+.rf-driveday-note { flex: 1 1 220px; align-self: center; }
+.rf-money { width: 110px; }
+.rf-note svg { vertical-align: -2px; }
+.rf-note.is-danger { border-color: rgba(255, 92, 92, 0.55); background: rgba(255, 92, 92, 0.1); color: #ffd0d0; }
+.rf-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 4px 0 14px; }
+.rf-plans button { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--rf-line); background: var(--rf-panel-2); color: var(--rf-text); font: inherit; cursor: pointer; }
+.rf-plans button strong { display: inline-flex; align-items: center; gap: 4px; }
+.rf-plans button span { font-size: 0.86rem; }
+.rf-plans button small { color: var(--rf-muted); font-size: 0.78rem; }
+.rf-plans button.is-on { border-color: var(--rf-accent); box-shadow: inset 0 0 0 1px var(--rf-accent); }
+.rf-daytimes { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: 0.86rem; color: var(--rf-muted); }
+.rf-daytimes > span:first-child { display: inline-flex; align-items: center; gap: 5px; }
+.rf-daytimes-edit { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; width: 100%; }
+.rf-daytimes-edit label { display: inline-flex; gap: 6px; align-items: center; }
+.rf-daywarn { display: inline-flex; gap: 5px; align-items: center; font-size: 0.84rem; color: #ffd2c6; }
+.rf-daywarn.is-danger { color: #ffb0b0; font-weight: 700; }
+.rf-wx { list-style: none; margin: 0; padding: 0 0 4px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
+.rf-wx li { flex: none; display: grid; gap: 1px; min-width: 108px; max-width: 150px; padding: 7px 9px; border-radius: 10px; background: rgba(76, 184, 224, 0.1); border: 1px solid rgba(76, 184, 224, 0.25); font-size: 0.8rem; }
+.rf-wx li strong { font-size: 1.05rem; }
+.rf-wx li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rf-wx-time { color: var(--t-outdoors); font-weight: 700; }
+.rf-wx li.is-hazard { background: rgba(255, 138, 107, 0.14); border-color: rgba(255, 138, 107, 0.5); }
+.rf-wx li em { font-style: normal; font-weight: 700; color: #ffb59f; display: inline-flex; align-items: center; gap: 3px; white-space: normal; }
+.rf-wx-later { display: inline-flex; gap: 5px; align-items: center; }
+.rf-gas { background: rgba(255, 138, 76, 0.1) !important; }
+.rf-gas > svg { color: #ff8a4c; margin-top: 3px; flex: none; }
+.rf-fit { font-weight: 700; }
+.rf-fit.is-ok { color: #7fdca4; }
+.rf-fit.is-over { color: #ffb59f; }
+.rf-night-more { display: grid; gap: 8px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--rf-line); }
+.rf-options-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 0.86rem; }
+.rf-options-list li { display: block !important; padding: 0 !important; background: none !important; border: 0 !important; }
+.rf-options-list svg { vertical-align: -2px; color: var(--rf-accent); }
+.rf-key--fuel { background: #ff8a4c; }
+.rf-key--wx { background: #ff5c5c; }
+.rf-pin--wx .rf-pin-dot { fill: #ff5c5c; stroke: #fff; stroke-width: 2; }

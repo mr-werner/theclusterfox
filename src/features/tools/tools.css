@@ -831,6 +831,193 @@
   font-size: 0.8rem;
 }
 
+/* Term definitions: the ? beside labels, and the glossary on each calc page */
+
+.tf-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.tf-label-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.tf-term-btn {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tf-muted);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.tf-term-btn:hover,
+.tf-term-btn.is-open {
+  background: color-mix(in srgb, var(--tf-cat) 16%, transparent);
+  color: var(--tf-cat);
+}
+
+.tf-primary-label .tf-term-btn {
+  margin-left: 4px;
+}
+
+.tf-result dt .tf-term-btn {
+  margin-left: 4px;
+}
+
+.tf-term-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--tf-cat);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tf-cat) 9%, var(--tf-surface-2));
+  color: #d5dcd8;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.tf-term-card p {
+  margin: 0;
+  max-width: none;
+  color: inherit;
+  line-height: 1.5;
+}
+
+.tf-about .tf-term-card p {
+  line-height: 1.5;
+}
+
+.tf-term-card strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.tf-term-card.is-compact {
+  margin-top: 8px;
+}
+
+.tf-term-name {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  color: #fff;
+  font-weight: 600;
+}
+
+.tf-term-symbol {
+  color: var(--tf-cat);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82em;
+  font-weight: 500;
+}
+
+.tf-primary .tf-term-card {
+  margin-top: 12px;
+}
+
+.tf-result {
+  flex-wrap: wrap;
+}
+
+.tf-result dd.tf-result-term {
+  flex: 1 0 100%;
+  margin: 2px 0 4px;
+}
+
+.tf-use-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tf-use-field {
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--tf-cat) 40%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tf-cat) 10%, transparent);
+  color: #e6ece9;
+  font-size: 0.8rem;
+}
+
+.tf-use-examples {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: #c9d0cc;
+  line-height: 1.5;
+}
+
+.tf-use-examples li::marker {
+  color: var(--tf-cat);
+}
+
+.tf-term-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 8px;
+  align-items: start;
+  margin-top: 10px;
+}
+
+.tf-term-item {
+  padding: 9px 12px;
+  border: 1px solid var(--tf-line);
+  border-radius: 10px;
+  background: var(--tf-surface-2);
+  font-family: "DM Sans", sans-serif;
+}
+
+.tf-term-item[open] {
+  border-color: color-mix(in srgb, var(--tf-cat) 40%, transparent);
+}
+
+.tf-term-item summary {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  color: #e6ece9;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tf-term-item .tf-term-card {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.tf-terms > p.tf-small {
+  margin: -4px 0 0;
+}
+
+@media print {
+  .tf-term-btn {
+    display: none;
+  }
+}
+
 /* Visuals and charts */
 
 .tf-visual {

@@ -30,6 +30,10 @@ export function newLive({ sport, mode, steps = null, planId = null, sessionId = 
     power: { sum: 0, n: 0 },
     machine: null, // { start, last } total distance from an FTMS machine
     cues: { step: -1, split: 0 },
+    // Distance pieces: the meters on the clock when each one started, and the
+    // active second it ended (by step index).
+    marks: {},
+    mStart: {},
   };
 }
 
@@ -80,21 +84,62 @@ export function addSensor(live, v) {
   return next;
 }
 
-/** Which step of the session you are on, at this many active seconds. */
-export function stepAt(steps, sec) {
+/**
+ * Which step of the session you are on, at this many active seconds.
+ * A distance step (one with meters) lasts until marks[index] says when it
+ * ended; until then it is the current step and has no time left (left is null).
+ */
+export function stepAt(steps, sec, marks = null) {
   if (!steps?.length) return null;
   let t = 0;
   for (let i = 0; i < steps.length; i += 1) {
     const s = steps[i];
+    const last = i === steps.length - 1;
+    const next = steps[i + 1] ?? null;
+    if (s.meters) {
+      const end = marks?.[i];
+      if (end == null) return { index: i, step: s, into: Math.max(0, sec - t), left: null, next, done: false };
+      if (last) return { index: i, step: s, into: end - t, left: 0, next: null, done: true };
+      t = end;
+      continue;
+    }
     const end = t + s.sec;
     // An open step (a race) lasts until you finish.
-    if (sec < end || s.open || i === steps.length - 1) {
-      return { index: i, step: s, into: sec - t, left: s.open ? null : Math.max(0, end - sec), next: steps[i + 1] ?? null, done: !s.open && i === steps.length - 1 && sec >= end };
+    if (sec < end || s.open || last) {
+      return { index: i, step: s, into: sec - t, left: s.open ? null : Math.max(0, end - sec), next, done: !s.open && last && sec >= end };
     }
     t = end;
   }
   return null;
 }
+
+/**
+ * Keep track of distance pieces as the meters come in. Call it on every tick
+ * with the current step from stepAt(). It notes where a step started and, once
+ * a distance step has covered its meters, when it ended.
+ * Returns the live recording (changed or not) and metersLeft for a distance step.
+ */
+export function trackDistanceStep(live, at, sec) {
+  if (!at || !live.steps) return { live, metersLeft: null };
+  const i = at.index;
+  let next = live;
+  const mStart = live.mStart ?? {};
+  if (mStart[i] == null) next = { ...next, mStart: { ...mStart, [i]: live.meters } };
+  const step = at.step;
+  if (!step.meters || at.done) return { live: next, metersLeft: null };
+  const from = next.mStart[i];
+  const left = step.meters - (live.meters - from);
+  if (left > 0) return { live: next, metersLeft: left };
+  // Done: the next step starts where this one should have ended, so a few
+  // meters of overshoot don't shorten the next piece.
+  return {
+    live: { ...next, marks: { ...(next.marks ?? {}), [i]: sec }, mStart: { ...next.mStart, [i + 1]: from + step.meters } },
+    metersLeft: 0,
+  };
+}
+
+/** End the current distance step now (the Skip button). */
+export const endDistanceStep = (live, index, sec) => ({ ...live, marks: { ...(live.marks ?? {}), [index]: sec }, mStart: { ...(live.mStart ?? {}), [index + 1]: live.meters } });
 
 const say = sec => {
   const s = Math.round(sec);
@@ -103,7 +148,7 @@ const say = sec => {
   const r = s % 60;
   if (!r) return `${m} minute${m === 1 ? "" : "s"}`;
   if (r === 30) return `${m} and a half minutes`;
-  return `${m} minutes ${r} seconds`;
+  return `${m} minute${m === 1 ? "" : "s"} ${r} seconds`;
 };
 /** "7:05" as speech: "7 oh 5". */
 const sayClock = sec => {
@@ -113,21 +158,67 @@ const sayClock = sec => {
   return r === 0 ? `${m} flat` : `${m} ${r < 10 ? `oh ${r}` : r}`;
 };
 
-/** What the voice says at the start of a step. target comes from zoneTarget(). */
-export function stepAnnouncement(step, target, unit) {
+const sayMeters = mtr => `${Math.round(mtr)} meters`;
+const sayTarget = (target, unit) =>
+  target?.metric === "pace"
+    ? `${sayClock(target.low)} to ${sayClock(target.high)} per ${unit === "km" ? "kilometer" : "mile"}`
+    : target?.metric === "power"
+      ? `${target.low} to ${target.high} watts`
+      : target?.metric === "split"
+        ? `${sayClock(target.low)} to ${sayClock(target.high)} splits`
+        : target?.metric === "hr"
+          ? `heart rate ${target.low} to ${target.high}`
+          : null;
+
+/**
+ * What the voice says at the start of a step. target comes from zoneTarget().
+ * On a rest step, nextTarget lets it say what's coming: "Next: 1000 meters at 1:50 splits."
+ */
+export function stepAnnouncement(step, target, unit, next = null, nextTarget = null) {
   const parts = [];
   const rep = step.rep && step.kind === "work" ? `${step.rep[0]} of ${step.rep[1]}. ` : "";
-  const len = step.open ? "" : `, ${say(step.sec)}`;
+  const len = step.open ? "" : step.meters ? `, ${sayMeters(step.meters)}` : `, ${say(step.sec)}`;
   parts.push(`${rep}${step.label}${len}.`);
   if (step.kind === "work" || step.kind === "steady") {
-    if (target?.metric === "pace") parts.push(`Aim for ${sayClock(target.low)} to ${sayClock(target.high)} per ${unit === "km" ? "kilometer" : "mile"}.`);
-    else if (target?.metric === "power") parts.push(`Aim for ${target.low} to ${target.high} watts.`);
-    else if (target?.metric === "split") parts.push(`Aim for ${sayClock(target.low)} to ${sayClock(target.high)} splits.`);
-    else if (target?.metric === "hr") parts.push(`Heart rate ${target.low} to ${target.high}.`);
+    const t = sayTarget(target, unit);
+    if (t) parts.push(`Aim for ${t}.`);
     else parts.push(`${ZONES[step.zone]?.feel ?? ""}`);
   }
   if (step.cue) parts.push(step.cue);
+  if (step.kind === "rest" && next && (next.kind === "work" || next.kind === "steady")) {
+    const t = sayTarget(nextTarget, unit);
+    const what = next.meters ? sayMeters(next.meters) : next.open || next.estimated ? next.label : say(next.sec);
+    parts.push(`Next: ${what}${t ? `, at ${t}` : ""}.`);
+  }
   return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
+/** "Get ready" near the end of a rest, before the next piece. */
+export function readyAnnouncement(next) {
+  const rep = next.rep && next.kind === "work" ? ` Piece ${next.rep[0]} of ${next.rep[1]}.` : "";
+  return `Ten seconds.${rep} Get ready.`;
+}
+
+/** Live split callout while rowing a piece: "1 52 split. On target." */
+export function paceCallout(splitSec, verdict) {
+  if (!Number.isFinite(splitSec) || splitSec <= 0 || splitSec > 600) return null;
+  const word = verdict === "ok" ? " On target." : verdict === "slow" ? " Push a little." : verdict === "fast" ? " Ease off a touch." : "";
+  return `${sayClock(splitSec)} split.${word}`;
+}
+
+/** Halfway and "250 to go" style callouts within a piece. */
+export function progressCallout(step, { into, left, metersLeft }) {
+  if (step.meters) {
+    if (metersLeft == null) return null;
+    if (step.meters >= 1000 && metersLeft <= step.meters / 2 && metersLeft > step.meters / 2 - 40) return { key: "half", text: "Halfway." };
+    if (step.meters >= 500 && metersLeft <= 250 && metersLeft > 210) return { key: "250", text: "250 to go." };
+    if (step.meters >= 250 && metersLeft <= 100 && metersLeft > 70) return { key: "100", text: "100 to go. Everything." };
+    return null;
+  }
+  if (left == null || step.sec < 120) return null;
+  if (into >= step.sec / 2 && into < step.sec / 2 + 3) return { key: "half", text: "Halfway." };
+  if (left <= 30 && left > 27 && step.sec >= 180) return { key: "30", text: "30 seconds left." };
+  return null;
 }
 
 /** What the voice says at each mile, kilometer or (rowing) 500 m. */

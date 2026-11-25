@@ -1,16 +1,15 @@
 // Grocery stores from OpenStreetMap (free, keyless, through the Overpass
 // API; data © OpenStreetMap contributors, ODbL). The browser asks Overpass
-// directly: Overpass allows it, and it keeps each lookup on the shopper's
-// own connection, since Overpass turns away busy cloud servers.
+// directly through src/lib/osm/overpass.js, which keeps each lookup on the
+// shopper's own connection and only falls back to /api/apps/overpass.
 
 import { clean, isLat, isLon, miles, webUrl } from "./_geo.js";
-
-export const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
+import { overpass } from "../../src/lib/osm/overpass.js";
 export const SHOPS = "supermarket|grocery|wholesale|greengrocer|health_food";
 export const KROGER_BRANDS = /kroger|ralphs|fred meyer|king soopers|smith'?s|fry'?s|qfc|harris teeter|dillons|mariano'?s|pick ?'?n ?save|metro market|foods co|city market|gerbes|baker'?s|jay ?c|pay ?less|food ?4 ?less|ruler|copps/i;
 
 export function overpassQuery(lat, lon, meters) {
-  return `[out:json][timeout:10];nwr(around:${Math.round(meters)},${lat.toFixed(5)},${lon.toFixed(5)})["shop"~"^(${SHOPS})$"]["name"];out center tags 150;`;
+  return `[out:json][timeout:20];nwr(around:${Math.round(meters)},${lat.toFixed(5)},${lon.toFixed(5)})["shop"~"^(${SHOPS})$"]["name"];out center tags 150;`;
 }
 
 export function parseOsm(body, here) {
@@ -54,24 +53,14 @@ export function mergeStores(osm, krogerStores, here) {
     .sort((a, b) => a.distance - b.distance);
 }
 
-// Asks every Overpass mirror at once and takes the first good answer, since
-// any one of them can be busy.
-export async function fetchOsm(lat, lon, radius, { timeout = 15000 } = {}) {
-  const body = new URLSearchParams({ data: overpassQuery(lat, lon, radius * 1609.34) }).toString();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(new Error("timed out")), timeout);
+// Through the shared Overpass helper: one mirror at a time with fallbacks,
+// a time limit, and answers kept for a day.
+export async function fetchOsm(lat, lon, radius, { signal } = {}) {
   try {
-    return await Promise.any(
-      OVERPASS.map(async url => {
-        const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body, signal: controller.signal });
-        if (!response.ok) throw new Error(`${new URL(url).host}: ${response.status}`);
-        return parseOsm(await response.json(), { lat, lon });
-      })
-    );
+    const body = await overpass(overpassQuery(lat, lon, radius * 1609.34), { signal, timeout: 30000 });
+    return parseOsm(body, { lat, lon });
   } catch (error) {
-    throw new Error("Store search isn't responding. Try again in a moment.", { cause: error });
-  } finally {
-    clearTimeout(timer);
-    controller.abort();
+    if (error.name === "AbortError") throw error;
+    throw new Error(error.kind === "offline" ? error.message : "Store search isn't responding. Try again in a moment.", { cause: error });
   }
 }

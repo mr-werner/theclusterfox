@@ -2,6 +2,8 @@
 // trips and game progress. Plain functions so tests and TaskFox can use them.
 
 import { VEHICLE_PRESETS } from "../model/fuel.js";
+import { DEFAULT_DRIVE } from "../model/days.js";
+import { STAY_BY_ID } from "../model/stays.js";
 
 export const STORAGE_KEY = "roadfox-data-v1";
 
@@ -12,6 +14,9 @@ export function emptyData() {
     to: null,
     departDate: null, // "YYYY-MM-DD"
     hoursPerDay: 7,
+    drive: { ...DEFAULT_DRIVE }, // your driving day: start/finish (minutes after midnight), flex minutes, stay kind, $ a night
+    dayTimes: {}, // { dayIndex: { start, finish } } for days that differ
+    plan: "planned", // planned | further | earlier
     vehicle: { ...VEHICLE_PRESETS[1] },
     pack: emptyPack(),
     trips: [],
@@ -84,7 +89,7 @@ function cleanTrip(t) {
     to,
     theme: str(t.theme, 12) || "fastest",
     departDate: isDay(t.departDate) ? t.departDate : null,
-    hoursPerDay: num(t.hoursPerDay, 7, 2, 14),
+    hoursPerDay: num(t.hoursPerDay, 7, 1, 16),
     miles: num(t.miles, 0, 0, 20000),
     minutes: num(t.minutes, 0, 0, 100000),
     line,
@@ -96,6 +101,32 @@ function cleanTrip(t) {
     pack: cleanPack(t.pack),
     createdAt: str(t.createdAt, 30),
   };
+}
+
+export function cleanDrive(d) {
+  const base = DEFAULT_DRIVE;
+  if (!isObj(d)) return { ...base };
+  const start = num(Math.round(d.start), base.start, 0, 23 * 60);
+  const finish = num(Math.round(d.finish), base.finish, 60, 28 * 60);
+  return {
+    start,
+    finish: finish > start + 30 ? finish : Math.min(28 * 60, start + 10 * 60),
+    flex: num(Math.round(d.flex), base.flex, 15, 240),
+    stay: STAY_BY_ID[d.stay] ? d.stay : base.stay,
+    budget: num(Math.round(d.budget), base.budget, 0, 2000),
+  };
+}
+
+export function cleanDayTimes(t) {
+  const out = {};
+  for (const [k, v] of Object.entries(isObj(t) ? t : {}).slice(0, 40)) {
+    if (!/^\d{1,2}$/.test(k) || !isObj(v)) continue;
+    const day = {};
+    if (Number.isFinite(v.start)) day.start = num(Math.round(v.start), 480, 0, 23 * 60);
+    if (Number.isFinite(v.finish)) day.finish = num(Math.round(v.finish), 1080, 60, 28 * 60);
+    if (Object.keys(day).length) out[k] = day;
+  }
+  return out;
 }
 
 export function normalizeData(raw) {
@@ -111,7 +142,10 @@ export function normalizeData(raw) {
     from: cleanPlace(raw.from),
     to: cleanPlace(raw.to),
     departDate: isDay(raw.departDate) ? raw.departDate : null,
-    hoursPerDay: num(raw.hoursPerDay, base.hoursPerDay, 2, 14),
+    hoursPerDay: num(raw.hoursPerDay, base.hoursPerDay, 1, 16),
+    drive: cleanDrive(raw.drive),
+    dayTimes: cleanDayTimes(raw.dayTimes),
+    plan: ["planned", "further", "earlier"].includes(raw.plan) ? raw.plan : "planned",
     vehicle: cleanVehicle(raw.vehicle),
     pack: cleanPack(raw.pack),
     trips: (Array.isArray(raw.trips) ? raw.trips : []).map(cleanTrip).filter(Boolean).slice(0, 40),

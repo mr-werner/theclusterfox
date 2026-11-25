@@ -22,6 +22,7 @@ export function ZoneChip({ zone }) {
 }
 
 const dur = sec => (sec < 90 ? `${Math.round(sec)} s` : sec % 60 ? fmtClock(sec) : `${Math.round(sec / 60)} min`);
+const len = step => (step.meters ? `${step.meters} m` : dur(step.sec));
 
 function StepLine({ step, sport, profile, unit, label }) {
   const t = zoneTarget(step.zone, sport, profile, unit);
@@ -57,7 +58,7 @@ export function StepList({ steps, sport, profile, unit, activeIndex = null }) {
           return (
             <li key={gi} className={`pc-step is-set${on ? " is-on" : ""}`}>
               <span className="pc-step-len">
-                {g.n} × {dur(g.work.sec)}
+                {g.n} × {len(g.work)}
               </span>
               <div>
                 <StepLine step={g.work} sport={sport} profile={profile} unit={unit} />
@@ -73,7 +74,7 @@ export function StepList({ steps, sport, profile, unit, activeIndex = null }) {
         const on = activeIndex === start;
         return (
           <li key={gi} className={`pc-step is-${g.step.kind}${on ? " is-on" : ""}`}>
-            <span className="pc-step-len">{g.step.open ? "race" : dur(g.step.sec)}</span>
+            <span className="pc-step-len">{g.step.open ? "race" : len(g.step)}</span>
             <StepLine step={g.step} sport={sport} profile={profile} unit={unit} />
           </li>
         );

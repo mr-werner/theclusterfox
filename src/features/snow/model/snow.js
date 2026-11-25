@@ -17,6 +17,12 @@ export function fmtSnow(cm, units = "us", { zero = "0" } = {}) {
   return inches < 3 ? `${Math.round(inches * 2) / 2}″` : `${Math.round(inches)}″`;
 }
 
+/** Lifts open as a fraction, e.g. { open: 8, total: 12 }, or null before any lift is reported. */
+export function liftFraction(live) {
+  const total = live?.lifts?.length ?? 0;
+  return total ? { open: live.open ?? 0, total } : null;
+}
+
 export function fmtDepth(meters, units = "us") {
   if (!Number.isFinite(meters)) return "–";
   return units === "metric" ? `${Math.round(meters * 100)} cm` : `${Math.round((meters * 100) / CM_PER_IN)}″`;

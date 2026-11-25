@@ -10,6 +10,8 @@
 
 import { searchPlaces } from "../../services/weather/openMeteo.js";
 import { M_PER_FT, canadaLevel, inGeometry } from "./model/snow.js";
+import { parseLiftie } from "../../../api/plan/_snow.js";
+import { overpass } from "../../lib/osm/overpass.js";
 
 const FORECAST = "https://api.open-meteo.com/v1/forecast";
 const HOURLY = [
@@ -260,7 +262,6 @@ export async function fetchRoadPoints(points, { signal } = {}) {
 
 // ---- Trail map from OpenStreetMap ----
 
-const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
 const mapCache = new Map();
 
 /** Runs and lifts mapped in OpenStreetMap around a ski area. */
@@ -270,19 +271,13 @@ export async function fetchTrailMap({ lat, lon, id }, { signal } = {}) {
   const dLon = 0.06;
   const bbox = [lat - dLat, lon - dLon, lat + dLat, lon + dLon].map(v => v.toFixed(4)).join(",");
   const query = `[out:json][timeout:25];(way["piste:type"="downhill"](${bbox});way["aerialway"](${bbox}););out geom tags;`;
-  let body = null;
-  for (const url of OVERPASS) {
-    try {
-      const response = await fetch(url, { method: "POST", body: new URLSearchParams({ data: query }), signal });
-      if (response.ok) {
-        body = await response.json();
-        break;
-      }
-    } catch (error) {
-      if (error.name === "AbortError") throw error;
-    }
+  let body;
+  try {
+    body = await overpass(query, { signal, ttl: 7 * 24 * 3600 * 1000 });
+  } catch (error) {
+    if (error.name === "AbortError" || error.kind === "offline") throw error;
+    throw new Error("The OpenStreetMap trail data is busy. Try again in a minute.", { cause: error });
   }
-  if (!body) throw new Error("The OpenStreetMap trail data is busy. Try again in a minute.");
   const map = parseTrailMap(body);
   mapCache.set(id, map);
   return map;
@@ -313,7 +308,22 @@ async function server(params, { signal } = {}) {
   return json(`/api/plan/snow?${new URLSearchParams(params)}`, { signal }, "SnowFox's data service isn't responding.");
 }
 
-export const fetchLifts = (liftieId, opts) => server({ kind: "lifts", id: liftieId }, opts);
+// Liftie sometimes turns away server requests, so if ours fails, ask it
+// straight from the browser before giving up.
+export async function fetchLifts(liftieId, opts = {}) {
+  try {
+    return await server({ kind: "lifts", id: liftieId }, opts);
+  } catch (error) {
+    if (error.name === "AbortError") throw error;
+    const body = await json(`https://liftie.info/api/resort/${encodeURIComponent(liftieId)}`, { signal: opts.signal }, error.message).catch(e => {
+      if (e.name === "AbortError") throw e;
+      throw error;
+    });
+    const lifts = parseLiftie(body);
+    if (!lifts) throw error;
+    return { ...lifts, source: "Liftie" };
+  }
+}
 export const fetchSnotel = ({ lat, lon }, opts) => server({ kind: "snotel", lat: lat.toFixed(4), lon: lon.toFixed(4) }, opts).then(b => b.sites ?? []);
 
 export { searchPlaces };

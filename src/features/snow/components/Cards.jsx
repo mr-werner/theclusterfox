@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { AlertTriangle, CableCar, ExternalLink, Layers, ShieldAlert } from "lucide-react";
 
-import { fetchAlerts, fetchAvalanche, fetchLifts, fetchSnotel } from "../api";
+import { fetchAlerts, fetchAvalanche, fetchSnotel } from "../api";
 import { useLoad } from "../model/useLoad";
-import { fmtDepth, fmtElev, hourAt } from "../model/snow";
+import { fmtDepth, fmtElev, hourAt, liftFraction } from "../model/snow";
 import { Card, DangerChip, Loading, Problem } from "./ui";
 
 const LIFT_WORD = { open: "Open", hold: "On hold", scheduled: "Opens later", closed: "Closed" };
 
-/** Live lift status (from Liftie), and the honest word on wait times. */
-export function LiftsCard({ spot }) {
-  const live = useLoad(spot.liftie ? `lifts-${spot.liftie}` : null, signal => fetchLifts(spot.liftie, { signal }));
+/** Live lift status (from Liftie, loaded by the page), and the honest word on runs and wait times. */
+export function LiftsCard({ spot, live }) {
   const [all, setAll] = useState(false);
+  const fraction = liftFraction(live.data);
   const lifts = live.data?.lifts ?? [];
   const order = { open: 0, hold: 1, scheduled: 2, closed: 3 };
   const shown = [...lifts].sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
@@ -36,7 +36,7 @@ export function LiftsCard({ spot }) {
         <>
           <div className="sf-lift-sum">
             <span className="is-open">
-              <b>{live.data.open}</b> open
+              <b>{fraction ? `${fraction.open}/${fraction.total}` : live.data.open}</b> lifts open
             </span>
             {live.data.hold > 0 && (
               <span className="is-hold">
@@ -74,23 +74,35 @@ export function LiftsCard({ spot }) {
       )}
       {(live.data || live.error) && <p className="sf-credit">Live status via Liftie, which reads the resort's own page.</p>}
       <p className="sf-note">
+        <b>Runs open:</b> resorts post open runs only on their own pages, with no free shared feed, so SnowFox can't count them yet. Official status above has today's runs.
+      </p>
+      <p className="sf-note">
         <b>Lift lines:</b> no resort shares live wait times publicly (Vail shows some only inside its own app), so SnowFox can't show them. The crowd outlook above is an estimate from weekends, holidays and fresh snow.
       </p>
     </Card>
   );
 }
 
-/** Snow on the ground: the model's depth, and real SNOTEL sensors nearby. */
-export function SnowpackCard({ spot, summitHours, units }) {
+/** Snow on the ground: the model's depth at the base and top, and real SNOTEL sensors nearby. */
+export function SnowpackCard({ spot, summitHours, baseHours, units }) {
   const now = hourAt(summitHours);
+  const nowBase = baseHours ? hourAt(baseHours) : null;
   const us = spot.country === "US" && spot.state !== "NH" && spot.lon < -100;
   const sensors = useLoad(us ? `snotel-${spot.lat},${spot.lon}` : null, signal => fetchSnotel(spot, { signal }));
   return (
     <Card title="Snow on the ground" icon={Layers}>
       <dl className="sf-facts">
         <div>
-          <dt>Model depth at the top</dt>
-          <dd>{Number.isFinite(now?.depth) ? fmtDepth(now.depth, units) : "Not available here"}</dd>
+          <dt>{spot.kind === "resort" ? "Base depth (model)" : `${spot.lowName ?? "Low"} depth (model)`}</dt>
+          <dd>
+            {Number.isFinite(nowBase?.depth) ? fmtDepth(nowBase.depth, units) : "Not available here"} <small>at {fmtElev(spot.base, units)}</small>
+          </dd>
+        </div>
+        <div>
+          <dt>{spot.kind === "resort" ? "Summit depth (model)" : `${spot.highName ?? "High"} depth (model)`}</dt>
+          <dd>
+            {Number.isFinite(now?.depth) ? fmtDepth(now.depth, units) : "Not available here"} <small>at {fmtElev(spot.summit, units)}</small>
+          </dd>
         </div>
       </dl>
       {!us && <p className="sf-muted">SNOTEL snow sensors cover the western US and Alaska. Check the resort's report for measured depth.</p>}

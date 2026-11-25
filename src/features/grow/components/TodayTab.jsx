@@ -14,7 +14,19 @@ import { tempText } from "./format";
 
 export default function TodayTab({ g }) {
   const { data, climate, today } = g;
-  if (!climate) return <Welcome g={g} />;
+  if (!climate) {
+    // Indoor plants don't need a place: show their jobs under the welcome.
+    return (
+      <>
+        <Welcome g={g} />
+        {data.garden.some(e => e.inside) && (
+          <div className="gf-today">
+            <Week g={g} />
+          </div>
+        )}
+      </>
+    );
+  }
   return (
     <div className="gf-today">
       {g.taskParam && <FocusTask g={g} />}
@@ -51,6 +63,13 @@ function Welcome({ g }) {
       <p>Tell GrowFox where your garden is. It reads ten years of local weather to find your hardiness zone, frost dates and growing season, then rates every plant for your yard and tells you when to plant and how often to care for it.</p>
       <ClimateStatus g={g} />
       <PlaceSetup g={g} />
+      <p className="gf-hint gf-welcome-indoor">
+        Only growing inside?{" "}
+        <button type="button" className="gf-link" onClick={() => g.switchTab("indoor")}>
+          Set up your indoor garden
+        </button>{" "}
+        without a place.
+      </p>
     </div>
   );
 }
@@ -147,7 +166,7 @@ function FrostWatch({ g }) {
   const { data, climate } = g;
   const days = useForecast(data.place);
   const tender = useMemo(
-    () => [...new Set(data.garden.filter(e => e.status === "growing").map(e => plantsById.get(e.plantId)).filter(p => (!p.zones && !isFrostHardy(p)) || (p.zones && p.zones[0] > Math.floor(climate.zone))).map(p => p.name))],
+    () => [...new Set(data.garden.filter(e => e.status === "growing" && !e.inside).map(e => plantsById.get(e.plantId)).filter(p => (!p.zones && !isFrostHardy(p)) || (p.zones && p.zones[0] > Math.floor(climate.zone))).map(p => p.name))],
     [data.garden, climate.zone]
   );
   if (!days) return null;

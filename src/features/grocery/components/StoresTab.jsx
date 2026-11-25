@@ -20,7 +20,7 @@ export default function StoresTab({ data, change, go }) {
     if (!searchKey) return undefined;
     const [lat, lon, r] = searchKey.split(",").map(Number);
     const controller = new AbortController();
-    Promise.allSettled([fetchOsm(lat, lon, r), getJson(`/api/cook/stores?lat=${lat}&lon=${lon}&radius=${r}`, { signal: controller.signal })]).then(([osm, ours]) => {
+    Promise.allSettled([fetchOsm(lat, lon, r, { signal: controller.signal }), getJson(`/api/cook/stores?lat=${lat}&lon=${lon}&radius=${r}`, { signal: controller.signal })]).then(([osm, ours]) => {
       if (controller.signal.aborted) return;
       const list = mergeStores(osm.value ?? [], ours.value?.stores ?? [], { lat, lon }).filter(s => s.distance <= r);
       const error = list.length ? "" : osm.status === "rejected" ? osm.reason.message : `No grocery stores are mapped within ${r} miles. Try a wider distance.`;

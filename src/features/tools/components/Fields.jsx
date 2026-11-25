@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DIMS, fromSI, toSI, fmtInput, parseNumber } from "../model/units";
+import { useTerm } from "./useTerm";
 
 export function UnitSelect({ dim, unit, onChange, label, compact }) {
   const d = DIMS[dim];
@@ -19,7 +20,8 @@ export function UnitSelect({ dim, unit, onChange, label, compact }) {
 }
 
 /** A number box that shows an SI value in the chosen unit and accepts things like 4.7k, 1 1/4 and 3/8. */
-export function NumField({ id, label, hint, dim, value, unit, onValue, onUnit }) {
+export function NumField({ id, label, hint, dim, value, unit, onValue, onUnit, term }) {
+  const info = useTerm(term);
   const [text, setText] = useState("");
   const [editing, setEditing] = useState(false);
   const shown = Number.isFinite(value) ? fmtInput(fromSI(value, dim, unit)) : text;
@@ -28,7 +30,11 @@ export function NumField({ id, label, hint, dim, value, unit, onValue, onUnit })
 
   return (
     <div className="tf-field">
-      <label htmlFor={id}>{label}</label>
+      <div className="tf-label-row">
+        <label htmlFor={id}>{label}</label>
+        {info.button}
+      </div>
+      {info.panel}
       <div className={`tf-input-row ${bad ? "is-bad" : ""}`}>
         <input
           id={id}
@@ -70,13 +76,18 @@ export function NumField({ id, label, hint, dim, value, unit, onValue, onUnit })
   );
 }
 
-export function ChoiceField({ id, label, options, value, onChange }) {
+export function ChoiceField({ id, label, options, value, onChange, term }) {
+  const info = useTerm(term);
   if (options.length <= 4 && options.every((o) => o.label.length < 26)) {
     return (
       <div className="tf-field">
-        <span className="tf-label" id={`${id}-label`}>
-          {label}
-        </span>
+        <div className="tf-label-row">
+          <span className="tf-label" id={`${id}-label`}>
+            {label}
+          </span>
+          {info.button}
+        </div>
+        {info.panel}
         <div className="tf-segmented" role="radiogroup" aria-labelledby={`${id}-label`}>
           {options.map((o) => (
             <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}>
@@ -89,7 +100,11 @@ export function ChoiceField({ id, label, options, value, onChange }) {
   }
   return (
     <div className="tf-field">
-      <label htmlFor={id}>{label}</label>
+      <div className="tf-label-row">
+        <label htmlFor={id}>{label}</label>
+        {info.button}
+      </div>
+      {info.panel}
       <select id={id} className="tf-select" value={value} onChange={(e) => onChange(e.target.value)}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -117,10 +132,15 @@ export function PresetField({ id, label, options, value, onPick }) {
   );
 }
 
-export function TextField({ id, label, value, onChange }) {
+export function TextField({ id, label, value, onChange, term }) {
+  const info = useTerm(term);
   return (
     <div className="tf-field">
-      <label htmlFor={id}>{label}</label>
+      <div className="tf-label-row">
+        <label htmlFor={id}>{label}</label>
+        {info.button}
+      </div>
+      {info.panel}
       <input id={id} className="tf-text" value={value} onChange={(e) => onChange(e.target.value)} autoComplete="off" spellCheck="false" />
     </div>
   );

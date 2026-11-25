@@ -14,6 +14,7 @@ import { FT, KT, SCENARIOS, levelThrottle, readout, scenarioById, stallSpeedKt, 
 import { papiColors } from "../model/simView.js";
 import { fmtFreq, gradeCall, normalizeCall, parseFreq, turnKnob } from "../model/radio.js";
 import { FREQS, LESSONS } from "../data/radio.js";
+import { alongAtTime, assessLanding, corridorGrid, flyingWeather, hourAt, mergePlaces, parseRouteHours, pickLandingSpots, placesFromWikipedia, pointAlong, runwayNeedFt, timeAtAlong, weatherStretches } from "../model/trip.js";
 
 let passed = 0;
 const test = (name, fn) => {
@@ -250,6 +251,85 @@ test("every radio lesson's example call passes its own check, and bad calls don'
   }
   const spoken = gradeCall("foxfield ground skyhawk one two three four alpha at the FBO with information bravo request taxi", LESSONS[0].steps[1].expect);
   assert.ok(spoken.ok, "a spoken-style ground call passes");
+});
+
+test("trip timing: where you are and when you get there", () => {
+  const route = [
+    { id: "A", lat: 39, lon: -105 },
+    { id: "B", lat: 39, lon: -103 },
+  ];
+  const total = distanceNm(route[0], route[1]);
+  const samples = samplePoints(route, 20);
+  const plan = planFlight({ waypoints: route, aircraft: { tas: 120, gph: 9, usableGal: 53 }, altitudeFt: 6500, departAt: 0, samples, profiles: null });
+  near(plan.totalMin, (total / 120) * 60, 0.5);
+  const mid = pointAlong(route, total / 2);
+  near(mid.lat, 39, 0.02);
+  near(mid.lon, -104, 0.02);
+  near(timeAtAlong(plan, total / 2), (plan.totalMin / 2) * 60000, 2000);
+  near(alongAtTime(plan, (plan.totalMin / 2) * 60000), total / 2, 0.5);
+  assert.equal(alongAtTime(plan, -5), 0);
+  near(alongAtTime(plan, 1e12), total, 0.01);
+});
+
+test("landing spots: runway, ownership and fuel decide what's realistic", () => {
+  const c172 = { id: "c172", name: "Cessna 172S", tas: 120 };
+  const rwy = (len, surface = "Asphalt", id = "11/29") => ({ id, lengthFt: len, surface });
+  assert.equal(runwayNeedFt(c172, 0), 2800);
+  assert.ok(runwayNeedFt(c172, 6000) > 3900, "high fields need more runway");
+  assert.equal(assessLanding({ name: "Town Muni", owner: "P", fuel: true, elevFt: 500, runways: [rwy(5400)] }, c172).level, "good");
+  assert.equal(assessLanding({ name: "Town Muni", owner: "P", fuel: false, elevFt: 500, runways: [rwy(5400)] }, c172).level, "ok");
+  assert.equal(assessLanding({ name: "Farm Strip", owner: "P", fuel: true, elevFt: 500, runways: [rwy(3600, "Turf")] }, c172).level, "ok");
+  assert.equal(assessLanding({ name: "Short Field", owner: "P", fuel: true, elevFt: 500, runways: [rwy(1800)] }, c172).level, "short");
+  assert.equal(assessLanding({ name: "Buckley Space Force Base", owner: "M", runways: [rwy(11000)] }, c172).level, "no");
+  assert.equal(assessLanding({ name: "Hospital", owner: "P", runways: [rwy(60, "Concrete", "H1")] }, c172).level, "no");
+  // The parser keeps the owner code these checks use.
+  assert.equal(parseAirports([{ icaoId: "KBKF", name: "AURORA/BUCKLEY", owner: "M", runways: [] }])[0].owner, "M");
+
+  const spot = (id, alongNm, level, extra = {}) => ({ id, alongNm, offNm: 3, category: "VFR", landing: { level, longestFt: 5000, needFt: 2800 }, ...extra });
+  const picks = pickLandingSpots([spot("K1", 5, "good"), spot("K2", 60, "ok"), spot("K3", 70, "good"), spot("K4", 140, "short"), spot("K5", 150, "good", { category: "IFR" }), spot("K6", 160, "ok")], 200);
+  assert.ok(!picks.some(p => p.id === "K1"), "skips the field next to departure");
+  assert.ok(!picks.some(p => p.id === "K4"), "skips a runway that's too short");
+  assert.ok(picks.some(p => p.id === "K3"), "prefers a good stop over one without fuel");
+});
+
+test("weather along the trip: forecast hours read as flying conditions", () => {
+  const hours = parseRouteHours({ hourly: { time: [0, 3600], precipitation: [0, 3], precipitation_probability: [5, 90], weather_code: [1, 95], cloud_cover_low: [0, 80], cloud_cover: [20, 100], visibility: [24000, 3000], wind_gusts_10m: [5, 18], cape: [100, 1800], freezing_level_height: [3500, 3200], temperature_2m: [15, 12] } });
+  assert.equal(hours.length, 2);
+  near(hours[1].gustKt, 35, 0.1);
+  assert.equal(hourAt(hours, 3000 * 1000).t, 3600000);
+  assert.equal(hourAt(hours, 20 * 3600000), null, "no hour that far out");
+  assert.equal(flyingWeather(hours[0], 5500).level, 0);
+  const storm = flyingWeather(hours[1], 5500);
+  assert.equal(storm.level, 3);
+  assert.ok(storm.flags.includes("Thunderstorms") && storm.flags.includes("Low clouds"));
+  assert.equal(flyingWeather(null, 5500).level, null);
+
+  const route = [{ id: "A", lat: 39, lon: -105 }, { id: "B", lat: 39, lon: -103 }];
+  const samples = samplePoints(route, 30);
+  const grid = corridorGrid(samples, 20);
+  assert.equal(grid.length, samples.length * 3);
+  near(distanceNm(grid[0], grid[1]), 20, 0.5);
+  const plan = planFlight({ waypoints: route, aircraft: { tas: 60, gph: 9, usableGal: 53 }, altitudeFt: 5500, departAt: 0, samples, profiles: null });
+  const withHours = grid.map(p => ({ ...p, hours }));
+  const stretches = weatherStretches(withHours, { plan, altitudeFt: 5500 });
+  assert.equal(stretches[0].level, 0, "clear at departure");
+  assert.equal(stretches[stretches.length - 1].level, 3, "storms an hour in");
+});
+
+test("things to do: Wikipedia places skip the airport and its neighbors", () => {
+  const from = { lat: 38.43, lon: -105.1 };
+  const body = { query: { pages: {
+    1: { pageid: 1, title: "Fremont County Airport", description: "airport in Colorado", coordinates: [{ lat: 38.43, lon: -105.1 }] },
+    2: { pageid: 2, title: "Royal Gorge Bridge", description: "suspension bridge in Colorado", coordinates: [{ lat: 38.46, lon: -105.32 }] },
+    3: { pageid: 3, title: "Museum of Colorado Prisons", description: "museum", coordinates: [{ lat: 38.44, lon: -105.24 }] },
+    4: { pageid: 4, title: "Cañon City High School", description: "school", coordinates: [{ lat: 38.44, lon: -105.23 }] },
+  } } };
+  const places = placesFromWikipedia(body, from, { skipName: "Canon City/Fremont County" });
+  assert.deepEqual(places.map(p => p.name).sort(), ["Museum of Colorado Prisons", "Royal Gorge Bridge"]);
+  assert.equal(places.find(p => p.name.startsWith("Museum")).kind, "Museum");
+  const merged = mergePlaces([places, [{ id: "o1", name: "Royal Gorge bridge", kind: "Sight", distNm: 10 }, { id: "o2", name: "Diner", kind: "Food", distNm: 0.4 }]]);
+  assert.equal(merged[0].name, "Diner", "food near the field first");
+  assert.equal(merged.filter(p => /royal gorge/i.test(p.name)).length, 1, "duplicates merged");
 });
 
 console.log(`PilotFox: ${passed} checks passed.`);

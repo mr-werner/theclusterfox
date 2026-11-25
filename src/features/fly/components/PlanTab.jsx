@@ -2,10 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowDown, ArrowUp, BookmarkPlus, Fuel, Plane, Plus, Route, Trash2, Wind } from "lucide-react";
 
 import { fetchHazards, fetchMetars, fetchMetarsInBox, fetchTafs } from "../api";
+import { fetchAirportDetails } from "../tripApi";
 import { fetchWindsAloft } from "../../../services/weather/windsAloft";
 import { airportsAlong, bestStop, corridorBoxes, courseDeg, distanceNm, fmtMinutes, fuelStops, hazardsOnRoute, isNight, pad3, planFlight, reserveMinutes, samplePoints } from "../model/nav";
+import { assessLanding } from "../model/trip";
 import { AIRCRAFT_PRESETS } from "../state/flyStore";
 import FlyMap from "./FlyMap";
+import LandingSpots from "./LandingSpots";
+import TripWeather from "./TripWeather";
 import { AirportSearch, Cat, ErrorNote, Loading, MetarCard } from "./ui";
 import { fmtAlt, fmtTime, fmtVis, fmtWind } from "./format";
 import { TafCard } from "./WindsTab";
@@ -118,15 +122,38 @@ export default function PlanTab({ f, openFlight }) {
   }, [ready, res.samples, res.profiles, route, aircraft, departMs, magCourse, groundFt]);
   const fastest = altitudeOptions.reduce((b, o) => (!b || o.totalMin < b.totalMin ? o : b), null);
 
-  const candidates = useMemo(() => {
+  const along = useMemo(() => {
     if (!ready) return [];
     return airportsAlong(route, res.metarsAlong, { maxOffNm: 25, skip: [] });
   }, [ready, res.metarsAlong, route]);
 
+  // Runways, fuel and tower for every airport along the way, so stops can be ones you can really use.
+  const [details, setDetails] = useState({ key: "", byId: new Map(), state: "idle" });
+  const alongKey = along.map(c => c.id).join(",");
+  useEffect(() => {
+    if (!alongKey) return undefined;
+    const ctl = new AbortController();
+    setDetails(d => ({ ...d, state: "loading" }));
+    fetchAirportDetails(alongKey.split(","), { signal: ctl.signal })
+      .then(list => setDetails({ key: alongKey, byId: new Map(list.map(a => [a.id, a])), state: "ready" }))
+      .catch(e => e.name !== "AbortError" && setDetails(d => ({ ...d, state: "error" })));
+    return () => ctl.abort();
+  }, [alongKey]);
+  const candidates = useMemo(
+    () =>
+      along.map(c => {
+        const a = details.byId.get(c.id);
+        if (!a) return c;
+        return { ...c, faaId: a.faaId, fuel: a.fuel, towered: a.towered, runways: a.runways, elevFt: a.elevFt ?? c.elevFt, landing: assessLanding(a, aircraft) };
+      }),
+    [along, details.byId, aircraft]
+  );
+
   const stops = useMemo(() => {
     if (!plan) return [];
     const ids = new Set(route.map(p => p.id));
-    const pool = candidates.filter(c => !ids.has(c.id));
+    // Leave out fields you can't use: runway too short, military or private.
+    const pool = candidates.filter(c => !ids.has(c.id) && c.landing?.level !== "short" && c.landing?.level !== "no");
     return fuelStops(plan, aircraft, { night }).map(s => ({ ...s, airport: bestStop(pool, s.alongNm) }));
   }, [plan, aircraft, night, candidates, route]);
 
@@ -180,7 +207,7 @@ export default function PlanTab({ f, openFlight }) {
           <div>
             <p className="fy-kicker">Flight planner</p>
             <h1>{route.length >= 2 ? `${route[0].id} to ${route[route.length - 1].id}` : "Plan a flight"}</h1>
-            <p className="fy-muted">Winds aloft along the way, the weather at each airport you pass, hazards on the route, and where to stop for fuel.</p>
+            <p className="fy-muted">Winds aloft along the way, the weather at each airport you pass, hazards on the route, where to stop for fuel, places worth landing and the forecast timed to where you'll be.</p>
           </div>
           {route.length > 0 && (
             <button type="button" className="fy-btn is-ghost is-small" onClick={() => setRoute([])}>
@@ -401,8 +428,24 @@ export default function PlanTab({ f, openFlight }) {
             )}
           </section>
 
+          <LandingSpots
+            spots={candidates}
+            plan={plan}
+            route={route}
+            aircraft={aircraft}
+            departMs={departMs}
+            loading={details.state === "loading"}
+            onAdd={insertStop}
+            onShow={id => {
+              setSelected(id);
+              document.querySelector(".fy-map-card")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+          />
+
+          <TripWeather route={route} routeKey={routeKey} plan={plan} samples={res.samples} altitudeFt={data.altitudeFt} departMs={departMs} />
+
           <section className="fy-card">
-            <h2>Weather along the way</h2>
+            <h2>Airport weather along the way</h2>
             {candidates.length === 0 ? (
               <p className="fy-muted">No airports with weather reports within 25 nm of the route.</p>
             ) : (

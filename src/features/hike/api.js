@@ -6,37 +6,18 @@
 //  - Place search from Open-Meteo (shared with SkyFox).
 
 import { searchPlaces } from "../../services/weather/openMeteo.js";
+import { overpass as sharedOverpass } from "../../lib/osm/overpass.js";
 import { bounds, dist, distanceToLine, isLoop, lineLength, locateOnLine, resample, simplifyTo, stitchToOne } from "./model/geo.js";
 
 export { searchPlaces };
 
-const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
-
-/**
- * Run an Overpass query. Starts with the main server and only asks a
- * mirror if it hasn't answered in a few seconds, so we stay polite.
- */
-export async function overpass(query, { signal } = {}) {
-  const body = new URLSearchParams({ data: query }).toString();
-  const controller = new AbortController();
-  const stop = () => controller.abort();
-  signal?.addEventListener("abort", stop);
+/** Run an Overpass query through the shared helper, with TrailFox's wording. */
+export async function overpass(query, opts) {
   try {
-    return await Promise.any(
-      OVERPASS.map(async (url, i) => {
-        if (i) await new Promise(r => setTimeout(r, i * 5000));
-        if (controller.signal.aborted) throw new Error("done");
-        const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body, signal: controller.signal });
-        if (!response.ok) throw new Error(`${response.status}`);
-        return await response.json();
-      })
-    );
+    return await sharedOverpass(query, opts);
   } catch (error) {
-    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    if (error.name === "AbortError" || error.kind === "offline") throw error;
     throw new Error("The OpenStreetMap trail database is busy. Try again in a minute.", { cause: error });
-  } finally {
-    signal?.removeEventListener("abort", stop);
-    controller.abort();
   }
 }
 

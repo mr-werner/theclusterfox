@@ -22,6 +22,10 @@ function Route({ points }) {
 
 const VERDICT = { ok: "On target", fast: "Ease off", slow: "Pick it up" };
 
+/** The big number for the current step: time left, meters left, or time so far. */
+const stepClock = (at, metersLeft) => (at.done ? "Done!" : at.step.meters ? (metersLeft != null ? `${Math.ceil(metersLeft)} m` : `${at.step.meters} m`) : at.left != null ? fmtClock(Math.ceil(at.left)) : fmtClock(at.into));
+const stepLen = s => (s.open ? "" : s.meters ? `· ${s.meters} m` : `· ${fmtClock(s.sec)}`);
+
 function FinishSheet({ live, recorder, store, onSaved, onClose }) {
   const { data, addActivity } = store;
   const [title, setTitle] = useState(live.title);
@@ -121,7 +125,7 @@ function FinishSheet({ live, recorder, store, onSaved, onClose }) {
  * black pixels are switched off, so this draws far less power than the
  * normal live view. No gradients, colors, route or animation.
  */
-function SaverView({ live, sec, at, speed, unit, hr, paused, onPause, onResume, onFinish, onExit }) {
+function SaverView({ live, sec, at, metersLeft, speed, unit, hr, paused, onPause, onResume, onFinish, onExit }) {
   return (
     <div className="pc-saver" role="region" aria-label="Battery saver screen">
       <p className="pc-saver-state">{paused ? "Paused" : live.title}</p>
@@ -144,7 +148,7 @@ function SaverView({ live, sec, at, speed, unit, hr, paused, onPause, onResume, 
       </div>
       {at && (
         <p className="pc-saver-step">
-          {at.done ? "Session done" : `${at.step.label}${at.step.rep && at.step.kind === "work" ? ` ${at.step.rep[0]}/${at.step.rep[1]}` : ""} · ${at.left != null ? fmtClock(Math.ceil(at.left)) : fmtClock(at.into)}`}
+          {at.done ? "Session done" : `${at.step.label}${at.step.rep && at.step.kind === "work" ? ` ${at.step.rep[0]}/${at.step.rep[1]}` : ""} · ${stepClock(at, metersLeft)}`}
         </p>
       )}
       <div className="pc-saver-controls">
@@ -171,7 +175,7 @@ function SaverView({ live, sec, at, speed, unit, hr, paused, onPause, onResume, 
 /** The screen you look at while training. Big numbers, big buttons. */
 export default function LiveView({ store, recorder, sensors, onSaved }) {
   const { data, setPrefs } = store;
-  const { live, sec, at, speed, target, verdict, gps, awake } = recorder;
+  const { live, sec, at, metersLeft, speed, target, verdict, gps, awake } = recorder;
   const [finishing, setFinishing] = useState(false);
   const unit = data.prefs.unit;
   const v = sensors.values;
@@ -206,6 +210,7 @@ export default function LiveView({ store, recorder, sensors, onSaved }) {
           live={live}
           sec={sec}
           at={at}
+          metersLeft={metersLeft}
           speed={speed}
           unit={unit}
           hr={v.hr}
@@ -273,12 +278,14 @@ export default function LiveView({ store, recorder, sensors, onSaved }) {
             </strong>
             {verdict && <span className={`pc-verdict is-${verdict}`}>{VERDICT[verdict]}</span>}
           </div>
-          <div className="pc-now-time">{at.done ? "Done!" : at.left != null ? fmtClock(Math.ceil(at.left)) : fmtClock(at.into)}</div>
+          <div className="pc-now-time">{stepClock(at, metersLeft)}</div>
+          {at.step.meters && !at.done && <p className="pc-now-sub">to go · {fmtClock(at.into)} in</p>}
+          {at.step.estimated && <p className="pc-now-sub">Timed from your usual split, since nothing is measuring distance</p>}
           <p className="pc-now-target">{target?.target ?? target?.hr ?? ZONES[at.step.zone]?.feel}{target?.rate ? ` · ${target.rate}` : ""}</p>
           {at.step.cue && <p className="pc-now-cue">{at.step.cue}</p>}
           {at.next && (
             <p className="pc-now-next">
-              Next: {at.next.label} {at.next.open ? "" : `· ${fmtClock(at.next.sec)}`}
+              Next: {at.next.label} {stepLen(at.next)}
             </p>
           )}
           <SessionShape steps={live.steps} activeIndex={at.index} progress={total ? sec / total : null} />
@@ -297,7 +304,7 @@ export default function LiveView({ store, recorder, sensors, onSaved }) {
             <Pause size={22} /> Pause
           </button>
         )}
-        {at && !at.done && at.left != null && (
+        {at && !at.done && (at.left != null || at.step.meters) && (
           <button type="button" className="pc-btn pc-btn-quiet" onClick={recorder.skipStep}>
             <SkipForward size={18} /> Skip step
           </button>

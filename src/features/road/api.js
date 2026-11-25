@@ -2,7 +2,7 @@
 //  - places: Open-Meteo geocoding (keyless)
 //  - routes: the public OSRM server (keyless, fair use)
 //  - stops, gas stations, chargers, towns: OpenStreetMap through Overpass
-//    (keyless; the browser asks directly, like CookFox does)
+//    (keyless; the browser asks directly through src/lib/osm/overpass.js)
 //  - gas prices: U.S. EIA weekly averages, and DC fast chargers: NREL,
 //    both through /api/road (free keys; DEMO_KEY works for light use)
 //  - weather at each night's stop and where you stay: Open-Meteo forecast
@@ -14,10 +14,10 @@ import { activityQuery, classifyWiki, overpassAlong } from "./data/themes.js";
 import { corridorFromOsm } from "./model/stays.js";
 import { cumulative, sampleEvery } from "./model/geo.js";
 import { stationsFromOsm } from "./model/fuel.js";
+import { overpass } from "../../lib/osm/overpass.js";
 import { parseForecastDays, shiftYears, typicalDays } from "./model/packing.js";
 
 const OSRM = "https://router.project-osrm.org";
-const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
 
 export async function findPlaces(text, opts) {
   const list = await searchPlaces(text, opts);
@@ -43,30 +43,6 @@ export async function fetchRoutes(points, { alternatives = false, signal } = {})
   const routes = parseOsrm(body);
   if (!routes.length) throw new Error("No route found between those places.");
   return routes;
-}
-
-// Ask every Overpass mirror at once and take the first good answer.
-async function overpass(query, { signal, timeout = 60000 } = {}) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-  const stop = () => controller.abort();
-  signal?.addEventListener("abort", stop);
-  try {
-    return await Promise.any(
-      OVERPASS.map(async url => {
-        const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ data: query }).toString(), signal: controller.signal });
-        if (!response.ok) throw new Error(`${response.status}`);
-        return response.json();
-      })
-    );
-  } catch (error) {
-    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
-    throw new Error("The map database (OpenStreetMap) is busy. Try again in a moment.", { cause: error });
-  } finally {
-    clearTimeout(timer);
-    controller.abort();
-    signal?.removeEventListener("abort", stop);
-  }
 }
 
 /** Things to do near a route (sampled points with .lat/.lon). */

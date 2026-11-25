@@ -498,6 +498,10 @@ export const freeAppDetails = {
   "Magyar Elektronikus Könyvtár": { note: "Free public library run by the National Széchényi Library." },
   "Hungaricana": { note: "Free public portal from Hungarian libraries, archives and museums." },
   "Helyesírás": { note: "Free public service; no account needed." },
+  "RTM Klik": { limits: ["region"], note: "Public and free; some programs only play in Malaysia." },
+  "Tonton": { limits: ["ads", "region"], note: "Free with ads and a free account; most shows are Malaysia only." },
+  "SYOK": { limits: ["ads"], note: "Free with ads; live radio plays worldwide." },
+  "PRPM": { note: "Free public reference from Dewan Bahasa dan Pustaka." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -836,4 +840,8 @@ export const freeAppCountries = {
   "Magyar Elektronikus Könyvtár": "Hungary",
   "Hungaricana": "Hungary",
   "Helyesírás": "Hungary",
+  "RTM Klik": "Malaysia",
+  "Tonton": "Malaysia",
+  "SYOK": "Malaysia",
+  "PRPM": "Malaysia",
 };

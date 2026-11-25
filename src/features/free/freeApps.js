@@ -447,6 +447,8 @@ const categories = [
       { name: "mewatch", alt: "Netflix", url: "https://www.mewatch.sg/", mark: "me", color: "#7b2cbf", description: "Mediacorp's free streaming for Singapore dramas, variety shows and live channels." },
       { name: "HRTi", alt: "Netflix", url: "https://hrti.hrt.hr/", mark: "HR", color: "#0057a8", description: "Croatian public TV streaming, with series, documentaries and live HRT channels." },
       { name: "MédiaKlikk", alt: "Netflix", url: "https://mediaklikk.hu/", mark: "MK", color: "#e30613", description: "Hungarian public TV streaming, with M1, Duna and M5 channels, films and series." },
+      { name: "RTM Klik", alt: "Netflix", url: "https://rtmklik.rtm.gov.my/", mark: "RT", color: "#003893", description: "Malaysian public broadcaster RTM's streaming, with live TV, radio and dramas." },
+      { name: "Tonton", alt: "Netflix", url: "https://www.tonton.com.my/", mark: "To", color: "#e4002b", description: "Media Prima's free streaming for Malaysian dramas, variety shows and live TV3." },
     ],
   },
   {
@@ -548,6 +550,7 @@ const categories = [
       { name: "meListen", alt: "SiriusXM", url: "https://www.melisten.sg/", mark: "mL", color: "#ff5a36", description: "Mediacorp radio stations and podcasts from Singapore, live and on demand." },
       { name: "HRT Radio", alt: "SiriusXM", url: "https://radio.hrt.hr/", mark: "HR", color: "#0057a8", description: "Croatian public radio, including HR1, HR2 and HR3, live and on demand." },
       { name: "MédiaKlikk Rádió", alt: "SiriusXM", url: "https://mediaklikk.hu/radio", mark: "MK", color: "#e30613", description: "Hungarian public radio, including Kossuth, Petőfi and Bartók, live and on demand." },
+      { name: "SYOK", alt: "SiriusXM", url: "https://www.syok.my/", mark: "SY", color: "#ff2d55", description: "Free Malaysian app for Astro radio stations, podcasts and music videos." },
     ],
   },
   {
@@ -832,6 +835,7 @@ const categories = [
       { name: "MOE Revised Mandarin Dictionary", alt: "paid dictionaries", url: "https://dict.revised.moe.edu.tw/", mark: "國", color: "#8b0000", description: "Taiwan's official Mandarin dictionary, with pronunciations, meanings and examples." },
       { name: "Hrvatski jezični portal", alt: "paid dictionaries", url: "https://hjp.znanje.hr/", mark: "HJ", color: "#c8102e", description: "Free Croatian dictionary with meanings, grammar and word forms." },
       { name: "Helyesírás", alt: "Grammarly", url: "https://helyesiras.mta.hu/", mark: "He", color: "#00659c", description: "Official Hungarian spelling guide and checker from the Hungarian Research Centre for Linguistics." },
+      { name: "PRPM", alt: "paid dictionaries", url: "https://prpm.dbp.gov.my/", mark: "PR", color: "#006a4e", description: "Dewan Bahasa dan Pustaka's official Malay dictionary and language reference." },
     ],
   },
 ];

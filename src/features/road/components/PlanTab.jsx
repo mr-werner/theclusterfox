@@ -1,38 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowDownUp, BedDouble, BookmarkCheck, BookmarkPlus, CloudSun, ExternalLink, Flag, Navigation, Plus, Route, X } from "lucide-react";
+import { ArrowDownUp, BookmarkCheck, BookmarkPlus, ExternalLink, Navigation, Plus, Route } from "lucide-react";
 
-import { fetchDailyWeather, fetchServices } from "../api";
+import { fetchCorridor, fetchHourlyAlong } from "../api";
 import { THEMES, THEME_BY_ID } from "../data/themes";
-import { fmtMiles, fmtMinutes, miles, shrink } from "../model/geo";
-import { splitDays } from "../model/route";
+import { cumulative, fmtMiles, fmtMinutes, miles, sampleEvery, shrink } from "../model/geo";
+import { gasPlan, roadHazard, threePlans, timeline, weatherAlong } from "../model/days";
+import { legRange } from "../model/fuel";
+import { placeOnRoute } from "../model/stays";
 import { addDays } from "../state/roadStore";
-import { describeWeather } from "../../../services/weather/openMeteo";
 import RoadMap from "./RoadMap";
 import { Loading, PlaceInput } from "./ui";
 import { directionsUrl, placeUrl, THEME_ICONS } from "./links";
+import DayPlan from "./DayPlan";
+import DriveDay from "./DriveDay";
 
 const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
-const dayName = day => new Date(`${day}T12:00:00`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-
-/** The best town to sleep in near a spot: big and close wins. */
-function nightTown(towns, p) {
-  let best = null;
-  let bestScore = -Infinity;
-  for (const t of towns) {
-    const d = miles(t, p);
-    if (d > 30) continue;
-    const score = Math.log10((t.pop || (t.size === "city" ? 50000 : 5000)) + 10) * 6 - d;
-    if (score > bestScore) {
-      bestScore = score;
-      best = t;
-    }
-  }
-  return best;
-}
+const corridorCache = new Map();
+const NONE = [];
+const routeKey = c => (c ? `${c.id}|${c.route.miles.toFixed(1)}|${c.route.points.length}` : "");
+const dateMs = day => Date.parse(`${day}T00:00:00Z`);
 
 export default function PlanTab({ store, trip, selectedId, setSelectedId, savedTrip, openDay }) {
   const { data, patch } = store;
@@ -41,45 +31,87 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
   const current = routes.find(r => r.id === selectedId) ?? routes[0] ?? null;
   const [focus, setFocus] = useState(null);
   const [explore, setExplore] = useState("scenic");
-  const [towns, setTowns] = useState({});
-  const [weatherFor, setWeatherFor] = useState({ key: null, list: null });
+  const [corridorFor, setCorridorFor] = useState({ key: null, state: "idle", items: [], progress: null, error: null });
+  const [weatherFor, setWeatherFor] = useState({ key: null, list: [] });
   const [savedId, setSavedId] = useState(null);
 
-  const days = useMemo(() => (current ? splitDays(current.route, current.stops, data.hoursPerDay) : []), [current, data.hoursPerDay]);
-  const ends = days.filter(d => d.end).map(d => d.end);
-  const endsKey = ends.map(e => `${e.lat.toFixed(2)},${e.lon.toFixed(2)}`).join("|");
-
-  // Towns to sleep in, near where each day ends.
+  // Towns, places to stay and gas along the route you're looking at.
+  const rKey = current?.id === "saved" ? "" : routeKey(current);
   useEffect(() => {
-    if (!ends.length || ends.every(e => towns[`${e.lat.toFixed(2)},${e.lon.toFixed(2)}`] !== undefined)) return undefined;
+    if (!rKey) return undefined;
+    if (corridorCache.has(rKey)) return undefined;
     const ctl = new AbortController();
-    fetchServices(ends.map(e => ({ kind: "town", points: [e], meters: 45000 })), { signal: ctl.signal })
-      .then(list => {
-        const found = {};
-        for (const e of ends) found[`${e.lat.toFixed(2)},${e.lon.toFixed(2)}`] = nightTown(list, e);
-        setTowns(t => ({ ...t, ...found }));
+    fetchCorridor(current.route.points, { signal: ctl.signal, onPart: (items, progress) => setCorridorFor({ key: rKey, state: "loading", items, progress, error: null }) })
+      .then(items => {
+        corridorCache.set(rKey, items);
+        setCorridorFor({ key: rKey, state: "done", items, progress: null, error: null });
       })
-      .catch(() => {});
+      .catch(e => e.name !== "AbortError" && setCorridorFor(c => ({ ...c, key: rKey, state: c.items.length ? "done" : "error", error: e.message })));
     return () => ctl.abort();
-  }, [endsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const corridor = useMemo(
+    () => (corridorCache.has(rKey) ? { state: "done", items: corridorCache.get(rKey), progress: null } : corridorFor.key === rKey ? corridorFor : { state: rKey ? "loading" : "idle", items: NONE, progress: null }),
+    [rKey, corridorFor]
+  );
 
-  // Weather where you'll be each night and at the end, if the trip is within two weeks.
+  const samples = useMemo(() => (current ? sampleEvery(current.route.points, cumulative(current.route.points), Math.max(0.5, current.route.miles / 700)) : []), [current]);
+  const placed = useMemo(() => (current && corridor.items.length ? placeOnRoute(corridor.items, samples) : []), [corridor.items, samples]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const plans = useMemo(() => (current ? threePlans(current.route, current.stops, { drive: data.drive, hoursPerDay: data.hoursPerDay, days: data.dayTimes, places: placed }) : null), [current, data.drive, data.hoursPerDay, data.dayTimes, placed]);
+  const planId = plans?.[data.plan] ? data.plan : "planned";
+  const days = plans ? plans[planId].days : NONE;
+  const nights = plans ? plans[planId].nights : NONE;
+  const ends = days.filter(d => d.end).map(d => d.end);
+  const townName = useMemo(() => {
+    const towns = placed.filter(p => p.kind === "town");
+    return p => {
+      let best = null;
+      let bestD = 15;
+      for (const t of towns) {
+        const dd = miles(t, p);
+        if (dd < bestD) {
+          best = t;
+          bestD = dd;
+        }
+      }
+      return best ? `${bestD > 4 ? "near " : ""}${best.name}` : null;
+    };
+  }, [placed]);
+
+  // Gas: fill up where you're already stopping, before you run low.
+  const gas = useMemo(() => {
+    if (!current || data.vehicle.kind === "ev" || !placed.length) return [];
+    let stations = placed.filter(p => p.kind === "fuel" && p.off <= 3);
+    if (data.vehicle.kind === "diesel") stations = stations.filter(s => s.diesel).length >= 3 ? stations.filter(s => s.diesel) : stations;
+    const anchors = [...current.stops.map(s => ({ mile: s.mile, name: s.name })), ...nights.filter(n => n?.pick).map(n => ({ mile: n.pick.mile, name: n.pick.name, night: true }))];
+    return gasPlan(current.route.miles, legRange(data.vehicle), stations, anchors);
+  }, [current, placed, nights, data.vehicle]);
+
+  // The forecast for where you'll be, hour by hour, up to 16 days out.
   const start = data.departDate;
-  const weatherSpots = start && to ? [...ends, to] : [];
-  const weatherKey = `${start}|${endsKey}|${to?.id}`;
+  const points = useMemo(() => (current && start ? timeline(current.route, days) : []), [current, start, days]);
+  const weatherKey = start && points.length ? `${start}|${points.map(p => `${p.lat.toFixed(2)},${p.lon.toFixed(2)},${p.minutes}`).join(";")}` : "";
   useEffect(() => {
-    if (!start || !weatherSpots.length) return undefined;
-    const ahead = (Date.parse(`${start}T00:00:00`) - Date.now()) / 86400000;
-    if (ahead > 15 || ahead < -2) return undefined;
+    if (!weatherKey) return undefined;
+    const now = new Date();
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const last = new Date(today + 15 * 86400000).toISOString().slice(0, 10);
+    const lastDay = addDays(start, days.length);
+    if (dateMs(start) > dateMs(last) || dateMs(lastDay) < today - 86400000) return undefined;
+    const from = dateMs(start) < today ? new Date(today).toISOString().slice(0, 10) : start;
+    const to = dateMs(lastDay) > dateMs(last) ? last : lastDay;
     const ctl = new AbortController();
-    fetchDailyWeather(weatherSpots, { signal: ctl.signal })
-      .then(list => setWeatherFor({ key: weatherKey, list }))
-      .catch(() => {});
-    return () => ctl.abort();
+    const t = setTimeout(() => {
+      fetchHourlyAlong(points, from, to, { signal: ctl.signal })
+        .then(bodies => setWeatherFor({ key: weatherKey, list: weatherAlong(points, bodies, start) }))
+        .catch(e => e.name !== "AbortError" && setWeatherFor({ key: weatherKey, list: points.map(p => ({ ...p, weather: null, failed: true })) }));
+    }, 500);
+    return () => {
+      clearTimeout(t);
+      ctl.abort();
+    };
   }, [weatherKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const weather = weatherFor.key === weatherKey ? weatherFor.list : null;
-  const townFor = e => (e ? towns[`${e.lat.toFixed(2)},${e.lon.toFixed(2)}`] : null);
+  const weather = weatherFor.key === weatherKey ? weatherFor.list : points.map(p => ({ ...p, weather: null }));
 
   const fit = useMemo(() => (current ? shrink(current.route.points, 200) : from && to ? [from, to] : []), [current, from, to]);
   const mapRoutes = routes.map(r => ({ id: r.id, points: r.route.points, active: r.id === current?.id }));
@@ -89,7 +121,9 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
     ...(from ? [{ id: "from", kind: "start", lat: from.lat, lon: from.lon, label: "A", title: `Start: ${from.name}` }] : []),
     ...(to ? [{ id: "to", kind: "end", lat: to.lat, lon: to.lon, label: "B", title: `End: ${to.name}` }] : []),
     ...nearby.map(p => ({ id: `n:${p.id}`, kind: "place", lat: p.lat, lon: p.lon, title: `${p.name} (${p.label}), tap to see it`, onClick: () => setFocus(p.id) })),
-    ...ends.map((e, i) => ({ id: `night${i}`, kind: "night", lat: e.lat, lon: e.lon, title: `Night ${i + 1}${townFor(e) ? `: ${townFor(e).name}` : ""}` })),
+    ...ends.map((e, i) => ({ id: `night${i}`, kind: "night", lat: nights[i]?.pick?.lat ?? e.lat, lon: nights[i]?.pick?.lon ?? e.lon, title: `Night ${i + 1}${nights[i]?.pick ? `: ${nights[i].pick.name}` : ""}` })),
+    ...gas.filter(g => g.station).map((g, i) => ({ id: `gas${i}`, kind: "fuel", lat: g.station.lat, lon: g.station.lon, title: `Gas: ${g.station.name}, mile ${g.mile}` })),
+    ...weather.filter(w => w.weather && roadHazard(w.weather)).map((w, i) => ({ id: `wx${i}`, kind: "wx", lat: w.lat, lon: w.lon, label: "!", title: `${roadHazard(w.weather)} around mile ${w.mile}` })),
     ...(current?.stops ?? []).map((s, i) => ({ id: `s:${s.id}`, kind: "stop", lat: s.lat, lon: s.lon, label: String(i + 1), title: `${i + 1}. ${s.name}`, selected: focus === s.id, onClick: () => setFocus(s.id) })),
   ];
 
@@ -112,7 +146,7 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
       minutes: current.route.minutes,
       line: shrink(current.route.points, 400).map(p => [Math.round(p.lat * 1e4) / 1e4, Math.round(p.lon * 1e4) / 1e4]),
       stops: current.stops.map(s => ({ id: s.id, name: s.name, region: "", lat: s.lat, lon: s.lon, label: s.label, theme: s.theme, mile: s.mile, minutes: s.minutes, wiki: s.wiki })),
-      days: days.map(d => ({ driveMinutes: d.driveMinutes, stopMinutes: d.stopMinutes, miles: d.toMile - d.fromMile, endName: townFor(d.end)?.name ?? "", stopNames: d.stops.map(s => s.name) })),
+      days: days.map((d, i) => ({ driveMinutes: d.driveMinutes, stopMinutes: d.stopMinutes, miles: d.toMile - d.fromMile, endName: nights[i]?.pick?.name ?? "", stopNames: d.stops.map(s => s.name) })),
       pack: data.pack,
       createdAt: new Date().toISOString(),
     };
@@ -149,14 +183,11 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
             <span>Leaving</span>
             <input type="date" value={data.departDate ?? ""} min={today()} onChange={e => patch({ departDate: e.target.value || null })} />
           </label>
-          <label className="rf-hours">
-            <span>Drive up to {data.hoursPerDay} h a day</span>
-            <input type="range" min="2" max="12" step="1" value={data.hoursPerDay} onChange={e => patch({ hoursPerDay: Number(e.target.value) })} />
-          </label>
           <button type="button" className="rf-btn is-go" disabled={!canPlan} onClick={trip.run}>
             <Route size={17} aria-hidden="true" /> {routes.length && !savedTrip ? "Plan again" : "Find my routes"}
           </button>
         </div>
+        <DriveDay data={data} patch={patch} />
       </section>
 
       {trip.status === "idle" && !savedTrip && <Intro />}
@@ -193,14 +224,14 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
             })}
             {trip.status === "stops" && (
               <div className="rf-card is-pending" role="listitem">
-                <Loading>Looking for great stops along the way…</Loading>
+                <Loading>Looking for great stops along the way…{trip.progress ? ` ${trip.places.length} found so far (${trip.progress.done} of ${trip.progress.total})` : ""}</Loading>
               </div>
             )}
           </div>
 
           <RoadMap fit={fit} fitKey={`${trip.key}|${current?.id}`} routes={mapRoutes} markers={markers} height={420} label="Map of your routes and stops" />
           <p className="rf-legend">
-            <span className="rf-key rf-key--stop" /> Stops <span className="rf-key rf-key--night" /> Overnight <span className="rf-key rf-key--place" /> More to see ({THEME_BY_ID[explore].name.toLowerCase()})
+            <span className="rf-key rf-key--stop" /> Stops <span className="rf-key rf-key--night" /> Overnight <span className="rf-key rf-key--fuel" /> Gas <span className="rf-key rf-key--wx" /> Weather to watch <span className="rf-key rf-key--place" /> More to see ({THEME_BY_ID[explore].name.toLowerCase()})
           </p>
 
           {current && (
@@ -223,80 +254,29 @@ export default function PlanTab({ store, trip, selectedId, setSelectedId, savedT
                   </div>
                 </header>
                 {current.stops.length > 9 && <p className="rf-note">Google Maps takes nine stops at a time, so Navigate includes the first nine.</p>}
-                <ol className="rf-daylist">
-                  {days.map((d, i) => {
-                    const day = start ? addDays(start, i) : null;
-                    const town = townFor(d.end);
-                    const w = weather?.[d.end ? ends.indexOf(d.end) : weatherSpots.length - 1]?.days?.[day];
-                    return (
-                      <li key={i} className={openDay === i + 1 ? "is-open" : ""}>
-                        <div className="rf-day-head">
-                          <span className="rf-day-num">Day {i + 1}</span>
-                          {day && <span className="rf-muted">{dayName(day)}</span>}
-                          <span className="rf-day-nums">
-                            {fmtMinutes(d.driveMinutes)} driving · {fmtMiles(d.toMile - d.fromMile)}
-                            {d.stopMinutes ? ` · ${fmtMinutes(d.stopMinutes)} at stops` : ""}
-                          </span>
-                        </div>
-                        <ul className="rf-stops">
-                          {d.stops.map(s => {
-                            const n = current.stops.indexOf(s) + 1;
-                            return (
-                              <li key={s.id} className={focus === s.id ? "is-focus" : ""}>
-                                <button type="button" className="rf-stop-num" onClick={() => setFocus(s.id)} aria-label={`Show ${s.name} on the map`}>
-                                  {n}
-                                </button>
-                                <div className="rf-stop-body">
-                                  <strong>{s.name}</strong>
-                                  <span className="rf-muted">
-                                    <span className={`rf-chip rf-chip--${s.theme}`}>{s.label}</span> mile {Math.round(s.mile)}
-                                    {Number.isFinite(s.off) && s.off >= 1 ? ` · ${s.off} mi off the fastest road` : ""} · plan {fmtMinutes(s.minutes)}
-                                  </span>
-                                  <span className="rf-stop-links">
-                                    {s.wiki && (
-                                      <a href={s.wiki} target="_blank" rel="noreferrer">
-                                        About <ExternalLink size={12} aria-hidden="true" />
-                                      </a>
-                                    )}
-                                    <a href={placeUrl(s)} target="_blank" rel="noreferrer">
-                                      Map <ExternalLink size={12} aria-hidden="true" />
-                                    </a>
-                                  </span>
-                                </div>
-                                {current.id !== "saved" && (
-                                  <button type="button" className="rf-icon-btn" onClick={() => removeStop(s.id)} aria-label={`Skip ${s.name}`} title="Skip this stop" disabled={trip.busy === current.id}>
-                                    <X size={15} />
-                                  </button>
-                                )}
-                              </li>
-                            );
-                          })}
-                          <li className="rf-night">
-                            {d.end ? <BedDouble size={16} aria-hidden="true" /> : <Flag size={16} aria-hidden="true" />}
-                            <div className="rf-stop-body">
-                              <strong>{d.end ? (town ? `Sleep in or near ${town.name}` : `Sleep around mile ${d.toMile}`) : `Arrive in ${(to ?? savedTrip.to).name}`}</strong>
-                              {w && (
-                                <span className="rf-muted rf-weather">
-                                  <CloudSun size={13} aria-hidden="true" /> {describeWeather(w.code)}, {Math.round(w.hi)}° / {Math.round(w.lo)}°{w.rain >= 30 ? `, ${w.rain}% chance of rain` : ""}
-                                </span>
-                              )}
-                              {d.end && town && (
-                                <span className="rf-stop-links">
-                                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`hotels near ${town.name}`)}`} target="_blank" rel="noreferrer">
-                                    Places to stay <ExternalLink size={12} aria-hidden="true" />
-                                  </a>
-                                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`campgrounds near ${town.name}`)}`} target="_blank" rel="noreferrer">
-                                    Campgrounds <ExternalLink size={12} aria-hidden="true" />
-                                  </a>
-                                </span>
-                              )}
-                            </div>
-                          </li>
-                        </ul>
-                      </li>
-                    );
-                  })}
-                </ol>
+                {plans && (
+                  <DayPlan
+                    route={current}
+                    plans={plans}
+                    planId={planId}
+                    setPlan={id => patch({ plan: id })}
+                    start={start}
+                    to={to ?? savedTrip.to}
+                    data={data}
+                    patch={patch}
+                    places={placed}
+                    corridor={current.id === "saved" ? { state: "idle" } : corridor}
+                    gas={gas}
+                    weather={weather}
+                    focus={focus}
+                    setFocus={setFocus}
+                    onRemove={current.id !== "saved" ? removeStop : null}
+                    canEdit={current.id !== "saved"}
+                    busy={trip.busy === current.id}
+                    openDay={openDay}
+                    townName={townName}
+                  />
+                )}
                 {trip.busy === current.id && <Loading>Re-routing…</Loading>}
               </section>
 

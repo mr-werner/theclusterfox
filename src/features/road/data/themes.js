@@ -108,3 +108,78 @@ export function overpassAlong(samples) {
     .join("");
   return `[out:json][timeout:60];${body}`;
 }
+
+/**
+ * A lighter query for one stretch of road: nodes and ways only (big park
+ * boundaries take Overpass minutes to measure against a long line), a
+ * short server timeout and a cap per theme. Wikipedia fills in the parks.
+ */
+export function activityQuery(samples, { timeout = 25, cap = 90 } = {}) {
+  const line = samples.map(p => `${p.lat.toFixed(4)},${p.lon.toFixed(4)}`).join(",");
+  const at = km => `(around:${km * 1000},${line})`;
+  const r = id => THEME_BY_ID[id].radiusKm;
+  const sets = {
+    scenic: [`nw${at(r("scenic"))}["tourism"="viewpoint"]["name"]`, `nw${at(r("scenic"))}["natural"~"^(waterfall|hot_spring|arch|geyser|gorge|canyon|cave_entrance)$"]["name"]`, `nw${at(r("scenic"))}["leisure"="nature_reserve"]["wikidata"]["name"]`],
+    food: [`nw${at(r("food"))}["amenity"~"^(restaurant|cafe)$"]["cuisine"~"diner|barbecue|bbq|regional"]["name"][!"brand"]`, `nw${at(r("food"))}["amenity"="ice_cream"]["name"][!"brand"]`, `nw${at(r("food"))}["craft"~"^(brewery|winery|distillery)$"]["name"]`, `nw${at(r("food"))}["amenity"~"^(restaurant|cafe)$"]["wikidata"]["name"][!"brand"]`],
+    history: [`nw${at(r("history"))}["tourism"="museum"]["name"]`, `nw${at(r("history"))}["historic"]["wikidata"]["name"]`, `nw${at(r("history"))}["tourism"="attraction"]["name"]`, `nw${at(r("history"))}["man_made"="lighthouse"]["name"]`],
+    outdoors: [`nw${at(r("outdoors"))}["highway"="trailhead"]["name"]`, `nw${at(r("outdoors"))}["leisure"~"^(swimming_area|water_park)$"]["name"]`, `nw${at(r("outdoors"))}["tourism"~"^(zoo|aquarium|theme_park)$"]["name"]`, `nw${at(r("outdoors"))}["natural"="beach"]["name"]`],
+  };
+  const body = Object.values(sets)
+    .map(list => `(${list.map(s => `${s};`).join("")});out center tags ${cap};`)
+    .join("");
+  return `[out:json][timeout:${timeout}];${body}`;
+}
+
+// Wikipedia articles near the road that are worth a stop, by title:
+// [theme, label, score, minutes, test].
+const WIKI_KINDS = [
+  ["scenic", "National park", 12, 120, /National Park\b/],
+  ["scenic", "National monument", 9, 75, /National Monument\b/],
+  ["scenic", "Waterfall", 7, 45, /\bFalls\b|Waterfall/],
+  ["scenic", "Hot spring", 7, 75, /Hot Springs?\b/],
+  ["scenic", "Canyon", 7, 45, /Canyon\b|Gorge\b/],
+  ["scenic", "Cave", 6, 75, /Caverns?\b|\bCaves?\b/],
+  ["scenic", "Natural arch", 7, 45, /\bArch\b|Natural Bridge/],
+  ["scenic", "State park", 6, 75, /State Park\b|Provincial Park\b|State Recreation Area/],
+  ["scenic", "Wild lands", 5, 60, /National (Forest|Grassland|Recreation Area|Wildlife Refuge|Seashore|Lakeshore|Preserve)|Wilderness\b/],
+  ["scenic", "Scenic overlook", 4, 25, /Overlook\b|Scenic (Byway|Drive|Area)/],
+  ["history", "Museum", 5, 75, /Museum\b/],
+  ["history", "Battlefield", 6, 60, /Battlefield|Battle of /],
+  ["history", "Fort", 6, 60, /^Fort [A-Z]|\bFort\b.*(Historic|State)/],
+  ["history", "Historic site", 5, 45, /National Historic|Historic (Site|District|Park)|Historical (Park|Site)/],
+  ["history", "Lighthouse", 5, 30, /Lighthouse\b/],
+  ["history", "Monument", 4, 25, /Monument\b|Memorial\b/],
+  ["outdoors", "Zoo", 6, 120, /\bZoo\b|Wildlife Park|Safari/],
+  ["outdoors", "Aquarium", 6, 90, /Aquarium\b/],
+  ["outdoors", "Theme park", 6, 180, /Amusement Park|Theme Park|Water ?park/i],
+  ["outdoors", "Trail", 4, 75, /\bTrail\b/],
+  ["outdoors", "Beach", 5, 90, /\bBeach\b/],
+  ["outdoors", "Lake", 4, 60, /^Lake [A-Z]|\bLake$|Reservoir\b/],
+  ["food", "Winery", 4, 60, /Winery|Vineyards?\b|Wine Cellars?/],
+  ["food", "Brewery", 4, 60, /Brewery|Brewing Company|Distillery/],
+];
+
+/** A Wikipedia geosearch hit as a RoadTripFox place, or null. */
+export function classifyWiki(hit) {
+  const title = String(hit?.title ?? "");
+  if (!title || !Number.isFinite(hit.lat) || !Number.isFinite(hit.lon)) return null;
+  if (/^(List of|Template:|Category:)|\b(High School|Elementary|School District|County|Township|Interstate|U\.S\. Route|Highway|Station|Airport|Church|Cemetery|Hospital|Mall)\b/.test(title)) return null;
+  for (const [theme, label, score, minutes, re] of WIKI_KINDS) {
+    if (re.test(title)) {
+      return {
+        id: `wiki/${hit.pageid}`,
+        name: title.slice(0, 90),
+        lat: hit.lat,
+        lon: hit.lon,
+        theme,
+        label,
+        score: score + 3,
+        minutes,
+        wiki: `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`,
+        website: null,
+        town: null,
+      };
+    }
+  }
+  return null;
+}

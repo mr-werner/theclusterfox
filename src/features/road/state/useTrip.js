@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchPlacesAlong, fetchRoutes } from "../api";
+import { fetchActivities, fetchRoutes } from "../api";
 import { THEME_BY_ID } from "../data/themes";
-import { cumulative, sampleEvery } from "../model/geo";
 import { pickStops, placeAlong, STOP_THEMES } from "../model/route";
 
 // Builds every route for a trip: the fastest one and OSRM's alternative
@@ -40,18 +39,23 @@ export function useTrip(from, to, saved) {
       if (alt && Math.abs(alt.miles - fastest.miles) / fastest.miles > 0.02) routes.push({ id: "alt", theme: "fastest", name: "Another way", route: alt, stops: [] });
       setState({ status: "stops", routes: [...routes], places: [], error: null });
 
-      const cum = cumulative(fastest.points);
       const total = fastest.miles;
-      const samples = sampleEvery(fastest.points, cum, Math.max(3, total / 120));
+      const place = list => placeAlong(list, fastest, 20).map(p => ({ ...p, baseMile: p.mile }));
       let places = [];
       try {
-        places = placeAlong(await fetchPlacesAlong(samples, { signal }), fastest, 20).map(p => ({ ...p, baseMile: p.mile }));
+        // Places show up a stretch at a time while the rest are still coming.
+        places = place(
+          await fetchActivities(fastest.points, {
+            signal,
+            onPart: (list, progress) => setState(s => ({ ...s, places: place(list), progress })),
+          })
+        );
       } catch (error) {
         if (error.name === "AbortError") throw error;
-        setState(s => ({ ...s, status: "done", error: `${error.message} The fastest route is ready; themed routes need the map database.` }));
+        setState(s => ({ ...s, status: "done", progress: null, error: `${error.message} The fastest route is ready; themed routes need places along the way.` }));
         return;
       }
-      setState(s => ({ ...s, places }));
+      setState(s => ({ ...s, places, progress: null }));
       for (const theme of STOP_THEMES) {
         const stops = pickStops(places, theme, total);
         if (!stops.length) continue;

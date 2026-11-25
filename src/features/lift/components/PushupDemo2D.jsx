@@ -3,8 +3,6 @@ import { useMemo } from "react";
 import { FLOOR, HEAD_R, SHAPES, makePushup2d, placeLines, placeShape, smoothPath } from "../model/pushup2d";
 import { effortCss } from "../data/activation";
 
-const rig = makePushup2d();
-
 // Far limbs sit a little up and back, drawn darker, so the near side reads first.
 const FAR = [1.6, -2.2];
 const shift = (pts, [dx, dy]) => pts.map(([x, y]) => [x + dx, y + dy]);
@@ -27,22 +25,35 @@ function Bone({ name, bone, efforts, far, onPick }) {
   });
 }
 
-/** A side-on push-up drawn in muscle shapes; working muscles fill red. */
-export default function PushupDemo2D({ depth, efforts, onPick }) {
-  const pose = useMemo(() => rig.pose(depth), [depth]);
+// One rig per set of options (hand height, feet up, pike...), made once.
+const rigs = new Map();
+function rigFor(options) {
+  const key = JSON.stringify(options ?? {});
+  if (!rigs.has(key)) rigs.set(key, makePushup2d(options));
+  return rigs.get(key);
+}
+
+/** A side-on push-up (or a variant) drawn in muscle shapes; working muscles fill red. */
+export default function PushupDemo2D({ depth, efforts, onPick, options, label = "a push-up" }) {
+  const rig = rigFor(options);
+  const pose = useMemo(() => rig.pose(depth), [rig, depth]);
+  const [vx, vy, vw, vh] = rig.view;
   const { bones, head, body } = pose;
   const neckEnd = [head[0] - body.dir[0] * HEAD_R * 0.7, head[1] - body.dir[1] * HEAD_R * 0.7];
 
   return (
-    <svg className="lp-2d" viewBox="10 19 210 79" role="img" aria-label="Side view of a push-up. Working muscles turn red.">
+    <svg className="lp-2d" viewBox={`${vx} ${vy} ${vw} ${vh}`} style={{ aspectRatio: `${vw} / ${vh}` }} role="img" aria-label={`Side view of ${label}. Working muscles turn red.`}>
       <defs>
         <radialGradient id="lp-floor-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#ff2a1a" stopOpacity="0.35" />
           <stop offset="100%" stopColor="#ff2a1a" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <ellipse cx="110" cy={FLOOR + 1} rx="100" ry="5" fill="url(#lp-floor-glow)" />
-      <line className="lp-floor" x1="8" y1={FLOOR} x2="222" y2={FLOOR} />
+      <ellipse cx={vx + vw / 2} cy={FLOOR + 1} rx={vw / 2 - 10} ry="5" fill="url(#lp-floor-glow)" />
+      <line className="lp-floor" x1={vx - 2} y1={FLOOR} x2={vx + vw + 2} y2={FLOOR} />
+      {rig.props.map((p, i) => (
+        <rect key={i} className="lp-prop" x={p.x} y={p.y} width={p.w} height={p.h} rx="1.5" />
+      ))}
 
       <g className="lp-far">
         <Bone name="foot" bone={bones.foot} efforts={efforts} far />

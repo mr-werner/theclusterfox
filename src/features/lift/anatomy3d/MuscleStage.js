@@ -10,7 +10,7 @@ import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 import { fetchLayer } from "../../body/viewer/loadLayer";
 import { bindVertices, skin } from "./pushupRig";
 import { RIGS_3D } from "./rigs";
-import { efforts, muscleForPart, repAt } from "../data/activation";
+import { efforts, muscleForPart, repFor } from "../data/activation";
 import { MAX_SLOTS, muscleMaterial, shade } from "./material";
 
 // Where the camera starts, from the body's centre: front-left and a little above.
@@ -43,8 +43,10 @@ export default class MuscleStage {
 
     const scene = new THREE.Scene();
     this.scene = scene;
+    this.rig = RIGS_3D[movement.rig](movement.rigOptions);
+    const focus = new THREE.Vector3(...(this.rig.focus?.toArray?.() ?? [0, 0.28, 0.82]));
     const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 20);
-    camera.position.copy(START_VIEW).add(new THREE.Vector3(0, 0.28, 0.82));
+    camera.position.copy(START_VIEW).add(focus);
     this.camera = camera;
 
     scene.add(new THREE.HemisphereLight(0xfff4ee, 0x2a0d0a, 1.25));
@@ -66,14 +68,25 @@ export default class MuscleStage {
       new THREE.MeshBasicMaterial({ map: floorTex, transparent: true, depthWrite: false }),
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0, -0.001, 0.6);
+    floor.position.set(0, -0.001, focus.z - 0.22);
     scene.add(floor);
+
+    // Benches and steps the movement uses: plain dark blocks.
+    this.props = (this.rig.props ?? []).map(p => {
+      const box = new THREE.Mesh(
+        new THREE.BoxGeometry(...p.size),
+        new THREE.MeshStandardMaterial({ color: 0x2b2524, roughness: 0.85, metalness: 0 }),
+      );
+      box.position.set(...p.center);
+      scene.add(box);
+      return box;
+    });
 
     // Trackball, not orbit: you can turn the body any way at all, over the
     // top and underneath as well as round the sides. "Reset view" puts it
     // back upright.
     const controls = new TrackballControls(camera, renderer.domElement);
-    controls.target.set(0, 0.28, 0.82);
+    controls.target.copy(focus);
     controls.rotateSpeed = 3;
     controls.zoomSpeed = 1;
     controls.noPan = true;
@@ -97,7 +110,6 @@ export default class MuscleStage {
 
     this.uniforms = { efforts: { value: new Float32Array(MAX_SLOTS) } };
     this.material = muscleMaterial(this.uniforms);
-    this.rig = RIGS_3D[movement.rig](movement.rigOptions);
 
     this.resize = this.resize.bind(this);
     this.tick = this.tick.bind(this);
@@ -214,7 +226,7 @@ export default class MuscleStage {
     if (!this.layers) return;
     const rep = this.manualDepth != null
       ? { depth: this.manualDepth, pressing: false, label: "Paused" }
-      : repAt(this.clock, this.movement.cycleMs);
+      : repFor(this.movement, this.clock);
     const posed = this.rig.pose(rep.depth);
     for (const l of this.layers) {
       skin(l.rest, l.restNormals, l.binding, posed, l.posAttr.array, l.normAttr.array);
@@ -253,7 +265,8 @@ export default class MuscleStage {
   tick(now) {
     this.frame = null;
     if (this.disposed) return;
-    const moving = this.playing && this.visible && this.layers;
+    // A hold is posed once, when it loads; nothing moves after that.
+    const moving = this.playing && this.visible && this.layers && this.movement.hold == null;
     if (moving) {
       if (this.last != null) this.clock += (now - this.last) * this.speed;
       this.last = now;
@@ -283,7 +296,9 @@ export default class MuscleStage {
   placeCamera(direction) {
     const w = this.container.clientWidth || 1;
     const h = this.container.clientHeight || 1;
-    const dist = 2.45 * Math.max(1, 1.75 / (w / h));
+    // A taller pose (hands on a bench, hips up) needs a little more room.
+    const tall = Math.max(1, 0.6 + 0.6 * (this.rig.height ?? 0.64));
+    const dist = 2.45 * tall * Math.max(1, 1.75 / (w / h));
     this.camera.position.copy(this.controls.target).add(direction.normalize().multiplyScalar(Math.min(dist, 4.1)));
   }
 
@@ -304,6 +319,10 @@ export default class MuscleStage {
     this.io.disconnect();
     this.controls.dispose();
     this.layers?.forEach(l => l.geo.dispose());
+    this.props.forEach(b => {
+      b.geometry.dispose();
+      b.material.dispose();
+    });
     this.material.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();

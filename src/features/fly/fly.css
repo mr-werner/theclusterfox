@@ -796,3 +796,70 @@ form.fy-search { flex-direction: row; }
   .fy-radio-face { grid-template-columns: 1fr; }
   .fy-radio-flip { justify-self: center; transform: rotate(90deg); }
 }
+
+/* ---- Places to land along the way ---- */
+.fy-small { font-size: 0.8rem; }
+.fy-land-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fy-land-item { border: 1px solid var(--fy-line); border-radius: 12px; background: rgba(255, 255, 255, 0.02); }
+.fy-land-item.is-open { border-color: rgba(76, 141, 255, 0.45); }
+.fy-land-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 10px; }
+.fy-land-main { display: flex; align-items: center; gap: 12px; flex: 1 1 260px; min-width: 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 0; }
+.fy-land-when { display: flex; flex-direction: column; min-width: 64px; font-family: var(--fy-mono); }
+.fy-land-when small { color: var(--fy-muted); font-size: 0.75rem; }
+.fy-land-name { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.fy-land-name small { font-size: 0.78rem; }
+.fy-land-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.fy-land-tags .fy-pill { margin-left: 0; display: inline-flex; align-items: center; gap: 3px; }
+.fy-pill.is-good { color: #03200d; background: var(--fy-vfr); }
+.fy-pill.is-ok { color: #04122b; background: #9cc0ff; }
+.fy-pill.is-short, .fy-pill.is-no { color: #fff; background: #6b3b3b; }
+.fy-land-more { padding: 4px 12px 12px; border-top: 1px solid var(--fy-line); }
+.fy-land-more h3 { margin: 12px 0 6px; font-size: 0.95rem; }
+.fy-land-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.fy-land-actions a.fy-btn { text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.fy-places { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.fy-places li { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+.fy-places img, .fy-place-icon { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex: none; background: rgba(255, 255, 255, 0.06); }
+.fy-place-icon { display: grid; place-items: center; font-weight: 700; color: var(--fy-muted); }
+.fy-place-icon.is-food { color: var(--fy-amber); }
+.fy-place-icon.is-outdoors { color: var(--fy-vfr); }
+.fy-place-icon.is-museum, .fy-place-icon.is-sight { color: #9cc0ff; }
+.fy-places div { display: flex; flex-direction: column; min-width: 0; }
+.fy-places a { color: var(--fy-text); }
+.fy-places small { font-size: 0.76rem; overflow-wrap: anywhere; }
+
+/* ---- Weather along your trip ---- */
+.fy-toggle-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.fy-toggle-row .fy-chip { display: inline-flex; align-items: center; gap: 4px; }
+.fy-scrub { display: flex; align-items: center; gap: 10px; margin: 10px 0 6px; }
+.fy-scrub input[type="range"] { flex: 1; min-width: 0; accent-color: var(--fy-amber); }
+.fy-scrub-label { display: flex; flex-direction: column; min-width: 120px; text-align: right; font-family: var(--fy-mono); }
+.fy-scrub-label small { color: var(--fy-muted); font-size: 0.75rem; }
+.fy-strip { position: relative; display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin: 4px 0 10px; background: rgba(255, 255, 255, 0.06); }
+.fy-strip-seg { border: 0; padding: 0; height: 100%; cursor: pointer; border-right: 1px solid rgba(8, 16, 31, 0.5); }
+.fy-strip-you { position: absolute; top: -2px; bottom: -2px; width: 3px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px #08101f; pointer-events: none; }
+.fy-wx-bg--0 { background: rgba(60, 196, 110, 0.75); }
+.fy-wx-bg--1 { background: rgba(156, 192, 255, 0.75); }
+.fy-wx-bg--2 { background: rgba(255, 181, 71, 0.85); }
+.fy-wx-bg--3 { background: rgba(240, 82, 79, 0.9); }
+.fy-wx-bg--none { background: rgba(255, 255, 255, 0.1); }
+.fy-legend-item { display: inline-flex; align-items: center; gap: 4px; margin-right: 6px; }
+.fy-legend-item i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.fy-ring.fy-wx { stroke-dasharray: none; stroke-width: 0; }
+.fy-ring.fy-wx--0 { fill: rgba(60, 196, 110, 0.18); }
+.fy-ring.fy-wx--1 { fill: rgba(156, 192, 255, 0.25); }
+.fy-ring.fy-wx--2 { fill: rgba(255, 181, 71, 0.42); }
+.fy-ring.fy-wx--3 { fill: rgba(240, 82, 79, 0.5); }
+.fy-ring.fy-wx--none { fill: transparent; }
+.fy-tile.fy-tile-overlay { filter: none; opacity: 0.8; }
+.fy-here { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; margin-top: 10px; border-left: 4px solid var(--fy-line); border-radius: 8px; background: rgba(255, 255, 255, 0.03); }
+.fy-wx-edge--0 { border-left-color: var(--fy-vfr); }
+.fy-wx-edge--1 { border-left-color: #9cc0ff; }
+.fy-wx-edge--2 { border-left-color: var(--fy-amber); }
+.fy-wx-edge--3 { border-left-color: var(--fy-ifr); }
+.fy-tripwx h3 { margin: 14px 0 6px; font-size: 0.95rem; }
+@media (max-width: 600px) {
+  .fy-scrub { flex-wrap: wrap; }
+  .fy-scrub-label { order: -1; flex: 1 0 100%; flex-direction: row; justify-content: space-between; align-items: baseline; text-align: left; }
+  .fy-land-when { min-width: 54px; }
+}

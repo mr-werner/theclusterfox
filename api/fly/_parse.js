@@ -118,6 +118,7 @@ export function parseAirports(list) {
       lon: a.lon,
       elevFt: Number.isFinite(a.elev) ? Math.round(a.elev * 3.28084) : null,
       magVar: magVar(a.magdec),
+      owner: str(a.owner) || null,
       towered: str(a.tower) === "T",
       fuel: str(a.services) === "S",
       runways: (Array.isArray(a.runways) ? a.runways : []).map(r => {

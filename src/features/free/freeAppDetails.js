@@ -502,6 +502,10 @@ export const freeAppDetails = {
   "Tonton": { limits: ["ads", "region"], note: "Free with ads and a free account; most shows are Malaysia only." },
   "SYOK": { limits: ["ads"], note: "Free with ads; live radio plays worldwide." },
   "PRPM": { note: "Free public reference from Dewan Bahasa dan Pustaka." },
+  "TVR+": { limits: ["region"], note: "Public and free; some films and sports are Romania only." },
+  "Radio România": { note: "Live public radio and podcasts, available worldwide." },
+  "Bitdefender Antivirus Free": { limits: ["freeTier"], note: "Free real-time protection for Windows; extra features are paid." },
+  "dexonline": { ...OS, note: "Free, volunteer-run and open source." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -844,4 +848,8 @@ export const freeAppCountries = {
   "Tonton": "Malaysia",
   "SYOK": "Malaysia",
   "PRPM": "Malaysia",
+  "TVR+": "Romania",
+  "Radio România": "Romania",
+  "Bitdefender Antivirus Free": "Romania",
+  "dexonline": "Romania",
 };

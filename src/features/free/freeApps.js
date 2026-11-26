@@ -31,6 +31,7 @@ import {
   siAudiomack,
   siAvast,
   siBandcamp,
+  siBitdefender,
   siBittorrent,
   siBitwarden,
   siBlender,
@@ -449,6 +450,7 @@ const categories = [
       { name: "MédiaKlikk", alt: "Netflix", url: "https://mediaklikk.hu/", mark: "MK", color: "#e30613", description: "Hungarian public TV streaming, with M1, Duna and M5 channels, films and series." },
       { name: "RTM Klik", alt: "Netflix", url: "https://rtmklik.rtm.gov.my/", mark: "RT", color: "#003893", description: "Malaysian public broadcaster RTM's streaming, with live TV, radio and dramas." },
       { name: "Tonton", alt: "Netflix", url: "https://www.tonton.com.my/", mark: "To", color: "#e4002b", description: "Media Prima's free streaming for Malaysian dramas, variety shows and live TV3." },
+      { name: "TVR+", alt: "Netflix", url: "https://www.tvrplus.ro/", mark: "TV", color: "#d71920", description: "Romanian public TV streaming, with live TVR channels, films and series." },
     ],
   },
   {
@@ -551,6 +553,7 @@ const categories = [
       { name: "HRT Radio", alt: "SiriusXM", url: "https://radio.hrt.hr/", mark: "HR", color: "#0057a8", description: "Croatian public radio, including HR1, HR2 and HR3, live and on demand." },
       { name: "MédiaKlikk Rádió", alt: "SiriusXM", url: "https://mediaklikk.hu/radio", mark: "MK", color: "#e30613", description: "Hungarian public radio, including Kossuth, Petőfi and Bartók, live and on demand." },
       { name: "SYOK", alt: "SiriusXM", url: "https://www.syok.my/", mark: "SY", color: "#ff2d55", description: "Free Malaysian app for Astro radio stations, podcasts and music videos." },
+      { name: "Radio România", alt: "SiriusXM", url: "https://www.radioromania.ro/", mark: "RR", color: "#004b93", description: "Romanian public radio, including Actualități, Cultural and Muzical, live and on demand." },
     ],
   },
   {
@@ -689,6 +692,7 @@ const categories = [
       { name: "Wireshark", alt: "paid network analyzers", url: "https://www.wireshark.org/", logo: siWireshark, description: "Inspect network traffic packet by packet." },
       { name: "Malwarebytes Free", alt: "Norton / McAfee", url: "https://www.malwarebytes.com/", logo: siMalwarebytes, description: "On-demand malware scanner and cleanup." },
       { name: "Avast Free Antivirus", alt: "Norton / McAfee", url: "https://www.avast.com/", logo: siAvast, description: "Free real-time antivirus." },
+      { name: "Bitdefender Antivirus Free", alt: "Norton / McAfee", url: "https://www.bitdefender.com/en-us/consumer/free-antivirus", logo: siBitdefender, description: "Free real-time antivirus from Romanian security company Bitdefender." },
     ],
   },
   {
@@ -836,6 +840,7 @@ const categories = [
       { name: "Hrvatski jezični portal", alt: "paid dictionaries", url: "https://hjp.znanje.hr/", mark: "HJ", color: "#c8102e", description: "Free Croatian dictionary with meanings, grammar and word forms." },
       { name: "Helyesírás", alt: "Grammarly", url: "https://helyesiras.mta.hu/", mark: "He", color: "#00659c", description: "Official Hungarian spelling guide and checker from the Hungarian Research Centre for Linguistics." },
       { name: "PRPM", alt: "paid dictionaries", url: "https://prpm.dbp.gov.my/", mark: "PR", color: "#006a4e", description: "Dewan Bahasa dan Pustaka's official Malay dictionary and language reference." },
+      { name: "dexonline", alt: "paid dictionaries", url: "https://dexonline.ro/", mark: "dx", color: "#1e6091", description: "Free Romanian dictionary combining dozens of official dictionaries in one search." },
     ],
   },
 ];

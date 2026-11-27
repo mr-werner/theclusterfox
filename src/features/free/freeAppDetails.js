@@ -506,6 +506,11 @@ export const freeAppDetails = {
   "Radio România": { note: "Live public radio and podcasts, available worldwide." },
   "Bitdefender Antivirus Free": { limits: ["freeTier"], note: "Free real-time protection for Windows; extra features are paid." },
   "dexonline": { ...OS, note: "Free, volunteer-run and open source." },
+  "tabii": { limits: ["region"], note: "Free public streaming with a free account; some titles vary by country." },
+  "TRT Dinle": { note: "Free public radio and music, available worldwide." },
+  "BiP": { limits: ["tracking"], note: "Free; not end-to-end encrypted by default, unlike Signal." },
+  "EBA": { note: "Free public platform from Turkey's Ministry of National Education." },
+  "TDK Sözlük": { note: "Free public service from the Turkish Language Association." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -852,4 +857,9 @@ export const freeAppCountries = {
   "Radio România": "Romania",
   "Bitdefender Antivirus Free": "Romania",
   "dexonline": "Romania",
+  "tabii": "Turkey",
+  "TRT Dinle": "Turkey",
+  "BiP": "Turkey",
+  "EBA": "Turkey",
+  "TDK Sözlük": "Turkey",
 };

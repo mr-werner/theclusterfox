@@ -451,6 +451,7 @@ const categories = [
       { name: "RTM Klik", alt: "Netflix", url: "https://rtmklik.rtm.gov.my/", mark: "RT", color: "#003893", description: "Malaysian public broadcaster RTM's streaming, with live TV, radio and dramas." },
       { name: "Tonton", alt: "Netflix", url: "https://www.tonton.com.my/", mark: "To", color: "#e4002b", description: "Media Prima's free streaming for Malaysian dramas, variety shows and live TV3." },
       { name: "TVR+", alt: "Netflix", url: "https://www.tvrplus.ro/", mark: "TV", color: "#d71920", description: "Romanian public TV streaming, with live TVR channels, films and series." },
+      { name: "tabii", alt: "Netflix", url: "https://www.tabii.com/", mark: "ta", color: "#00b2a9", description: "Turkish public broadcaster TRT's free streaming, with series, films and documentaries." },
     ],
   },
   {
@@ -554,6 +555,7 @@ const categories = [
       { name: "MédiaKlikk Rádió", alt: "SiriusXM", url: "https://mediaklikk.hu/radio", mark: "MK", color: "#e30613", description: "Hungarian public radio, including Kossuth, Petőfi and Bartók, live and on demand." },
       { name: "SYOK", alt: "SiriusXM", url: "https://www.syok.my/", mark: "SY", color: "#ff2d55", description: "Free Malaysian app for Astro radio stations, podcasts and music videos." },
       { name: "Radio România", alt: "SiriusXM", url: "https://www.radioromania.ro/", mark: "RR", color: "#004b93", description: "Romanian public radio, including Actualități, Cultural and Muzical, live and on demand." },
+      { name: "TRT Dinle", alt: "Spotify", url: "https://www.trtdinle.com/", mark: "TD", color: "#e30a17", description: "TRT's free app for Turkish public radio, music archives and podcasts." },
     ],
   },
   {
@@ -693,6 +695,7 @@ const categories = [
       { name: "Malwarebytes Free", alt: "Norton / McAfee", url: "https://www.malwarebytes.com/", logo: siMalwarebytes, description: "On-demand malware scanner and cleanup." },
       { name: "Avast Free Antivirus", alt: "Norton / McAfee", url: "https://www.avast.com/", logo: siAvast, description: "Free real-time antivirus." },
       { name: "Bitdefender Antivirus Free", alt: "Norton / McAfee", url: "https://www.bitdefender.com/en-us/consumer/free-antivirus", logo: siBitdefender, description: "Free real-time antivirus from Romanian security company Bitdefender." },
+      { name: "BiP", alt: "WhatsApp / iMessage", url: "https://bip.com/", mark: "Bi", color: "#00aeef", description: "Free messaging and calls app from Turkish operator Turkcell." },
     ],
   },
   {
@@ -799,6 +802,7 @@ const categories = [
       { name: "SkillsFuture", alt: "LinkedIn Learning", url: "https://www.skillsfuture.gov.sg/", mark: "SF", color: "#d71920", description: "Singapore's national lifelong learning portal, with free guides and subsidized courses." },
       { name: "Hrvatska enciklopedija", alt: "Encyclopaedia Britannica", url: "https://enciklopedija.hr/", mark: "HE", color: "#8b1a1a", description: "Croatia's national encyclopedia, free online from the Miroslav Krleža Institute." },
       { name: "Edutorij", alt: "paid tutoring", url: "https://edutorij.e-skole.hr/", mark: "Ed", color: "#f39200", description: "Croatia's public library of digital school materials for every subject and grade." },
+      { name: "EBA", alt: "paid tutoring", url: "https://www.eba.gov.tr/", mark: "EB", color: "#ec1c24", description: "Turkey's national education platform, with lessons, videos and course materials." },
     ],
   },
   {
@@ -841,6 +845,7 @@ const categories = [
       { name: "Helyesírás", alt: "Grammarly", url: "https://helyesiras.mta.hu/", mark: "He", color: "#00659c", description: "Official Hungarian spelling guide and checker from the Hungarian Research Centre for Linguistics." },
       { name: "PRPM", alt: "paid dictionaries", url: "https://prpm.dbp.gov.my/", mark: "PR", color: "#006a4e", description: "Dewan Bahasa dan Pustaka's official Malay dictionary and language reference." },
       { name: "dexonline", alt: "paid dictionaries", url: "https://dexonline.ro/", mark: "dx", color: "#1e6091", description: "Free Romanian dictionary combining dozens of official dictionaries in one search." },
+      { name: "TDK Sözlük", alt: "paid dictionaries", url: "https://sozluk.gov.tr/", mark: "TD", color: "#b31b1b", description: "Official Turkish dictionaries and spelling guide from the Turkish Language Association." },
     ],
   },
 ];

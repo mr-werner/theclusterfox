@@ -1,5 +1,5 @@
 import Parachute from "../components/icons/Parachute.js";
-import { Activity, Ambulance, BookOpen, CalendarRange, CarFront, ChefHat, ChevronsUp, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Fish, Flame, Flashlight, Flower2, GraduationCap, Guitar, Luggage, Medal, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, ShoppingBasket, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
+import { Activity, Ambulance, Baby, BookOpen, CalendarRange, CarFront, ChefHat, ChevronsUp, CloudSun, Cog, DraftingCompass, Droplets, Dumbbell, Fish, Flame, Flashlight, Flower2, GraduationCap, Guitar, Luggage, Medal, MonitorPlay, Mountain, MountainSnow, PersonStanding, Piano, Plane, ShoppingBasket, Sigma, Sprout, Trophy, Wind, Wrench, Zap } from "lucide-react";
 
 // The home screen groups apps into these, in this order. TaskFox is the hub
 // above them all. An app without a category (or with one not listed here)
@@ -82,6 +82,16 @@ export const apps = [
     path: "/fishbowl",
     icon: Fish,
     accent: "fishbowl",
+  },
+  {
+    id: "cribfox",
+    category: "health",
+    name: "Crib",
+    subtitle: "CribFox",
+    description: "Baby monitor • Two phones • Alerts",
+    path: "/crib",
+    icon: Baby,
+    accent: "cribfox",
   },
   {
     id: "liftfox",

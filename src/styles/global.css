@@ -42,6 +42,7 @@
   --snowfox: #1769d1;
   --keysfox: #f2b544;
   --fishbowl: #5ee0d6;
+  --cribfox: #ffe08a;
   --flyfox: #4c8dff;
   --climbfox: #e0552a;
   --roadfox: #ffc23c;
@@ -488,6 +489,17 @@ select {
       #ffffff,
       #a9d1ff 55%,
       #1769d1
+    );
+}
+
+.app-icon--cribfox {
+  color: #ffe08a;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3b3f8f,
+      #0e1026
     );
 }
 

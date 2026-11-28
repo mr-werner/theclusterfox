@@ -20,6 +20,7 @@ export function useViewer(code) {
   const [snap, setSnap] = useState(null);
   const [error, setError] = useState(null);
   const [net, setNet] = useState(true);
+  const [lost, setLost] = useState(false);
 
   const me = peerId("viewer");
   const live = useRef({ pc: null, attempt: 0, lastHello: 0, firstTry: 0, liveAt: 0, monitorPeer: null, after: 0, picture: false, snapAt: 0, everLive: false });
@@ -98,6 +99,7 @@ export function useViewer(code) {
         l.after = data.lastId ?? l.after;
         const m = data.monitor;
         setMonitor(m);
+        setLost(!m.online && data.now - (m.seen || 0) > LOST_MS);
         if (data.snap) {
           l.snapAt = data.snapAt;
           setSnap({ src: data.snap, at: data.snapAt });
@@ -164,6 +166,5 @@ export function useViewer(code) {
     [code, me],
   );
 
-  const lostFor = monitor && !monitor.online ? Date.now() - (monitor.seen || 0) : 0;
-  return { monitor, stream, state, snap, error, net, lost: state === "offline" && lostFor > LOST_MS, retry: hello };
+  return { monitor, stream, state, snap, error, net, lost, retry: hello };
 }

@@ -1,0 +1,15 @@
+{
+  "id": "/crib",
+  "name": "CribFox",
+  "short_name": "CribFox",
+  "start_url": "/crib",
+  "scope": "/crib",
+  "display": "standalone",
+  "background_color": "#0e1026",
+  "theme_color": "#0e1026",
+  "icons": [
+    { "src": "/apps/cribfox-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/apps/cribfox-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/apps/cribfox-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

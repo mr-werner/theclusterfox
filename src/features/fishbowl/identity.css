@@ -1,0 +1,19 @@
+/* Fishbowl identity: game night at the kitchen table. A deep-water navy,
+   a glassy aqua bowl, bright Red and Blue team colours, and a round,
+   friendly typeface you can read from across the room. */
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap");
+
+.appbar[data-app="fishbowl"] {
+  --ab-bg: rgba(8, 26, 43, 0.9);
+  --ab-fg: #eef8ff;
+  --ab-muted: rgba(238, 248, 255, 0.62);
+  --ab-line: rgba(94, 224, 214, 0.18);
+  --ab-accent: #5ee0d6;
+  --ab-accent-ink: #052421;
+  --ab-font: "Fredoka", system-ui, sans-serif;
+  --ab-name-size: 1.35rem;
+  --ab-name-weight: 700;
+  --ab-name-spacing: 0.01em;
+  --ab-radius: 14px;
+  --ab-menu-bg: #0e2a44;
+}

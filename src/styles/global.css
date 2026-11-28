@@ -41,6 +41,7 @@
   --fretfox: #e8a45a;
   --snowfox: #1769d1;
   --keysfox: #f2b544;
+  --fishbowl: #5ee0d6;
   --flyfox: #4c8dff;
   --climbfox: #e0552a;
   --roadfox: #ffc23c;
@@ -487,6 +488,17 @@ select {
       #ffffff,
       #a9d1ff 55%,
       #1769d1
+    );
+}
+
+.app-icon--fishbowl {
+  color: #eafffd;
+
+  background:
+    linear-gradient(
+      145deg,
+      #1d6f8a,
+      #081a2b
     );
 }
 

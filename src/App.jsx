@@ -63,6 +63,8 @@ const BodyPage = lazy(() => import("./features/body/BodyPage"));
 const ReadyPage = lazy(() => import("./features/ready/ReadyPage"));
 // StudyFox loads other apps' material on demand, so it loads on demand too.
 const StudyPage = lazy(() => import("./features/study/StudyPage"));
+// Fishbowl is a live party game; it loads on demand too.
+const FishbowlPage = lazy(() => import("./features/fishbowl/FishbowlPage"));
 
 // PilotFox used to be FlyFox at /fly; old links (and saved planner items)
 // keep working.
@@ -116,6 +118,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <CalmPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/fishbowl"
+                element={
+                    <Suspense fallback={null}>
+                        <FishbowlPage />
                     </Suspense>
                 }
             />

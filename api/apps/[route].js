@@ -7,14 +7,16 @@
 //   /api/apps/standard            BookFox: newest from Standard Ebooks
 //   /api/apps/book-text?id=&part= BookFox: a book's text, ready to read
 //   /api/apps/food-search?q=      F4T (also answers at /api/f4t/food-search)
+//   /api/apps/fishbowl            Fishbowl: live game rooms (GET to watch, POST to play)
 //   /api/apps/overpass  (POST)    OpenStreetMap data for every app, when the
 //                                 browser can't reach Overpass itself
 
 import { book, bookText, books, standard } from "../book/_books.js";
 import foodSearch from "../f4t/_food-search.js";
 import overpass from "./_overpass.js";
+import fishbowl from "./_fishbowl.js";
 
-const ROUTES = { books, book, standard, "book-text": bookText, "food-search": foodSearch, overpass };
+const ROUTES = { books, book, standard, "book-text": bookText, "food-search": foodSearch, overpass, fishbowl };
 
 export const config = { maxDuration: 30 };
 
@@ -25,6 +27,7 @@ export default async function handler(req, res) {
     return await route(req, res);
   } catch (error) {
     console.error(`/api/apps/${req.query.route}:`, error);
+    if (req.query.route === "fishbowl") return res.status(502).json({ error: "The game server hiccuped. Try again in a moment." });
     return res.status(502).json({ error: "The book source didn't answer. Try again in a moment." });
   }
 }

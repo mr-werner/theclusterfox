@@ -132,6 +132,39 @@ for (const next of [72, 67, 79]) {
   assert.deepEqual(midis(h), [60], `C4 ringing is not ${next}`);
 }
 
+// The song asks for the same note an octave (or a fifth) away the moment
+// the first one counts: the first one ringing on is not it, either way.
+{
+  const seq = tune => (t, heard) => (heard.length < tune.length ? [tune[heard.length]] : []);
+  for (const [a, b] of [[60, 72], [60, 48], [72, 60], [48, 60], [48, 36], [36, 48], [55, 67], [60, 79]]) {
+    for (const amp of [0.15, 0.5]) {
+      const alone = listen(render(2.2, [{ midi: a, at: 0.4, amp, tau: 2.5 }]), seq([a, b]));
+      assert.deepEqual(midis(alone), [a], `${a} ringing is not ${b} (${JSON.stringify(alone)})`);
+    }
+    // ...and when it is played, it counts, even soon after.
+    for (const gap of [0.2, 0.8]) {
+      const h = listen(render(2.2, [{ midi: a, at: 0.4, tau: 2.5 }, { midi: b, at: 0.4 + gap, tau: 2.5 }]), seq([a, b]));
+      assert.deepEqual(midis(h), [a, b], `${a} then ${b}, ${gap}s apart (${JSON.stringify(h)})`);
+      assert(h[1].t >= 0.4 + gap && h[1].t < 0.4 + gap + 0.3, `${b} heard when played (${h[1].t})`);
+    }
+  }
+}
+
+// A key struck while another still rings: its attack counts for it, not
+// for the ringing one when the song asks for that again.
+for (const tune of [[60, 67, 60, 67], [48, 36, 48, 36], [60, 64, 60, 64]]) {
+  const notes = tune.map((midi, i) => ({ midi, at: 0.5 + 0.35 * i, tau: 2.5, amp: 0.2 }));
+  const h = listen(render(2.6, notes, 0.004), (t, heard) => (heard.length < tune.length ? [tune[heard.length]] : []));
+  assert.deepEqual(midis(h), tune, `${tune} (${JSON.stringify(h)})`);
+  h.forEach((x, i) => assert(x.t >= notes[i].at && x.t < notes[i].at + 0.3, `${tune} note ${i} on time (${x.t} vs ${notes[i].at})`));
+}
+
+// Octaves played together are a chord: both count.
+for (const ch of [[48, 60], [60, 72], [36, 48, 55]]) {
+  const h = listen(render(1.5, ch.map(midi => ({ midi, at: 0.4, amp: 0.15 }))), () => ch);
+  assert.deepEqual(midis(h).sort(), [...ch].sort(), `octave chord ${ch} (${JSON.stringify(h)})`);
+}
+
 // The key next door is a wrong note, not the right one.
 assert.deepEqual(listen(render(1.5, [{ midi: 61, at: 0.4 }]), () => [62]), [], 'C# is not D');
 assert.deepEqual(listen(render(1.5, [{ midi: 64, at: 0.4 }]), () => [62]), [], 'E is not D');

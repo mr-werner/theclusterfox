@@ -10,11 +10,14 @@ import { arrange, barAt, barBeats, barCount, barStart, keyRange, LEVELS } from "
 import { Engine, starsFor } from "../model/engine";
 import { COMPUTER_LABELS, computerKey, keyAt, keyLayout } from "../model/keyboard";
 import { todayKey } from "../model/dates";
+import { barIndexAt, lastBar, loopBeats as loopBeatsFor, loopFromBeats } from "../model/loop";
 import SheetView, { SHEET_HEIGHT, WINDOW_PX } from "./SheetView";
+import BarStrip from "./BarStrip";
 
 const HAND_COLOR = { R: "#f2b544", L: "#4fb7d6" };
 const SPEEDS = [0.25, 0.5, 0.6, 0.75, 0.9, 1, 1.25];
 const MIDI_PREF = "keysfox-midi-on";
+const TAP_PX = 6; // on the sheet, a press that moves less than this is a tap
 
 const pct = s => `${Math.round(s * 100)}%`;
 
@@ -51,6 +54,7 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
   const [hud, setHud] = useState({ bar: 0, accuracy: null, streak: 0, waiting: false });
   const [result, setResult] = useState(null);
   const [loop, setLoop] = useState({ on: false, a: 1, b: Math.min(bars, 4) });
+  const [loopDraft, setLoopDraft] = useState(null); // the bars under a drag, before you let go
   const [panel, setPanel] = useState(null); // "settings" | null
   const [midi, setMidi] = useState({ on: false, devices: [], error: null });
   const [mic, setMic] = useState({ on: false, heard: null, error: null });
@@ -61,6 +65,7 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
   const canvasRef = useRef(null);
   const sheetGroupRef = useRef(null);
   const sheetWrapRef = useRef(null);
+  const stripHeadRef = useRef(null);
   const engineRef = useRef(null);
   const synthRef = useRef(null);
   const pressedRef = useRef(new Map()); // midi -> { source, verdict, at }
@@ -95,7 +100,8 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
     return synthRef.current;
   }, []);
 
-  const loopBeats = useMemo(() => (loop.on ? { a: barStart(arranged, song.pickup ? loop.a : loop.a - 1), b: barStart(arranged, song.pickup ? loop.b + 1 : loop.b) } : null), [loop, arranged, song.pickup]);
+  const loopBeats = useMemo(() => (loop.on ? loopBeatsFor(arranged, loop) : null), [loop, arranged]);
+  const selectLoop = useCallback(l => setLoop({ on: true, a: l.a, b: l.b }), []);
 
   const makeEngine = useCallback(
     (from = 0) => {
@@ -365,6 +371,15 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
         }
       }
 
+      // The bar strip's playhead: through the bar it's in, bar by bar.
+      if (stripHeadRef.current && e) {
+        const n = barCount(e.song);
+        const i = barIndexAt(e.song, beat);
+        const a = barStart(e.song, i);
+        const frac = Math.max(0, Math.min(1, (beat - a) / Math.max(1e-6, barStart(e.song, i + 1) - a)));
+        stripHeadRef.current.style.left = `${(beat < 0 ? 0 : ((i + frac) / n) * 100).toFixed(2)}%`;
+      }
+
       if (ctx && canvas.width > 0) draw(ctx, canvas, e, beat, now);
 
       if (now - hudAt > 200 && e) {
@@ -563,17 +578,50 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
     noteOff(m);
   };
 
-  // Tap the sheet to jump to that bar.
-  const onSheetClick = e => {
+  // Jump to the start of a bar (tapping the sheet or the bar strip).
+  const seekBar = useCallback(index => {
     const eng = engineRef.current;
-    if (!eng || !sheetWrapRef.current) return;
-    const r = sheetWrapRef.current.getBoundingClientRect();
-    const beat = eng.beat + (e.clientX - r.left - playX) / ppb;
-    const b = Math.max(0, Math.min(bars - 1, barAt(eng.song, Math.max(0, beat)) - (eng.song.pickup ? 0 : 1)));
-    eng.seek(barStart(eng.song, b));
+    if (!eng) return;
+    eng.seek(barStart(eng.song, Math.max(0, Math.min(bars - 1, index))));
     flashRef.current.clear();
     if (statusRef.current === "done") setStatus("paused");
+  }, [bars]);
+
+  // On the sheet: tap a bar to jump there, drag across bars to loop them.
+  const sheetDrag = useRef(null);
+  const sheetBeat = clientX => {
+    const eng = engineRef.current;
+    const r = sheetWrapRef.current.getBoundingClientRect();
+    return eng.beat + (clientX - r.left - playX) / ppb;
   };
+  const onSheetDown = e => {
+    if (!engineRef.current || !sheetWrapRef.current || (e.button !== undefined && e.button !== 0)) return;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    sheetDrag.current = { id: e.pointerId, x: e.clientX, beat: sheetBeat(e.clientX), moved: false };
+  };
+  const onSheetMove = e => {
+    const d = sheetDrag.current;
+    if (!d || d.id !== e.pointerId) return;
+    if (!d.moved && Math.abs(e.clientX - d.x) < TAP_PX) return;
+    d.moved = true;
+    setLoopDraft(loopFromBeats(arranged, d.beat, sheetBeat(e.clientX)));
+  };
+  const onSheetUp = e => {
+    const d = sheetDrag.current;
+    if (!d || d.id !== e.pointerId) return;
+    sheetDrag.current = null;
+    setLoopDraft(null);
+    if (d.moved) selectLoop(loopFromBeats(arranged, d.beat, sheetBeat(e.clientX)));
+    else seekBar(barIndexAt(arranged, d.beat));
+  };
+  const onSheetCancel = () => {
+    sheetDrag.current = null;
+    setLoopDraft(null);
+  };
+  const sheetLoop = useMemo(() => {
+    const shown = loopDraft || (loop.on ? loop : null);
+    return shown ? loopBeatsFor(arranged, shown) : null;
+  }, [loopDraft, loop, arranged]);
 
   const playing = status === "playing";
   const handLabel = { R: "Right hand", L: "Left hand", both: "Both hands" };
@@ -651,9 +699,9 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
         {loop.on && (
           <span className="ks-loop">
             bars
-            <input type="number" min={1} max={bars} value={loop.a} onChange={e => setLoop(l => ({ ...l, a: Math.max(1, Math.min(Number(e.target.value) || 1, l.b)) }))} aria-label="Loop from bar" />
+            <input type="number" min={1} max={lastBar(arranged)} value={loop.a} onChange={e => setLoop(l => ({ ...l, a: Math.max(1, Math.min(Number(e.target.value) || 1, l.b)) }))} aria-label="Loop from bar" />
             to
-            <input type="number" min={1} max={bars} value={loop.b} onChange={e => setLoop(l => ({ ...l, b: Math.max(l.a, Math.min(Number(e.target.value) || l.a, bars - (song.pickup ? 1 : 0))) }))} aria-label="Loop to bar" />
+            <input type="number" min={1} max={lastBar(arranged)} value={loop.b} onChange={e => setLoop(l => ({ ...l, b: Math.max(l.a, Math.min(Number(e.target.value) || l.a, lastBar(arranged))) }))} aria-label="Loop to bar" />
           </span>
         )}
 
@@ -673,6 +721,8 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
           <SlidersHorizontal size={17} />
         </button>
       </div>
+
+      <BarStrip song={arranged} loop={loop} preview={loopDraft} onPreview={setLoopDraft} onSelect={selectLoop} onSeek={seekBar} headRef={stripHeadRef} />
 
       {(midi.error || mic.error) && <p className="ks-warn">{midi.error || mic.error}</p>}
 
@@ -755,7 +805,7 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
             <input type="checkbox" checked={mySound} onChange={e => setSettings({ mySound: e.target.checked })} /> Sound when I press keys (turn off if your keyboard makes its own)
           </label>
           <p className="ks-help">
-            <Keyboard size={14} /> No piano handy? Your computer keys play: {Object.entries(COMPUTER_LABELS).slice(0, 13).map(([, k]) => k).join(" ")} starting at {noteName(octave)}. Z and X move an octave. Space plays and pauses. Tap the sheet music to jump to a bar.
+            <Keyboard size={14} /> No piano handy? Your computer keys play: {Object.entries(COMPUTER_LABELS).slice(0, 13).map(([, k]) => k).join(" ")} starting at {noteName(octave)}. Z and X move an octave. Space plays and pauses. Tap the sheet music or the bar strip to jump to a bar; drag across either to loop those bars.
           </p>
           {mic.on && <p className="ks-help">With the microphone on, a note counts the moment you strike it, so a key that's still ringing won't move the song on. Headphones help it hear only you, not the hand KeysFox plays.</p>}
         </div>
@@ -763,8 +813,8 @@ export default function Player({ song, settings, setSettings, onRun, onBack }) {
 
       <div className="ks-stage-wrap">
         {view !== "falling" && (
-          <div ref={sheetWrapRef} className="ks-sheet-wrap" onClick={onSheetClick} style={{ minHeight: SHEET_HEIGHT }}>
-            {sheetSize.w > 0 && <SheetView song={arranged} hands={hands} ppb={ppb} win={win} groupRef={sheetGroupRef} playX={playX} width={sheetSize.w} />}
+          <div ref={sheetWrapRef} className="ks-sheet-wrap" onPointerDown={onSheetDown} onPointerMove={onSheetMove} onPointerUp={onSheetUp} onPointerCancel={onSheetCancel} style={{ minHeight: SHEET_HEIGHT }} title="Tap a bar to jump there. Drag across bars to loop them.">
+            {sheetSize.w > 0 && <SheetView song={arranged} hands={hands} ppb={ppb} win={win} groupRef={sheetGroupRef} playX={playX} width={sheetSize.w} loop={sheetLoop} drafting={!!loopDraft} />}
           </div>
         )}
         <div ref={stageRef} className="ks-stage" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>

@@ -4,6 +4,7 @@ import { SONGS, songById, CATEGORIES } from '../data/songs.js';
 import { arrange, barCount, barAt, fromImport, keyRange, songBeats, LEVELS } from '../model/song.js';
 import { Engine, starsFor } from '../model/engine.js';
 import { layoutStaff } from '../model/notation.js';
+import { barIndexAt, lastBar, loopBeats, loopFromBars, loopFromBeats } from '../model/loop.js';
 import { planItems, launchTargets } from '../model/planLink.js';
 import { normalizeData, addRun, emptyData } from '../state/keysStore.js';
 import { parseMidi, writeMidi } from '../../../lib/music/midi.js';
@@ -98,6 +99,33 @@ assert.equal(normalizeData({}).settings.tuning, 0);
   for (let i = 0; i < 500 && loops < 2; i++) for (const e of eng.tick(0.05)) if (e.type === 'loop') loops++;
   assert.equal(loops, 2);
   assert(eng.beat >= 4 && eng.beat < 8);
+}
+
+// Dragging across bars to pick a loop.
+{
+  const ode = arrange(songById.get('ode-to-joy'), 'medium'); // 4/4, no pickup
+  assert(!ode.pickup);
+  assert.deepEqual(loopFromBars(ode, 2, 5), { a: 3, b: 6 }, 'bar indexes to bar numbers');
+  assert.deepEqual(loopFromBars(ode, 5, 2), { a: 3, b: 6 }, 'dragging right to left');
+  assert.deepEqual(loopFromBars(ode, 3, 3), { a: 4, b: 4 }, 'a single bar');
+  assert.deepEqual(loopFromBeats(ode, 4.5, 15.9), { a: 2, b: 4 }, 'every bar the drag touched');
+  assert.deepEqual(loopFromBeats(ode, -3, 9999), { a: 1, b: lastBar(ode) }, 'kept inside the song');
+  assert.deepEqual(loopBeats(ode, { a: 2, b: 4 }), { a: 4, b: 16 });
+  assert.equal(barIndexAt(ode, 7.99), 1);
+  // The engine plays exactly the bars picked.
+  const eng = new Engine(ode, { mode: 'play', loop: loopBeats(ode, loopFromBeats(ode, 9, 4)), countIn: 0 });
+  assert.equal(eng.beat, 4);
+  let looped = false;
+  for (let i = 0; i < 400 && !looped; i++) for (const e of eng.tick(0.05)) if (e.type === 'loop') looped = true;
+  assert(looped && eng.beat >= 4 && eng.beat < 12);
+
+  const withPickup = SONGS.find(s => s.pickup);
+  const p = arrange(withPickup, 'medium');
+  const bar = p.timeSig[0] * (4 / p.timeSig[1]);
+  assert.deepEqual(loopFromBars(p, 0, 2), { a: 1, b: 2 }, 'a pickup bar is never looped on its own');
+  assert.deepEqual(loopBeats(p, { a: 1, b: 2 }), { a: p.pickup, b: p.pickup + 2 * bar });
+  assert.equal(barIndexAt(p, p.pickup + bar * 1.5), 2);
+  assert.equal(lastBar(p), barCount(p) - 1);
 }
 
 // Importing a MIDI file.

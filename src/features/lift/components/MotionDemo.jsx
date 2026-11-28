@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Box, Pause, Play, Square } from "lucide-react";
 
+import BodyDemo2D from "./BodyDemo2D";
 import PushupDemo2D from "./PushupDemo2D";
 import { effortCss, efforts as effortsAt, repFor } from "../data/activation";
 
@@ -9,8 +10,8 @@ const PushupDemo3D = lazy(() => import("./PushupDemo3D"));
 
 // The 2D drawing for each rig, and which rigs have a 3D pose yet (keep in
 // step with anatomy3d/rigs.js, which is left out here so three.js stays lazy).
-const VIEWS_2D = { pushup: PushupDemo2D };
-const HAS_3D = new Set(["pushup"]);
+const VIEWS_2D = { pushup: PushupDemo2D, body: BodyDemo2D };
+const HAS_3D = new Set(["pushup", "body"]);
 
 const VIEW_KEY = "liftfox-demo-view";
 const readView = () => {
@@ -93,7 +94,7 @@ export default function MotionDemo({ movement, exerciseName }) {
         </div>
 
         {view === "2d" ? (
-          <Demo2D depth={rep.depth} efforts={efforts} onPick={setPicked} options={movement.rigOptions} label={`a ${exerciseName.toLowerCase()}`} />
+          <Demo2D depth={rep.depth} rep={rep} efforts={efforts} onPick={setPicked} options={movement.rigOptions} label={`a ${exerciseName.toLowerCase()}`} />
         ) : (
           <Suspense fallback={<div className="lp-3d"><p className="lp-3d-status">Loading the 3D body…</p></div>}>
             <PushupDemo3D movement={movement} playing={playing} speed={speed} onFrame={on3dFrame} onFail={on3dFail} />

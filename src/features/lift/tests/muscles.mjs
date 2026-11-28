@@ -3,16 +3,19 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { Vector3 } from 'three';
 
-import { MOVEMENTS, effortRgb, efforts, movementFor, muscleForPart, repAt, repFor } from '../data/activation.js';
+import { BY_EXERCISE as BY_EXERCISE_LOCAL, MOVEMENTS, effortRgb, efforts, movementFor, muscleForPart, repAt, repFor } from '../data/activation.js';
 import { musclesById } from '../data/muscles.js';
 import { exercisesById } from '../data/exercises.js';
 import { normalizeData } from '../state/liftStore.js';
 import { makePushup, restJoints } from '../anatomy3d/pushupRig.js';
 import { FLOOR, SHAPES, makePushup2d } from '../model/pushup2d.js';
+import { SHAPES as BODY_SHAPES, makeBody2d } from '../model/body2d.js';
+import { POSES, LEN } from '../model/bodyPoses.js';
+import { makeBody, bindBody } from '../anatomy3d/bodyRig.js';
 
 const pushup = MOVEMENTS.pushup;
 assert.equal(movementFor(exercisesById.get('push-up')), pushup);
-assert.equal(movementFor(exercisesById.get('bodyweight-squat')), null, 'later batches wait for their own data');
+assert.equal(movementFor(exercisesById.get('split-squat')), null, 'later batches wait for their own data');
 
 // Every muscle belongs to a real LiftFox group and matches parts in the 3D model.
 const index = JSON.parse(fs.readFileSync(new URL('../../../../public/anatomy/index.json', import.meta.url)));
@@ -68,8 +71,8 @@ assert.deepEqual(rig.pose(1).sides[0].wrist.toArray(), wristL.toArray(), 'hands 
 assert(new Vector3(...wristL.toArray()).y < 0.05);
 
 // 2D: every coloured shape has activation data; the body stays above the floor.
-for (const list of Object.values(SHAPES)) {
-  for (const s of list) if (s.muscle) assert(pushup.muscles.some(m => m.id === s.muscle), `2D shape for unknown ${s.muscle}`);
+for (const list of [...Object.values(SHAPES), ...Object.values(BODY_SHAPES)]) {
+  for (const s of list) if (s.muscle) assert(Object.values(MOVEMENTS).some(mv => mv.muscles.some(m => m.id === s.muscle)), `2D shape for unknown ${s.muscle}`);
 }
 const rig2 = makePushup2d();
 for (const depth of [0, 1]) {
@@ -100,6 +103,7 @@ for (const depth of [0, 1]) {
   // elbows off the floor, and moves the shoulders down; its 2D drawing stays
   // above the floor and inside its frame.
   for (const [key, movement] of Object.entries(MOVEMENTS)) {
+    if (movement.rig !== 'pushup') continue;
     const options = movement.rigOptions ?? {};
     const r3 = makePushup({ chestGap: 0.08, ...options });
     const held3 = movement.hold != null;
@@ -132,6 +136,95 @@ for (const depth of [0, 1]) {
   // The pike bends at the hips; the others stay straight.
   assert(makePushup({ pike: true }).pose(0).legs);
   assert.equal(makePushup().pose(0).legs, undefined);
+}
+
+// Squats, hinges and bridges: one standing/lying rig, in 2D and 3D.
+{
+  const lead = key => [...MOVEMENTS[key].muscles].sort((a, b) => b.peak - a.peak)[0].id;
+  const batch = {
+    'bodyweight-squat': 'quads', 'goblet-squat': 'quads', 'back-squat': 'quads', 'jump-squat': 'quads', 'wall-sit': 'quads',
+    'romanian-deadlift': 'hamstrings', deadlift: 'lowerBack', 'db-rdl': 'hamstrings', 'kb-swing': 'glutes', 'single-leg-rdl': 'hamstrings',
+    'glute-bridge': 'glutes', 'single-leg-bridge': 'glutes', 'hip-thrust': 'glutes', 'db-hip-thrust': 'glutes', 'hamstring-walkout': 'hamstrings',
+  };
+  for (const [id, leader] of Object.entries(batch)) {
+    const movement = movementFor(exercisesById.get(id));
+    assert(movement, `${id}: no muscle view`);
+    assert.equal(movement.rig, 'body');
+    assert(POSES[movement.rigOptions.pose], `${id}: no pose`);
+    assert.equal(lead(BY_EXERCISE_LOCAL[id]), leader, `${id} should lead with ${leader}`);
+  }
+  assert(MOVEMENTS.hipThrust.muscles.find(m => m.id === 'glutes').peak > MOVEMENTS.backSquat.muscles.find(m => m.id === 'glutes').peak, 'hip thrust beats the squat for glutes');
+  assert(MOVEMENTS.jumpSquat.muscles.find(m => m.id === 'calves').peak > MOVEMENTS.bodyweightSquat.muscles.find(m => m.id === 'calves').peak);
+
+  // Bridges work on the way up (depth 1 is hips up); a jump leaves the floor.
+  const bridgeRep = repFor(MOVEMENTS.gluteBridge, MOVEMENTS.gluteBridge.cycleMs * 0.2);
+  assert(bridgeRep.pressing && bridgeRep.label === 'Lifting');
+  const jump = MOVEMENTS.jumpSquat;
+  assert(repFor(jump, jump.cycleMs * 0.88).air > 0.9, 'in the air at the top');
+  assert.equal(repFor(jump, jump.cycleMs * 0.3).air, undefined);
+  assert.equal(repFor(MOVEMENTS.wallSit, 777).depth, 1, 'the wall sit holds at the bottom');
+
+  for (const [key, movement] of Object.entries(MOVEMENTS)) {
+    if (movement.rig !== 'body') continue;
+    const r3 = makeBody(movement.rigOptions);
+    const r2 = makeBody2d(movement.rigOptions);
+    const lying = /bridge|thrust|walkout/i.test(key);
+    const reps = [0, 0.25, 0.5, 0.75, 1].map(depth => ({ depth, rep: {} }));
+    if (movement.jump) reps.push({ depth: 0, rep: { air: 1 } });
+    const firstAnkle = r3.pose(0, {}).ankles[0];
+    for (const { depth, rep } of reps) {
+      const p = r3.pose(depth, rep);
+      // Bones keep their length: the leg chain and the arms.
+      for (let side = 0; side < 2; side++) {
+        const s = p.sides[side];
+        assert(Math.abs(s.shoulder.distanceTo(s.elbow) - upperLen) < 1e-6, `${key}: upper arm length`);
+        assert(Math.abs(s.elbow.distanceTo(s.wrist) - foreLen) < 1e-6, `${key}: forearm length`);
+        assert(Math.abs(p.hips[side].distanceTo(p.knees[side]) - 0.425) < 0.003, `${key}: thigh length`);
+        assert(Math.abs(p.knees[side].distanceTo(p.ankles[side]) - 0.395) < 0.003, `${key}: shin length`);
+        assert(p.knees[side].y > 0.1 && p.hips[side].y > 0.1, `${key}: knee or hip through the floor at ${depth}`);
+        assert(s.wrist.y > 0.02, `${key}: hand through the floor`);
+      }
+      // The near ankle lands where the side-on pose puts it, and stays on the
+      // floor unless the move walks or jumps.
+      const a2 = p.flat.legs[0].ankle;
+      assert(Math.abs(p.ankles[0].y - a2[1]) < 0.01 && Math.abs(p.ankles[0].z - a2[0]) < 0.01, `${key}: ankle off its spot`);
+      if (!movement.jump && key !== 'hamstringWalkout') assert(p.ankles[0].distanceTo(firstAnkle) < 0.01, `${key}: the planted foot slides at ${depth}`);
+      if (lying) assert(p.flat.shoulder[1] < 0.6, `${key}: shoulders should be down`);
+      // 2D: every joint above the floor and inside the frame.
+      const [vx, vy, vw, vh] = r2.view;
+      const d2 = r2.pose(depth, rep);
+      for (const bones of [d2.near, d2.far]) {
+        for (const [name, b] of Object.entries(bones)) {
+          if (!b.from) continue;
+          for (const pt of [b.from, b.to]) {
+            assert(pt[1] <= FLOOR + 1, `${key}: 2D ${name} below the floor at ${depth}`);
+            assert(pt[0] >= vx && pt[0] <= vx + vw && pt[1] >= vy && pt[1] <= vy + vh, `${key}: 2D outside its frame`);
+          }
+        }
+      }
+    }
+    if (!movement.hold) {
+      // Standing moves move the shoulders; lying ones the hips (or the feet).
+      const part = p => (lying ? (key === 'hamstringWalkout' ? p.ankles[0] : p.hips[0]) : p.sides[0].shoulder);
+      const moved = part(r3.pose(0, {})).distanceTo(part(r3.pose(1, {})));
+      assert(moved > 0.1, `${key}: barely moves (${moved.toFixed(3)} m)`);
+    }
+    assert(r3.upright === !lying, `${key}: camera framing`);
+  }
+  // The jump leaves the floor; a bridge's hips rise.
+  assert(makeBody({ pose: 'jumpSquat' }).pose(0, { air: 1 }).ankles[0].y > LEN.ankle + 0.15);
+  const br = makeBody({ pose: 'gluteBridge' });
+  assert(br.pose(1, {}).hips[0].y > br.pose(0, {}).hips[0].y + 0.15);
+
+  // Binding: every vertex blends between real segments, the pelvis stays whole.
+  const positions = new Float32Array([0.085, 0.6, 0.1, 0.08, 0.385, 0.1, 0.07, -0.05, 0.15, 0, 1.2, 0.1, 0.05, 0.8, 0.05]);
+  const parts = [{ name: 'Left vastus lateralis', box: [[0, 0.3, 0], [0.1, 0.8, 0.1]] }, { name: 'Left hip bone', box: [[0, 0.75, 0], [0.1, 0.95, 0.1]] }];
+  const bound = bindBody(positions, new Uint16Array([0, 0, 0, 0, 1]), parts);
+  assert.equal(bound.segB[0], 4, 'mid-thigh follows the thigh');
+  assert.equal(bound.segB[1], 5, 'the knee blends into the shin');
+  assert.equal(bound.segB[2], 6, 'the foot follows the foot');
+  assert.equal(bound.segA[3] + bound.segB[3], 0, 'chest stays with the trunk');
+  assert.equal(bound.segA[4] + bound.segB[4], 0, 'pelvis stays with the trunk');
 }
 
 // Favourites survive saving and loading, without duplicates.

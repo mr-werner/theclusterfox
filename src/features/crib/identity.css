@@ -1,0 +1,18 @@
+/* CribFox identity: a nursery at night. Deep indigo like a dark bedroom,
+   a soft moonlight yellow, and a rounded, gentle typeface. */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap");
+
+.appbar[data-app="cribfox"] {
+  --ab-bg: rgba(14, 16, 38, 0.92);
+  --ab-fg: #eef0ff;
+  --ab-muted: rgba(238, 240, 255, 0.6);
+  --ab-line: rgba(255, 224, 138, 0.14);
+  --ab-accent: #ffe08a;
+  --ab-accent-ink: #2a2206;
+  --ab-font: "Nunito", system-ui, sans-serif;
+  --ab-name-size: 1.3rem;
+  --ab-name-weight: 800;
+  --ab-name-spacing: 0.01em;
+  --ab-radius: 16px;
+  --ab-menu-bg: #1a1d44;
+}

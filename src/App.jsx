@@ -65,6 +65,8 @@ const ReadyPage = lazy(() => import("./features/ready/ReadyPage"));
 const StudyPage = lazy(() => import("./features/study/StudyPage"));
 // Fishbowl is a live party game; it loads on demand too.
 const FishbowlPage = lazy(() => import("./features/fishbowl/FishbowlPage"));
+// CribFox is the two-phone baby monitor; it loads on demand too.
+const CribPage = lazy(() => import("./features/crib/CribPage"));
 
 // PilotFox used to be FlyFox at /fly; old links (and saved planner items)
 // keep working.
@@ -118,6 +120,14 @@ export default function App() {
                 element={
                     <Suspense fallback={null}>
                         <CalmPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/crib"
+                element={
+                    <Suspense fallback={null}>
+                        <CribPage />
                     </Suspense>
                 }
             />

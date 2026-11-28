@@ -1294,6 +1294,12 @@
   aspect-ratio: 210 / 79;
 }
 
+.lp-2d .lp-prop {
+  fill: #2a2423;
+  stroke: #4a3f3d;
+  stroke-width: 0.6;
+}
+
 .lp-2d .lp-base {
   fill: #3d3736;
   stroke: #1a1414;

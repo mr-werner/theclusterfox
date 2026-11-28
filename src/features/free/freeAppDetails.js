@@ -511,6 +511,11 @@ export const freeAppDetails = {
   "BiP": { limits: ["tracking"], note: "Free; not end-to-end encrypted by default, unlike Signal." },
   "EBA": { note: "Free public platform from Turkey's Ministry of National Education." },
   "TDK Sözlük": { note: "Free public service from the Turkish Language Association." },
+  "iWantTFC": { limits: ["ads", "freeTier", "region"], note: "Free tier with ads in the Philippines; many titles are paid abroad." },
+  "PTV": { note: "Free public TV livestreams, available worldwide." },
+  "Radyo Pilipinas": { note: "Live public radio from the Presidential Broadcast Service." },
+  "GCash": { limits: ["region", "tracking"], note: "Free account for Philippine mobile numbers; some cash-outs have fees." },
+  "TESDA Online Program": { note: "Free public courses; a free account tracks your progress and certificates." },
 };
 
 // Country where the company behind each commercial service is based.
@@ -862,4 +867,9 @@ export const freeAppCountries = {
   "BiP": "Turkey",
   "EBA": "Turkey",
   "TDK Sözlük": "Turkey",
+  "iWantTFC": "Philippines",
+  "PTV": "Philippines",
+  "Radyo Pilipinas": "Philippines",
+  "GCash": "Philippines",
+  "TESDA Online Program": "Philippines",
 };

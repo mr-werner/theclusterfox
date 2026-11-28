@@ -452,6 +452,8 @@ const categories = [
       { name: "Tonton", alt: "Netflix", url: "https://www.tonton.com.my/", mark: "To", color: "#e4002b", description: "Media Prima's free streaming for Malaysian dramas, variety shows and live TV3." },
       { name: "TVR+", alt: "Netflix", url: "https://www.tvrplus.ro/", mark: "TV", color: "#d71920", description: "Romanian public TV streaming, with live TVR channels, films and series." },
       { name: "tabii", alt: "Netflix", url: "https://www.tabii.com/", mark: "ta", color: "#00b2a9", description: "Turkish public broadcaster TRT's free streaming, with series, films and documentaries." },
+      { name: "iWantTFC", alt: "Netflix", url: "https://www.iwanttfc.com/", mark: "iW", color: "#1d3c8f", description: "ABS-CBN's streaming for Filipino teleseryes, films and shows, with a free tier." },
+      { name: "PTV", alt: "cable news", url: "https://ptvnews.ph/", mark: "PT", color: "#0038a8", description: "Philippine public TV, with live news, public affairs and government briefings." },
     ],
   },
   {
@@ -556,6 +558,7 @@ const categories = [
       { name: "SYOK", alt: "SiriusXM", url: "https://www.syok.my/", mark: "SY", color: "#ff2d55", description: "Free Malaysian app for Astro radio stations, podcasts and music videos." },
       { name: "Radio România", alt: "SiriusXM", url: "https://www.radioromania.ro/", mark: "RR", color: "#004b93", description: "Romanian public radio, including Actualități, Cultural and Muzical, live and on demand." },
       { name: "TRT Dinle", alt: "Spotify", url: "https://www.trtdinle.com/", mark: "TD", color: "#e30a17", description: "TRT's free app for Turkish public radio, music archives and podcasts." },
+      { name: "Radyo Pilipinas", alt: "SiriusXM", url: "https://radyopilipinas.ph/", mark: "RP", color: "#ce1126", description: "Philippine public radio with national news and regional stations, live online." },
     ],
   },
   {
@@ -624,6 +627,7 @@ const categories = [
       { name: "bunq", alt: "bank accounts with fees", url: "https://www.bunq.com/", logo: siBunq, description: "App-based European bank with a free plan and budgeting tools." },
       { name: "Nubank", alt: "bank accounts with fees", url: "https://nubank.com.br/", logo: siNubank, description: "No-fee digital bank account and credit card, popular across Latin America." },
       { name: "Mercado Pago", alt: "bank accounts with fees", url: "https://www.mercadopago.com.ar/", mark: "MP", color: "#00b1ea", description: "Free digital wallet and account with transfers, QR payments and savings." },
+      { name: "GCash", alt: "bank accounts with fees", url: "https://www.gcash.com/", mark: "GC", color: "#007dfe", description: "Free Philippine e-wallet for transfers, bills and QR payments." },
     ],
   },
   {
@@ -803,6 +807,7 @@ const categories = [
       { name: "Hrvatska enciklopedija", alt: "Encyclopaedia Britannica", url: "https://enciklopedija.hr/", mark: "HE", color: "#8b1a1a", description: "Croatia's national encyclopedia, free online from the Miroslav Krleža Institute." },
       { name: "Edutorij", alt: "paid tutoring", url: "https://edutorij.e-skole.hr/", mark: "Ed", color: "#f39200", description: "Croatia's public library of digital school materials for every subject and grade." },
       { name: "EBA", alt: "paid tutoring", url: "https://www.eba.gov.tr/", mark: "EB", color: "#ec1c24", description: "Turkey's national education platform, with lessons, videos and course materials." },
+      { name: "TESDA Online Program", alt: "LinkedIn Learning", url: "https://e-tesda.gov.ph/", mark: "TE", color: "#0b4ea2", description: "Free technical and vocational courses from the Philippines' skills agency TESDA." },
     ],
   },
   {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Copy, Share2, UserMinus } from "lucide-react";
+import { Check, Copy, PhoneOff, Share2, UserMinus, UserPlus } from "lucide-react";
 
 import { LIMITS, TEAMS, TEAM_NAMES, fmtTime } from "../model/game";
 
@@ -11,6 +11,7 @@ export default function Lobby({ game, room }) {
       <Invite game={game} room={room} />
       <Teams game={game} room={room} isHost={isHost} />
       {me.team && <Words key={`${settings.wordsPerPerson}-${room.myWords.join("|")}`} game={game} room={room} />}
+      <Guests game={game} room={room} />
       {isHost ? <HostSettings game={game} room={room} /> : <SettingsSummary settings={settings} />}
       {isHost ? (
         <div className="fb-card fb-center">
@@ -107,6 +108,8 @@ function Teams({ game, room, isHost }) {
 
 function Player({ p, room, isHost, game }) {
   const you = p.id === room.me.id;
+  const mine = p.guest && p.by === room.me.id;
+  const addedBy = p.guest ? room.players.find((x) => x.id === p.by)?.name : null;
   return (
     <li>
       <span className={`fb-dot${p.ready ? " is-ready" : ""}`} title={p.ready ? "Words are in" : "Still writing words"}>
@@ -116,8 +119,13 @@ function Player({ p, room, isHost, game }) {
         {p.name}
         {you ? " (you)" : ""}
         {p.id === room.hostId ? " ★" : ""}
+        {p.guest && (
+          <small className="fb-guest" title={addedBy ? `No phone. Added on ${addedBy}'s phone` : "No phone"}>
+            <PhoneOff size={12} /> no phone
+          </small>
+        )}
       </span>
-      {isHost && !you && (
+      {(isHost || mine) && !you && (
         <span className="fb-pactions">
           <button title={`Move to ${p.team === "red" ? "Blue" : "Red"}`} onClick={() => game.send({ type: "team", team: p.team === "red" ? "blue" : "red", playerId: p.id })}>
             ⇄
@@ -223,5 +231,120 @@ function SettingsSummary({ settings: s }) {
     <p className="fb-muted fb-center">
       {s.wordsPerPerson} {s.wordsPerPerson === 1 ? "word" : "words"} each · {fmtTime(s.turnSeconds)} turns · {s.skipsPerTurn} {s.skipsPerTurn === 1 ? "skip" : "skips"} a turn
     </p>
+  );
+}
+
+// Players without a phone: whoever adds them types their name, team and
+// words here. On their turn they borrow any phone.
+function Guests({ game, room }) {
+  const [open, setOpen] = useState(false);
+  const mine = room.players.filter((p) => p.guest && p.by === room.me.id);
+  return (
+    <div className="fb-card">
+      <h2>Someone without a phone?</h2>
+      <p className="fb-muted">Add them from your phone with their team and words. On their turn they pick up any phone and tap that it's them.</p>
+      {mine.map((p) => (
+        <GuestWords key={`${p.id}-${room.settings.wordsPerPerson}-${(room.guestWords[p.id] ?? []).join("|")}`} game={game} room={room} guest={p} />
+      ))}
+      {open ? (
+        <GuestForm game={game} room={room} onDone={() => setOpen(false)} />
+      ) : (
+        <button className="fb-btn fb-btn--ghost" onClick={() => setOpen(true)}>
+          <UserPlus size={18} /> Add a player without a phone
+        </button>
+      )}
+    </div>
+  );
+}
+
+function WordInputs({ words, setWords, n }) {
+  return words.slice(0, n).map((w, i) => (
+    <input
+      key={i}
+      value={w}
+      maxLength={LIMITS.word}
+      autoComplete="off"
+      autoCapitalize="sentences"
+      placeholder={`Word ${i + 1}`}
+      aria-label={`Word ${i + 1}`}
+      onChange={(e) => setWords((list) => list.map((x, j) => (j === i ? e.target.value : x)))}
+      required
+    />
+  ));
+}
+
+function GuestForm({ game, room, onDone }) {
+  const n = room.settings.wordsPerPerson;
+  const [name, setName] = useState("");
+  const [team, setTeam] = useState(room.me.team || "red");
+  const [words, setWords] = useState(() => Array.from({ length: n }, () => ""));
+  const [saving, setSaving] = useState(false);
+  async function submit(event) {
+    event.preventDefault();
+    setSaving(true);
+    const ok = await game.send({ type: "addGuest", name, team, words });
+    setSaving(false);
+    if (ok) onDone();
+  }
+  return (
+    <form className="fb-form fb-guest-form" onSubmit={submit}>
+      <label>
+        <span>Their name</span>
+        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={LIMITS.name} autoComplete="off" placeholder="e.g. Grandma" required />
+      </label>
+      <div className="fb-tabs" role="radiogroup" aria-label="Their team">
+        {TEAMS.map((t) => (
+          <button key={t} type="button" role="radio" aria-checked={team === t} className={`fb-tab--${t}${team === t ? " is-on" : ""}`} onClick={() => setTeam(t)}>
+            {TEAM_NAMES[t]}
+          </button>
+        ))}
+      </div>
+      <span className="fb-muted">
+        Hand them your phone to type their {n} {n === 1 ? "word" : "words"} in secret:
+      </span>
+      <WordInputs words={words} setWords={setWords} n={n} />
+      <div className="fb-row">
+        <button className="fb-btn" disabled={saving}>
+          {saving ? "Adding…" : "Add player"}
+        </button>
+        <button type="button" className="fb-link" onClick={onDone}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function GuestWords({ game, room, guest }) {
+  const n = room.settings.wordsPerPerson;
+  const current = room.guestWords[guest.id] ?? [];
+  const [words, setWords] = useState(() => Array.from({ length: n }, (_, i) => current[i] ?? ""));
+  const [editing, setEditing] = useState(current.length !== n);
+  const [show, setShow] = useState(false);
+  async function submit(event) {
+    event.preventDefault();
+    if (await game.send({ type: "words", for: guest.id, words })) setEditing(false);
+  }
+  if (!editing) {
+    return (
+      <div className="fb-guest-row">
+        <span>
+          <Check size={14} /> <b>{guest.name}</b> ({TEAM_NAMES[guest.team]}): words are in
+        </span>
+        <button className="fb-link" onClick={() => setShow((v) => !v)}>
+          {show ? current.join(", ") : "Show"}
+        </button>
+        <button className="fb-link" onClick={() => setEditing(true)}>
+          Change
+        </button>
+      </div>
+    );
+  }
+  return (
+    <form className="fb-form fb-guest-form" onSubmit={submit}>
+      <b>{guest.name}'s words</b>
+      <WordInputs words={words} setWords={setWords} n={n} />
+      <button className="fb-btn">Put them in the bowl</button>
+    </form>
   );
 }

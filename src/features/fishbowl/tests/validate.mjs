@@ -122,4 +122,53 @@ now += 3 * 60 * 1000;
 s = act(s, "a", { type: "makeHost" }, { now, rand });
 assert.equal(s.hostId, "a");
 
+// Players without a phone: added from someone's phone, clue on any phone.
+{
+  now = 5_000_000;
+  let g = newGame({ roomName: "Guests", hostId: "h", hostName: "Mom", now });
+  g = play(g, "a", { type: "join", name: "Dad" });
+  g = play(g, "h", { type: "settings", wordsPerPerson: 1 });
+  g = play(g, "h", { type: "team", team: "red" });
+  g = play(g, "a", { type: "team", team: "blue" });
+  fails(() => play(g, "a", { type: "addGuest", name: "Grandma", team: "red", words: [] }), /Fill in all 1/);
+  fails(() => play(g, "a", { type: "addGuest", name: "mom", team: "red", words: ["x"] }), /already called/);
+  g = play(g, "a", { type: "addGuest", name: "Grandma", team: "red", words: ["Bingo"] });
+  const gid = g.players.find((p) => p.name === "Grandma").id;
+  assert.equal(g.players.find((p) => p.id === gid).guest, true);
+  assert.deepEqual(view(g, "a", now).guestWords, { [gid]: ["Bingo"] });
+  assert.deepEqual(view(g, "h", now).guestWords, {}, "only the phone that added her sees her words");
+  fails(() => play(g, "x", { type: "words", for: gid, words: ["Nope"] }), /not in this room/);
+  g = play(g, "a", { type: "words", for: gid, words: ["Bingo night"] });
+  fails(() => play(g, "a", { type: "words", for: "h", words: ["Nope"] }), /without a phone/);
+  fails(() => play(g, "a", { type: "makeHost", playerId: gid }), /Only the host|phone/);
+  fails(() => play(g, "h", { type: "makeHost", playerId: gid }), /doesn't have a phone/);
+  g = play(g, "h", { type: "words", words: ["Pie"] });
+  g = play(g, "a", { type: "words", words: ["Golf"] });
+  // Make red go first, with Grandma as the clue-giver.
+  let r = 0;
+  do g = act(newStart(g), "h", { type: "start" }, { now, rand: () => [0.1, 0.2, 0.3, 0.4, 0.1][r++ % 5] });
+  while (g.turn.team !== "red");
+  g.nextGiver.red = 1;
+  g.turn.giverId = gid;
+  // Grandma has no phone: Dad (the other team!) can't just start it...
+  fails(() => play(g, "a", { type: "startTurn" }), /not your turn/);
+  // ...but anyone can hand theirs over once she's confirmed it's her.
+  g = play(g, "a", { type: "startTurn", as: gid });
+  assert.equal(g.turn.phoneId, "a");
+  assert.equal(g.turn.giverId, gid);
+  assert.ok(view(g, "a", now).turn.word, "the phone she's holding shows the word");
+  assert.equal(view(g, "a", now).turn.phoneId, "a");
+  fails(() => play(g, "a", { type: "leave" }), /Finish this turn/);
+  g = play(g, "a", { type: "got", word: g.turn.word });
+  assert.equal(g.scores.red, 1, "the point goes to Grandma's team, not the phone owner's");
+  g = play(g, "a", { type: "stop" });
+  assert.equal(g.turn.team, "blue");
+  assert.equal(g.lastTurn.giverId, gid);
+}
+function newStart(st) {
+  const c = structuredClone(st);
+  c.phase = "lobby";
+  return c;
+}
+
 console.log("fishbowl ok");

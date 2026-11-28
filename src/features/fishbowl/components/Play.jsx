@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Eye, Megaphone, SkipForward, Timer } from "lucide-react";
+import { Check, Eye, Megaphone, SkipForward, Smartphone, Timer } from "lucide-react";
 
 import { ROUNDS, TEAM_NAMES, other } from "../model/game";
 import { buzz, unlockSound, tickSound } from "./sound";
@@ -55,7 +55,11 @@ function Turn({ game, room, nameOf }) {
   const t = room.turn;
   const me = room.me;
   const isHost = room.hostId === me.id;
-  const giving = t.giverId === me.id;
+  // "Giving" means this phone shows the words: the clue-giver's own phone
+  // before the turn, then whichever phone they picked up.
+  const giving = t.status === "ready" ? t.giverId === me.id : t.phoneId === me.id;
+  const giverPlayer = room.players.find((p) => p.id === t.giverId);
+  const borrowed = giving && t.giverId !== me.id;
   const myTeamUp = me.team === t.team;
   const giverName = nameOf(t.giverId);
   const teamName = TEAM_NAMES[t.team];
@@ -75,6 +79,12 @@ function Turn({ game, room, nameOf }) {
     }
     lastSecs.current = secs;
   }, [secs, t.status, giving]);
+
+  function borrow(player) {
+    if (window.confirm(`Hand this phone to ${player.name}? Their turn starts now and the word shows on this screen.`)) {
+      send({ type: "startTurn", as: player.id });
+    }
+  }
 
   async function send(action) {
     if (pending) return;
@@ -97,8 +107,24 @@ function Turn({ game, room, nameOf }) {
           </>
         ) : (
           <>
-            <h2>{giverName ? `${giverName} gives clues` : "Waiting for a clue-giver"}</h2>
-            <p className="fb-muted">{myTeamUp ? "Get ready to guess!" : `Your team watches. If ${teamName} runs out of time mid-word, you get a chance to steal it.`}</p>
+            <h2>{giverPlayer ? `${giverName} gives clues` : "Waiting for a clue-giver"}</h2>
+            {giverPlayer?.guest ? (
+              <>
+                <p>
+                  {giverName} doesn't have a phone. {giverName}, pick up any phone and tap below. The word will show on that screen.
+                </p>
+                <button className="fb-btn fb-btn--big fb-btn--go" disabled={pending} onClick={() => borrow(giverPlayer)}>
+                  <Smartphone size={22} /> I'm {giverName}, use this phone
+                </button>
+              </>
+            ) : (
+              <p className="fb-muted">{myTeamUp ? "Get ready to guess!" : `Your team watches. If ${teamName} runs out of time mid-word, you get a chance to steal it.`}</p>
+            )}
+            {giverPlayer && !giverPlayer.guest && (
+              <button className="fb-link" onClick={() => borrow(giverPlayer)}>
+                {giverName} is using this phone instead
+              </button>
+            )}
             {isHost && (
               <div className="fb-host-row">
                 <button className="fb-link" onClick={() => send({ type: "passGiver" })}>
@@ -124,7 +150,8 @@ function Turn({ game, room, nameOf }) {
           <Timer size={20} /> {secs}s
         </div>
         <span className="fb-label">
-          {giverName} · {teamName} · {t.got} so far
+          {giverName}
+          {borrowed ? " on this phone" : ""} · {teamName} · {t.got} so far
         </span>
         {giving ? (
           <>
@@ -143,8 +170,8 @@ function Turn({ game, room, nameOf }) {
                 <SkipForward size={20} /> Skip{room.settings.skipsPerTurn ? ` (${Math.max(0, skipsLeft)} left)` : ""}
               </button>
             </div>
-            <button className="fb-link" onClick={() => window.confirm("End your turn now? The word goes back in the bowl.") && send({ type: "stop" })}>
-              End my turn early
+            <button className="fb-link" onClick={() => window.confirm("End this turn now? The word goes back in the bowl.") && send({ type: "stop" })}>
+              End {borrowed ? "the" : "my"} turn early
             </button>
           </>
         ) : myTeamUp ? (

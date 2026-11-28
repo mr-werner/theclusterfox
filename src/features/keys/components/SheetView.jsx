@@ -87,7 +87,7 @@ function Staff({ layout, clef, from, to, dim, fingers }) {
   );
 }
 
-function SheetView({ song, hands, ppb, win, groupRef, playX, width }) {
+function SheetView({ song, hands, ppb, win, groupRef, playX, width, loop, drafting }) {
   const right = useMemo(() => layoutStaff(song, "R", { ppb }), [song, ppb]);
   const left = useMemo(() => layoutStaff(song, "L", { ppb }), [song, ppb]);
   const from = (win - 1) * WINDOW_PX - 40;
@@ -107,6 +107,7 @@ function SheetView({ song, hands, ppb, win, groupRef, playX, width }) {
     <div className="ks-sheet" style={{ height: SHEET_HEIGHT }}>
       <svg className="ks-sheet-svg" width={width} height={SHEET_HEIGHT} aria-label={`Sheet music for ${song.title}`} role="img">
         <g ref={groupRef}>
+          {loop && <rect x={loop.a * ppb} y={yOf("treble", 14)} width={(loop.b - loop.a) * ppb} height={yOf("bass", -6) - yOf("treble", 14)} className={`ks-sheet-loop${drafting ? " is-draft" : ""}`} />}
           {lines("treble")}
           {lines("bass")}
           {right.bars

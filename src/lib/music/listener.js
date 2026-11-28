@@ -35,10 +35,14 @@ const BUMP = 1.25; // a smaller attack: enough when a ringing key is struck agai
 const BUMP_FRAMES = 8; // ...and its own energy climbs back up within this many frames
 const RESTRIKE = 1.15; // by this much over where it was just before
 const CONFIRM = 2; // frames in a row a strike must hold before it counts
+// Notes whose sound spills onto note m: the ones m is an overtone of (an
+// octave, a twelfth, two octaves... below), and the octave above, which
+// carries low notes and which the pitch tracker can't tell from m.
+const RELATED = [-12, -19, -24, -28, -31, 12];
 
 export function createNoteListener() {
   const hist = []; // per frame: Float32Array(128) of note energies
-  const fired = new Map(); // midi -> { frame, peak, faded } for the last time it counted
+  const fired = new Map(); // midi -> { frame, at, peak, faded, with } for the last time it counted (at: the strike's frame; with: the notes listened for alongside it)
   const pending = new Map(); // midi -> frames in a row it has looked struck
   let n = 0;
   let floor = null;
@@ -75,6 +79,7 @@ export function createNoteListener() {
     if (!quiet && loud && (frame.attack ?? 1) >= BUMP && n - lastBump > 2) lastBump = n;
 
     const want = [...new Set(expected)];
+    const wantSet = new Set(want);
     const next = new Set();
     for (const m of want) {
       if (ignore?.has(m)) {
@@ -84,7 +89,7 @@ export function createNoteListener() {
         if (present(frame, m, 2)) {
           const e = energyOf(E, m);
           const f = fired.get(m);
-          if (!f || f.faded || f.frame < n - 1) fired.set(m, { frame: n, peak: Math.max(e, f && !f.faded ? f.peak : 0), faded: false });
+          if (!f || f.faded || f.frame < n - 1) fired.set(m, { frame: n, at: n, peak: Math.max(e, f && !f.faded ? f.peak : 0), faded: false, with: NONE, self: true });
           else f.frame = n;
         }
         continue;
@@ -99,34 +104,59 @@ export function createNoteListener() {
       }
       next.add(m);
       const f = fired.get(m);
-      const last = f ? f.frame : -Infinity;
+      // The last strike that could be sounding on this note: its own, or a
+      // related note's (C4 just struck puts energy on C5 and makes the pitch
+      // tracker say "C"), unless the two were asked for together as a chord.
+      // Nothing that happened up to then can count as a strike of this note.
+      let last = f ? f.frame : -Infinity;
+      let rel = null; // the related note, while its own sound is still building up
+      for (const d of RELATED) {
+        const r = fired.get(m + d);
+        if (!r || n - r.at > HISTORY || r.with.has(m)) continue;
+        if (r.at > last) last = r.at;
+        if (!rel || r.at > rel.at) rel = { midi: m + d, at: r.at };
+      }
+      // A loudness attack belongs to whatever key made it: once that key has
+      // counted, the same attack can't count again for a note that wasn't
+      // asked for alongside it (G struck while C still rings is not a C).
+      let taken = last;
+      for (const [k, r] of fired) if (k !== m && !r.self && n - r.at <= HISTORY && !r.with.has(m) && r.at > taken) taken = r.at;
+      // While it builds up, so does its spill onto this note, so a strike of
+      // this note shows as a rise against it rather than on its own.
+      // A low note is heard on its octave above as well, unless that key is
+      // ringing itself: then only its own key tells whether it was struck.
+      const up = fired.get(m + 12);
+      const own = m < 48 && up && !up.faded ? (h) => h[m] ?? 0 : (h) => energyOf(h, m);
+      const against = (h) => (rel ? own(h) / Math.max(energyOf(h, rel.midi), 1e-12) : own(h));
       // Energy before the strike, never looking back past the last time this
       // note counted, so one strike can't count again as it rings on.
       let base = Infinity;
       const from = Math.max(n - BASE_FROM, last + 1);
       for (let k = from; k <= n - BASE_TO; k++) {
         const h = hist[hist.length - (n - k)];
-        if (h) base = Math.min(base, energyOf(h, m));
+        if (h) base = Math.min(base, against(h));
       }
       const now = energyOf(E, m);
       // A rise only counts once the last strike of this key has died away;
       // until then its energy is still building up in the long window.
       // A quick repeat shows up as a fresh attack instead.
-      let rose = (!f || f.faded) && base !== Infinity && now > base * RISE + 1e-9;
+      // The note has to stand out on its own key too: a rise in a near-empty
+      // bin under a louder note an octave up is leakage, not a strike.
+      let rose = (!f || f.faded) && base !== Infinity && against(E) > base * RISE + 1e-9 && own(s) >= MIN_REL;
       // Struck again while still ringing: a bump in loudness, then this
       // note's energy climbing back up from where it was just before.
-      if (!rose && n - lastBump <= BUMP_FRAMES && lastBump > last + 2) {
+      if (!rose && n - lastBump <= BUMP_FRAMES && lastBump > taken + 2) {
         // Measured against the keys either side, so the broadband knock of
         // some other key landing on this note's bins doesn't count.
         const before = hist[hist.length - (n - (lastBump - 1))];
         if (before && contrast(E, m) > contrast(before, m) * RESTRIKE + 1e-12) rose = true;
       }
-      const attacked = n - lastAttack <= ATTACK_FRAMES && lastAttack > last + 1 && pitchAgrees(frame, m);
+      const attacked = n - lastAttack <= ATTACK_FRAMES && lastAttack > taken + 1 && pitchAgrees(frame, m);
       if (rose || attacked) {
         const c = (pending.get(m) ?? 0) + 1;
         if (c >= CONFIRM) {
           struck.push(m);
-          fired.set(m, { frame: n, peak: now, faded: false });
+          fired.set(m, { frame: n, at: n, peak: now, faded: false, with: wantSet });
           pending.delete(m);
         } else pending.set(m, c);
       } else if (pending.has(m)) {
@@ -134,7 +164,7 @@ export function createNoteListener() {
         const c = pending.get(m) + 1;
         if (c >= CONFIRM && now > 0) {
           struck.push(m);
-          fired.set(m, { frame: n, peak: now, faded: false });
+          fired.set(m, { frame: n, at: n, peak: now, faded: false, with: wantSet });
           pending.delete(m);
         } else pending.set(m, c);
       }
@@ -168,6 +198,8 @@ export function createNoteListener() {
     },
   };
 }
+
+const NONE = new Set();
 
 /** Is note m in this frame at all (struck now or ringing)? */
 export function present(frame, m, groupSize = 1, ignore) {

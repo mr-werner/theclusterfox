@@ -7,6 +7,10 @@
 // take timed turns; the clue-giver marks each word got or skipped (a few skips
 // a turn). When time runs out on a word, the other team gets one guess to
 // steal it. A round ends when the bowl is empty, then every word goes back in.
+//
+// Not everyone needs a phone: any phone can add a player without one (a
+// guest) with their team and words. On their turn they pick up any phone and
+// confirm it's them; that phone shows the words for the turn.
 
 export const TEAMS = ["red", "blue"];
 export const TEAM_NAMES = { red: "Red", blue: "Blue" };
@@ -158,10 +162,7 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
   const type = action?.type;
 
   if (type === "join") {
-    const name = cleanName(action.name);
-    if (!name) fail("Type your name.");
-    const clash = s.players.find((p) => p.id !== playerId && p.name.toLowerCase() === name.toLowerCase());
-    if (clash) fail(`Someone here is already called ${clash.name}. Add an initial.`);
+    const name = checkName(s, action.name, playerId);
     if (me) {
       me.name = name;
       me.seen = now;
@@ -186,7 +187,7 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
       if (!TEAMS.includes(team)) fail("Pick Red or Blue.");
       const target = action.playerId && action.playerId !== playerId ? findPlayer(s, action.playerId) : me;
       if (!target) fail("That player left.");
-      if (target !== me) needHost();
+      if (target !== me && !(target.guest && target.by === playerId)) needHost();
       if (s.phase !== "lobby" && target === me && me.team && !host) fail("Teams are set once the game starts. Ask the host to move you.");
       if (s.turn && s.turn.giverId === target.id && s.turn.status !== "ready") fail("Wait until their turn ends.");
       // Keep the rotation fair: move to the end of the new team's order.
@@ -210,16 +211,27 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
 
     case "words": {
       if (s.phase !== "lobby") fail("The bowl is closed. The game has started.");
-      const words = (Array.isArray(action.words) ? action.words : []).map(cleanWord);
-      if (words.length !== s.settings.wordsPerPerson || words.some((w) => !w)) {
-        fail(`Fill in all ${s.settings.wordsPerPerson} words.`);
+      let target = me;
+      if (action.for && action.for !== playerId) {
+        target = findPlayer(s, action.for);
+        if (!target?.guest) fail("You can only fill in words for players without a phone.");
+        if (target.by !== playerId && !host) fail(`${target.name}'s words were added on another phone.`);
       }
-      const seen = new Set();
-      for (const w of words) {
-        if (seen.has(w.toLowerCase())) fail(`"${w}" is in there twice.`);
-        seen.add(w.toLowerCase());
-      }
-      s.words[playerId] = words;
+      s.words[target.id] = checkWords(s, action.words);
+      return s;
+    }
+
+    case "addGuest": {
+      if (s.players.length >= LIMITS.players) fail("This room is full.");
+      const name = checkName(s, action.name, null);
+      if (!TEAMS.includes(action.team)) fail(`Pick a team for ${name}.`);
+      const words = s.phase === "lobby" ? checkWords(s, action.words) : null;
+      let id;
+      do id = `guest-${Math.floor(rand() * 2 ** 40).toString(36)}`;
+      while (findPlayer(s, id));
+      s.players.push({ id, name, team: action.team, guest: true, by: playerId, seen: null });
+      if (words) s.words[id] = words;
+      if (s.turn?.status === "ready") s.turn.giverId = giverFor(s, s.turn.team);
       return s;
     }
 
@@ -244,8 +256,18 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
     case "startTurn": {
       const t = s.turn;
       if (s.phase !== "play" || !t || t.status !== "ready") fail("It isn't time to start a turn.");
-      if (t.giverId !== playerId && !host) fail("It's not your turn to give clues.");
-      if (t.giverId !== playerId) t.giverId = playerId; // the host can step in
+      if (t.giverId === playerId) {
+        // their own phone
+      } else if (action.as && action.as === t.giverId) {
+        // The clue-giver picked up this phone and confirmed it's them.
+      } else if (action.as) {
+        fail("The clue-giver changed. Have a look and try again.");
+      } else if (host) {
+        t.giverId = playerId; // the host steps in
+      } else {
+        fail("It's not your turn to give clues.");
+      }
+      t.phoneId = playerId;
       t.status = "running";
       t.endsAt = now + s.settings.turnSeconds * 1000;
       t.word = draw(s, rand);
@@ -257,7 +279,7 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
     case "stop": {
       const t = s.turn;
       if (s.phase !== "play" || !t || t.status !== "running") fail("Time's up for this turn.");
-      if (t.giverId !== playerId && !host) fail("Only the clue-giver can mark words.");
+      if (phoneOf(t) !== playerId && !host) fail("Only the clue-giver's phone can mark words.");
       if (action.word != null && action.word !== t.word) fail("That word was already marked.");
       if (type === "got") {
         point(s, t.team);
@@ -285,11 +307,21 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
     }
 
     case "steal": {
+      // Time ran out on a word. The clue-giver picks what happened: their
+      // team got it at the buzzer, the other team stole it, or it goes back
+      // in the bowl. (Older phones send { stolen: true/false }.)
       const t = s.turn;
       if (s.phase !== "play" || !t || t.status !== "steal") fail("There's nothing to steal right now.");
-      if (t.giverId !== playerId && !host) fail("The clue-giver marks the steal.");
+      if (phoneOf(t) !== playerId && !host) fail("The clue-giver marks the steal.");
       const word = t.word;
-      if (action.stolen) {
+      const result = ["got", "stolen", "back"].includes(action.result) ? action.result : action.stolen ? "stolen" : "back";
+      if (result === "got") {
+        point(s, t.team);
+        t.got.push(word);
+        takeFromPool(s, word);
+        t.word = null;
+        finishTurn(s, null);
+      } else if (result === "stolen") {
         point(s, other(t.team));
         takeFromPool(s, word);
         finishTurn(s, word);
@@ -335,11 +367,11 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
     }
 
     case "remove": {
-      needHost();
       const target = findPlayer(s, action.playerId);
       if (!target) return s;
+      if (!(target.guest && target.by === playerId)) needHost();
       if (target.id === s.hostId) fail("Make someone else host first.");
-      if (s.turn?.giverId === target.id && s.turn.status !== "ready") fail("Wait until their turn ends.");
+      if ((s.turn?.giverId === target.id || phoneOf(s.turn) === target.id) && s.turn.status !== "ready") fail("Wait until their turn ends.");
       s.players = s.players.filter((p) => p !== target);
       if (s.phase === "lobby") delete s.words[target.id];
       if (s.turn) s.turn.giverId = giverFor(s, s.turn.team);
@@ -347,10 +379,10 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
     }
 
     case "leave": {
-      if (s.turn?.giverId === playerId && s.turn.status !== "ready") fail("Finish your turn first.");
+      if ((s.turn?.giverId === playerId || phoneOf(s.turn) === playerId) && s.turn.status !== "ready") fail("Finish this turn first.");
       s.players = s.players.filter((p) => p !== me);
       if (s.phase === "lobby") delete s.words[playerId];
-      if (s.hostId === playerId && s.players.length) s.hostId = s.players[0].id;
+      if (s.hostId === playerId) s.hostId = s.players.find((p) => !p.guest)?.id ?? s.hostId;
       if (s.turn) s.turn.giverId = giverFor(s, s.turn.team);
       return s;
     }
@@ -358,6 +390,7 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
     case "makeHost": {
       const target = findPlayer(s, action.playerId ?? playerId);
       if (!target) fail("That player left.");
+      if (target.guest) fail(`${target.name} doesn't have a phone in the game.`);
       const away = !findPlayer(s, s.hostId) || now - (findPlayer(s, s.hostId).seen ?? 0) > HOST_AWAY_MS;
       if (!host && !(away && target === me)) fail("Only the host can hand over hosting.");
       s.hostId = target.id;
@@ -368,6 +401,30 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
       fail("Unknown move.");
   }
 }
+
+function checkWords(s, raw) {
+  const words = (Array.isArray(raw) ? raw : []).map(cleanWord);
+  if (words.length !== s.settings.wordsPerPerson || words.some((w) => !w)) {
+    fail(`Fill in all ${s.settings.wordsPerPerson} words.`);
+  }
+  const seen = new Set();
+  for (const w of words) {
+    if (seen.has(w.toLowerCase())) fail(`"${w}" is in there twice.`);
+    seen.add(w.toLowerCase());
+  }
+  return words;
+}
+
+function checkName(s, raw, exceptId) {
+  const name = cleanName(raw);
+  if (!name) fail("Type a name.");
+  const clash = s.players.find((p) => p.id !== exceptId && p.name.toLowerCase() === name.toLowerCase());
+  if (clash) fail(`Someone here is already called ${clash.name}. Add an initial.`);
+  return name;
+}
+
+/** The phone a turn is played on: the clue-giver's own, or one they picked up. */
+export const phoneOf = (t) => (t ? (t.phoneId ?? t.giverId) : null);
 
 /** Why the host can't start yet, or null when everyone's ready. */
 export function startProblem(s) {
@@ -385,9 +442,8 @@ function names(list) {
 }
 
 /**
- * What one phone gets to see. Nobody sees the words still in the bowl. The
- * word being clued shows to the clue-giver and the team watching; during a
- * steal it hides from the team trying to steal it.
+ * What one phone gets to see. Nobody sees the words still in the bowl, and
+ * the word being clued shows only on the clue-giver's phone.
  */
 export function view(s, playerId, now) {
   const me = findPlayer(s, playerId) || null;
@@ -396,15 +452,13 @@ export function view(s, playerId, now) {
   if (t) {
     let word = null;
     if (t.word != null) {
-      const giver = t.giverId === playerId;
-      const myTeam = me?.team;
-      const canSee =
-        t.status === "running" ? giver || myTeam !== t.team : t.status === "steal" ? giver || myTeam === t.team || !myTeam : false;
-      if (canSee) word = { id: t.word, text: s.bowl[t.word].text };
+      // Only the phone the clue-giver is holding ever shows the word.
+      if (phoneOf(t) === playerId) word = { id: t.word, text: s.bowl[t.word].text };
     }
     turn = {
       team: t.team,
       giverId: t.giverId,
+      phoneId: phoneOf(t),
       status: t.status,
       endsAt: t.endsAt,
       skips: t.skips,
@@ -421,8 +475,17 @@ export function view(s, playerId, now) {
     me: me ? { id: me.id, name: me.name, team: me.team } : null,
     settings: s.settings,
     phase: s.phase,
-    players: s.players.map((p) => ({ id: p.id, name: p.name, team: p.team, ready: (s.words[p.id]?.length ?? 0) === s.settings.wordsPerPerson })),
+    players: s.players.map((p) => ({
+      id: p.id,
+      name: p.name,
+      team: p.team,
+      guest: Boolean(p.guest),
+      by: p.by ?? null,
+      ready: (s.words[p.id]?.length ?? 0) === s.settings.wordsPerPerson,
+    })),
     myWords: s.words[playerId] ?? [],
+    // Words for the players without a phone that this phone added.
+    guestWords: Object.fromEntries(s.players.filter((p) => p.guest && p.by === playerId).map((p) => [p.id, s.words[p.id] ?? []])),
     round: s.round,
     bowlCount: s.bowl.length,
     poolCount: s.pool.length,

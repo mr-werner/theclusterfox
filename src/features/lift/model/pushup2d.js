@@ -57,15 +57,27 @@ const len = a => Math.hypot(a[0], a[1]);
 const norm = a => mul(a, 1 / (len(a) || 1));
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
 
-// Body line at an incline (degrees above the floor), toes on the floor.
-function bodyAt(incline) {
+// Body line at an incline (degrees above the floor), toes resting at `toe`.
+function bodyAt(incline, toe = [TOE_X, FLOOR]) {
   const dir = [Math.cos(rad(incline)), -Math.sin(rad(incline))]; // toward the head (svg y is down)
   const front = [-dir[1], dir[0]]; // toward the floor
-  const toe = [TOE_X, FLOOR];
   const ankle = add(toe, mul(front, -L.foot));
   const hip = add(ankle, mul(dir, L.leg));
   const shoulder = add(hip, mul(dir, L.torso));
-  return { dir, front, toe, ankle, hip, shoulder };
+  return { dir, front, toe, ankle, hip, shoulder, legDir: dir, legFront: front, footFront: dir };
+}
+
+// The pike: legs and torso meet at the hips in an upside-down V. Toes on the
+// floor; `torsoDown` is how far the torso points below level, in degrees.
+function pikeAt(torsoDown, hip, ankle, toe) {
+  const dir = [Math.cos(rad(torsoDown)), Math.sin(rad(torsoDown))];
+  const front = [-dir[1], dir[0]];
+  const legDir = norm(sub(hip, ankle));
+  return {
+    dir, front, toe, ankle, hip,
+    shoulder: add(hip, mul(dir, L.torso)),
+    legDir, legFront: [-legDir[1], legDir[0]], footFront: legDir,
+  };
 }
 
 function solveIncline(test, from, to, step) {
@@ -73,31 +85,99 @@ function solveIncline(test, from, to, step) {
   return to;
 }
 
-export function makePushup2d() {
-  const wristY = FLOOR - 2.5;
+// Two-bone reach: the elbow sits where both arm bones keep their length,
+// pointing back toward the feet.
+function poleFor(shoulder, wrist) {
+  const dirW = norm(sub(wrist, shoulder));
+  const pole = [-1, -0.25];
+  return norm(sub(pole, mul(dirW, dot(pole, dirW))));
+}
+function elbowFor(b, wrist) {
   const reach = L.upper + L.fore;
-  const top = solveIncline(a => FLOOR - 2.5 - bodyAt(a).shoulder[1] >= reach * 0.985, 0, 40, 0.05);
-  const topBody = bodyAt(top);
-  const wrist = [topBody.shoulder[0] + 2, wristY];
-  // Bottom: chest a few centimetres above the floor.
-  const bottom = solveIncline(a => {
-    const b = bodyAt(a);
-    const chest = add(add(b.hip, mul(b.dir, L.torso * 0.85)), mul(b.front, 12.4));
-    return chest[1] >= FLOOR - 6;
-  }, top, 0, -0.05);
+  const toWrist = sub(wrist, b.shoulder);
+  const d = Math.min(len(toWrist), reach - 1e-3);
+  const a = (L.upper ** 2 - L.fore ** 2 + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, L.upper ** 2 - a * a));
+  return add(add(b.shoulder, mul(norm(toWrist), a)), mul(poleFor(b.shoulder, wrist), h));
+}
+
+const chestOf = b => add(add(b.hip, mul(b.dir, L.torso * 0.85)), mul(b.front, 12.4));
+const headOf = b => add(add(b.shoulder, mul(b.dir, L.neck + L.head * 0.6)), mul(b.front, 1.5));
+
+/**
+ * The push-up and its variants, side on. Options match the 3D rig's, in
+ * metres: handHeight (hands on a bench), footHeight (feet on a bench),
+ * handForward (hands toward the head; negative is under the chest), pike
+ * (hips up) and forearms (a forearm plank, held still).
+ */
+export function makePushup2d({ handHeight = 0, footHeight = 0, handForward = 0, pike = false, forearms = false } = {}) {
+  const cm = v => v * 100;
+  const toe = [TOE_X, FLOOR - cm(footHeight)];
+  const wristY = FLOOR - 2.5 - cm(handHeight);
+  const reach = L.upper + L.fore;
+  const props = [];
+  if (footHeight > 0) props.push({ x: TOE_X - 26, y: toe[1], w: 32, h: cm(footHeight) });
+
+  let bodyFor;
+  let wrist;
+  let top;
+  let bottom;
+  let elbowOnFloor = null;
+
+  if (pike) {
+    // Top: torso 60° below level with the arms carrying on its line. Going
+    // down, the legs tip forward around the ankles so the hips come down and
+    // forward with the torso at the same slope, and the head lands just in
+    // front of the hands.
+    const down = 60;
+    const dir = [Math.cos(rad(down)), Math.sin(rad(down))];
+    const ankle = add(toe, mul([-Math.cos(rad(55)), -Math.sin(rad(55))], L.foot));
+    const hipY = wristY - (L.torso + reach * 0.985) * dir[1];
+    const legUp = Math.asin(Math.min(1, (ankle[1] - hipY) / L.leg));
+    const hipAt = t => add(ankle, [L.leg * Math.cos(legUp - rad(t)), -L.leg * Math.sin(legUp - rad(t))]);
+    wrist = [hipAt(0)[0] + (L.torso + reach * 0.985) * dir[0], wristY];
+    bodyFor = t => pikeAt(down, hipAt(t), ankle, toe);
+    top = 0;
+    // Bottom: the top of the head a few centimetres off the floor.
+    bottom = solveIncline(t => {
+      const b = bodyFor(t);
+      return add(headOf(b), mul(b.dir, L.head * 0.82))[1] >= FLOOR - 4;
+    }, 0, 40, 0.05);
+  } else if (forearms) {
+    // Elbows on the floor under the shoulders, forearms flat, body straight.
+    const elbowY = FLOOR - 4.5;
+    top = solveIncline(a => bodyAt(a, toe).shoulder[1] <= elbowY - L.upper, 0, 40, 0.05);
+    bottom = top;
+    const s = bodyAt(top, toe).shoulder;
+    elbowOnFloor = [s[0] + 1, elbowY];
+    wrist = add(elbowOnFloor, [L.fore, 0.5]);
+    bodyFor = a => bodyAt(a, toe);
+  } else {
+    bodyFor = a => bodyAt(a, toe);
+    // Bottom: chest a few centimetres above the floor or the bench.
+    const chestDone = a => chestOf(bodyFor(a))[1] >= wristY - 3.5;
+    if (handHeight > 0) {
+      // Hands on a bench: find the bottom first, put the hands under the
+      // chest there, then the top is where the arms are straight.
+      bottom = solveIncline(a => !chestDone(a), 0, 80, 0.05) - 0.05;
+      wrist = [chestOf(bodyFor(bottom))[0] - 3 + cm(handForward), wristY];
+      top = solveIncline(a => len(sub(wrist, bodyFor(a).shoulder)) >= reach * 0.985, bottom, 80, 0.05);
+      props.push({ x: wrist[0] - 4, y: FLOOR - cm(handHeight), w: 40, h: cm(handHeight) });
+    } else {
+      top = solveIncline(a => wristY - bodyFor(a).shoulder[1] >= reach * 0.985, -40, 40, 0.05);
+      wrist = [bodyFor(top).shoulder[0] + 2 + cm(handForward), wristY];
+      // ...or the elbows reach the floor, or the face does.
+      const elbowLow = a => elbowFor(bodyFor(a), wrist)[1] >= FLOOR - 5;
+      const faceLow = a => headOf(bodyFor(a))[1] + L.head * 0.82 >= FLOOR - 2;
+      bottom = solveIncline(a => chestDone(a) || elbowLow(a) || faceLow(a), top, -40, -0.05);
+    }
+  }
 
   function pose(depth) {
-    const b = bodyAt(top + (bottom - top) * depth);
-    const toWrist = sub(wrist, b.shoulder);
-    const d = Math.min(len(toWrist), reach - 1e-3);
-    const dirW = norm(toWrist);
-    // Elbow points back toward the feet.
-    let pole = [-1, -0.25];
-    pole = norm(sub(pole, mul(dirW, dot(pole, dirW))));
-    const a = (L.upper ** 2 - L.fore ** 2 + d * d) / (2 * d);
-    const h = Math.sqrt(Math.max(0, L.upper ** 2 - a * a));
-    const elbow = add(add(b.shoulder, mul(dirW, a)), mul(pole, h));
-    const head = add(add(b.shoulder, mul(b.dir, L.neck + L.head * 0.6)), mul(b.front, 1.5));
+    const b = bodyFor(top + (bottom - top) * depth);
+    const pole = poleFor(b.shoulder, wrist);
+    const elbow = elbowOnFloor ?? elbowFor(b, wrist);
+    const head = headOf(b);
     const frontOf = (from, to) => {
       const dir = norm(sub(to, from));
       return norm(sub(mul(pole, -1), mul(dir, dot(mul(pole, -1), dir))));
@@ -106,8 +186,8 @@ export function makePushup2d() {
       body: b,
       head,
       bones: {
-        foot: { from: b.toe, to: b.ankle, front: b.dir },
-        leg: { from: b.ankle, to: b.hip, front: b.front },
+        foot: { from: b.toe, to: b.ankle, front: b.footFront },
+        leg: { from: b.ankle, to: b.hip, front: b.legFront },
         torso: { from: b.hip, to: b.shoulder, front: b.front },
         upper: { from: b.shoulder, to: elbow, front: frontOf(b.shoulder, elbow) },
         fore: { from: elbow, to: wrist, front: frontOf(elbow, wrist) },
@@ -116,7 +196,32 @@ export function makePushup2d() {
     };
   }
 
-  return { pose, top, bottom };
+  // The drawing's frame: every outline over the rep, the head and the props.
+  const xs = [];
+  const ys = [FLOOR];
+  for (const depth of [0, 0.25, 0.5, 0.75, 1]) {
+    const { bones, head } = pose(depth);
+    for (const [name, bone] of Object.entries(bones)) {
+      for (const shape of SHAPES[name]) {
+        for (const p of placeShape(shape, bone)) {
+          xs.push(p[0]);
+          ys.push(p[1]);
+        }
+      }
+    }
+    xs.push(head[0] + L.head * 0.82, head[0] - L.head * 0.82);
+    ys.push(head[1] - L.head * 0.82);
+  }
+  for (const p of props) xs.push(p.x, p.x + p.w);
+  const minY = Math.min(...ys) - 3;
+  const maxX = Math.max(...xs) + 4;
+  const minX = Math.min(...xs) - 4;
+  // At least 210 wide, with the body in the middle.
+  const width = Math.max(210, maxX - minX);
+  const view = [(minX + maxX - width) / 2, Math.min(19, minY), width, 0];
+  view[3] = FLOOR + 6 - view[1];
+
+  return { pose, top, bottom, props, view };
 }
 
 /** A shape's outline points in drawing space. */

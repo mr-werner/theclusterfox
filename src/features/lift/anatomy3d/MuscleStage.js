@@ -8,9 +8,8 @@ import * as THREE from "three";
 import { TrackballControls } from "three/addons/controls/TrackballControls.js";
 
 import { fetchLayer } from "../../body/viewer/loadLayer";
-import { bindVertices, skin } from "./pushupRig";
 import { RIGS_3D } from "./rigs";
-import { efforts, muscleForPart, repAt } from "../data/activation";
+import { efforts, muscleForPart, repFor } from "../data/activation";
 import { MAX_SLOTS, muscleMaterial, shade } from "./material";
 
 // Where the camera starts, from the body's centre: front-left and a little above.
@@ -43,8 +42,10 @@ export default class MuscleStage {
 
     const scene = new THREE.Scene();
     this.scene = scene;
+    this.rig = RIGS_3D[movement.rig](movement.rigOptions);
+    const focus = new THREE.Vector3(...(this.rig.focus?.toArray?.() ?? [0, 0.28, 0.82]));
     const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 20);
-    camera.position.copy(START_VIEW).add(new THREE.Vector3(0, 0.28, 0.82));
+    camera.position.copy(START_VIEW).add(focus);
     this.camera = camera;
 
     scene.add(new THREE.HemisphereLight(0xfff4ee, 0x2a0d0a, 1.25));
@@ -66,20 +67,38 @@ export default class MuscleStage {
       new THREE.MeshBasicMaterial({ map: floorTex, transparent: true, depthWrite: false }),
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0, -0.001, 0.6);
+    floor.position.set(0, -0.001, focus.z - 0.22);
     scene.add(floor);
+
+    // Benches and steps the movement uses: plain dark blocks.
+    this.props = (this.rig.props ?? []).map(p => {
+      const box = new THREE.Mesh(
+        new THREE.BoxGeometry(...p.size),
+        new THREE.MeshStandardMaterial({ color: 0x2b2524, roughness: 0.85, metalness: 0 }),
+      );
+      box.position.set(...p.center);
+      scene.add(box);
+      return box;
+    });
+
+    // Weights that move with the body (a barbell, dumbbells, a kettlebell).
+    this.gear = (this.rig.gearKinds ?? []).map(kind => {
+      const mesh = gearMesh(kind);
+      scene.add(mesh);
+      return mesh;
+    });
 
     // Trackball, not orbit: you can turn the body any way at all, over the
     // top and underneath as well as round the sides. "Reset view" puts it
     // back upright.
     const controls = new TrackballControls(camera, renderer.domElement);
-    controls.target.set(0, 0.28, 0.82);
+    controls.target.copy(focus);
     controls.rotateSpeed = 3;
     controls.zoomSpeed = 1;
     controls.noPan = true;
     controls.dynamicDampingFactor = 0.15;
     controls.minDistance = 1.2;
-    controls.maxDistance = 4.2;
+    controls.maxDistance = 5;
     controls.keys = []; // no A/S/D shortcuts: they'd fire while typing elsewhere
     // Trackball only moves the camera inside update(), so keep drawing while
     // a finger or mouse is down. "change" keeps it going while it glides.
@@ -97,7 +116,6 @@ export default class MuscleStage {
 
     this.uniforms = { efforts: { value: new Float32Array(MAX_SLOTS) } };
     this.material = muscleMaterial(this.uniforms);
-    this.rig = RIGS_3D[movement.rig](movement.rigOptions);
 
     this.resize = this.resize.bind(this);
     this.tick = this.tick.bind(this);
@@ -206,7 +224,7 @@ export default class MuscleStage {
     const mesh = new THREE.Mesh(geo, this.material);
     mesh.frustumCulled = false;
     this.scene.add(mesh);
-    return { rest: positions, restNormals, binding: bindVertices(positions, partIndex, parts), posAttr, normAttr, geo };
+    return { rest: positions, restNormals, binding: this.rig.bind(positions, partIndex, parts), posAttr, normAttr, geo };
   }
 
   /** Pose and colour the body for the current moment of the rep. */
@@ -214,13 +232,23 @@ export default class MuscleStage {
     if (!this.layers) return;
     const rep = this.manualDepth != null
       ? { depth: this.manualDepth, pressing: false, label: "Paused" }
-      : repAt(this.clock, this.movement.cycleMs);
-    const posed = this.rig.pose(rep.depth);
+      : repFor(this.movement, this.clock);
+    const posed = this.rig.pose(rep.depth, rep);
     for (const l of this.layers) {
-      skin(l.rest, l.restNormals, l.binding, posed, l.posAttr.array, l.normAttr.array);
+      this.rig.skin(l.rest, l.restNormals, l.binding, posed, l.posAttr.array, l.normAttr.array);
       l.posAttr.needsUpdate = true;
       l.normAttr.needsUpdate = true;
     }
+    (posed.gear ?? []).forEach((g, i) => {
+      const mesh = this.gear[i];
+      if (!mesh) return;
+      if (g.positions) {
+        mesh.children.forEach((c, k) => c.position.copy(g.positions[k]));
+      } else {
+        mesh.position.copy(g.position);
+        mesh.quaternion.copy(g.quaternion);
+      }
+    });
     const e = efforts(this.movement, rep);
     const arr = this.uniforms.efforts.value;
     this.movement.muscles.forEach((m, i) => {
@@ -253,7 +281,8 @@ export default class MuscleStage {
   tick(now) {
     this.frame = null;
     if (this.disposed) return;
-    const moving = this.playing && this.visible && this.layers;
+    // A hold is posed once, when it loads; nothing moves after that.
+    const moving = this.playing && this.visible && this.layers && this.movement.hold == null;
     if (moving) {
       if (this.last != null) this.clock += (now - this.last) * this.speed;
       this.last = now;
@@ -283,8 +312,13 @@ export default class MuscleStage {
   placeCamera(direction) {
     const w = this.container.clientWidth || 1;
     const h = this.container.clientHeight || 1;
-    const dist = 2.45 * Math.max(1, 1.75 / (w / h));
-    this.camera.position.copy(this.controls.target).add(direction.normalize().multiplyScalar(Math.min(dist, 4.1)));
+    // A taller pose (hands on a bench, hips up) needs a little more room.
+    const tall = Math.max(1, 0.6 + 0.6 * (this.rig.height ?? 0.64));
+    // Standing: fit the height. Lying: fit the length (about 1.8 m).
+    const dist = this.rig.upright
+      ? ((this.rig.height + 0.35) / (2 * Math.tan(Math.PI / 12))) * Math.max(1, 0.75 / (w / h))
+      : 2.45 * tall * Math.max(1, 1.75 / (w / h));
+    this.camera.position.copy(this.controls.target).add(direction.normalize().multiplyScalar(Math.min(dist, 4.8)));
   }
 
   /** Back to the starting view: upright, from the front and a little above. */
@@ -304,8 +338,59 @@ export default class MuscleStage {
     this.io.disconnect();
     this.controls.dispose();
     this.layers?.forEach(l => l.geo.dispose());
+    this.props.forEach(b => {
+      b.geometry.dispose();
+      b.material.dispose();
+    });
+    this.gear.forEach(g => g.traverse(o => {
+      o.geometry?.dispose();
+      o.material?.dispose();
+    }));
     this.material.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
+}
+
+// Plain dark metal shapes for the weights. A barbell and a dumbbell lie
+// along x (across the body); "dumbbells" is a pair, one in each hand.
+function gearMesh(kind) {
+  const metal = () => new THREE.MeshStandardMaterial({ color: 0x3a3534, roughness: 0.5, metalness: 0.6 });
+  const plate = () => new THREE.MeshStandardMaterial({ color: 0x1f1b1b, roughness: 0.7, metalness: 0.2 });
+  const along = (geo, x = 0) => {
+    const m = new THREE.Mesh(geo, metal());
+    m.rotation.z = Math.PI / 2;
+    m.position.x = x;
+    return m;
+  };
+  const dumbbell = () => {
+    const g = new THREE.Group();
+    g.add(along(new THREE.CylinderGeometry(0.015, 0.015, 0.16, 12)));
+    for (const x of [-0.095, 0.095]) {
+      const head = along(new THREE.CylinderGeometry(0.045, 0.045, 0.05, 16), x);
+      head.material = plate();
+      g.add(head);
+    }
+    return g;
+  };
+  const group = new THREE.Group();
+  if (kind === "barbell") {
+    group.add(along(new THREE.CylinderGeometry(0.014, 0.014, 2.0, 12)));
+    for (const x of [-0.8, 0.8]) {
+      const p = along(new THREE.CylinderGeometry(0.225, 0.225, 0.06, 32), x);
+      p.material = plate();
+      group.add(p);
+    }
+  } else if (kind === "dumbbell") {
+    group.add(dumbbell());
+  } else if (kind === "dumbbells") {
+    group.add(dumbbell(), dumbbell());
+  } else if (kind === "kettlebell") {
+    const bell = new THREE.Mesh(new THREE.SphereGeometry(0.075, 20, 14), plate());
+    bell.position.y = -0.06;
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.011, 8, 20), metal());
+    handle.position.y = 0.02;
+    group.add(bell, handle);
+  }
+  return group;
 }

@@ -1294,6 +1294,12 @@
   aspect-ratio: 210 / 79;
 }
 
+.lp-2d .lp-prop {
+  fill: #2a2423;
+  stroke: #4a3f3d;
+  stroke-width: 0.6;
+}
+
 .lp-2d .lp-base {
   fill: #3d3736;
   stroke: #1a1414;
@@ -1722,4 +1728,23 @@
   .lp-3d {
     margin-top: -28px;
   }
+}
+
+.lp-2d {
+  margin-inline: auto;
+}
+
+.lp-2d .lp-gear circle {
+  fill: rgba(30, 26, 26, 0.55);
+  stroke: #6a5f5c;
+  stroke-width: 0.6;
+}
+
+.lp-2d .lp-gear-barbell circle:first-child {
+  fill: rgba(30, 26, 26, 0.35);
+}
+
+.lp-2d .lp-gear .lp-gear-hub {
+  fill: #6a5f5c;
+  stroke: none;
 }

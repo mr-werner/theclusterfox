@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Eye, Megaphone, SkipForward, Timer } from "lucide-react";
+import { Check, Eye, Megaphone, SkipForward, Smartphone, Timer } from "lucide-react";
 
 import { ROUNDS, TEAM_NAMES, other } from "../model/game";
 import { buzz, unlockSound, tickSound } from "./sound";
@@ -55,7 +55,11 @@ function Turn({ game, room, nameOf }) {
   const t = room.turn;
   const me = room.me;
   const isHost = room.hostId === me.id;
-  const giving = t.giverId === me.id;
+  // "Giving" means this phone shows the words: the clue-giver's own phone
+  // before the turn, then whichever phone they picked up.
+  const giving = t.status === "ready" ? t.giverId === me.id : t.phoneId === me.id;
+  const giverPlayer = room.players.find((p) => p.id === t.giverId);
+  const borrowed = giving && t.giverId !== me.id;
   const myTeamUp = me.team === t.team;
   const giverName = nameOf(t.giverId);
   const teamName = TEAM_NAMES[t.team];
@@ -75,6 +79,12 @@ function Turn({ game, room, nameOf }) {
     }
     lastSecs.current = secs;
   }, [secs, t.status, giving]);
+
+  function borrow(player) {
+    if (window.confirm(`Hand this phone to ${player.name}? Their turn starts now and the word shows on this screen.`)) {
+      send({ type: "startTurn", as: player.id });
+    }
+  }
 
   async function send(action) {
     if (pending) return;
@@ -97,8 +107,24 @@ function Turn({ game, room, nameOf }) {
           </>
         ) : (
           <>
-            <h2>{giverName ? `${giverName} gives clues` : "Waiting for a clue-giver"}</h2>
-            <p className="fb-muted">{myTeamUp ? "Get ready to guess!" : `Your team watches. If ${teamName} runs out of time mid-word, you get a chance to steal it.`}</p>
+            <h2>{giverPlayer ? `${giverName} gives clues` : "Waiting for a clue-giver"}</h2>
+            {giverPlayer?.guest ? (
+              <>
+                <p>
+                  {giverName} doesn't have a phone. {giverName}, pick up any phone and tap below. The word will show on that screen.
+                </p>
+                <button className="fb-btn fb-btn--big fb-btn--go" disabled={pending} onClick={() => borrow(giverPlayer)}>
+                  <Smartphone size={22} /> I'm {giverName}, use this phone
+                </button>
+              </>
+            ) : (
+              <p className="fb-muted">{myTeamUp ? "Get ready to guess!" : `Your team watches. If ${teamName} runs out of time mid-word, you get a chance to steal it.`}</p>
+            )}
+            {giverPlayer && !giverPlayer.guest && (
+              <button className="fb-link" onClick={() => borrow(giverPlayer)}>
+                {giverName} is using this phone instead
+              </button>
+            )}
             {isHost && (
               <div className="fb-host-row">
                 <button className="fb-link" onClick={() => send({ type: "passGiver" })}>
@@ -124,7 +150,8 @@ function Turn({ game, room, nameOf }) {
           <Timer size={20} /> {secs}s
         </div>
         <span className="fb-label">
-          {giverName} · {teamName} · {t.got} so far
+          {giverName}
+          {borrowed ? " on this phone" : ""} · {teamName} · {t.got} so far
         </span>
         {giving ? (
           <>
@@ -143,8 +170,8 @@ function Turn({ game, room, nameOf }) {
                 <SkipForward size={20} /> Skip{room.settings.skipsPerTurn ? ` (${Math.max(0, skipsLeft)} left)` : ""}
               </button>
             </div>
-            <button className="fb-link" onClick={() => window.confirm("End your turn now? The word goes back in the bowl.") && send({ type: "stop" })}>
-              End my turn early
+            <button className="fb-link" onClick={() => window.confirm("End this turn now? The word goes back in the bowl.") && send({ type: "stop" })}>
+              End {borrowed ? "the" : "my"} turn early
             </button>
           </>
         ) : myTeamUp ? (
@@ -155,11 +182,11 @@ function Turn({ game, room, nameOf }) {
           </div>
         ) : (
           <div className="fb-watch">
-            <span className="fb-label">
-              <Eye size={14} /> The word is
-            </span>
-            <div className="fb-word fb-word--small">{t.word?.text ?? "…"}</div>
-            <p className="fb-muted">Keep it quiet! You're watching {teamName}. If time runs out on this word, {otherName === TEAM_NAMES[me.team] ? "you" : otherName} can steal it.</p>
+            <Eye size={36} />
+            <h2>{teamName} is guessing</h2>
+            <p className="fb-muted">
+              Watch the clues. If time runs out on a word, {otherName === TEAM_NAMES[me.team] ? "your team" : otherName} may get one guess to steal it.
+            </p>
           </div>
         )}
         {isHost && !giving && (
@@ -171,30 +198,33 @@ function Turn({ game, room, nameOf }) {
     );
   }
 
-  // Steal.
+  // Time ran out on a word: the clue-giver says what happened.
   const stealer = other(t.team);
   const stealing = me.team === stealer;
   const canMark = giving || isHost;
   return (
     <div className={`fb-card fb-turn fb-turn--${stealer} is-steal`}>
       <span className="fb-label">Time's up!</span>
-      <h2>{stealing ? "Steal it! One guess for a point." : `${TEAM_NAMES[stealer]} can steal it`}</h2>
+      <h2>{stealing ? "Steal it! One guess for a point." : `${TEAM_NAMES[stealer]} gets one guess to steal it`}</h2>
       {t.word && <div className="fb-word fb-word--small">{t.word.text}</div>}
       {stealing && !canMark && <p>Talk it over and give {giverName} one answer.</p>}
       {canMark ? (
         <>
-          <p className="fb-muted">Did {TEAM_NAMES[stealer]} guess it?</p>
+          <p className="fb-muted">{giving ? "What happened with this word?" : `What happened with ${giverName}'s last word?`}</p>
           <div className="fb-actions">
-            <button className={`fb-btn fb-btn--big fb-btn--${stealer}`} disabled={pending} onClick={() => send({ type: "steal", stolen: true })}>
-              Yes, {TEAM_NAMES[stealer]} stole it (+1)
+            <button className={`fb-btn fb-btn--big fb-btn--${t.team}`} disabled={pending} onClick={() => send({ type: "steal", result: "got" })}>
+              <Check size={22} /> Got it: +1 {teamName}
             </button>
-            <button className="fb-btn fb-btn--ghost" disabled={pending} onClick={() => send({ type: "steal", stolen: false })}>
-              No steal, it goes back in the bowl
+            <button className={`fb-btn fb-btn--big fb-btn--${stealer}`} disabled={pending} onClick={() => send({ type: "steal", result: "stolen" })}>
+              Stolen: +1 {TEAM_NAMES[stealer]}
+            </button>
+            <button className="fb-btn fb-btn--ghost" disabled={pending} onClick={() => send({ type: "steal", result: "back" })}>
+              Back in the bowl, no point
             </button>
           </div>
         </>
       ) : (
-        !stealing && <p className="fb-muted">{giverName} will mark whether they got it.</p>
+        !stealing && <p className="fb-muted">{giverName} will mark what happened.</p>
       )}
     </div>
   );

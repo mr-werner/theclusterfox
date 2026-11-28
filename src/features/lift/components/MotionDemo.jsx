@@ -1,16 +1,17 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { Box, Pause, Play, Square } from "lucide-react";
 
+import BodyDemo2D from "./BodyDemo2D";
 import PushupDemo2D from "./PushupDemo2D";
-import { effortCss, efforts as effortsAt, repAt } from "../data/activation";
+import { effortCss, efforts as effortsAt, repFor } from "../data/activation";
 
 // three.js only loads when someone opens the 3D view.
 const PushupDemo3D = lazy(() => import("./PushupDemo3D"));
 
 // The 2D drawing for each rig, and which rigs have a 3D pose yet (keep in
 // step with anatomy3d/rigs.js, which is left out here so three.js stays lazy).
-const VIEWS_2D = { pushup: PushupDemo2D };
-const HAS_3D = new Set(["pushup"]);
+const VIEWS_2D = { pushup: PushupDemo2D, body: BodyDemo2D };
+const HAS_3D = new Set(["pushup", "body"]);
 
 const VIEW_KEY = "liftfox-demo-view";
 const readView = () => {
@@ -65,7 +66,7 @@ export default function MotionDemo({ movement, exerciseName }) {
   const on3dFrame = useCallback((rep, efforts) => setLive3d({ rep, efforts }), []);
   const on3dFail = useCallback(() => setView("2d"), []);
 
-  const rep2d = repAt(ms, movement.cycleMs);
+  const rep2d = repFor(movement, ms);
   const { rep, efforts } = view === "3d" && live3d ? live3d : { rep: rep2d, efforts: effortsAt(movement, rep2d) };
   const ranked = [...movement.muscles].sort((a, b) => b.peak - a.peak);
 
@@ -82,18 +83,18 @@ export default function MotionDemo({ movement, exerciseName }) {
             </button>
           </div>}
           <span className={`lp-phase ${rep.pressing ? "is-press" : ""}`} aria-live="off">{rep.label}</span>
-          <div className="lp-play">
+          {movement.hold == null && <div className="lp-play">
             <button type="button" className="lp-iconbtn" onClick={() => setPlaying(p => !p)} aria-label={playing ? "Pause" : "Play"}>
               {playing ? <Pause size={16} /> : <Play size={16} />}
             </button>
             <button type="button" className="lp-speed" onClick={() => setSpeed(s => (s === 1 ? 0.5 : 1))} aria-label="Change speed">
               {speed === 1 ? "1×" : "½×"}
             </button>
-          </div>
+          </div>}
         </div>
 
         {view === "2d" ? (
-          <Demo2D depth={rep.depth} efforts={efforts} onPick={setPicked} options={movement.rigOptions} />
+          <Demo2D depth={rep.depth} rep={rep} efforts={efforts} onPick={setPicked} options={movement.rigOptions} label={`a ${exerciseName.toLowerCase()}`} />
         ) : (
           <Suspense fallback={<div className="lp-3d"><p className="lp-3d-status">Loading the 3D body…</p></div>}>
             <PushupDemo3D movement={movement} playing={playing} speed={speed} onFrame={on3dFrame} onFail={on3dFail} />

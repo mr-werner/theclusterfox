@@ -307,11 +307,21 @@ export function act(state, playerId, action, { now, rand = Math.random } = {}) {
     }
 
     case "steal": {
+      // Time ran out on a word. The clue-giver picks what happened: their
+      // team got it at the buzzer, the other team stole it, or it goes back
+      // in the bowl. (Older phones send { stolen: true/false }.)
       const t = s.turn;
       if (s.phase !== "play" || !t || t.status !== "steal") fail("There's nothing to steal right now.");
       if (phoneOf(t) !== playerId && !host) fail("The clue-giver marks the steal.");
       const word = t.word;
-      if (action.stolen) {
+      const result = ["got", "stolen", "back"].includes(action.result) ? action.result : action.stolen ? "stolen" : "back";
+      if (result === "got") {
+        point(s, t.team);
+        t.got.push(word);
+        takeFromPool(s, word);
+        t.word = null;
+        finishTurn(s, null);
+      } else if (result === "stolen") {
         point(s, other(t.team));
         takeFromPool(s, word);
         finishTurn(s, word);
@@ -432,9 +442,8 @@ function names(list) {
 }
 
 /**
- * What one phone gets to see. Nobody sees the words still in the bowl. The
- * word being clued shows to the clue-giver and the team watching; during a
- * steal it hides from the team trying to steal it.
+ * What one phone gets to see. Nobody sees the words still in the bowl, and
+ * the word being clued shows only on the clue-giver's phone.
  */
 export function view(s, playerId, now) {
   const me = findPlayer(s, playerId) || null;
@@ -443,11 +452,8 @@ export function view(s, playerId, now) {
   if (t) {
     let word = null;
     if (t.word != null) {
-      const giver = phoneOf(t) === playerId;
-      const myTeam = me?.team;
-      const canSee =
-        t.status === "running" ? giver || myTeam !== t.team : t.status === "steal" ? giver || myTeam === t.team || !myTeam : false;
-      if (canSee) word = { id: t.word, text: s.bowl[t.word].text };
+      // Only the phone the clue-giver is holding ever shows the word.
+      if (phoneOf(t) === playerId) word = { id: t.word, text: s.bowl[t.word].text };
     }
     turn = {
       team: t.team,

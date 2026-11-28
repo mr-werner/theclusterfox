@@ -59,7 +59,7 @@ while (s.phase !== "done" && guard++ < 200) {
   s = play(s, giver, { type: "startTurn" });
   // Who sees the word while it's being clued.
   assert.equal(view(s, giver, now).turn.word.text, word(s));
-  assert.equal(view(s, opp, now).turn.word.text, word(s));
+  assert.equal(view(s, opp, now).turn.word, null, "only the clue-giver's phone shows it");
   if (mate) assert.equal(view(s, mate, now).turn.word, null, "guessers can't see it");
   assert.equal(JSON.stringify(view(s, mate ?? opp, now)).includes('"pool"'), false);
 
@@ -78,12 +78,18 @@ while (s.phase !== "done" && guard++ < 200) {
   assert.equal(tick(s, now), true);
   assert.equal(s.turn.status, "steal");
   assert.equal(view(s, opp, now).turn.word, null, "stealers can't see it");
-  const stolen = guard % 2 === 0;
-  const oppBefore = s.scores[team === "red" ? "blue" : "red"];
+  assert.equal(view(s, mate ?? opp, now).turn.word, null, "nor can the clue-giver's team");
+  const result = ["got", "stolen", "back"][guard % 3];
+  const oppTeam = team === "red" ? "blue" : "red";
+  const was = { ...s.scores };
   const left = s.pool.length;
-  s = play(s, giver, { type: "steal", stolen });
-  assert.equal(s.scores[team === "red" ? "blue" : "red"], oppBefore + (stolen ? 1 : 0));
-  assert.equal(s.pool.length, left - (stolen ? 1 : 0));
+  // Older phones still send { stolen }, newer ones { result }.
+  s = play(s, giver, guard % 2 ? { type: "steal", result } : { type: "steal", ...(result === "got" ? { result } : { stolen: result === "stolen" }) });
+  assert.equal(s.scores[oppTeam], was[oppTeam] + (result === "stolen" ? 1 : 0));
+  assert.equal(s.scores[team], was[team] + (result === "got" ? 1 : 0));
+  assert.equal(s.pool.length, left - (result === "back" ? 0 : 1));
+  if (result === "got") assert.equal(s.lastTurn.got.length, 2);
+  if (result === "back") assert.ok(s.lastTurn.missed);
   if (s.phase === "play") assert.equal(s.turn.team, team === "red" ? "blue" : "red", "teams alternate");
   now += 5000;
 }

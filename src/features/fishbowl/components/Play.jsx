@@ -182,11 +182,11 @@ function Turn({ game, room, nameOf }) {
           </div>
         ) : (
           <div className="fb-watch">
-            <span className="fb-label">
-              <Eye size={14} /> The word is
-            </span>
-            <div className="fb-word fb-word--small">{t.word?.text ?? "…"}</div>
-            <p className="fb-muted">Keep it quiet! You're watching {teamName}. If time runs out on this word, {otherName === TEAM_NAMES[me.team] ? "you" : otherName} can steal it.</p>
+            <Eye size={36} />
+            <h2>{teamName} is guessing</h2>
+            <p className="fb-muted">
+              Watch the clues. If time runs out on a word, {otherName === TEAM_NAMES[me.team] ? "your team" : otherName} may get one guess to steal it.
+            </p>
           </div>
         )}
         {isHost && !giving && (
@@ -198,30 +198,33 @@ function Turn({ game, room, nameOf }) {
     );
   }
 
-  // Steal.
+  // Time ran out on a word: the clue-giver says what happened.
   const stealer = other(t.team);
   const stealing = me.team === stealer;
   const canMark = giving || isHost;
   return (
     <div className={`fb-card fb-turn fb-turn--${stealer} is-steal`}>
       <span className="fb-label">Time's up!</span>
-      <h2>{stealing ? "Steal it! One guess for a point." : `${TEAM_NAMES[stealer]} can steal it`}</h2>
+      <h2>{stealing ? "Steal it! One guess for a point." : `${TEAM_NAMES[stealer]} gets one guess to steal it`}</h2>
       {t.word && <div className="fb-word fb-word--small">{t.word.text}</div>}
       {stealing && !canMark && <p>Talk it over and give {giverName} one answer.</p>}
       {canMark ? (
         <>
-          <p className="fb-muted">Did {TEAM_NAMES[stealer]} guess it?</p>
+          <p className="fb-muted">{giving ? "What happened with this word?" : `What happened with ${giverName}'s last word?`}</p>
           <div className="fb-actions">
-            <button className={`fb-btn fb-btn--big fb-btn--${stealer}`} disabled={pending} onClick={() => send({ type: "steal", stolen: true })}>
-              Yes, {TEAM_NAMES[stealer]} stole it (+1)
+            <button className={`fb-btn fb-btn--big fb-btn--${t.team}`} disabled={pending} onClick={() => send({ type: "steal", result: "got" })}>
+              <Check size={22} /> Got it: +1 {teamName}
             </button>
-            <button className="fb-btn fb-btn--ghost" disabled={pending} onClick={() => send({ type: "steal", stolen: false })}>
-              No steal, it goes back in the bowl
+            <button className={`fb-btn fb-btn--big fb-btn--${stealer}`} disabled={pending} onClick={() => send({ type: "steal", result: "stolen" })}>
+              Stolen: +1 {TEAM_NAMES[stealer]}
+            </button>
+            <button className="fb-btn fb-btn--ghost" disabled={pending} onClick={() => send({ type: "steal", result: "back" })}>
+              Back in the bowl, no point
             </button>
           </div>
         </>
       ) : (
-        !stealing && <p className="fb-muted">{giverName} will mark whether they got it.</p>
+        !stealing && <p className="fb-muted">{giverName} will mark what happened.</p>
       )}
     </div>
   );

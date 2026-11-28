@@ -130,9 +130,13 @@ export function useViewer(code) {
       } catch (e) {
         if (stopped) return;
         if (e.status === 404) {
+          // Turned off (or never started). Keep checking: it picks up again
+          // by itself when the monitor starts with the same code.
           closePc();
+          setMonitor(null);
+          setLost(false);
           setState("missing");
-          setError(e.message);
+          setError(l.everLive ? "The monitor phone was turned off. This screen reconnects when it starts again." : e.message);
         } else if (e.status === 400) {
           setState("missing");
           setError(e.message);
